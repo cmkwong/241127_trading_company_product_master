@@ -34,7 +34,10 @@
 }
 
 .buttonContainer {
+  /* making position absolue to search box */
   position: absolute;
-  top: auto;
   right: -100px;
+  /* Making the verticle center */
+  top: 50%;
+  transform: translateY(-50%);
 }

@@ -1,0 +1,22 @@
+.button {
+  display: flex;
+  justify-content: center;
+  border: 1px solid #000;
+  border-radius: 9px;
+  padding: 5px 18px;
+  background-color: #fff;
+  font-family: 'Inter';
+  font-weight: 500;
+  /* width: 77px;
+  height: 24px; */
+}
+
+.button:hover {
+  background-color: #333;
+  color: #fff8f8;
+  cursor: pointer;
+}
+
+.button p {
+  font-weight: 500;
+}

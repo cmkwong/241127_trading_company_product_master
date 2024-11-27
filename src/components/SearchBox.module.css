@@ -1,0 +1,40 @@
+.searchWidgets {
+  position: relative;
+}
+
+.searchbox {
+  width: 347px;
+  height: 33px;
+  position: absolute;
+  border: 1px solid #000;
+  border-radius: 15px;
+  /* overflow: hidden; */
+  top: 40px;
+  display: flex;
+  justify-content: center;
+  background-color: #fff8f8;
+}
+
+.searchbox input {
+  width: 90%;
+  height: 100%;
+  padding: 5px;
+  border: 0px;
+  background-color: #fff8f8;
+}
+
+.searchbox input:focus {
+  outline: none;
+}
+
+.searchbox img {
+  position: absolute;
+  top: 6px;
+  right: 5px;
+}
+
+.buttonContainer {
+  position: absolute;
+  top: auto;
+  right: -100px;
+}

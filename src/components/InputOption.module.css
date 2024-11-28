@@ -1,8 +1,8 @@
-/* .inputSelection {
+/* .inputOption {
   position: relative;
 } */
 
-.textContainer {
+.inputContainer {
   height: 28px;
   border-radius: 9px;
   /* overflow: hidden; */
@@ -11,22 +11,22 @@
   background-color: #fff8f8;
 }
 
-.textContainer:focus-within {
+.inputContainer:focus-within {
   border: 1px solid #e08a8a;
 }
 
-.textContainer input {
+.inputContainer .inputField {
   width: 90%;
   border: 0px;
   padding: 5px 0px;
   background-color: #fff8f8;
 }
 
-.textContainer input:focus {
+.inputContainer .inputField:focus {
   outline: none;
 }
 
-.selection {
+.optionList {
   position: absolute;
   height: 200px;
   top: 28px;
@@ -37,4 +37,5 @@
   /* display the options */
   display: flex;
   flex-direction: column;
+  overflow-y: scroll;
 }

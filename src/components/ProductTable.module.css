@@ -13,7 +13,7 @@ tr:first-child {
   border-bottom: 1px solid #555;
 }
 
-.container table {
+.container tbody {
   margin: auto;
 }
 
@@ -24,4 +24,9 @@ tr:first-child {
 /* only this column need to set 350px */
 .container .productName {
   width: 350px;
+}
+
+.container .tagging {
+  padding-top: 10px;
+  vertical-align: top;
 }

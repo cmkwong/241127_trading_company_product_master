@@ -11,7 +11,6 @@ function App() {
     <Background>
       <SearchBox></SearchBox>
       <ProductTable></ProductTable>
-      <OptionRow id={1} label={'hello'} />
     </Background>
   );
 }

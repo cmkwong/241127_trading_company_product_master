@@ -1,0 +1,11 @@
+.container {
+  /* layout */
+  height: 15px;
+  padding: 0px 5px 0px 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  /* style */
+  border-radius: 20px;
+  background-color: #ffcaca;
+}

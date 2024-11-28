@@ -1,12 +1,25 @@
 import styles from './TagPlate.module.css';
 import close_icon from '../assets/close.svg';
+import { useState } from 'react';
 
 const TagPlate = (props) => {
-  let { label } = props;
+  let { id, label, updateOptionData } = props;
+
+  const [hover, setHover] = useState(false);
+
   return (
-    <div className={styles['container']}>
-      <h4>{label}</h4>
-      <img src="close_icon" alt="X" />
+    <div className={styles.tagBlock}>
+      <div key={id} className={styles.container}>
+        <p className={styles.label}>{label}</p>
+        <img
+          className={`${styles.img} ${hover ? styles.hover : ''}`}
+          onClick={() => updateOptionData(parseInt(id), false)}
+          onMouseOver={() => setHover(true)}
+          onMouseLeave={() => setHover(false)}
+          src={close_icon}
+          alt="X"
+        />
+      </div>
     </div>
   );
 };

@@ -1,11 +1,26 @@
+.tagBlock {
+  display: inline-block;
+}
+
 .container {
   /* layout */
-  height: 15px;
+  height: 20px;
   padding: 0px 5px 0px 8px;
   display: flex;
-  justify-content: space-between;
+  /* justify-content: space-between; */
   align-items: center;
   /* style */
+  margin: 3px;
   border-radius: 20px;
   background-color: #ffcaca;
+  font-size: 12px;
+  font-weight: 300;
+  cursor: pointer;
+}
+
+.img {
+}
+
+.hover {
+  transform: scale(1.5);
 }

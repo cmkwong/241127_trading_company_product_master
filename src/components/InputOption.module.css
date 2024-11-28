@@ -37,5 +37,10 @@
   /* display the options */
   display: flex;
   flex-direction: column;
-  overflow-y: scroll;
+  overflow: auto;
+}
+
+.tagContainer {
+  height: 120px;
+  overflow-y: auto;
 }

@@ -1,0 +1,27 @@
+.container {
+  padding: 10px 0px;
+  width: 100%;
+  height: 100vh;
+  text-align: center;
+}
+
+.container .header th {
+  padding-bottom: 15px;
+}
+
+tr:first-child {
+  border-bottom: 1px solid #555;
+}
+
+.container table {
+  margin: auto;
+}
+
+.container th,
+.container td {
+  width: 200px;
+}
+/* only this column need to set 350px */
+.container .productName {
+  width: 350px;
+}

@@ -8,7 +8,7 @@ const SearchBox = () => {
       <div className={styles['searchbox']}>
         <input type="text" />
         <img src={search_icon} alt="Search Icon" />
-        <div className={styles['buttonContainer']}>
+        <div className={styles['saveButton']}>
           <Button text={'Save'} />
         </div>
       </div>

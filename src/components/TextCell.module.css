@@ -1,0 +1,14 @@
+.ta {
+  width: 100%;
+  height: 159px;
+  resize: none;
+  /* border: none; */
+  border-radius: 9px;
+  padding: 5px;
+  background-color: #fff8f8;
+}
+
+.ta:focus {
+  outline: none;
+  border: 1px solid #e08a8a;
+}

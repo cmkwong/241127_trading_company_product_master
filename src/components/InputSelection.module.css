@@ -1,0 +1,40 @@
+/* .inputSelection {
+  position: relative;
+} */
+
+.textContainer {
+  height: 28px;
+  border-radius: 9px;
+  /* overflow: hidden; */
+  border: 1px solid #000000;
+  position: relative;
+  background-color: #fff8f8;
+}
+
+.textContainer:focus-within {
+  border: 1px solid #e08a8a;
+}
+
+.textContainer input {
+  width: 90%;
+  border: 0px;
+  padding: 5px 0px;
+  background-color: #fff8f8;
+}
+
+.textContainer input:focus {
+  outline: none;
+}
+
+.selection {
+  position: absolute;
+  height: 200px;
+  top: 28px;
+  left: 0px;
+  border-radius: 5px;
+  background-color: #fff8f8;
+  border: 1px solid #000;
+  /* display the options */
+  display: flex;
+  flex-direction: column;
+}

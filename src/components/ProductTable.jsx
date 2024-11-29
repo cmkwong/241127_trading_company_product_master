@@ -1,4 +1,5 @@
 import InputOption from './InputOption';
+import MediaPreview from './MediaPreview';
 import styles from './ProductTable.module.css';
 import TextCell from './TextCell';
 
@@ -16,6 +17,7 @@ const ProductTable = () => {
             <th>Images</th>
             <th>Videos</th>
             <th>Description</th>
+            <th>Varients</th>
             <th>Suppliers</th>
           </tr>
           <tr>
@@ -34,7 +36,12 @@ const ProductTable = () => {
             <td className={styles['tagging']}>
               <InputOption />
             </td>
-            <td>Male</td>
+            <td>
+              <MediaPreview media="image" />
+            </td>
+            <td>
+              <MediaPreview media="video" />
+            </td>
             <td>Male</td>
             <td>Male</td>
             <td>Male</td>
@@ -49,10 +56,12 @@ const ProductTable = () => {
             <td>Female</td>
             <td>Female</td>
             <td>Female</td>
+            <td>Female</td>
           </tr>
           <tr>
             <td>Subham</td>
             <td>25</td>
+            <td>Male</td>
             <td>Male</td>
             <td>Male</td>
             <td>Male</td>

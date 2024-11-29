@@ -13,16 +13,23 @@ tr:first-child {
   border-bottom: 1px solid #555;
 }
 
+.container table {
+  table-layout: fixed;
+}
+
 .container tbody {
+  table-layout: fixed;
   margin: auto;
 }
 
 .container th,
 .container td {
+  table-layout: fixed;
   width: 200px;
 }
 /* only this column need to set 350px */
 .container .productName {
+  table-layout: fixed;
   width: 350px;
 }
 

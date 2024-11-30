@@ -31,6 +31,7 @@
   height: 200px;
   top: 28px;
   left: 0px;
+  z-index: 100;
   border-radius: 5px;
   background-color: #fff8f8;
   border: 1px solid #000;
@@ -41,6 +42,6 @@
 }
 
 .tagContainer {
-  height: 120px;
+  height: auto;
   overflow-y: auto;
 }

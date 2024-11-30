@@ -2,6 +2,7 @@ import InputOption from './InputOption';
 import MediaPreview from './MediaPreview';
 import styles from './ProductTable.module.css';
 import TextCell from './TextCell';
+import Varients from './Varients';
 
 const ProductTable = () => {
   return (
@@ -43,7 +44,9 @@ const ProductTable = () => {
               <MediaPreview media="video" />
             </td>
             <td>Male</td>
-            <td>Male</td>
+            <td>
+              <Varients></Varients>
+            </td>
             <td>Male</td>
           </tr>
           <tr>

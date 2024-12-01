@@ -6,7 +6,7 @@ import InputOption from './InputOption';
 
 import { makeComplexId } from '../utils/string';
 
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 
 const Varient = (props) => {
   let { id, removeStack } = props;
@@ -18,7 +18,7 @@ const Varient = (props) => {
         <input className={styles.inputvarient} />
         <InputOption />
       </div>
-      <div id={id} onClick={(event) => removeStack('ghjk')}>
+      <div onClick={() => removeStack(id)}>
         <img className={styles.close} src={close_icon} alt="X" />
       </div>
     </div>
@@ -29,29 +29,19 @@ const Varients = () => {
   const [varientStack, setVarientStack] = useState([]);
 
   const handleAddClick = () => {
-    let key = makeComplexId(8);
-    setVarientStack((prv) => {
-      return [...prv, <Varient key={key} id={key} removeStack={removeStack} />];
-    });
+    const key = makeComplexId(8);
+    setVarientStack((prv) => [...prv, key]);
   };
 
   const removeStack = (key) => {
-    console.log(key);
-    console.log(varientStack.filter((el) => el.key !== key));
-    console.log(
-      varientStack.map((el) => {
-        console.log('Is Same? ', el.key, key);
-        if (el.key !== key) {
-          return el;
-        }
-      })
-    );
-    // setVarientStack(varientStack.filter((el) => el.key !== key));
+    setVarientStack(varientStack.filter((el) => el !== key));
   };
 
   return (
     <div className={styles.container}>
-      {varientStack}
+      {varientStack.map((el) => {
+        return <Varient key={el} id={el} removeStack={removeStack} />;
+      })}
       <div className={styles.addVarient} onClick={handleAddClick}>
         <img src={add_icon} alt="add" />
         <p>Add another option</p>

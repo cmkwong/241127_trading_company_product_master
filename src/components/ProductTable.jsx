@@ -1,5 +1,6 @@
 import InputOption from './InputOption';
 import MediaPreview from './MediaPreview';
+import PricePreview from './PricePreview';
 import styles from './ProductTable.module.css';
 import TextCell from './TextCell';
 import Varients from './Varients';
@@ -19,7 +20,7 @@ const ProductTable = () => {
             <th>Videos</th>
             <th>Description</th>
             <th>Varients</th>
-            <th>Suppliers</th>
+            <th>Prices</th>
           </tr>
           <tr>
             <td>
@@ -47,7 +48,9 @@ const ProductTable = () => {
             <td>
               <Varients></Varients>
             </td>
-            <td>Male</td>
+            <td>
+              <PricePreview />
+            </td>
           </tr>
           <tr>
             <td>Megha</td>

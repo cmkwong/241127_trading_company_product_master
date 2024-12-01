@@ -1,6 +1,7 @@
 import Background from './components/Background';
 import MediaUpload from './components/MediaUpload';
 import OptionRow from './components/OptionRow';
+import PricePreview from './components/PricePreview';
 import ProductTable from './components/ProductTable';
 import SearchBox from './components/SearchBox';
 
@@ -10,8 +11,8 @@ import SearchBox from './components/SearchBox';
 function App() {
   return (
     <Background>
-      <SearchBox></SearchBox>
-      <ProductTable></ProductTable>
+      <SearchBox />
+      <ProductTable />
     </Background>
   );
 }

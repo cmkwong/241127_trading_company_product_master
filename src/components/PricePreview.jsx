@@ -3,6 +3,7 @@ import { useState } from 'react';
 import styles from './PricePreview.module.css';
 
 import { makeComplexId } from '../utils/string';
+import PriceUpdate from './PriceUpdate';
 
 const PricePreviewRow = (props) => {
   let { data } = props;
@@ -89,20 +90,29 @@ const PricePreview = () => {
     },
   ];
 
+  const [popWindow, setPopWindow] = useState(false);
   const [varientData, setVarientData] = useState(datas);
 
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <p></p>
-        <p>Varient</p>
-        <p>Price</p>
-        <p>Supplier</p>
+    <div>
+      <div className={styles.container}>
+        <div className={styles.header}>
+          <p></p>
+          <p>Varient</p>
+          <p>Price</p>
+          <p>Supplier</p>
+        </div>
+        {varientData.map((data) => (
+          <PricePreviewRow key={makeComplexId(8)} data={data} />
+        ))}
+        <img
+          onClick={() => setPopWindow(true)}
+          className={styles.zoom}
+          src={zoomIcon}
+          alt="Zoom"
+        />
       </div>
-      {varientData.map((data) => (
-        <PricePreviewRow key={makeComplexId(8)} data={data} />
-      ))}
-      <img className={styles.zoom} src={zoomIcon} alt="Zoom" />
+      {popWindow && <PriceUpdate datas={datas} setPopWindow={setPopWindow} />}
     </div>
   );
 };

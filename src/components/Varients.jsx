@@ -6,7 +6,7 @@ import InputOption from './InputOption';
 
 import { makeComplexId } from '../utils/string';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 const Varient = (props) => {
   let { id, removeStack } = props;
@@ -26,7 +26,20 @@ const Varient = (props) => {
 };
 
 const Varients = () => {
+  // storing the varient key
   const [varientStack, setVarientStack] = useState([]);
+
+  // hide the add new varient option
+  const [showAdd, setShowAdd] = useState(true);
+
+  // check the max length, if reach max, then hide the add button
+  useEffect(() => {
+    if (varientStack.length >= 3) {
+      setShowAdd(false);
+    } else {
+      setShowAdd(true);
+    }
+  }, [varientStack]);
 
   const handleAddClick = () => {
     const key = makeComplexId(8);
@@ -42,10 +55,12 @@ const Varients = () => {
       {varientStack.map((el) => {
         return <Varient key={el} id={el} removeStack={removeStack} />;
       })}
-      <div className={styles.addVarient} onClick={handleAddClick}>
-        <img src={add_icon} alt="add" />
-        <p>Add another option</p>
-      </div>
+      {showAdd && (
+        <div className={styles.addVarient} onClick={handleAddClick}>
+          <img src={add_icon} alt="add" />
+          <p>Add another option</p>
+        </div>
+      )}
     </div>
   );
 };

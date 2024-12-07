@@ -25,6 +25,7 @@ tr:first-child {
 .container th,
 .container td {
   table-layout: fixed;
+  align-items: start;
   width: 200px;
 }
 /* only this column need to set 350px */

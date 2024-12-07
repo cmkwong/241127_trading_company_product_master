@@ -24,13 +24,13 @@ const ProductTable = () => {
           </tr>
           <tr>
             <td>
-              <TextCell></TextCell>
+              <TextCell />
             </td>
             <td>
-              <TextCell></TextCell>
+              <TextCell />
             </td>
             <td>
-              <TextCell></TextCell>
+              <TextCell />
             </td>
             <td className={styles['tagging']}>
               <InputOption />
@@ -44,7 +44,9 @@ const ProductTable = () => {
             <td>
               <MediaPreview media="video" />
             </td>
-            <td>Male</td>
+            <td>
+              <MediaPreview media="description" />
+            </td>
             <td>
               <Varients></Varients>
             </td>

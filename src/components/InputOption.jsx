@@ -63,7 +63,6 @@ const InputOption = () => {
     );
   };
   // add the value into option
-  // TODO: to avoid the duplicate tag //
   const handleEnterPress = (value) => {
     if (!value) return;
     // hide the option choice
@@ -82,7 +81,6 @@ const InputOption = () => {
       });
       return;
     }
-
     // add data into option
     addOptionData(value);
   };
@@ -98,21 +96,6 @@ const InputOption = () => {
       ...options,
     ]);
   };
-
-  // sorting the option in a list
-  // const filterOptions = (value) => {
-  //   if (!value) return;
-  //   setOptions(
-  //     options.map((el) => {
-  //       if (el.label.includes(value)) {
-  //         el.show = true;
-  //       } else {
-  //         el.show = false;
-  //       }
-  //       return el;
-  //     })
-  //   );
-  // };
 
   return (
     <div className={styles['inputOption']}>

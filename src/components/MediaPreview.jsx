@@ -1,6 +1,7 @@
 import styles from './MediaPreview.module.css';
 import image_icon from '../assets/blankImage.svg';
 import video_icon from '../assets/blankVideo.svg';
+import description_icon from '../assets/blankDescription.svg';
 import { useState } from 'react';
 import MediaUpdate from './MediaUpdate';
 
@@ -12,8 +13,10 @@ const MediaPreview = (props) => {
   let icon_path;
   if (media === 'image') {
     icon_path = image_icon;
-  } else {
+  } else if (media === 'video') {
     icon_path = video_icon;
+  } else {
+    icon_path = description_icon;
   }
 
   return (

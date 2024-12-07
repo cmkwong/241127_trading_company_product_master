@@ -1,8 +1,8 @@
 .ta {
   width: 100%;
-  height: 159px;
+  height: 100%;
   resize: none;
-  /* border: none; */
+  border: none;
   border-radius: 9px;
   padding: 5px;
   background-color: #fff8f8;

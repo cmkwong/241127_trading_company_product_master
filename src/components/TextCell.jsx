@@ -5,9 +5,9 @@ const TextCell = (props) => {
   let cols = props.cols ? props.cols : 40;
   let rows = props.rows ? props.rows : 5;
   return (
-    <div>
+    <div className={styles.container}>
       <textarea
-        className={styles['ta']}
+        className={styles.ta}
         name={name}
         cols={cols}
         rows={rows}

@@ -1,10 +1,24 @@
 .container {
   padding: 10px 0px;
   width: 100%;
-  height: 100vh;
+  height: 100%;
   text-align: center;
+  padding: 10px;
 }
 
+.header {
+  font-weight: 700;
+  padding-bottom: 20px;
+}
+
+.header,
+.row {
+  display: grid;
+  grid-template-columns: repeat(8, 150px) 250px 350px;
+  gap: 5px;
+}
+
+/* 
 .container .header th {
   padding-bottom: 15px;
 }
@@ -27,9 +41,9 @@ tr:first-child {
   table-layout: fixed;
   align-items: start;
   width: 200px;
-}
+} */
 /* only this column need to set 350px */
-.container .productName {
+/* .container .productName {
   table-layout: fixed;
   width: 350px;
 }
@@ -37,4 +51,4 @@ tr:first-child {
 .container .tagging {
   padding-top: 10px;
   vertical-align: top;
-}
+} */

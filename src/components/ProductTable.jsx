@@ -1,4 +1,5 @@
-import InputOption from './InputOption';
+import Collections from './Collections';
+import Tags from './Tags';
 import MediaPreview from './MediaPreview';
 import PricePreview from './PricePreview';
 import styles from './ProductTable.module.css';
@@ -31,10 +32,10 @@ const ProductTable = () => {
           <TextCell />
         </div>
         <div className={styles['tagging']}>
-          <InputOption />
+          <Collections />
         </div>
         <div className={styles['tagging']}>
-          <InputOption />
+          <Tags />
         </div>
         <div>
           <MediaPreview media="image" />

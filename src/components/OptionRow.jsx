@@ -26,9 +26,9 @@ const OptionRow = (props) => {
         onChange={handleChange}
         type="checkbox"
       />
-      <h4 id={id} className={styles['label']}>
+      <p id={id} className={styles.label}>
         {label}
-      </h4>
+      </p>
     </div>
   );
 };

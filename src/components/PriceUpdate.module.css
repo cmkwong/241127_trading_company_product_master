@@ -6,6 +6,7 @@
 .row {
   display: grid;
   grid-template-columns: repeat(6, 100px) 1fr;
+  grid-template-rows: 60px;
 }
 
 .row input {

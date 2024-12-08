@@ -9,6 +9,8 @@ const MediaPreview = (props) => {
   let { media } = props;
 
   const [popWindow, setPopWindow] = useState(false);
+  // for description text
+  const [editorTxt, setEditorTxt] = useState('');
 
   let icon_path;
   if (media === 'image') {
@@ -29,7 +31,14 @@ const MediaPreview = (props) => {
         src={icon_path}
         alt="Media Upload"
       />
-      {popWindow && <MediaUpdate setPopWindow={setPopWindow} media={media} />}
+      {popWindow && (
+        <MediaUpdate
+          setPopWindow={setPopWindow}
+          media={media}
+          editorTxt={editorTxt}
+          setEditorTxt={setEditorTxt}
+        />
+      )}
     </div>
   );
 };

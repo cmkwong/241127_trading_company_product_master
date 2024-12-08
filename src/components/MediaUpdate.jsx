@@ -1,3 +1,4 @@
+import { useRef, useState } from 'react';
 import WindowPop from './common/WindowPop';
 import styles from './MediaUpdate.module.css';
 
@@ -8,14 +9,24 @@ import styles from './MediaUpdate.module.css';
 import { Editor } from 'primereact/editor';
 
 const MediaUpdate = (props) => {
-  let { setPopWindow, media } = props;
+  let { setPopWindow, media, editorTxt, setEditorTxt } = props;
+
+  const editor_ref = useRef(null);
 
   return (
     <WindowPop setPopWindow={setPopWindow}>
       <div className={styles.upperContainer}>
         {media === 'description' && (
           <div className={styles.ta}>
-            <Editor style={{ height: '580px', overflowY: 'scroll' }} />
+            <Editor
+              ref={editor_ref}
+              value={editorTxt}
+              onTextChange={() =>
+                setEditorTxt(editor_ref.current.getContent().outerHTML)
+              }
+              onClick={() => console.log(editorTxt)}
+              style={{ height: '580px', overflowY: 'scroll' }}
+            />
           </div>
         )}
       </div>

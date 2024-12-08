@@ -1,8 +1,9 @@
+import Icon from './common/Icon';
 import WindowPop from './common/WindowPop';
 import styles from './PriceUpdate.module.css';
 
 const PriceUpdate = (props) => {
-  let { datas, setPopWindow } = props;
+  let { varientData, setPopWindow } = props;
 
   return (
     <WindowPop setPopWindow={setPopWindow}>
@@ -15,12 +16,14 @@ const PriceUpdate = (props) => {
         <p>Supplier</p>
         <p>Link</p>
       </div>
-      {datas.map((data, i) => (
+      {varientData.datas.map((data, i) => (
         <div key={i} className={styles.row}>
-          <div className={styles.img}>
-            <img src={data.img} alt="img" />
-          </div>
-          <input type="text" defaultValue={data.varient.join(' / ')} disabled />
+          <Icon src={data.img} width={'60px'} />
+          <input
+            type="text"
+            defaultValue={varientData.varient_sequence.join(' / ')}
+            disabled
+          />
           <input type="text" defaultValue={data.currency} />
           <input type="number" defaultValue={data.price} />
           <input type="number" defaultValue={data.stock} />

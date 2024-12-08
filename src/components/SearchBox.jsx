@@ -1,6 +1,6 @@
 import styles from './SearchBox.module.css';
 import search_icon from '../assets/search_icon.svg';
-import Button from './Button';
+import Button from './common/Button';
 
 const SearchBox = () => {
   return (

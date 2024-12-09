@@ -16,19 +16,21 @@ const PriceUpdate = (props) => {
         <p>Supplier</p>
         <p>Link</p>
       </div>
-      {varientData.datas.map((data, i) => (
+      {varientData.rows.map((row, i) => (
         <div key={i} className={styles.row}>
-          <Icon src={data.img} width={'60px'} />
+          <Icon src={row.img} width={'60px'} />
           <input
             type="text"
-            defaultValue={varientData.varient_sequence.join(' / ')}
+            defaultValue={varientData.sequence
+              .map((name) => row.varient[name])
+              .join(' / ')}
             disabled
           />
-          <input type="text" defaultValue={data.currency} />
-          <input type="number" defaultValue={data.price} />
-          <input type="number" defaultValue={data.stock} />
-          <input type="text" defaultValue={data.supplier} />
-          <input type="text" defaultValue={data.link} />
+          <input type="text" defaultValue={row.currency} />
+          <input type="number" defaultValue={row.price} />
+          <input type="number" defaultValue={row.stock} />
+          <input type="text" defaultValue={row.supplier} />
+          <input type="text" defaultValue={row.link} />
         </div>
       ))}
     </WindowPop>

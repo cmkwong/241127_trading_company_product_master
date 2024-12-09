@@ -7,19 +7,19 @@ import PriceUpdate from './PriceUpdate';
 import Icon from './common/Icon';
 
 const PricePreviewRow = (props) => {
-  let { data } = props;
+  let { row, sequence } = props;
 
   return (
     <div className={styles.datarow}>
-      <Icon src={data.img} width={'30px'} />
+      <Icon src={row.img} width={'30px'} />
       <div>
-        <p>{data.varient.join(' / ')}</p>
+        <p>{sequence.map((name) => row.varient[name]).join(' / ')}</p>
       </div>
       <div>
-        <p>{`${data.currency} ${data.price}`}</p>
+        <p>{`${row.currency} ${row.price}`}</p>
       </div>
       <div>
-        <a href={data.link}>{data.supplier}</a>
+        <a href={row.link}>{row.supplier}</a>
       </div>
     </div>
   );
@@ -27,10 +27,10 @@ const PricePreviewRow = (props) => {
 
 const PricePreview = () => {
   let _varientData = {
-    varient_sequence: ['lock', 'color'],
-    datas: [
+    sequence: ['lock', 'color'],
+    rows: [
       {
-        varient: ['front', 'red'],
+        varient: { lock: 'front', color: 'red' },
         currency: 'HKD',
         img: '../public/products/1/785027093526.jpg',
         price: 125,
@@ -39,7 +39,7 @@ const PricePreview = () => {
         link: 'https://www.google.com/search?q=array+filter&sca_esv=3837dfeb0f430c76&sxsrf=ADLYWIKspdky7njPNkdKKwycnaSkErCxYQ%3A1732965347900&ei=4_NKZ7bJNrvc1e8PkYDA4Ak&ved=0ahUKEwj2xuD_9oOKAxU7bvUHHREAEJwQ4dUDCBA&uact=5&oq=array+filter&gs_lp=Egxnd3Mtd2l6LXNlcnAiDGFycmF5IGZpbHRlcjIGEAAYBxgeMggQABiABBjLATIFEAAYgAQyBRAAGIAEMgYQABgHGB4yBRAAGIAEMggQABiABBjLATIIEAAYgAQYywEyCBAAGIAEGMsBMggQABiABBjLAUiSElDeCFjJEHABeAGQAQCYAV2gAc4DqgEBNrgBA8gBAPgBAZgCBqAClAPCAgoQABiwAxjWBBhHmAMAiAYBkAYKkgcBNqAHuBQ&sclient=gws-wiz-serp',
       },
       {
-        varient: ['front', 'yellow'],
+        varient: { lock: 'front', color: 'yellow' },
         currency: 'HKD',
         img: '../public/products/1/785027093526.jpg',
         price: 137,
@@ -48,7 +48,7 @@ const PricePreview = () => {
         link: 'https://www.google.com/search?q=array+filter&sca_esv=3837dfeb0f430c76&sxsrf=ADLYWIKspdky7njPNkdKKwycnaSkErCxYQ%3A1732965347900&ei=4_NKZ7bJNrvc1e8PkYDA4Ak&ved=0ahUKEwj2xuD_9oOKAxU7bvUHHREAEJwQ4dUDCBA&uact=5&oq=array+filter&gs_lp=Egxnd3Mtd2l6LXNlcnAiDGFycmF5IGZpbHRlcjIGEAAYBxgeMggQABiABBjLATIFEAAYgAQyBRAAGIAEMgYQABgHGB4yBRAAGIAEMggQABiABBjLATIIEAAYgAQYywEyCBAAGIAEGMsBMggQABiABBjLAUiSElDeCFjJEHABeAGQAQCYAV2gAc4DqgEBNrgBA8gBAPgBAZgCBqAClAPCAgoQABiwAxjWBBhHmAMAiAYBkAYKkgcBNqAHuBQ&sclient=gws-wiz-serp',
       },
       {
-        varient: ['front', 'blue'],
+        varient: { lock: 'front', color: 'blue' },
         currency: 'HKD',
         img: '',
         price: 125,
@@ -57,7 +57,7 @@ const PricePreview = () => {
         link: 'https://www.google.com/search?q=array+filter&sca_esv=3837dfeb0f430c76&sxsrf=ADLYWIKspdky7njPNkdKKwycnaSkErCxYQ%3A1732965347900&ei=4_NKZ7bJNrvc1e8PkYDA4Ak&ved=0ahUKEwj2xuD_9oOKAxU7bvUHHREAEJwQ4dUDCBA&uact=5&oq=array+filter&gs_lp=Egxnd3Mtd2l6LXNlcnAiDGFycmF5IGZpbHRlcjIGEAAYBxgeMggQABiABBjLATIFEAAYgAQyBRAAGIAEMgYQABgHGB4yBRAAGIAEMggQABiABBjLATIIEAAYgAQYywEyCBAAGIAEGMsBMggQABiABBjLAUiSElDeCFjJEHABeAGQAQCYAV2gAc4DqgEBNrgBA8gBAPgBAZgCBqAClAPCAgoQABiwAxjWBBhHmAMAiAYBkAYKkgcBNqAHuBQ&sclient=gws-wiz-serp',
       },
       {
-        varient: ['back', 'red'],
+        varient: { lock: 'back', color: 'red' },
         currency: 'HKD',
         img: '',
         price: 137,
@@ -66,7 +66,7 @@ const PricePreview = () => {
         link: 'https://www.google.com/search?q=array+filter&sca_esv=3837dfeb0f430c76&sxsrf=ADLYWIKspdky7njPNkdKKwycnaSkErCxYQ%3A1732965347900&ei=4_NKZ7bJNrvc1e8PkYDA4Ak&ved=0ahUKEwj2xuD_9oOKAxU7bvUHHREAEJwQ4dUDCBA&uact=5&oq=array+filter&gs_lp=Egxnd3Mtd2l6LXNlcnAiDGFycmF5IGZpbHRlcjIGEAAYBxgeMggQABiABBjLATIFEAAYgAQyBRAAGIAEMgYQABgHGB4yBRAAGIAEMggQABiABBjLATIIEAAYgAQYywEyCBAAGIAEGMsBMggQABiABBjLAUiSElDeCFjJEHABeAGQAQCYAV2gAc4DqgEBNrgBA8gBAPgBAZgCBqAClAPCAgoQABiwAxjWBBhHmAMAiAYBkAYKkgcBNqAHuBQ&sclient=gws-wiz-serp',
       },
       {
-        varient: ['back', 'yellow'],
+        varient: { lock: 'back', color: 'yellow' },
         currency: 'HKD',
         img: '',
         price: 125,
@@ -75,7 +75,7 @@ const PricePreview = () => {
         link: 'https://www.google.com/search?q=array+filter&sca_esv=3837dfeb0f430c76&sxsrf=ADLYWIKspdky7njPNkdKKwycnaSkErCxYQ%3A1732965347900&ei=4_NKZ7bJNrvc1e8PkYDA4Ak&ved=0ahUKEwj2xuD_9oOKAxU7bvUHHREAEJwQ4dUDCBA&uact=5&oq=array+filter&gs_lp=Egxnd3Mtd2l6LXNlcnAiDGFycmF5IGZpbHRlcjIGEAAYBxgeMggQABiABBjLATIFEAAYgAQyBRAAGIAEMgYQABgHGB4yBRAAGIAEMggQABiABBjLATIIEAAYgAQYywEyCBAAGIAEGMsBMggQABiABBjLAUiSElDeCFjJEHABeAGQAQCYAV2gAc4DqgEBNrgBA8gBAPgBAZgCBqAClAPCAgoQABiwAxjWBBhHmAMAiAYBkAYKkgcBNqAHuBQ&sclient=gws-wiz-serp',
       },
       {
-        varient: ['back', 'blue'],
+        varient: { lock: 'back', color: 'blue' },
         currency: 'HKD',
         img: '',
         price: 137,
@@ -98,8 +98,12 @@ const PricePreview = () => {
           <p>Price</p>
           <p>Supplier</p>
         </div>
-        {varientData.datas.map((data) => (
-          <PricePreviewRow key={makeComplexId(8)} data={data} />
+        {varientData.rows.map((row) => (
+          <PricePreviewRow
+            key={makeComplexId(8)}
+            row={row}
+            sequence={varientData.sequence}
+          />
         ))}
         <img
           onClick={() => setPopWindow(true)}

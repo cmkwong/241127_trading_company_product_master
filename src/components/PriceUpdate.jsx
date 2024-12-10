@@ -3,7 +3,7 @@ import WindowPop from './common/WindowPop';
 import styles from './PriceUpdate.module.css';
 
 const PriceUpdate = (props) => {
-  let { varientData, setPopWindow } = props;
+  let { productData, setPopWindow } = props;
 
   return (
     <WindowPop setPopWindow={setPopWindow}>
@@ -16,12 +16,12 @@ const PriceUpdate = (props) => {
         <p>Supplier</p>
         <p>Link</p>
       </div>
-      {varientData.prices.map((row, i) => (
+      {productData.prices.map((row, i) => (
         <div key={i} className={styles.row}>
           <Icon src={row.img} width={'60px'} />
           <input
             type="text"
-            defaultValue={varientData.varient
+            defaultValue={productData.varient
               .map((name) => row.varientValue[name])
               .join(' / ')}
             disabled

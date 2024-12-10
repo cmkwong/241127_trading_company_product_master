@@ -1,13 +1,7 @@
-import Collections from './Collections';
-import Tags from './Tags';
-import MediaPreview from './MediaPreview';
-import PricePreview from './PricePreview';
-import styles from './ProductTable.module.css';
-import TextCell from './TextCell';
-import Varients from './Varients';
 import { useState } from 'react';
+import { useContext, createContext } from 'react';
 
-let _productDatas = [
+let data = [
   {
     product_id: '1Y#23#@1%#23',
     product_name:
@@ -64,7 +58,7 @@ let _productDatas = [
       {
         varientValue: { lock: 'front', color: 'red' },
         currency: 'HKD',
-        img: '/products/785027093526.jpg',
+        img: '/products/1/785027093526.jpg',
         price: 125,
         stock: 1254,
         supplier: 'Sink Lin Trading Company',
@@ -73,7 +67,7 @@ let _productDatas = [
       {
         varientValue: { lock: 'front', color: 'yellow' },
         currency: 'HKD',
-        img: '/products/785027093526.jpg',
+        img: '/products/1/785027093526.jpg',
         price: 137,
         stock: 4281,
         supplier: 'Sink Lin Trading Company',
@@ -119,59 +113,21 @@ let _productDatas = [
   },
 ];
 
-const ProductTable = () => {
-  const [productDatas, setproductDatas] = useState(_productDatas);
+const ProductDataContext = createContext(null, () => {});
+
+export const ProductDataProvider = ({ children }) => {
+  // product data
+  const [data, setData] = useState(data);
 
   return (
-    <div className={styles['container']}>
-      <div className={styles['header']}>
-        <div>Product Name</div>
-        <div>SKU</div>
-        <div>Category</div>
-        <div>Collections</div>
-        <div>Tags</div>
-        <div>Images</div>
-        <div>Videos</div>
-        <div>Description</div>
-        <div>Varients</div>
-        <div>Prices</div>
-      </div>
-      {productDatas.map((data, i) => (
-        <div key={i} className={styles.row}>
-          <div>
-            <TextCell />
-          </div>
-          <div>
-            <TextCell />
-          </div>
-          <div>
-            <TextCell />
-          </div>
-          <div className={styles['tagging']}>
-            <Collections />
-          </div>
-          <div className={styles['tagging']}>
-            <Tags />
-          </div>
-          <div>
-            <MediaPreview media="image" />
-          </div>
-          <div>
-            <MediaPreview media="video" />
-          </div>
-          <div>
-            <MediaPreview media="description" />
-          </div>
-          <div>
-            <Varients />
-          </div>
-          <div>
-            <PricePreview productData={data} />
-          </div>
-        </div>
-      ))}
-    </div>
+    <ProductDataContext.Provider value={{ data, setData }}>
+      {children}
+    </ProductDataContext.Provider>
   );
 };
 
-export default ProductTable;
+export default ProductDataContext;
+
+export const useProductData = () => {
+  return useContext(ProductDataContext);
+};

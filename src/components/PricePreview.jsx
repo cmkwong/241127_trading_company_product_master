@@ -7,13 +7,13 @@ import PriceUpdate from './PriceUpdate';
 import Icon from './common/Icon';
 
 const PricePreviewRow = (props) => {
-  let { row, varient } = props;
+  let { row, varients } = props;
 
   return (
     <div className={styles.datarow}>
       <Icon src={row.img} width={'30px'} />
       <div>
-        <p>{varient.map((name) => row.varientValue[name]).join(' / ')}</p>
+        <p>{varients.map((name) => row.varientValue[name]).join(' / ')}</p>
       </div>
       <div>
         <p>{`${row.currency} ${row.price}`}</p>
@@ -31,8 +31,7 @@ const PricePreview = () => {
     product_name:
       'Autumn And Winter Christmas Festive Series Dog Clothes Cat Dress',
     sku: 'SDW3287623-UI',
-    description: '',
-    // Pet Supplies>>Pet Products>>Pet Toys>>Cat Trees & Scratcher
+    // Pet Supplies >> Pet Products>>Pet Toys >> Cat Trees & Scratcher
     category: [
       { id: 32, name: 'Pet Supplies' },
       { id: 22, name: 'Pet Products' },
@@ -50,8 +49,35 @@ const PricePreview = () => {
       { id: null, name: 'Pet Shower' },
       { id: null, name: 'Clipper' },
     ],
-    images: [{ id: 23 }],
-    varient: ['lock', 'color'],
+    images: [
+      { id: 23, filename: 'i2218273.jpg' },
+      { id: null, filename: 'asdwwuquw.png' },
+    ],
+    videos: [
+      { id: 52, filename: 'browl.mp4' },
+      { id: null, filename: 'pet.mp4' },
+      { id: 86, filename: 'cat.mp4' },
+    ],
+    description: '',
+    varients: [
+      {
+        id: 42,
+        name: 'lock',
+        value: [
+          { id: 1, value: 'back' },
+          { id: 2, value: 'front' },
+        ],
+      },
+      {
+        id: null,
+        name: 'color',
+        value: [
+          { id: null, value: 'red' },
+          { id: 2, value: 'yellow' },
+          { id: 3, value: 'blue' },
+        ],
+      },
+    ],
     prices: [
       {
         varientValue: { lock: 'front', color: 'red' },
@@ -126,7 +152,7 @@ const PricePreview = () => {
           <PricePreviewRow
             key={makeComplexId(8)}
             row={row}
-            varient={varientData.varient}
+            varients={varientData.varients}
           />
         ))}
         <img

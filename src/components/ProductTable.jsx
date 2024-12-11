@@ -5,7 +5,7 @@ import PricePreview from './PricePreview';
 import styles from './ProductTable.module.css';
 import TextCell from './TextCell';
 import Varients from './Varients';
-import { useState } from 'react';
+import { useReducer, useState } from 'react';
 
 let _productDatas = [
   {
@@ -120,7 +120,17 @@ let _productDatas = [
 ];
 
 const ProductTable = () => {
-  const [productDatas, setproductDatas] = useState(_productDatas);
+  const productDataReducer = (state, action) => {
+    switch (action.type) {
+      case '': {
+      }
+    }
+  };
+
+  const [productDatas, dispatch] = useReducer(
+    productDataReducer,
+    _productDatas
+  );
 
   return (
     <div className={styles['container']}>

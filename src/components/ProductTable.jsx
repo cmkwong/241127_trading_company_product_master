@@ -1,11 +1,6 @@
-import Collections from './Collections';
-import Tags from './Tags';
-import MediaPreview from './MediaPreview';
-import PricePreview from './PricePreview';
+import { useState } from 'react';
 import styles from './ProductTable.module.css';
-import TextCell from './TextCell';
-import Varients from './Varients';
-import { useReducer, useState } from 'react';
+import ProductTableRow from './ProductTableRow';
 
 let _productDatas = [
   {
@@ -120,18 +115,7 @@ let _productDatas = [
 ];
 
 const ProductTable = () => {
-  const productDataReducer = (state, action) => {
-    switch (action.type) {
-      case '': {
-      }
-    }
-  };
-
-  const [productDatas, dispatch] = useReducer(
-    productDataReducer,
-    _productDatas
-  );
-
+  const [productDatas, setProductDatas] = useState(_productDatas);
   return (
     <div className={styles['container']}>
       <div className={styles['header']}>
@@ -146,38 +130,13 @@ const ProductTable = () => {
         <div>Varients</div>
         <div>Prices</div>
       </div>
-      {productDatas.map((data, i) => (
+      {productDatas.map((productData, i) => (
         <div key={i} className={styles.row}>
-          <div>
-            <TextCell />
-          </div>
-          <div>
-            <TextCell />
-          </div>
-          <div>
-            <TextCell />
-          </div>
-          <div className={styles['tagging']}>
-            <Collections />
-          </div>
-          <div className={styles['tagging']}>
-            <Tags />
-          </div>
-          <div>
-            <MediaPreview media="image" />
-          </div>
-          <div>
-            <MediaPreview media="video" />
-          </div>
-          <div>
-            <MediaPreview media="description" />
-          </div>
-          <div>
-            <Varients />
-          </div>
-          <div>
-            <PricePreview productData={data} />
-          </div>
+          <ProductTableRow
+            productData={productData}
+            rowId={i}
+            setProductDatas={setProductDatas}
+          />
         </div>
       ))}
     </div>

@@ -5,10 +5,25 @@ import MediaPreview from './MediaPreview';
 import PricePreview from './PricePreview';
 import TextCell from './TextCell';
 import Varients from './Varients';
+import InputOption from './InputOption';
 import { useReducer, useState } from 'react';
 
 const ProductTableRow = (props) => {
-  const { productData, setProductDatas } = props;
+  let _selectedCollection = [6, 1, 12];
+  let _selectedTags = [6, 1, 11, 12];
+
+  const {
+    productData,
+    collections,
+    setCollections,
+    tags,
+    setTags,
+    setProductDatas,
+  } = props;
+
+  const [selectedCollection, setSelectedCollection] =
+    useState(_selectedCollection);
+  const [selectedTag, setSelectedTag] = useState(_selectedTags);
 
   return (
     <>
@@ -24,10 +39,20 @@ const ProductTableRow = (props) => {
         />
       </div>
       <div className={styles['tagging']}>
-        <Collections />
+        <InputOption
+          selectedOptions={selectedCollection}
+          setSelectedOptions={setSelectedCollection}
+          options={collections}
+          setOptions={setCollections}
+        />
       </div>
       <div className={styles['tagging']}>
-        <Tags />
+        <InputOption
+          selectedOptions={selectedTag}
+          setSelectedOptions={setSelectedTag}
+          options={tags}
+          setOptions={setTags}
+        />
       </div>
       <div>
         <MediaPreview media="image" />

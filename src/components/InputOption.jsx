@@ -40,14 +40,6 @@ const InputOption = (props) => {
     } else {
       setSelectedOptions((state) => state.filter((el) => el !== id));
     }
-    // setOptions(
-    //   options.map((el) => {
-    //     if (el.id === id) {
-    //       el.checked = nv;
-    //     }
-    //     return el;
-    //   })
-    // );
   };
 
   // add option data

@@ -5,12 +5,8 @@ import OptionRow from './OptionRow';
 import TagPlate from './tagPlate';
 
 const InputOption = (props) => {
-  let { data } = props;
-
-  const [options, setOptions] = useState(data);
-  const [filterOptions, setFitlerOptions] = useState(data);
-
-  let inputWidth = '100%';
+  const [options, setOptions] = useState(props.options);
+  const [selectedOptions, setSelectedOptions] = useState(props.selectedOptions);
 
   const inputReference = useRef(null);
   const [inputValue, setInputValue] = useState('');
@@ -38,16 +34,33 @@ const InputOption = (props) => {
   };
 
   // handle data
-  const updateOptionData = (id, nv) => {
-    setOptions(
-      options.map((el) => {
-        if (el.id === id) {
-          el.checked = nv;
-        }
-        return el;
-      })
-    );
+  const updateOptionData = (id, checked) => {
+    if (checked) {
+      setSelectedOptions((state) => [...state, id]);
+    } else {
+      setSelectedOptions((state) => state.filter((el) => el !== id));
+    }
+    // setOptions(
+    //   options.map((el) => {
+    //     if (el.id === id) {
+    //       el.checked = nv;
+    //     }
+    //     return el;
+    //   })
+    // );
   };
+
+  // add option data
+  const addOptionData = (value) => {
+    // getting the new ID
+    const max_option = options.reduce((acc, curr) => {
+      return acc.id < curr.id ? curr : acc;
+    });
+    let newId = max_option.id + 1;
+    setOptions((state) => [{ id: newId, label: value }, ...state]);
+    setSelectedOptions((state) => [...state, newId]);
+  };
+
   // add the value into option
   const handleEnterPress = (value) => {
     if (!value) return;
@@ -71,18 +84,7 @@ const InputOption = (props) => {
     addOptionData(value);
   };
 
-  // add option data
-  const addOptionData = (value) => {
-    // getting the new ID
-    const max_option = options.reduce((acc, curr) => {
-      return acc.id < curr.id ? curr : acc;
-    });
-    setOptions([
-      { id: max_option.id + 1, label: value, checked: true },
-      ...options,
-    ]);
-  };
-
+  const inputWidth = '100%';
   return (
     <div className={styles['inputOption']}>
       <div style={{ width: inputWidth }} className={styles['inputContainer']}>
@@ -108,6 +110,7 @@ const InputOption = (props) => {
             onMouseLeave={handleSelectionMouseOut}
             onClick={handleClickSelection}
           >
+            {/* Showing the option item in a list */}
             {options.map((el) => {
               if (inputValue && !el.label.includes(inputValue)) return;
               return (
@@ -115,7 +118,7 @@ const InputOption = (props) => {
                   key={el.id}
                   id={el.id}
                   label={el.label}
-                  checked={el.checked}
+                  checked={selectedOptions.includes(el.id)}
                   updateOptionData={updateOptionData}
                 />
               );
@@ -124,8 +127,9 @@ const InputOption = (props) => {
         )}
       </div>
       <div className={styles.tagContainer}>
+        {/* Showing the tag plate */}
         {options.map((el) => {
-          if (el.checked) {
+          if (selectedOptions.includes(el.id)) {
             return (
               <TagPlate
                 key={el.id}

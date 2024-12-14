@@ -14,7 +14,11 @@ const PricePreviewRow = (props) => {
     <div className={styles.datarow}>
       <Icon src={row.img} width={'30px'} />
       <div>
-        <p>{varients.map((name) => row.varientValue[name]).join(' / ')}</p>
+        <p>
+          {varients
+            .map((varient) => row.varientValue[varient.name])
+            .join(' / ')}
+        </p>
       </div>
       <div>
         <p>{`${row.currency} ${row.price}`}</p>

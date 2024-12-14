@@ -21,8 +21,8 @@ const PriceUpdate = (props) => {
           <Icon src={row.img} width={'60px'} />
           <input
             type="text"
-            defaultValue={productData.varient
-              .map((name) => row.varientValue[name])
+            defaultValue={productData.varients
+              .map((varient) => row.varientValue[varient.name])
               .join(' / ')}
             disabled
           />

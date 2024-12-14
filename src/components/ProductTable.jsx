@@ -12,7 +12,7 @@ let _productDatas = [
     category: [
       { id: 32, name: 'Pet Supplies' },
       { id: 22, name: 'Pet Products' },
-      { id: 12, name: 'Pet Toys' },
+      { id: null, name: 'Pet Toys' },
       { id: 14, name: 'Cat Trees & Scratcher' },
     ],
     collections: [
@@ -133,8 +133,8 @@ const ProductTable = () => {
       {productDatas.map((productData, i) => (
         <div key={i} className={styles.row}>
           <ProductTableRow
-            productData={productData}
             rowId={i}
+            productData={productData}
             setProductDatas={setProductDatas}
           />
         </div>

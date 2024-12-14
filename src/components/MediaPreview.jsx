@@ -9,6 +9,7 @@ const MediaPreview = (props) => {
   let { media } = props;
 
   const [popWindow, setPopWindow] = useState(false);
+
   // for description text
   const [editorTxt, setEditorTxt] = useState('');
 
@@ -17,7 +18,7 @@ const MediaPreview = (props) => {
     icon_path = image_icon;
   } else if (media === 'video') {
     icon_path = video_icon;
-  } else {
+  } else if (media === 'description') {
     icon_path = description_icon;
   }
 

@@ -13,13 +13,15 @@ const ProductTableRow = (props) => {
   return (
     <>
       <div>
-        <TextCell />
+        <TextCell value={productData.product_name} />
       </div>
       <div>
-        <TextCell />
+        <TextCell value={productData.sku} />
       </div>
       <div>
-        <TextCell />
+        <TextCell
+          value={productData.category.map((data) => data.name).join(' >> ')}
+        />
       </div>
       <div className={styles['tagging']}>
         <Collections />
@@ -40,7 +42,7 @@ const ProductTableRow = (props) => {
         <Varients />
       </div>
       <>
-        <PricePreview productData={data} />
+        <PricePreview productData={productData} />
       </>
     </>
   );

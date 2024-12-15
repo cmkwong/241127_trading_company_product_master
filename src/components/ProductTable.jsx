@@ -34,6 +34,84 @@ let _tags = [
   { id: 13, label: 'leash' },
 ];
 
+let _allMedia = [
+  { id: 1, media_type: 'image', filename: '785027093526.jpg' },
+  { id: 2, media_type: 'image', filename: '1173534224478.jpg' },
+  { id: 3, media_type: 'image', filename: '4051485751744.jpg' },
+  {
+    id: 4,
+    media_type: 'image',
+    filename:
+      'Professional-Cat-Nail-Clippers-for-Small-Cat-Dog-Stainless-Steel-Puppy-Claws-Cutter-Pet-Nail-Grooming.jpg_2d7e0c35-8b87-4da8-a2b2-927e7196d4df.jpg',
+  },
+  {
+    id: 5,
+    media_type: 'image',
+    filename:
+      'Professional-Cat-Nail-Clippers-for-Small-Cat-Dog-Stainless-Steel-Puppy-Claws-Cutter-Pet-Nail-Grooming.jpg_067b8506-730b-4ca8-844d-0a24707668ce.jpg',
+  },
+  {
+    id: 6,
+    media_type: 'image',
+    filename:
+      'Professional-Cat-Nail-Clippers-for-Small-Cat-Dog-Stainless-Steel-Puppy-Claws-Cutter-Pet-Nail-Grooming.jpg_ae568cb2-57d7-46b6-b930-fa275df88101.jpg',
+  },
+  {
+    id: 7,
+    media_type: 'image',
+    filename:
+      'Professional-Cat-Nail-Clippers-for-Small-Cat-Dog-Stainless-Steel-Puppy-Claws-Cutter-Pet-Nail-Grooming.jpg_b441dd2b-e07a-4040-9f2a-6d4662b8555f.jpg',
+  },
+  {
+    id: 8,
+    media_type: 'image',
+    filename:
+      'Professional-Cat-Nail-Clippers-for-Small-Cat-Dog-Stainless-Steel-Puppy-Claws-Cutter-Pet-Nail-Grooming.jpg_c9a088d9-de78-42e1-b322-e7d945ffb398.jpg',
+  },
+  {
+    id: 9,
+    media_type: 'image',
+    filename:
+      'Professional-Cat-Nail-Clippers-for-Small-Cat-Dog-Stainless-Steel-Puppy-Claws-Cutter-Pet-Nail-Grooming.jpg_e028c09d-8170-41ad-97ba-04733e1d9a75.jpg',
+  },
+  {
+    id: 10,
+    media_type: 'image',
+    filename:
+      'S0e8245c8df18465f89a5df7e80477610u.jpg_640x640.jpg_1556fe2a-83da-4052-abe1-aaae0423b5f1.jpg',
+  },
+  {
+    id: 11,
+    media_type: 'image',
+    filename:
+      'S0fd1722ca1f84edabe34166d35dde1977.jpg_640x640.jpg_5ad89cc1-e722-4910-b0aa-c170ce6f3394.jpg',
+  },
+  {
+    id: 12,
+    media_type: 'image',
+    filename:
+      'S8ef5049b77c3414ab15ea1e504ba97caT.jpg_640x640.jpg_5a6f807b-652a-47f0-b69a-7a54a63d7a5f.jpg',
+  },
+  {
+    id: 13,
+    media_type: 'image',
+    filename:
+      'S505a013920b84dff9e7cf49cdae85e9cF.jpg_640x640.jpg_11fc2fe7-5d33-422c-81f7-3852fd194920.jpg',
+  },
+  {
+    id: 14,
+    media_type: 'image',
+    filename:
+      'Sc2a4b9d89bb94e4ba6edeb33d862498c2.jpg_640x640.jpg_a960ac42-f80f-4b43-9981-530a3b2ec172.jpg',
+  },
+  {
+    id: 15,
+    media_type: 'image',
+    filename:
+      'Sd4b1174caa8a43ee9534c330bfc93159k.jpg_640x640.jpg_9c6f7141-1702-4b27-8133-d1411e0376cd.jpg',
+  },
+];
+
 let _productDatas = [
   {
     product_id: '1Y#23#@1%#23',
@@ -58,14 +136,17 @@ let _productDatas = [
       { id: null, name: 'Pet Shower' },
       { id: null, name: 'Clipper' },
     ],
-    images: [
-      { id: 23, filename: 'i2218273.jpg' },
-      { id: null, filename: 'asdwwuquw.png' },
-    ],
-    videos: [
-      { id: 52, filename: 'browl.mp4' },
-      { id: null, filename: 'pet.mp4' },
-      { id: 86, filename: 'cat.mp4' },
+    media: [
+      {
+        id: 11,
+        mediaType: 'image',
+        filename:
+          'S0fd1722ca1f84edabe34166d35dde1977.jpg_640x640.jpg_5ad89cc1-e722-4910-b0aa-c170ce6f3394.jpg',
+      },
+      { id: 12, mediaType: 'video', filename: 'browl.mp4' },
+      { id: 13, mediaType: 'video', filename: 'cat.mp4' },
+      { id: null, mediaType: 'image', filename: 'asdwwuquw.png' },
+      { id: null, mediaType: 'video', filename: 'pet.mp4' },
     ],
     description: '',
     varients: [
@@ -100,7 +181,7 @@ let _productDatas = [
       {
         varientValue: { lock: 'front', color: 'yellow' },
         currency: 'HKD',
-        img: '/products/785027093526.jpg',
+        img: '/products/1173534224478.jpg',
         price: 137,
         stock: 4281,
         supplier: 'Sink Lin Trading Company',
@@ -149,6 +230,8 @@ let _productDatas = [
 const ProductTable = () => {
   const [productDatas, setProductDatas] = useState(_productDatas);
   const [collections, setCollections] = useState(_collections);
+  const [allMedia, setAllMedia] = useState(_allMedia);
+
   const [tags, setTags] = useState(_tags);
   return (
     <div className={styles['container']}>
@@ -173,6 +256,7 @@ const ProductTable = () => {
             setCollections={setCollections}
             tags={tags}
             setTags={setTags}
+            allMedia={allMedia}
             setProductDatas={setProductDatas}
           />
         </div>

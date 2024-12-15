@@ -6,7 +6,7 @@ import { useState } from 'react';
 import MediaUpdate from './MediaUpdate';
 
 const MediaPreview = (props) => {
-  let { media } = props;
+  let { media, allMedia } = props;
 
   const [popWindow, setPopWindow] = useState(false);
 
@@ -38,6 +38,7 @@ const MediaPreview = (props) => {
           media={media}
           editorTxt={editorTxt}
           setEditorTxt={setEditorTxt}
+          allMedia={allMedia}
         />
       )}
     </div>

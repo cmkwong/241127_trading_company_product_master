@@ -13,7 +13,7 @@ const TextCell = (props) => {
         name={name}
         cols={cols}
         rows={rows}
-        value={value}
+        defaultValue={value}
       ></textarea>
     </div>
   );

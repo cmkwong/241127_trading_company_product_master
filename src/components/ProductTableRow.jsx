@@ -18,6 +18,7 @@ const ProductTableRow = (props) => {
     setCollections,
     tags,
     setTags,
+    allMedia,
     setProductDatas,
   } = props;
 
@@ -38,7 +39,7 @@ const ProductTableRow = (props) => {
           value={productData.category.map((data) => data.name).join(' >> ')}
         />
       </div>
-      <div className={styles['tagging']}>
+      <div>
         <InputOption
           selectedOptions={selectedCollection}
           setSelectedOptions={setSelectedCollection}
@@ -46,7 +47,7 @@ const ProductTableRow = (props) => {
           setOptions={setCollections}
         />
       </div>
-      <div className={styles['tagging']}>
+      <div>
         <InputOption
           selectedOptions={selectedTag}
           setSelectedOptions={setSelectedTag}
@@ -55,10 +56,10 @@ const ProductTableRow = (props) => {
         />
       </div>
       <div>
-        <MediaPreview media="image" />
+        <MediaPreview media="image" allMedia={allMedia} />
       </div>
       <div>
-        <MediaPreview media="video" />
+        <MediaPreview media="video" allMedia={allMedia} />
       </div>
       <div>
         <MediaPreview media="description" />

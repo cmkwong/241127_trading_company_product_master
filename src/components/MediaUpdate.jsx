@@ -2,20 +2,27 @@ import { useRef, useState } from 'react';
 import WindowPop from './common/WindowPop';
 import styles from './MediaUpdate.module.css';
 
-// import 'primereact/resources/themes/lara-light-indigo/theme.css'; // theme
-// import 'primereact/resources/primereact.min.css'; // core css
-// import 'primeicons/primeicons.css'; // icons
-
 import { Editor } from 'primereact/editor';
+import ImageBox from './ImageBox';
 
 const MediaUpdate = (props) => {
-  let { setPopWindow, media, editorTxt, setEditorTxt } = props;
+  let { setPopWindow, media, editorTxt, setEditorTxt, allMedia } = props;
 
   const editor_ref = useRef(null);
 
   return (
     <WindowPop setPopWindow={setPopWindow}>
       <div className={styles.upperContainer}>
+        {(media === 'video' || media === 'image') && (
+          <div className={styles.mediaTable}>
+            {allMedia.map(
+              (image, i) =>
+                image.media_type === media && (
+                  <ImageBox key={i} image={image} checked={false} />
+                )
+            )}
+          </div>
+        )}
         {media === 'description' && (
           <div className={styles.ta}>
             <Editor

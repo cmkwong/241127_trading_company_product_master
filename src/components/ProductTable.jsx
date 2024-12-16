@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useReducer, useState } from 'react';
 import styles from './ProductTable.module.css';
 import ProductTableRow from './ProductTableRow';
 
@@ -120,10 +120,10 @@ let _productDatas = [
     sku: 'SDW3287623-UI',
     // Pet Supplies >> Pet Products>>Pet Toys >> Cat Trees & Scratcher
     category: [
-      { id: 32, name: 'Pet Supplies' },
-      { id: 22, name: 'Pet Products' },
-      { id: null, name: 'Pet Toys' },
-      { id: 14, name: 'Cat Trees & Scratcher' },
+      { id: 32, level: 0, name: 'Pet Supplies' },
+      { id: 22, level: 1, name: 'Pet Products' },
+      { id: 14, level: 2, name: 'Cat Trees & Scratcher' },
+      { id: 33, level: 3, name: 'Pet Toys' },
     ],
     collections: [
       { id: 2, name: 'Pet Brush' },
@@ -228,11 +228,28 @@ let _productDatas = [
 ];
 
 const ProductTable = () => {
-  const [productDatas, setProductDatas] = useState(_productDatas);
+  const reducer = (productDatas, action) => {
+    const { product_id, new_value } = action;
+    const row = productDatas.filter((el) => el.product_id === product_id)[0];
+    let new_productDatas = [...productDatas];
+    switch (action.type) {
+      case 'updateProductName': {
+        new_productDatas[row]['product_name'] = new_value;
+        return new_productDatas;
+      }
+      case 'updateSku': {
+        new_productDatas[row]['sku'] = new_value;
+        return new_productDatas;
+      }
+      // case '': {
+      // }
+    }
+  };
+  const [productDatas, dispatch] = useReducer(reducer, _productDatas);
   const [collections, setCollections] = useState(_collections);
+  const [tags, setTags] = useState(_tags);
   const [allMedia, setAllMedia] = useState(_allMedia);
 
-  const [tags, setTags] = useState(_tags);
   return (
     <div className={styles['container']}>
       <div className={styles['header']}>
@@ -257,7 +274,7 @@ const ProductTable = () => {
             tags={tags}
             setTags={setTags}
             allMedia={allMedia}
-            setProductDatas={setProductDatas}
+            setProductDatas={dispatch}
           />
         </div>
       ))}

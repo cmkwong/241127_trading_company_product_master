@@ -15,17 +15,6 @@
   border: 1px solid #e08a8a;
 }
 
-.inputContainer .inputField {
-  width: 90%;
-  border: 0px;
-  padding: 5px 0px;
-  background-color: #fff8f8;
-}
-
-.inputContainer .inputField:focus {
-  outline: none;
-}
-
 .optionList {
   position: absolute;
   height: 200px;

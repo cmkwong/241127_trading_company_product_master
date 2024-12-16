@@ -1,12 +1,12 @@
 import styles from './Varients.module.css';
 import drag_icon from '../assets/dragIndicator.svg';
-import add_icon from '../assets/roundedAdd.svg';
 import close_icon from '../assets/close.svg';
 import InputOption from './InputOption';
 
 import { makeComplexId } from '../utils/string';
 
 import { useEffect, useState } from 'react';
+import AddStackBtn from './common/AddStackBtn';
 
 const Varient = (props) => {
   let options = [
@@ -68,17 +68,19 @@ const Varients = () => {
   };
 
   return (
-    <div className={styles.container}>
-      {varientStack.map((el) => {
-        return <Varient key={el} id={el} removeStack={removeStack} />;
-      })}
+    <>
+      <div className={styles.container}>
+        {varientStack.map((el) => {
+          return <Varient key={el} id={el} removeStack={removeStack} />;
+        })}
+      </div>
       {showAdd && (
-        <div className={styles.addVarient} onClick={handleAddClick}>
-          <img src={add_icon} alt="add" />
-          <p>Add another option</p>
-        </div>
+        <AddStackBtn
+          txt={'Add Another Varients'}
+          handleClick={handleAddClick}
+        />
       )}
-    </div>
+    </>
   );
 };
 

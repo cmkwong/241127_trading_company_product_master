@@ -1,0 +1,17 @@
+.addVarient {
+  border-top: 1px solid #efefef;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.addVarient:hover {
+  font-weight: 700;
+}
+
+.addVarient p {
+  margin: 0;
+  padding-left: 5px;
+  font-size: 12px;
+}

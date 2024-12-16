@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import styles from './InputOption.module.css';
 import { useRef } from 'react';
 import OptionRow from './OptionRow';
 import TagPlate from './tagPlate';
+import InputField from './common/InputField';
 
 const InputOption = (props) => {
   const [options, setOptions] = useState(props.options);
@@ -78,12 +79,10 @@ const InputOption = (props) => {
 
   const inputWidth = '100%';
   return (
-    <div className={styles['inputOption']}>
-      <div style={{ width: inputWidth }} className={styles['inputContainer']}>
-        <input
-          className={styles['inputField']}
-          type="text"
-          ref={inputReference}
+    <div className={styles.inputOption}>
+      <div style={{ width: inputWidth }} className={styles.inputContainer}>
+        <InputField
+          reference={inputReference}
           onClick={handleFocus}
           onBlur={handleFocusOut}
           onKeyDown={(event) => {
@@ -96,14 +95,14 @@ const InputOption = (props) => {
         />
         {showOption && (
           <div
-            className={styles['optionList']}
+            className={styles.optionList}
             style={{ width: inputWidth }}
             onMouseEnter={handleSelectionMouseEnter}
             onMouseLeave={handleSelectionMouseOut}
             onClick={handleClickSelection}
           >
-            {/* Showing the option item in a list */}
             {options.map((el) => {
+              // Showing the option item in a list
               if (inputValue && !el.label.includes(inputValue)) return;
               return (
                 <OptionRow
@@ -119,8 +118,8 @@ const InputOption = (props) => {
         )}
       </div>
       <div className={styles.tagContainer}>
-        {/* Showing the tag plate */}
         {options.map((el) => {
+          // Showing the tag plate
           if (selectedOptions.includes(el.id)) {
             return (
               <TagPlate

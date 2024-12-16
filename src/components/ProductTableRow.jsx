@@ -1,12 +1,13 @@
 import styles from './ProductTableRow.module.css';
-import Collections from './Collections';
-import Tags from './Tags';
+// import Collections from './Collections';
+// import Tags from './Tags';
 import MediaPreview from './MediaPreview';
 import PricePreview from './PricePreview';
 import TextCell from './TextCell';
 import Varients from './Varients';
 import InputOption from './InputOption';
-import { useReducer, useState } from 'react';
+import { useState } from 'react';
+import Category from './Category';
 
 const ProductTableRow = (props) => {
   let _selectedCollection = [6, 1, 12];
@@ -35,9 +36,7 @@ const ProductTableRow = (props) => {
         <TextCell value={productData.sku} />
       </div>
       <div>
-        <TextCell
-          value={productData.category.map((data) => data.name).join(' >> ')}
-        />
+        <Category productData={productData} />
       </div>
       <div>
         <InputOption

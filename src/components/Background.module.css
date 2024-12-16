@@ -2,8 +2,8 @@
   display: flex;
   /* height: 1080px; */
   /* width: 1920px; */
-  width: 100vw;
-  height: 100vh;
+  min-width: 1920px;
+  min-height: 1080px;
   background-repeat: repeat;
   background-color: #fff0f0;
   padding: 118px 10px;

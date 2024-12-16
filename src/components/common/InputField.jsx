@@ -1,7 +1,15 @@
 import styles from './InputField.module.css';
 
 const InputField = (props) => {
-  const { reference, onClick, onBlur, onKeyDown, onChange } = props;
+  const {
+    reference,
+    onClick,
+    onBlur,
+    onKeyDown,
+    onChange,
+    defaultValue,
+    value,
+  } = props;
   return (
     <input
       className={styles.inputField}
@@ -11,6 +19,8 @@ const InputField = (props) => {
       onBlur={onBlur}
       onKeyDown={onKeyDown}
       onChange={onChange}
+      defaultValue={defaultValue}
+      value={value}
     />
   );
 };

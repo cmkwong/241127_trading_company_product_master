@@ -1,9 +1,17 @@
 * {
+  margin: 0;
+  padding: 0;
   box-sizing: border-box;
 }
 
-body {
-  margin: 0;
-  padding: 0;
+body, 
+html {
   font-family: 'Inter', serif;
+  /* min-width: 1920px;
+  min-height: 1080px; */
 }
+
+/* #root {
+  width: 100%;
+  height: 100%;
+} */

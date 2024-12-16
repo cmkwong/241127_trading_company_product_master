@@ -1,0 +1,12 @@
+.categoryContainer {
+  position: absolute;
+  border: 1px solid #333;
+  padding: 15px;
+  border-radius: 10px;
+  background-color: #fff;
+}
+
+.categories p {
+  text-align: left;
+  text-overflow: no-wrap;
+}

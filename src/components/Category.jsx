@@ -9,18 +9,21 @@ const Category = (props) => {
 
   const [hovered, setHovered] = useState(false);
   const [categorList, setCategoryList] = useState(
-    [...productData.category].map((el) => el.name)
+    productData.category.sort((a, b) => a.level - b.level).map((el) => el.name)
   );
 
+  // handle the textarea change event
   const handleChange = (event) => {
     setCategoryList(`${event.target.value}`.split('>>').map((el) => el.trim()));
   };
 
+  // handle the mouse on the textarea element
   const handleMouseOver = (event) => {
     console.log(event.clientX, event.clientY);
     setXy([event.clientX, event.clientY]);
   };
 
+  // the mouse coordinates
   const [xy, setXy] = useState([0, 0]);
 
   return (

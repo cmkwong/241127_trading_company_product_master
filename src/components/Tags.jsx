@@ -1,16 +1,16 @@
 import InputOption from './InputOption';
 
 const Tags = (props) => {
-  let { selectedOptions, setSelectedOptions, options, setOptions } = props;
+  let { productData, options } = props;
+
+  const tags = options.filter((el) => el.label_type === 'tags');
+  const selectedTags = productData.labels
+    .filter((el) => el.label_type === 'tags')
+    .map((el) => el.id);
 
   return (
     <div>
-      <InputOption
-        selectedOptions={selectedOptions}
-        setSelectedOptions={setSelectedOptions}
-        options={options}
-        setOptions={setOptions}
-      />
+      <InputOption selectedOptions={selectedTags} options={tags} />
     </div>
   );
 };

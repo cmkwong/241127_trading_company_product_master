@@ -1,31 +1,21 @@
 import styles from './ProductTableRow.module.css';
-// import Collections from './Collections';
-// import Tags from './Tags';
+import Collections from './Collections';
+import Tags from './Tags';
 import MediaPreview from './MediaPreview';
 import PricePreview from './PricePreview';
 import TextCell from './TextCell';
 import Varients from './Varients';
-import InputOption from './InputOption';
-import { useState } from 'react';
 import Category from './Category';
 
 const ProductTableRow = (props) => {
-  let _selectedCollection = [6, 1, 12];
-  let _selectedTags = [6, 1, 11, 12];
+  // let _selectedCollection = [6, 1, 12];
+  // let _selectedTags = [6, 1, 11, 12];
 
-  const {
-    productData,
-    collections,
-    setCollections,
-    tags,
-    setTags,
-    allMedia,
-    setProductDatas,
-  } = props;
+  const { productData, labels, allMedia } = props;
 
-  const [selectedCollection, setSelectedCollection] =
-    useState(_selectedCollection);
-  const [selectedTag, setSelectedTag] = useState(_selectedTags);
+  // const [selectedCollection, setSelectedCollection] =
+  //   useState(_selectedCollection);
+  // const [selectedTag, setSelectedTag] = useState(_selectedTags);
 
   return (
     <>
@@ -39,20 +29,10 @@ const ProductTableRow = (props) => {
         <Category productData={productData} />
       </div>
       <div>
-        <InputOption
-          selectedOptions={selectedCollection}
-          setSelectedOptions={setSelectedCollection}
-          options={collections}
-          setOptions={setCollections}
-        />
+        <Collections productData={productData} options={labels} />
       </div>
       <div>
-        <InputOption
-          selectedOptions={selectedTag}
-          setSelectedOptions={setSelectedTag}
-          options={tags}
-          setOptions={setTags}
-        />
+        <Tags productData={productData} options={labels} />
       </div>
       <div>
         <MediaPreview media="image" allMedia={allMedia} />

@@ -1,11 +1,19 @@
 import InputOption from './InputOption';
 
 const Collections = (props) => {
-  let { selectedOptions, options } = props;
+  let { productData, options } = props;
+
+  const collections = options.filter((el) => el.label_type === 'collections');
+  const selectedCollections = productData.labels
+    .filter((el) => el.label_type === 'collections')
+    .map((el) => el.id);
 
   return (
     <div>
-      <InputOption selectedOptions={selectedOptions} options={options} />
+      <InputOption
+        selectedOptions={selectedCollections}
+        options={collections}
+      />
     </div>
   );
 };

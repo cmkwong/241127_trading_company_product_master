@@ -2,36 +2,20 @@ import { useReducer, useState } from 'react';
 import styles from './ProductTable.module.css';
 import ProductTableRow from './ProductTableRow';
 
-let _collections = [
-  { id: 1, label: 'pet brush' },
-  { id: 2, label: 'pet mats' },
-  { id: 3, label: 'clean up' },
-  { id: 4, label: 'clipper' },
-  { id: 5, label: 'shower' },
-  { id: 6, label: 'headwears' },
-  { id: 7, label: 'tops' },
-  { id: 8, label: 'Pet Bowl' },
-  { id: 9, label: 'Drinking Tools' },
-  { id: 10, label: 'Feeding Tools' },
-  { id: 11, label: 'Glasses' },
-  { id: 12, label: 'collar' },
-  { id: 13, label: 'leash' },
-];
-
-let _tags = [
-  { id: 1, label: 'pet brush' },
-  { id: 2, label: 'pet mats' },
-  { id: 3, label: 'clean up' },
-  { id: 4, label: 'clipper' },
-  { id: 5, label: 'shower' },
-  { id: 6, label: 'headwears' },
-  { id: 7, label: 'tops' },
-  { id: 8, label: 'Pet Bowl' },
-  { id: 9, label: 'Drinking Tools' },
-  { id: 10, label: 'Feeding Tools' },
-  { id: 11, label: 'Glasses' },
-  { id: 12, label: 'collar' },
-  { id: 13, label: 'leash' },
+let _labels = [
+  { id: 1, label_type: 'collections', label: 'pet brush' },
+  { id: 2, label_type: 'collections', label: 'pet mats' },
+  { id: 3, label_type: 'collections', label: 'clean up' },
+  { id: 4, label_type: 'collections', label: 'clipper' },
+  { id: 5, label_type: 'collections', label: 'shower' },
+  { id: 6, label_type: 'collections', label: 'headwears' },
+  { id: 7, label_type: 'collections', label: 'tops' },
+  { id: 8, label_type: 'tags', label: 'Pet Bowl' },
+  { id: 9, label_type: 'tags', label: 'Drinking Tools' },
+  { id: 10, label_type: 'tags', label: 'Feeding Tools' },
+  { id: 11, label_type: 'tags', label: 'Glasses' },
+  { id: 12, label_type: 'tags', label: 'collar' },
+  { id: 13, label_type: 'tags', label: 'leash' },
 ];
 
 let _allMedia = [
@@ -120,21 +104,19 @@ let _productDatas = [
     sku: 'SDW3287623-UI',
     // Pet Supplies >> Pet Products>>Pet Toys >> Cat Trees & Scratcher
     category: [
-      { id: 32, level: 0, name: 'Pet Supplies' },
-      { id: 22, level: 1, name: 'Pet Products' },
-      { id: 14, level: 2, name: 'Cat Trees & Scratcher' },
-      { id: 33, level: 3, name: 'Pet Toys' },
+      { id: 32, level: 1, name: 'Pet Supplies' },
+      { id: 22, level: 0, name: 'Pet Products' },
+      { id: 14, level: 3, name: 'Cat Trees & Scratcher' },
+      { id: 33, level: 2, name: 'Pet Toys' },
     ],
-    collections: [
-      { id: 2, name: 'Pet Brush' },
-      { id: 5, name: 'Head Wears' },
-      { id: null, name: 'Pet Shower' },
-    ],
-    tags: [
-      { id: 2, name: 'Pet Brush' },
-      { id: 5, name: 'Head Wears' },
-      { id: null, name: 'Pet Shower' },
-      { id: null, name: 'Clipper' },
+    labels: [
+      { id: 5, label_type: 'collections', label: 'shower' },
+      { id: 6, label_type: 'collections', label: 'headwears' },
+      { id: 7, label_type: 'collections', label: 'tops' },
+      { id: 10, label_type: 'tags', label: 'Feeding Tools' },
+      { id: 11, label_type: 'tags', label: 'Glasses' },
+      { id: 12, label_type: 'tags', label: 'collar' },
+      { id: 13, label_type: 'tags', label: 'leash' },
     ],
     media: [
       {
@@ -229,25 +211,35 @@ let _productDatas = [
 
 const ProductTable = () => {
   const reducer = (productDatas, action) => {
-    const { product_id, new_value } = action;
+    const { product_id, payload } = action;
     const row = productDatas.filter((el) => el.product_id === product_id)[0];
     let new_productDatas = [...productDatas];
     switch (action.type) {
       case 'updateProductName': {
+        const { new_value } = payload;
         new_productDatas[row]['product_name'] = new_value;
         return new_productDatas;
       }
       case 'updateSku': {
+        const { new_value } = payload;
         new_productDatas[row]['sku'] = new_value;
         return new_productDatas;
       }
-      // case '': {
-      // }
+      case 'updateCategory': {
+        const { new_category } = payload;
+        new_productDatas[row]['category'] = new_category;
+      }
+      case '': {
+      }
     }
   };
-  const [productDatas, dispatch] = useReducer(reducer, _productDatas);
-  const [collections, setCollections] = useState(_collections);
-  const [tags, setTags] = useState(_tags);
+  const [productDatas, dispatchProductDatas] = useReducer(
+    reducer,
+    _productDatas
+  );
+  // const [collections, setCollections] = useState(_collections);
+  // const [tags, setTags] = useState(_tags);
+  const [labels, setLabels] = useState(_labels);
   const [allMedia, setAllMedia] = useState(_allMedia);
 
   return (
@@ -269,12 +261,12 @@ const ProductTable = () => {
           <ProductTableRow
             rowId={i}
             productData={productData}
-            collections={collections}
-            setCollections={setCollections}
-            tags={tags}
-            setTags={setTags}
+            labels={labels}
+            // collections={collections}
+            // setCollections={setCollections}
+            // tags={tags}
+            // setTags={setTags}
             allMedia={allMedia}
-            setProductDatas={dispatch}
           />
         </div>
       ))}

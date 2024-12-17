@@ -110,13 +110,13 @@ let _productDatas = [
       { id: 33, level: 2, name: 'Pet Toys' },
     ],
     labels: [
-      { id: 5, label_type: 'collections', label: 'shower' },
-      { id: 6, label_type: 'collections', label: 'headwears' },
-      { id: 7, label_type: 'collections', label: 'tops' },
-      { id: 10, label_type: 'tags', label: 'Feeding Tools' },
-      { id: 11, label_type: 'tags', label: 'Glasses' },
-      { id: 12, label_type: 'tags', label: 'collar' },
-      { id: 13, label_type: 'tags', label: 'leash' },
+      { id: 5, label_type: 'collections' },
+      { id: 6, label_type: 'collections' },
+      { id: 7, label_type: 'collections' },
+      { id: 10, label_type: 'tags' },
+      { id: 11, label_type: 'tags' },
+      { id: 12, label_type: 'tags' },
+      { id: 13, label_type: 'tags' },
     ],
     media: [
       {
@@ -215,19 +215,23 @@ const ProductTable = () => {
     const row = productDatas.filter((el) => el.product_id === product_id)[0];
     let new_productDatas = [...productDatas];
     switch (action.type) {
-      case 'updateProductName': {
+      case 'productName': {
         const { new_value } = payload;
         new_productDatas[row]['product_name'] = new_value;
         return new_productDatas;
       }
-      case 'updateSku': {
+      case 'sku': {
         const { new_value } = payload;
         new_productDatas[row]['sku'] = new_value;
         return new_productDatas;
       }
-      case 'updateCategory': {
+      case 'category': {
         const { new_category } = payload;
         new_productDatas[row]['category'] = new_category;
+      }
+      case 'labels': {
+      }
+      case 'selectedLabels': {
       }
       case '': {
       }

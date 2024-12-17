@@ -8,14 +8,7 @@ import Varients from './Varients';
 import Category from './Category';
 
 const ProductTableRow = (props) => {
-  // let _selectedCollection = [6, 1, 12];
-  // let _selectedTags = [6, 1, 11, 12];
-
   const { productData, labels, allMedia } = props;
-
-  // const [selectedCollection, setSelectedCollection] =
-  //   useState(_selectedCollection);
-  // const [selectedTag, setSelectedTag] = useState(_selectedTags);
 
   return (
     <>

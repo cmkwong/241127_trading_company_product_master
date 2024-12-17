@@ -16,6 +16,13 @@ const Category = (props) => {
     setCategoryList(`${event.target.value}`.split('>>').map((el) => el.trim()));
   };
 
+  const handleMouseOver = (event) => {
+    console.log(event.clientX, event.clientY);
+    setXy([event.clientX, event.clientY]);
+  };
+
+  const [xy, setXy] = useState([0, 0]);
+
   return (
     <>
       <TextCell
@@ -23,9 +30,13 @@ const Category = (props) => {
         onChange={handleChange}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
+        onMouseMove={handleMouseOver}
       />
       {hovered && (
-        <div className={styles.categoryContainer}>
+        <div
+          className={`${styles.categoryContainer}`}
+          style={{ left: xy[0] + 15, top: xy[1] + 15 }}
+        >
           {categorList.map((el, i) => (
             <div key={i} className={styles.categories}>
               <p>

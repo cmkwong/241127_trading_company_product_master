@@ -5,7 +5,14 @@ const TextCell = (props) => {
   let cols = props.cols ? props.cols : 40;
   let rows = props.rows ? props.rows : 5;
 
-  let { value, onChange, onMouseEnter, onMouseLeave } = props;
+  let {
+    value,
+    onChange,
+    onMouseEnter,
+    onMouseLeave,
+    onMouseOver,
+    onMouseMove,
+  } = props;
   return (
     <div className={styles.container}>
       <textarea
@@ -17,6 +24,8 @@ const TextCell = (props) => {
         onChange={onChange}
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
+        onMouseOver={onMouseOver}
+        onMouseMove={onMouseMove}
       ></textarea>
     </div>
   );

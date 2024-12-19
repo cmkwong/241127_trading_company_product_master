@@ -215,23 +215,45 @@ const ProductTable = () => {
     const row = productDatas.filter((el) => el.product_id === product_id)[0];
     let new_productDatas = [...productDatas];
     switch (action.type) {
-      case 'productName': {
+      case 'updateProductName': {
         const { new_value } = payload;
         new_productDatas[row]['product_name'] = new_value;
         return new_productDatas;
       }
-      case 'sku': {
+      case 'updateSku': {
         const { new_value } = payload;
         new_productDatas[row]['sku'] = new_value;
         return new_productDatas;
       }
-      case 'category': {
+      case 'addCategory': {
         const { new_category } = payload;
         new_productDatas[row]['category'] = new_category;
       }
-      case 'labels': {
+      case 'addLabels': {
+        const { label_type, label } = payload;
+        const new_id = labels.sort((a, b) => b.id - a.id)[0].id;
+        setLabels((prv) => [...prv, { id: new_id, label_type, label }]);
       }
-      case 'selectedLabels': {
+      case 'addSelectedLabels': {
+        const { label_type, label } = payload;
+        // find in master
+        const found = labels.filter(
+          (el) => el.label === label && el.label_type === label_type
+        );
+        let required_id;
+        if (found.length > 0) {
+          // old label
+          required_id = found[0].id;
+        } else {
+          // new label
+          required_id = labels.sort((a, b) => b.id - a.id)[0].id + 1;
+          setLabels((prv) => [...prv, { id: required_id, label_type, label }]);
+        }
+        // update the selected label
+        new_productDatas[row]['labels'] = [
+          ...new_productDatas[row]['labels'],
+          { id: required_id, label_type },
+        ];
       }
       case '': {
       }
@@ -241,8 +263,6 @@ const ProductTable = () => {
     reducer,
     _productDatas
   );
-  // const [collections, setCollections] = useState(_collections);
-  // const [tags, setTags] = useState(_tags);
   const [labels, setLabels] = useState(_labels);
   const [allMedia, setAllMedia] = useState(_allMedia);
 
@@ -266,11 +286,8 @@ const ProductTable = () => {
             rowId={i}
             productData={productData}
             labels={labels}
-            // collections={collections}
-            // setCollections={setCollections}
-            // tags={tags}
-            // setTags={setTags}
             allMedia={allMedia}
+            dispatchProductDatas={dispatchProductDatas}
           />
         </div>
       ))}

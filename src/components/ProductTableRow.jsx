@@ -8,7 +8,7 @@ import Varients from './Varients';
 import Category from './Category';
 
 const ProductTableRow = (props) => {
-  const { productData, labels, allMedia } = props;
+  const { productData, labels, allMedia, dispatchProductDatas } = props;
 
   return (
     <>
@@ -19,10 +19,17 @@ const ProductTableRow = (props) => {
         <TextCell value={productData.sku} />
       </div>
       <div>
-        <Category productData={productData} />
+        <Category
+          productData={productData}
+          dispatchProductDatas={dispatchProductDatas}
+        />
       </div>
       <div>
-        <Collections productData={productData} options={labels} />
+        <Collections
+          productData={productData}
+          options={labels}
+          dispatchProductDatas={dispatchProductDatas}
+        />
       </div>
       <div>
         <Tags productData={productData} options={labels} />

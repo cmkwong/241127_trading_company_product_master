@@ -5,7 +5,7 @@ import InputField from './common/InputField';
 import TextCell from './TextCell';
 
 const Category = (props) => {
-  let { productData } = props;
+  let { productData, dispatchProductDatas } = props;
 
   const [hovered, setHovered] = useState(false);
   const [categorList, setCategoryList] = useState(

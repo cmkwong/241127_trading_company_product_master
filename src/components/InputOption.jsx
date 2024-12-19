@@ -6,6 +6,7 @@ import TagPlate from './tagPlate';
 import InputField from './common/InputField';
 
 const InputOption = (props) => {
+  const { dispatch } = props;
   const [options, setOptions] = useState(props.options);
   const [selectedOptions, setSelectedOptions] = useState(props.selectedOptions);
 

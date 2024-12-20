@@ -1,11 +1,13 @@
 import InputOption from './InputOption';
 
 const Collections = (props) => {
+  const label_type = 'collections';
+
   let { productData, options, dispatchProductDatas } = props;
 
-  const collections = options.filter((el) => el.label_type === 'collections');
+  const collections = options.filter((el) => el.label_type === label_type);
   const selectedCollections = productData.labels
-    .filter((el) => el.label_type === 'collections')
+    .filter((el) => el.label_type === label_type)
     .map((el) => el.id);
 
   return (
@@ -13,6 +15,7 @@ const Collections = (props) => {
       <InputOption
         selectedOptions={selectedCollections}
         options={collections}
+        label_type={label_type}
         dispatch={dispatchProductDatas}
       />
     </div>

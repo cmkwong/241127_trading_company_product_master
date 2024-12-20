@@ -6,10 +6,11 @@ import TagPlate from './tagPlate';
 import InputField from './common/InputField';
 
 const InputOption = (props) => {
-  const { dispatch } = props;
-  const [options, setOptions] = useState(props.options);
-  const [selectedOptions, setSelectedOptions] = useState(props.selectedOptions);
+  const { options, selectedOptions, label_type, dispatch } = props;
+  // const [options, setOptions] = useState(props.options);
+  // const [selectedOptions, setSelectedOptions] = useState(props.selectedOptions);
 
+  // controls
   const inputReference = useRef(null);
   const [inputValue, setInputValue] = useState('');
   const [showOption, setShowOption] = useState(false);
@@ -38,21 +39,28 @@ const InputOption = (props) => {
   // handle data
   const updateOptionData = (id, checked) => {
     if (checked) {
-      setSelectedOptions((state) => [...state, id]);
+      dispatch('checkSelectedLabels', { payload: { label_type, id } });
+      // setSelectedOptions((state) => [...state, id]);
     } else {
-      setSelectedOptions((state) => state.filter((el) => el !== id));
+      dispatch('uncheckSelectedLabels', {
+        payload: { label_type, id },
+      });
+      // setSelectedOptions((state) => state.filter((el) => el !== id));
     }
   };
 
   // add option data
   const addOptionData = (value) => {
     // getting the new ID
-    const max_option = options.reduce((acc, curr) => {
-      return acc.id < curr.id ? curr : acc;
+    // const max_option = options.reduce((acc, curr) => {
+    //   return acc.id < curr.id ? curr : acc;
+    // });
+    // let newId = max_option.id + 1;
+    dispatch('addSelectedLabels', {
+      payload: { label_type: label_type, value },
     });
-    let newId = max_option.id + 1;
-    setOptions((state) => [{ id: newId, label: value }, ...state]);
-    setSelectedOptions((state) => [...state, newId]);
+    // setOptions((state) => [{ id: newId, label: value }, ...state]);
+    // setSelectedOptions((state) => [...state, newId]);
   };
 
   // add the value into option

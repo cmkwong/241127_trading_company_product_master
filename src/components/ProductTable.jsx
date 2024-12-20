@@ -228,11 +228,7 @@ const ProductTable = () => {
       case 'addCategory': {
         const { new_category } = payload;
         new_productDatas[row]['category'] = new_category;
-      }
-      case 'addLabels': {
-        const { label_type, label } = payload;
-        const new_id = labels.sort((a, b) => b.id - a.id)[0].id;
-        setLabels((prv) => [...prv, { id: new_id, label_type, label }]);
+        return new_productDatas;
       }
       case 'addSelectedLabels': {
         const { label_type, label } = payload;
@@ -254,8 +250,22 @@ const ProductTable = () => {
           ...new_productDatas[row]['labels'],
           { id: required_id, label_type },
         ];
+        return new_productDatas;
       }
-      case '': {
+      case 'checkSelectedLabels': {
+        const { label_type, id } = payload;
+        new_productDatas[row]['labels'] = [
+          ...new_productDatas[row]['labels'],
+          { id: id, label_type: label_type },
+        ];
+        return new_productDatas;
+      }
+      case 'uncheckSelectedLabels': {
+        const { label_type, id } = payload;
+        new_productDatas[row]['labels'] = new_productDatas[row][
+          'labels'
+        ].filter((el) => el.id !== id && el.label_type === label_type);
+        return new_productDatas;
       }
     }
   };

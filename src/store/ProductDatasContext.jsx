@@ -108,25 +108,8 @@ let _productDatas = [
       { id: 14, level: 3, name: 'Cat Trees & Scratcher' },
       { id: 33, level: 2, name: 'Pet Toys' },
     ],
-    labels: [
-      { id: 5, label_type: 'collections' },
-      { id: 6, label_type: 'collections' },
-      { id: 7, label_type: 'collections' },
-      { id: 10, label_type: 'tags' },
-      { id: 11, label_type: 'tags' },
-      { id: 12, label_type: 'tags' },
-      { id: 13, label_type: 'tags' },
-    ],
-    media: [
-      {
-        id: 11,
-        mediaType: 'image',
-      },
-      { id: 12, mediaType: 'video' },
-      { id: 13, mediaType: 'video' },
-      { id: 14, mediaType: 'image' },
-      { id: 15, mediaType: 'video' },
-    ],
+    labels: [5, 6, 7, 10, 11],
+    media: [13, 14, 15],
     description: '',
     varients: [
       {
@@ -216,19 +199,8 @@ let _productDatas = [
       { id: 14, level: 3, name: 'Cat Trees & Scratcher' },
       { id: 33, level: 2, name: 'Pet Toys' },
     ],
-    labels: [
-      { id: 5, label_type: 'collections' },
-      { id: 6, label_type: 'collections' },
-      { id: 7, label_type: 'collections' },
-      { id: 10, label_type: 'tags' },
-      { id: 11, label_type: 'tags' },
-      { id: 12, label_type: 'tags' },
-      { id: 13, label_type: 'tags' },
-    ],
-    media: [
-      { id: 8, mediaType: 'image' },
-      { id: 9, mediaType: 'video' },
-    ],
+    labels: [5, 7, 12, 13],
+    media: [8, 9],
     description: '',
     varients: [
       {
@@ -360,15 +332,15 @@ export const ProductDatasProvider = ({ children }) => {
         // update the selected label
         new_productDatas[row]['labels'] = [
           ...new_productDatas[row]['labels'],
-          { id: required_id, label_type },
+          required_id,
         ];
         return new_productDatas;
       }
       case 'checkSelectedLabels': {
-        const { label_type, id } = payload;
+        const { id } = payload;
         new_productDatas[row]['labels'] = [
           ...new_productDatas[row]['labels'],
-          { id: id, label_type: label_type },
+          id,
         ];
         return new_productDatas;
       }
@@ -376,7 +348,47 @@ export const ProductDatasProvider = ({ children }) => {
         const { id } = payload;
         new_productDatas[row]['labels'] = new_productDatas[row][
           'labels'
-        ].filter((el) => el.id !== id);
+        ].filter((el) => el !== id);
+        return new_productDatas;
+      }
+      case 'addSelectedMedia': {
+        const { media_type, filename } = payload;
+        // find in master
+        const found = allMedia.filter(
+          (el) => el.filename === filename && el.media_type === media_type
+        );
+        let required_id;
+        if (found.length > 0) {
+          // old filename
+          required_id = found[0].id;
+        } else {
+          // new filename
+          required_id = [...allMedia].sort((a, b) => b.id - a.id)[0].id + 1;
+          setAllMedia((prv) => [
+            ...prv,
+            { id: required_id, media_type, filename },
+          ]);
+        }
+        // update the selected filename
+        new_productDatas[row]['media'] = [
+          ...new_productDatas[row]['media'],
+          required_id,
+        ];
+        return new_productDatas;
+      }
+      case 'checkSelectedMedia': {
+        const { id } = payload;
+        new_productDatas[row]['media'] = [
+          ...new_productDatas[row]['media'],
+          id,
+        ];
+        return new_productDatas;
+      }
+      case 'uncheckSelectedMedia': {
+        const { id } = payload;
+        new_productDatas[row]['media'] = new_productDatas[row]['media'].filter(
+          (el) => el !== id
+        );
         return new_productDatas;
       }
     }

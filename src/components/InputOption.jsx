@@ -44,7 +44,7 @@ const InputOption = (props) => {
       dispatch({
         type: 'checkSelectedLabels',
         product_id: productDataRow.product_id,
-        payload: { label_type, id },
+        payload: { id },
       });
     } else {
       dispatch({

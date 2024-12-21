@@ -6,7 +6,7 @@ import { useState } from 'react';
 import MediaUpdate from './MediaUpdate';
 
 const MediaPreview = (props) => {
-  let { media, allMedia } = props;
+  let { type, allMedia } = props;
 
   const [popWindow, setPopWindow] = useState(false);
 
@@ -14,11 +14,11 @@ const MediaPreview = (props) => {
   const [editorTxt, setEditorTxt] = useState('');
 
   let icon_path;
-  if (media === 'image') {
+  if (type === 'image') {
     icon_path = image_icon;
-  } else if (media === 'video') {
+  } else if (type === 'video') {
     icon_path = video_icon;
-  } else if (media === 'description') {
+  } else if (type === 'description') {
     icon_path = description_icon;
   }
 
@@ -35,10 +35,9 @@ const MediaPreview = (props) => {
       {popWindow && (
         <MediaUpdate
           setPopWindow={setPopWindow}
-          media={media}
+          type={type}
           editorTxt={editorTxt}
           setEditorTxt={setEditorTxt}
-          allMedia={allMedia}
         />
       )}
     </div>

@@ -45,13 +45,13 @@ const ProductTableRow = (props) => {
         />
       </div>
       <div>
-        <MediaPreview media="image" allMedia={allMedia} />
+        <MediaPreview type="image" />
       </div>
       <div>
-        <MediaPreview media="video" allMedia={allMedia} />
+        <MediaPreview type="video" />
       </div>
       <div>
-        <MediaPreview media="description" />
+        <MediaPreview type="description" />
       </div>
       <div>
         <Varients />

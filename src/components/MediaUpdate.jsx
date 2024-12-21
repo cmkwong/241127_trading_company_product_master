@@ -4,26 +4,52 @@ import styles from './MediaUpdate.module.css';
 
 import { Editor } from 'primereact/editor';
 import ImageBox from './ImageBox';
+import { useProductDatasContext } from '../store/ProductDatasContext';
+import { useProductDataRowContext } from '../store/ProductDataRowContext';
 
 const MediaUpdate = (props) => {
-  let { setPopWindow, media, editorTxt, setEditorTxt, allMedia } = props;
+  let { setPopWindow, type, editorTxt, setEditorTxt } = props;
+
+  const { product_id, media } = useProductDataRowContext();
+
+  const { dispatchProductDatas, allMedia } = useProductDatasContext();
+
+  const mediaOnClick = (id, checked) => {
+    if (checked) {
+      dispatchProductDatas({
+        type: 'uncheckSelectedMedia',
+        product_id: product_id,
+        payload: { id },
+      });
+    } else {
+      dispatchProductDatas({
+        type: 'checkSelectedMedia',
+        product_id: product_id,
+        payload: { id },
+      });
+    }
+  };
 
   const editor_ref = useRef(null);
-
   return (
     <WindowPop setPopWindow={setPopWindow}>
       <div className={styles.upperContainer}>
-        {(media === 'video' || media === 'image') && (
+        {(type === 'video' || type === 'image') && (
           <div className={styles.mediaTable}>
             {allMedia.map(
               (image, i) =>
-                image.media_type === media && (
-                  <ImageBox key={i} image={image} checked={true} />
+                image.media_type === type && (
+                  <ImageBox
+                    key={image.id}
+                    image={image}
+                    checked={media.includes(image.id)}
+                    mediaOnClick={mediaOnClick}
+                  />
                 )
             )}
           </div>
         )}
-        {media === 'description' && (
+        {type === 'description' && (
           <div className={styles.ta}>
             <Editor
               ref={editor_ref}
@@ -38,7 +64,7 @@ const MediaUpdate = (props) => {
         )}
       </div>
       <div className={styles.lowerContainer}>
-        {(media === 'video' || media === 'image') && (
+        {(type === 'video' || type === 'image') && (
           <input type="file" multiple />
         )}
       </div>

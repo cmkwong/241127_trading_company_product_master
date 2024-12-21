@@ -1,15 +1,18 @@
 import styles from './ProductTableRow.module.css';
-import Collections from './Collections';
-import Tags from './Tags';
 import MediaPreview from './MediaPreview';
 import PricePreview from './PricePreview';
 import TextCell from './TextCell';
 import Varients from './Varients';
 import Category from './Category';
 import { ProductDataRowProvider } from '../store/ProductDataRowContext';
+import { useProductDatasContext } from '../store/ProductDatasContext';
+import Labels from './Labels';
 
 const ProductTableRow = (props) => {
-  const { productData, labels, allMedia, dispatchProductDatas } = props;
+  const { productData } = props;
+
+  // access the context
+  const { labels, allMedia, dispatchProductDatas } = useProductDatasContext();
 
   return (
     <ProductDataRowProvider data={productData}>
@@ -26,14 +29,16 @@ const ProductTableRow = (props) => {
         />
       </div>
       <div>
-        <Collections
+        <Labels
+          label_type={'collections'}
           productData={productData}
           options={labels}
           dispatchProductDatas={dispatchProductDatas}
         />
       </div>
       <div>
-        <Tags
+        <Labels
+          label_type={'tags'}
           productData={productData}
           options={labels}
           dispatchProductDatas={dispatchProductDatas}

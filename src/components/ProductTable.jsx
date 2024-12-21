@@ -4,8 +4,7 @@ import ProductTableRow from './ProductTableRow';
 import { useProductDatasContext } from '../store/ProductDatasContext';
 
 const ProductTable = () => {
-  const { productDatas, dispatchProductDatas, labels, allMedia } =
-    useProductDatasContext();
+  const { productDatas } = useProductDatasContext();
   return (
     <div className={styles['container']}>
       <div className={styles['header']}>
@@ -22,13 +21,7 @@ const ProductTable = () => {
       </div>
       {productDatas.map((productData, i) => (
         <div key={i} className={styles.row}>
-          <ProductTableRow
-            rowId={i}
-            productData={productData}
-            labels={labels}
-            allMedia={allMedia}
-            dispatchProductDatas={dispatchProductDatas}
-          />
+          <ProductTableRow rowId={i} productData={productData} />
         </div>
       ))}
     </div>

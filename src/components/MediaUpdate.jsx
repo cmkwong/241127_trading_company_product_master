@@ -18,7 +18,7 @@ const MediaUpdate = (props) => {
             {allMedia.map(
               (image, i) =>
                 image.media_type === media && (
-                  <ImageBox key={i} image={image} checked={false} />
+                  <ImageBox key={i} image={image} checked={true} />
                 )
             )}
           </div>

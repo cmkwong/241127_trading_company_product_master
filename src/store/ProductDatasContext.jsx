@@ -121,13 +121,11 @@ let _productDatas = [
       {
         id: 11,
         mediaType: 'image',
-        filename:
-          'S0fd1722ca1f84edabe34166d35dde1977.jpg_640x640.jpg_5ad89cc1-e722-4910-b0aa-c170ce6f3394.jpg',
       },
-      { id: 12, mediaType: 'video', filename: 'browl.mp4' },
-      { id: 13, mediaType: 'video', filename: 'cat.mp4' },
-      { id: null, mediaType: 'image', filename: 'asdwwuquw.png' },
-      { id: null, mediaType: 'video', filename: 'pet.mp4' },
+      { id: 12, mediaType: 'video' },
+      { id: 13, mediaType: 'video' },
+      { id: 14, mediaType: 'image' },
+      { id: 15, mediaType: 'video' },
     ],
     description: '',
     varients: [
@@ -140,10 +138,112 @@ let _productDatas = [
         ],
       },
       {
-        id: null,
+        id: 1,
         name: 'color',
         value: [
-          { id: null, value: 'red' },
+          { id: 4, value: 'red' },
+          { id: 2, value: 'yellow' },
+          { id: 3, value: 'blue' },
+        ],
+      },
+    ],
+    prices: [
+      {
+        varientValue: { lock: 'front', color: 'red' },
+        currency: 'HKD',
+        img: '/products/785027093526.jpg',
+        price: 125,
+        stock: 1254,
+        supplier: 'Sink Lin Trading Company',
+        link: 'https://www.google.com/search?q=array+filter&sca_esv=3837dfeb0f430c76&sxsrf=ADLYWIKspdky7njPNkdKKwycnaSkErCxYQ%3A1732965347900&ei=4_NKZ7bJNrvc1e8PkYDA4Ak&ved=0ahUKEwj2xuD_9oOKAxU7bvUHHREAEJwQ4dUDCBA&uact=5&oq=array+filter&gs_lp=Egxnd3Mtd2l6LXNlcnAiDGFycmF5IGZpbHRlcjIGEAAYBxgeMggQABiABBjLATIFEAAYgAQyBRAAGIAEMgYQABgHGB4yBRAAGIAEMggQABiABBjLATIIEAAYgAQYywEyCBAAGIAEGMsBMggQABiABBjLAUiSElDeCFjJEHABeAGQAQCYAV2gAc4DqgEBNrgBA8gBAPgBAZgCBqAClAPCAgoQABiwAxjWBBhHmAMAiAYBkAYKkgcBNqAHuBQ&sclient=gws-wiz-serp',
+      },
+      {
+        varientValue: { lock: 'front', color: 'yellow' },
+        currency: 'HKD',
+        img: '/products/1173534224478.jpg',
+        price: 137,
+        stock: 4281,
+        supplier: 'Sink Lin Trading Company',
+        link: 'https://www.google.com/search?q=array+filter&sca_esv=3837dfeb0f430c76&sxsrf=ADLYWIKspdky7njPNkdKKwycnaSkErCxYQ%3A1732965347900&ei=4_NKZ7bJNrvc1e8PkYDA4Ak&ved=0ahUKEwj2xuD_9oOKAxU7bvUHHREAEJwQ4dUDCBA&uact=5&oq=array+filter&gs_lp=Egxnd3Mtd2l6LXNlcnAiDGFycmF5IGZpbHRlcjIGEAAYBxgeMggQABiABBjLATIFEAAYgAQyBRAAGIAEMgYQABgHGB4yBRAAGIAEMggQABiABBjLATIIEAAYgAQYywEyCBAAGIAEGMsBMggQABiABBjLAUiSElDeCFjJEHABeAGQAQCYAV2gAc4DqgEBNrgBA8gBAPgBAZgCBqAClAPCAgoQABiwAxjWBBhHmAMAiAYBkAYKkgcBNqAHuBQ&sclient=gws-wiz-serp',
+      },
+      {
+        varientValue: { lock: 'front', color: 'blue' },
+        currency: 'HKD',
+        img: '',
+        price: 125,
+        stock: 1254,
+        supplier: 'Sink Lin Trading Company',
+        link: 'https://www.google.com/search?q=array+filter&sca_esv=3837dfeb0f430c76&sxsrf=ADLYWIKspdky7njPNkdKKwycnaSkErCxYQ%3A1732965347900&ei=4_NKZ7bJNrvc1e8PkYDA4Ak&ved=0ahUKEwj2xuD_9oOKAxU7bvUHHREAEJwQ4dUDCBA&uact=5&oq=array+filter&gs_lp=Egxnd3Mtd2l6LXNlcnAiDGFycmF5IGZpbHRlcjIGEAAYBxgeMggQABiABBjLATIFEAAYgAQyBRAAGIAEMgYQABgHGB4yBRAAGIAEMggQABiABBjLATIIEAAYgAQYywEyCBAAGIAEGMsBMggQABiABBjLAUiSElDeCFjJEHABeAGQAQCYAV2gAc4DqgEBNrgBA8gBAPgBAZgCBqAClAPCAgoQABiwAxjWBBhHmAMAiAYBkAYKkgcBNqAHuBQ&sclient=gws-wiz-serp',
+      },
+      {
+        varientValue: { lock: 'back', color: 'red' },
+        currency: 'HKD',
+        img: '',
+        price: 137,
+        stock: 4281,
+        supplier: 'Sink Lin Trading Company',
+        link: 'https://www.google.com/search?q=array+filter&sca_esv=3837dfeb0f430c76&sxsrf=ADLYWIKspdky7njPNkdKKwycnaSkErCxYQ%3A1732965347900&ei=4_NKZ7bJNrvc1e8PkYDA4Ak&ved=0ahUKEwj2xuD_9oOKAxU7bvUHHREAEJwQ4dUDCBA&uact=5&oq=array+filter&gs_lp=Egxnd3Mtd2l6LXNlcnAiDGFycmF5IGZpbHRlcjIGEAAYBxgeMggQABiABBjLATIFEAAYgAQyBRAAGIAEMgYQABgHGB4yBRAAGIAEMggQABiABBjLATIIEAAYgAQYywEyCBAAGIAEGMsBMggQABiABBjLAUiSElDeCFjJEHABeAGQAQCYAV2gAc4DqgEBNrgBA8gBAPgBAZgCBqAClAPCAgoQABiwAxjWBBhHmAMAiAYBkAYKkgcBNqAHuBQ&sclient=gws-wiz-serp',
+      },
+      {
+        varientValue: { lock: 'back', color: 'yellow' },
+        currency: 'HKD',
+        img: '',
+        price: 125,
+        stock: 1254,
+        supplier: 'Sink Lin Trading Company',
+        link: 'https://www.google.com/search?q=array+filter&sca_esv=3837dfeb0f430c76&sxsrf=ADLYWIKspdky7njPNkdKKwycnaSkErCxYQ%3A1732965347900&ei=4_NKZ7bJNrvc1e8PkYDA4Ak&ved=0ahUKEwj2xuD_9oOKAxU7bvUHHREAEJwQ4dUDCBA&uact=5&oq=array+filter&gs_lp=Egxnd3Mtd2l6LXNlcnAiDGFycmF5IGZpbHRlcjIGEAAYBxgeMggQABiABBjLATIFEAAYgAQyBRAAGIAEMgYQABgHGB4yBRAAGIAEMggQABiABBjLATIIEAAYgAQYywEyCBAAGIAEGMsBMggQABiABBjLAUiSElDeCFjJEHABeAGQAQCYAV2gAc4DqgEBNrgBA8gBAPgBAZgCBqAClAPCAgoQABiwAxjWBBhHmAMAiAYBkAYKkgcBNqAHuBQ&sclient=gws-wiz-serp',
+      },
+      {
+        varientValue: { lock: 'back', color: 'blue' },
+        currency: 'HKD',
+        img: '',
+        price: 137,
+        stock: 4281,
+        supplier: 'Sink Lin Trading Company',
+        link: 'https://www.google.com/search?q=array+filter&sca_esv=3837dfeb0f430c76&sxsrf=ADLYWIKspdky7njPNkdKKwycnaSkErCxYQ%3A1732965347900&ei=4_NKZ7bJNrvc1e8PkYDA4Ak&ved=0ahUKEwj2xuD_9oOKAxU7bvUHHREAEJwQ4dUDCBA&uact=5&oq=array+filter&gs_lp=Egxnd3Mtd2l6LXNlcnAiDGFycmF5IGZpbHRlcjIGEAAYBxgeMggQABiABBjLATIFEAAYgAQyBRAAGIAEMgYQABgHGB4yBRAAGIAEMggQABiABBjLATIIEAAYgAQYywEyCBAAGIAEGMsBMggQABiABBjLAUiSElDeCFjJEHABeAGQAQCYAV2gAc4DqgEBNrgBA8gBAPgBAZgCBqAClAPCAgoQABiwAxjWBBhHmAMAiAYBkAYKkgcBNqAHuBQ&sclient=gws-wiz-serp',
+      },
+    ],
+  },
+  {
+    product_id: '1Y#23#@1%#12',
+    product_name:
+      'Autumn And Winter Christmas Festive Series Dog Clothes Cat Dress',
+    sku: 'SDW3287612-UI',
+    // Pet Supplies >> Pet Products>>Pet Toys >> Cat Trees & Scratcher
+    category: [
+      { id: 32, level: 1, name: 'Pet Supplies' },
+      { id: 22, level: 0, name: 'Pet Products' },
+      { id: 14, level: 3, name: 'Cat Trees & Scratcher' },
+      { id: 33, level: 2, name: 'Pet Toys' },
+    ],
+    labels: [
+      { id: 5, label_type: 'collections' },
+      { id: 6, label_type: 'collections' },
+      { id: 7, label_type: 'collections' },
+      { id: 10, label_type: 'tags' },
+      { id: 11, label_type: 'tags' },
+      { id: 12, label_type: 'tags' },
+      { id: 13, label_type: 'tags' },
+    ],
+    media: [
+      { id: 8, mediaType: 'image' },
+      { id: 9, mediaType: 'video' },
+    ],
+    description: '',
+    varients: [
+      {
+        id: 42,
+        name: 'lock',
+        value: [
+          { id: 1, value: 'back' },
+          { id: 2, value: 'front' },
+        ],
+      },
+      {
+        id: 1,
+        name: 'color',
+        value: [
+          { id: 4, value: 'red' },
           { id: 2, value: 'yellow' },
           { id: 3, value: 'blue' },
         ],
@@ -208,7 +308,7 @@ let _productDatas = [
   },
 ];
 
-const ProductDatasContext = createContext(null, () => {}, null, null);
+const ProductDatasContext = createContext(null);
 
 export const ProductDatasProvider = ({ children }) => {
   const [labels, setLabels] = useState(_labels);
@@ -218,11 +318,13 @@ export const ProductDatasProvider = ({ children }) => {
   const reducer = (productDatas, action) => {
     const { product_id, payload } = action;
     // getting which of target row
-    const row = productDatas.map((el, i) => {
-      if (el.product_id === product_id) {
-        return i;
-      }
-    })[0];
+    const row = productDatas
+      .map((el, i) => {
+        if (el.product_id === product_id) {
+          return i;
+        }
+      })
+      .filter((el) => el !== undefined)[0];
     let new_productDatas = [...productDatas];
     switch (action.type) {
       case 'updateProductName': {
@@ -271,7 +373,7 @@ export const ProductDatasProvider = ({ children }) => {
         return new_productDatas;
       }
       case 'uncheckSelectedLabels': {
-        const { label_type, id } = payload;
+        const { id } = payload;
         new_productDatas[row]['labels'] = new_productDatas[row][
           'labels'
         ].filter((el) => el.id !== id);
@@ -293,8 +395,8 @@ export const ProductDatasProvider = ({ children }) => {
   );
 };
 
-export default ProductDatasContext;
-
 export const useProductDatasContext = () => {
   return useContext(ProductDatasContext);
 };
+
+export default ProductDatasContext;

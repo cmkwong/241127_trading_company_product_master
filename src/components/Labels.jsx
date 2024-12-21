@@ -1,0 +1,23 @@
+import InputOption from './InputOption';
+
+const Labels = (props) => {
+  let { label_type, productData, options, dispatchProductDatas } = props;
+
+  const labels = options.filter((el) => el.label_type === label_type);
+  const selectedLabels = productData.labels
+    .filter((el) => el.label_type === label_type)
+    .map((el) => el.id);
+
+  return (
+    <div>
+      <InputOption
+        selectedOptions={selectedLabels}
+        options={labels}
+        label_type={label_type}
+        dispatch={dispatchProductDatas}
+      />
+    </div>
+  );
+};
+
+export default Labels;

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useContext, createContext } from 'react';
 
-const ProductDataRowContext = createContext(null, null);
+const ProductDataRowContext = createContext(null);
 
 export const ProductDataRowProvider = ({ children, data }) => {
   return (
@@ -11,8 +11,8 @@ export const ProductDataRowProvider = ({ children, data }) => {
   );
 };
 
-export default ProductDataRowContext;
-
 export const useProductDataRowContext = () => {
   return useContext(ProductDataRowContext);
 };
+
+export default ProductDataRowContext;

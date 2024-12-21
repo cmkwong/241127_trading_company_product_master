@@ -46,31 +46,22 @@ const InputOption = (props) => {
         product_id: productDataRow.product_id,
         payload: { label_type, id },
       });
-      // setSelectedOptions((state) => [...state, id]);
     } else {
       dispatch({
         type: 'uncheckSelectedLabels',
         product_id: productDataRow.product_id,
-        payload: { label_type, id },
+        payload: { id },
       });
-      // setSelectedOptions((state) => state.filter((el) => el !== id));
     }
   };
 
   // add option data
   const addOptionData = (value) => {
-    // getting the new ID
-    // const max_option = options.reduce((acc, curr) => {
-    //   return acc.id < curr.id ? curr : acc;
-    // });
-    // let newId = max_option.id + 1;
     dispatch({
       type: 'addSelectedLabels',
       product_id: productDataRow.product_id,
       payload: { label_type: label_type, label: value },
     });
-    // setOptions((state) => [{ id: newId, label: value }, ...state]);
-    // setSelectedOptions((state) => [...state, newId]);
   };
 
   // add the value into option

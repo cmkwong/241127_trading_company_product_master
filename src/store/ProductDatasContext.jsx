@@ -391,6 +391,11 @@ export const ProductDatasProvider = ({ children }) => {
         );
         return new_productDatas;
       }
+      case 'updateDescription': {
+        const { txt } = payload;
+        new_productDatas[row]['description'] = txt;
+        return new_productDatas;
+      }
     }
   };
   const [productDatas, dispatchProductDatas] = useReducer(

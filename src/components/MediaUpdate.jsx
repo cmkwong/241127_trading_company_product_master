@@ -8,12 +8,13 @@ import { useProductDatasContext } from '../store/ProductDatasContext';
 import { useProductDataRowContext } from '../store/ProductDataRowContext';
 
 const MediaUpdate = (props) => {
-  let { setPopWindow, type, editorTxt, setEditorTxt } = props;
+  let { setPopWindow, type } = props;
 
-  const { product_id, media } = useProductDataRowContext();
-
+  // use context
+  const { product_id, media, description } = useProductDataRowContext();
   const { dispatchProductDatas, allMedia } = useProductDatasContext();
 
+  // on click function
   const mediaOnClick = (id, checked) => {
     if (checked) {
       dispatchProductDatas({
@@ -37,7 +38,7 @@ const MediaUpdate = (props) => {
         {(type === 'video' || type === 'image') && (
           <div className={styles.mediaTable}>
             {allMedia.map(
-              (image, i) =>
+              (image) =>
                 image.media_type === type && (
                   <ImageBox
                     key={image.id}
@@ -53,11 +54,15 @@ const MediaUpdate = (props) => {
           <div className={styles.ta}>
             <Editor
               ref={editor_ref}
-              value={editorTxt}
+              value={description}
               onTextChange={() =>
-                setEditorTxt(editor_ref.current.getContent().outerHTML)
+                dispatchProductDatas({
+                  type: 'updateDescription',
+                  product_id: product_id,
+                  payload: { txt: editor_ref.current.getContent().outerHTML },
+                })
               }
-              onClick={() => console.log(editorTxt)}
+              onClick={() => {}}
               style={{ height: '580px', overflowY: 'scroll' }}
             />
           </div>

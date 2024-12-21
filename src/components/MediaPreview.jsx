@@ -6,12 +6,12 @@ import { useState } from 'react';
 import MediaUpdate from './MediaUpdate';
 
 const MediaPreview = (props) => {
-  let { type, allMedia } = props;
+  let { type } = props;
 
   const [popWindow, setPopWindow] = useState(false);
 
   // for description text
-  const [editorTxt, setEditorTxt] = useState('');
+  // const [editorTxt, setEditorTxt] = useState('');
 
   let icon_path;
   if (type === 'image') {
@@ -32,14 +32,7 @@ const MediaPreview = (props) => {
         src={icon_path}
         alt="Media Upload"
       />
-      {popWindow && (
-        <MediaUpdate
-          setPopWindow={setPopWindow}
-          type={type}
-          editorTxt={editorTxt}
-          setEditorTxt={setEditorTxt}
-        />
-      )}
+      {popWindow && <MediaUpdate setPopWindow={setPopWindow} type={type} />}
     </div>
   );
 };

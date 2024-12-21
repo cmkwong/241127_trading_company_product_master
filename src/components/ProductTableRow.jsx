@@ -6,12 +6,13 @@ import PricePreview from './PricePreview';
 import TextCell from './TextCell';
 import Varients from './Varients';
 import Category from './Category';
+import { ProductDataRowProvider } from '../store/ProductDataRowContext';
 
 const ProductTableRow = (props) => {
   const { productData, labels, allMedia, dispatchProductDatas } = props;
 
   return (
-    <>
+    <ProductDataRowProvider data={productData}>
       <div>
         <TextCell value={productData.product_name} />
       </div>
@@ -32,7 +33,11 @@ const ProductTableRow = (props) => {
         />
       </div>
       <div>
-        <Tags productData={productData} options={labels} />
+        <Tags
+          productData={productData}
+          options={labels}
+          dispatchProductDatas={dispatchProductDatas}
+        />
       </div>
       <div>
         <MediaPreview media="image" allMedia={allMedia} />
@@ -49,7 +54,7 @@ const ProductTableRow = (props) => {
       <>
         <PricePreview productData={productData} />
       </>
-    </>
+    </ProductDataRowProvider>
   );
 };
 

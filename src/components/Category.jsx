@@ -19,7 +19,6 @@ const Category = (props) => {
 
   // handle the mouse on the textarea element
   const handleMouseOver = (event) => {
-    console.log(event.clientX, event.clientY);
     setXy([event.clientX, event.clientY]);
   };
 

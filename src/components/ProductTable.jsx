@@ -210,9 +210,17 @@ let _productDatas = [
 ];
 
 const ProductTable = () => {
+  const [labels, setLabels] = useState(_labels);
+  const [allMedia, setAllMedia] = useState(_allMedia);
+
   const reducer = (productDatas, action) => {
     const { product_id, payload } = action;
-    const row = productDatas.filter((el) => el.product_id === product_id)[0];
+    // getting which of target row
+    const row = productDatas.map((el, i) => {
+      if (el.product_id === product_id) {
+        return i;
+      }
+    })[0];
     let new_productDatas = [...productDatas];
     switch (action.type) {
       case 'updateProductName': {
@@ -242,7 +250,7 @@ const ProductTable = () => {
           required_id = found[0].id;
         } else {
           // new label
-          required_id = labels.sort((a, b) => b.id - a.id)[0].id + 1;
+          required_id = [...labels].sort((a, b) => b.id - a.id)[0].id + 1;
           setLabels((prv) => [...prv, { id: required_id, label_type, label }]);
         }
         // update the selected label
@@ -264,7 +272,7 @@ const ProductTable = () => {
         const { label_type, id } = payload;
         new_productDatas[row]['labels'] = new_productDatas[row][
           'labels'
-        ].filter((el) => el.id !== id && el.label_type === label_type);
+        ].filter((el) => el.id !== id);
         return new_productDatas;
       }
     }
@@ -273,8 +281,6 @@ const ProductTable = () => {
     reducer,
     _productDatas
   );
-  const [labels, setLabels] = useState(_labels);
-  const [allMedia, setAllMedia] = useState(_allMedia);
 
   return (
     <div className={styles['container']}>

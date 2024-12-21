@@ -4,11 +4,13 @@ import { useRef } from 'react';
 import OptionRow from './OptionRow';
 import TagPlate from './tagPlate';
 import InputField from './common/InputField';
+import { useProductDataRowContext } from '../store/ProductDataRowContext';
 
 const InputOption = (props) => {
   const { options, selectedOptions, label_type, dispatch } = props;
   // const [options, setOptions] = useState(props.options);
   // const [selectedOptions, setSelectedOptions] = useState(props.selectedOptions);
+  const productDataRow = useProductDataRowContext();
 
   // controls
   const inputReference = useRef(null);
@@ -39,10 +41,16 @@ const InputOption = (props) => {
   // handle data
   const updateOptionData = (id, checked) => {
     if (checked) {
-      dispatch('checkSelectedLabels', { payload: { label_type, id } });
+      dispatch({
+        type: 'checkSelectedLabels',
+        product_id: productDataRow.product_id,
+        payload: { label_type, id },
+      });
       // setSelectedOptions((state) => [...state, id]);
     } else {
-      dispatch('uncheckSelectedLabels', {
+      dispatch({
+        type: 'uncheckSelectedLabels',
+        product_id: productDataRow.product_id,
         payload: { label_type, id },
       });
       // setSelectedOptions((state) => state.filter((el) => el !== id));
@@ -56,8 +64,10 @@ const InputOption = (props) => {
     //   return acc.id < curr.id ? curr : acc;
     // });
     // let newId = max_option.id + 1;
-    dispatch('addSelectedLabels', {
-      payload: { label_type: label_type, value },
+    dispatch({
+      type: 'addSelectedLabels',
+      product_id: productDataRow.product_id,
+      payload: { label_type: label_type, label: value },
     });
     // setOptions((state) => [{ id: newId, label: value }, ...state]);
     // setSelectedOptions((state) => [...state, newId]);

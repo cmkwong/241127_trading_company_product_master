@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useContext, createContext } from 'react';
 
-const ProductDataRowContext = createContext(null, () => {});
+const ProductDataRowContext = createContext(null, null);
 
 export const ProductDataRowProvider = ({ children, data }) => {
   return (

@@ -5,7 +5,6 @@ import styles from './PricePreview.module.css';
 import { makeComplexId } from '../utils/string';
 import PriceUpdate from './PriceUpdate';
 import Icon from './common/Icon';
-import { useProductData } from '../store/ProductDataContext';
 
 const PricePreviewRow = (props) => {
   let { row, varients } = props;

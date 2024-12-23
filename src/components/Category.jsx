@@ -3,9 +3,13 @@ import styles from './Category.module.css';
 import AddStackBtn from './common/AddStackBtn';
 import InputField from './common/InputField';
 import TextCell from './TextCell';
+import { useProductDatasContext } from '../store/ProductDatasContext';
 
 const Category = (props) => {
-  let { productData, dispatchProductDatas } = props;
+  let { productData } = props;
+
+  // access the context
+  const { dispatchProductDatas } = useProductDatasContext();
 
   const [hovered, setHovered] = useState(false);
   const [categorList, setCategoryList] = useState(

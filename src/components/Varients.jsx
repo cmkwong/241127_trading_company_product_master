@@ -7,8 +7,10 @@ import { makeComplexId } from '../utils/string';
 
 import { useEffect, useState } from 'react';
 import AddStackBtn from './common/AddStackBtn';
+import { useProductDataRowContext } from '../store/ProductDataRowContext';
 
 const Varient = (props) => {
+  const { varientValues } = useProductDataRowContext();
   let options = [
     { id: 1, label: 'pet brush' },
     { id: 2, label: 'pet mats' },
@@ -33,7 +35,10 @@ const Varient = (props) => {
       <img className={styles.drag} src={drag_icon} alt="drag" />
       <div className={styles.edit}>
         <input className={styles.inputvarient} />
-        <InputOption selectedOptions={selectedOptions} options={options} />
+        <InputOption
+          selectedOptions={selectedOptions}
+          options={varientValues}
+        />
       </div>
       <div onClick={() => removeStack(id)}>
         <img className={styles.close} src={close_icon} alt="X" />

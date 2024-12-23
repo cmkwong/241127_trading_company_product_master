@@ -11,9 +11,6 @@ import Labels from './Labels';
 const ProductTableRow = (props) => {
   const { productData } = props;
 
-  // access the context
-  const { labels, allMedia, dispatchProductDatas } = useProductDatasContext();
-
   return (
     <ProductDataRowProvider data={productData}>
       <div>
@@ -23,26 +20,13 @@ const ProductTableRow = (props) => {
         <TextCell value={productData.sku} />
       </div>
       <div>
-        <Category
-          productData={productData}
-          dispatchProductDatas={dispatchProductDatas}
-        />
+        <Category productData={productData} />
       </div>
       <div>
-        <Labels
-          label_type={'collections'}
-          productData={productData}
-          options={labels}
-          dispatchProductDatas={dispatchProductDatas}
-        />
+        <Labels label_type={'collections'} productData={productData} />
       </div>
       <div>
-        <Labels
-          label_type={'tags'}
-          productData={productData}
-          options={labels}
-          dispatchProductDatas={dispatchProductDatas}
-        />
+        <Labels label_type={'tags'} productData={productData} />
       </div>
       <div>
         <MediaPreview type="image" />

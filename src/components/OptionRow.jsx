@@ -2,7 +2,7 @@ import { useRef } from 'react';
 import styles from './OptionRow.module.css';
 
 const OptionRow = (props) => {
-  let { id, label, checked, updateOptionData } = props;
+  let { id, name, checked, updateOptionData } = props;
 
   const checkboxRef = useRef(null);
 
@@ -21,13 +21,13 @@ const OptionRow = (props) => {
         className={styles['checkbox']}
         ref={checkboxRef}
         id={id}
-        name={label}
+        name={name}
         defaultChecked={checked}
         onChange={handleChange}
         type="checkbox"
       />
       <p id={id} className={styles.label}>
-        {label}
+        {name}
       </p>
     </div>
   );

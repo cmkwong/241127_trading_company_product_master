@@ -8,8 +8,6 @@ import { useProductDataRowContext } from '../store/ProductDataRowContext';
 
 const InputOption = (props) => {
   const { options, selectedOptions, label_type, dispatch } = props;
-  // const [options, setOptions] = useState(props.options);
-  // const [selectedOptions, setSelectedOptions] = useState(props.selectedOptions);
   const productDataRow = useProductDataRowContext();
 
   // controls
@@ -60,7 +58,7 @@ const InputOption = (props) => {
     dispatch({
       type: 'addSelectedLabels',
       product_id: productDataRow.product_id,
-      payload: { label_type: label_type, label: value },
+      payload: { label_type: label_type, name: value },
     });
   };
 
@@ -75,7 +73,7 @@ const InputOption = (props) => {
 
     // finding if it has the same element, then set it into checked and no need to add new
     let duplicatedOptions = options.filter(
-      (el) => el.label.toLowerCase() === value.toLowerCase()
+      (el) => el.name.toLowerCase() === value.toLowerCase()
     );
     if (duplicatedOptions.length > 0) {
       duplicatedOptions.map((el) => {
@@ -113,12 +111,12 @@ const InputOption = (props) => {
           >
             {options.map((el) => {
               // Showing the option item in a list
-              if (inputValue && !el.label.includes(inputValue)) return;
+              if (inputValue && !el.name.includes(inputValue)) return;
               return (
                 <OptionRow
                   key={el.id}
                   id={el.id}
-                  label={el.label}
+                  name={el.name}
                   checked={selectedOptions.includes(el.id)}
                   updateOptionData={updateOptionData}
                 />
@@ -135,7 +133,7 @@ const InputOption = (props) => {
               <TagPlate
                 key={el.id}
                 id={el.id}
-                label={el.label}
+                name={el.name}
                 updateOptionData={updateOptionData}
               />
             );

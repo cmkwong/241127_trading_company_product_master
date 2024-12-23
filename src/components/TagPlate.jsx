@@ -3,14 +3,14 @@ import close_icon from '../assets/close.svg';
 import { useState } from 'react';
 
 const TagPlate = (props) => {
-  let { id, label, updateOptionData } = props;
+  let { id, name, updateOptionData } = props;
 
   const [hover, setHover] = useState(false);
 
   return (
     <div className={styles.tagBlock}>
       <div key={id} className={styles.container}>
-        <p className={styles.label}>{label}</p>
+        <p className={styles.label}>{name}</p>
         <img
           className={`${styles.img} ${hover ? styles.hover : ''}`}
           onClick={() => updateOptionData(parseInt(id), false)}

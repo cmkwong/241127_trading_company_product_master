@@ -1,10 +1,14 @@
 import InputOption from './InputOption';
+import { useProductDatasContext } from '../store/ProductDatasContext';
 
 const Labels = (props) => {
-  let { label_type, productData, options, dispatchProductDatas } = props;
+  let { label_type, productData } = props;
 
-  const labels = options.filter((el) => el.label_type === label_type);
-  const selectedLabels = options
+  // access the context
+  const { labels, dispatchProductDatas } = useProductDatasContext();
+
+  const required_labels = labels.filter((el) => el.label_type === label_type);
+  const selectedLabels = labels
     .filter(
       (option) =>
         productData.labels.includes(option.id) &&
@@ -16,7 +20,7 @@ const Labels = (props) => {
     <div>
       <InputOption
         selectedOptions={selectedLabels}
-        options={labels}
+        options={required_labels}
         label_type={label_type}
         dispatch={dispatchProductDatas}
       />

@@ -51,6 +51,8 @@ const Varients = () => {
   // storing the varient key
   const [varientStack, setVarientStack] = useState([]);
 
+  const { product_id } = useProductDataRowContext();
+
   // hide the add new varient option
   const [showAdd, setShowAdd] = useState(true);
 

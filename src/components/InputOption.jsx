@@ -8,7 +8,6 @@ import { useProductDataRowContext } from '../store/ProductDataRowContext';
 
 const InputOption = (props) => {
   const { options, selectedOptions, updateOptionData, addOptionData } = props;
-  const productDataRow = useProductDataRowContext();
 
   // controls
   const inputReference = useRef(null);

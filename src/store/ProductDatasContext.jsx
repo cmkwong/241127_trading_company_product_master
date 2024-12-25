@@ -114,95 +114,6 @@ const _varientValues = [
 ];
 
 let _productDatas = [
-  // {
-  //   product_id: '1Y#23#@1%#23',
-  //   product_name:
-  //     'Autumn And Winter Christmas Festive Series Dog Clothes Cat Dress',
-  //   sku: 'SDW3287623-UI',
-  //   // Pet Supplies >> Pet Products>>Pet Toys >> Cat Trees & Scratcher
-  //   category: [
-  //     { id: 32, level: 1, name: 'Pet Supplies' },
-  //     { id: 22, level: 0, name: 'Pet Products' },
-  //     { id: 14, level: 3, name: 'Cat Trees & Scratcher' },
-  //     { id: 33, level: 2, name: 'Pet Toys' },
-  //   ],
-  //   labels: [5, 6, 7, 10, 11],
-  //   media: [13, 14, 15],
-  //   description: '',
-  //   varient_level: [
-  //     {
-  //       varient_id: 3,
-  //       level: 0,
-  //     },
-  //     {
-  //       varient_id: 1,
-  //       level: 1,
-  //     },
-  //   ],
-  //   varient_value: [
-  //     { varient_id: 1, varient_value_id: 1 },
-  //     { varient_id: 1, varient_value_id: 2 },
-  //     { varient_id: 1, varient_value_id: 3 },
-  //     { varient_id: 3, varient_value_id: 4 },
-  //     { varient_id: 3, varient_value_id: 5 },
-  //   ],
-  //   prices: [
-  //     {
-  //       varientValue: { lock: 'front', color: 'red' },
-  //       currency: 'HKD',
-  //       img: '/products/785027093526.jpg',
-  //       price: 125,
-  //       stock: 1254,
-  //       supplier: 'Sink Lin Trading Company',
-  //       link: 'https://www.google.com/search?q=array+filter&sca_esv=3837dfeb0f430c76&sxsrf=ADLYWIKspdky7njPNkdKKwycnaSkErCxYQ%3A1732965347900&ei=4_NKZ7bJNrvc1e8PkYDA4Ak&ved=0ahUKEwj2xuD_9oOKAxU7bvUHHREAEJwQ4dUDCBA&uact=5&oq=array+filter&gs_lp=Egxnd3Mtd2l6LXNlcnAiDGFycmF5IGZpbHRlcjIGEAAYBxgeMggQABiABBjLATIFEAAYgAQyBRAAGIAEMgYQABgHGB4yBRAAGIAEMggQABiABBjLATIIEAAYgAQYywEyCBAAGIAEGMsBMggQABiABBjLAUiSElDeCFjJEHABeAGQAQCYAV2gAc4DqgEBNrgBA8gBAPgBAZgCBqAClAPCAgoQABiwAxjWBBhHmAMAiAYBkAYKkgcBNqAHuBQ&sclient=gws-wiz-serp',
-  //     },
-  //     {
-  //       varientValue: { lock: 'front', color: 'yellow' },
-  //       currency: 'HKD',
-  //       img: '/products/1173534224478.jpg',
-  //       price: 137,
-  //       stock: 4281,
-  //       supplier: 'Sink Lin Trading Company',
-  //       link: 'https://www.google.com/search?q=array+filter&sca_esv=3837dfeb0f430c76&sxsrf=ADLYWIKspdky7njPNkdKKwycnaSkErCxYQ%3A1732965347900&ei=4_NKZ7bJNrvc1e8PkYDA4Ak&ved=0ahUKEwj2xuD_9oOKAxU7bvUHHREAEJwQ4dUDCBA&uact=5&oq=array+filter&gs_lp=Egxnd3Mtd2l6LXNlcnAiDGFycmF5IGZpbHRlcjIGEAAYBxgeMggQABiABBjLATIFEAAYgAQyBRAAGIAEMgYQABgHGB4yBRAAGIAEMggQABiABBjLATIIEAAYgAQYywEyCBAAGIAEGMsBMggQABiABBjLAUiSElDeCFjJEHABeAGQAQCYAV2gAc4DqgEBNrgBA8gBAPgBAZgCBqAClAPCAgoQABiwAxjWBBhHmAMAiAYBkAYKkgcBNqAHuBQ&sclient=gws-wiz-serp',
-  //     },
-  //     {
-  //       varientValue: { lock: 'front', color: 'blue' },
-  //       currency: 'HKD',
-  //       img: '',
-  //       price: 125,
-  //       stock: 1254,
-  //       supplier: 'Sink Lin Trading Company',
-  //       link: 'https://www.google.com/search?q=array+filter&sca_esv=3837dfeb0f430c76&sxsrf=ADLYWIKspdky7njPNkdKKwycnaSkErCxYQ%3A1732965347900&ei=4_NKZ7bJNrvc1e8PkYDA4Ak&ved=0ahUKEwj2xuD_9oOKAxU7bvUHHREAEJwQ4dUDCBA&uact=5&oq=array+filter&gs_lp=Egxnd3Mtd2l6LXNlcnAiDGFycmF5IGZpbHRlcjIGEAAYBxgeMggQABiABBjLATIFEAAYgAQyBRAAGIAEMgYQABgHGB4yBRAAGIAEMggQABiABBjLATIIEAAYgAQYywEyCBAAGIAEGMsBMggQABiABBjLAUiSElDeCFjJEHABeAGQAQCYAV2gAc4DqgEBNrgBA8gBAPgBAZgCBqAClAPCAgoQABiwAxjWBBhHmAMAiAYBkAYKkgcBNqAHuBQ&sclient=gws-wiz-serp',
-  //     },
-  //     {
-  //       varientValue: { lock: 'back', color: 'red' },
-  //       currency: 'HKD',
-  //       img: '',
-  //       price: 137,
-  //       stock: 4281,
-  //       supplier: 'Sink Lin Trading Company',
-  //       link: 'https://www.google.com/search?q=array+filter&sca_esv=3837dfeb0f430c76&sxsrf=ADLYWIKspdky7njPNkdKKwycnaSkErCxYQ%3A1732965347900&ei=4_NKZ7bJNrvc1e8PkYDA4Ak&ved=0ahUKEwj2xuD_9oOKAxU7bvUHHREAEJwQ4dUDCBA&uact=5&oq=array+filter&gs_lp=Egxnd3Mtd2l6LXNlcnAiDGFycmF5IGZpbHRlcjIGEAAYBxgeMggQABiABBjLATIFEAAYgAQyBRAAGIAEMgYQABgHGB4yBRAAGIAEMggQABiABBjLATIIEAAYgAQYywEyCBAAGIAEGMsBMggQABiABBjLAUiSElDeCFjJEHABeAGQAQCYAV2gAc4DqgEBNrgBA8gBAPgBAZgCBqAClAPCAgoQABiwAxjWBBhHmAMAiAYBkAYKkgcBNqAHuBQ&sclient=gws-wiz-serp',
-  //     },
-  //     {
-  //       varientValue: { lock: 'back', color: 'yellow' },
-  //       currency: 'HKD',
-  //       img: '',
-  //       price: 125,
-  //       stock: 1254,
-  //       supplier: 'Sink Lin Trading Company',
-  //       link: 'https://www.google.com/search?q=array+filter&sca_esv=3837dfeb0f430c76&sxsrf=ADLYWIKspdky7njPNkdKKwycnaSkErCxYQ%3A1732965347900&ei=4_NKZ7bJNrvc1e8PkYDA4Ak&ved=0ahUKEwj2xuD_9oOKAxU7bvUHHREAEJwQ4dUDCBA&uact=5&oq=array+filter&gs_lp=Egxnd3Mtd2l6LXNlcnAiDGFycmF5IGZpbHRlcjIGEAAYBxgeMggQABiABBjLATIFEAAYgAQyBRAAGIAEMgYQABgHGB4yBRAAGIAEMggQABiABBjLATIIEAAYgAQYywEyCBAAGIAEGMsBMggQABiABBjLAUiSElDeCFjJEHABeAGQAQCYAV2gAc4DqgEBNrgBA8gBAPgBAZgCBqAClAPCAgoQABiwAxjWBBhHmAMAiAYBkAYKkgcBNqAHuBQ&sclient=gws-wiz-serp',
-  //     },
-  //     {
-  //       varientValue: { lock: 'back', color: 'blue' },
-  //       currency: 'HKD',
-  //       img: '',
-  //       price: 137,
-  //       stock: 4281,
-  //       supplier: 'Sink Lin Trading Company',
-  //       link: 'https://www.google.com/search?q=array+filter&sca_esv=3837dfeb0f430c76&sxsrf=ADLYWIKspdky7njPNkdKKwycnaSkErCxYQ%3A1732965347900&ei=4_NKZ7bJNrvc1e8PkYDA4Ak&ved=0ahUKEwj2xuD_9oOKAxU7bvUHHREAEJwQ4dUDCBA&uact=5&oq=array+filter&gs_lp=Egxnd3Mtd2l6LXNlcnAiDGFycmF5IGZpbHRlcjIGEAAYBxgeMggQABiABBjLATIFEAAYgAQyBRAAGIAEMgYQABgHGB4yBRAAGIAEMggQABiABBjLATIIEAAYgAQYywEyCBAAGIAEGMsBMggQABiABBjLAUiSElDeCFjJEHABeAGQAQCYAV2gAc4DqgEBNrgBA8gBAPgBAZgCBqAClAPCAgoQABiwAxjWBBhHmAMAiAYBkAYKkgcBNqAHuBQ&sclient=gws-wiz-serp',
-  //     },
-  //   ],
-  // },
   {
     product_id: '1Y#23#@1%#12',
     product_name:
@@ -332,9 +243,11 @@ export const ProductDatasProvider = ({ children }) => {
       }
       case 'addSelectedLabels': {
         const { label_type, name } = payload;
-        // find in master
+        // check if value if exist in master
         const found = labels.filter(
-          (el) => el.name === name && el.label_type === label_type
+          (el) =>
+            el.name.toLowerCase() === name.toLowerCase() &&
+            el.label_type === label_type
         );
         let required_id;
         if (found.length > 0) {
@@ -365,6 +278,27 @@ export const ProductDatasProvider = ({ children }) => {
         new_productDatas[row]['labels'] = new_productDatas[row][
           'labels'
         ].filter((el) => el !== id);
+        return new_productDatas;
+      }
+      case 'addSelectedVarient': {
+        const { value, level } = payload;
+        // find if exist in varient master
+        const found = varients.filter(
+          (el) => el.name.toLowerCase() === value.toLowerCase()
+        );
+        let required_id;
+        if (found.length > 0) {
+          required_id = found[0]['id'];
+        } else {
+          // not found then add value into master
+          required_id = [...varients].sort((a, b) => b.id - a.id)[0].id + 1;
+          setVarients((prv) => [...prv, { id: required_id, name: value }]);
+        }
+        // update specific product
+        new_productDatas[row]['varient_level'] = [
+          ...new_productDatas[row]['varient_level'],
+          { varient_id: required_id, level: level },
+        ];
         return new_productDatas;
       }
       case 'addSelectedMedia': {

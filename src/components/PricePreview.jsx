@@ -33,8 +33,8 @@ const PricePreviewRow = (props) => {
 
 const PricePreview = (props) => {
   let { productData } = props;
-  const { varients, varientValues, dispatchProductDatas } =
-    useProductDatasContext();
+
+  const { varients, varientValues } = useProductDatasContext();
 
   const [popWindow, setPopWindow] = useState(false);
 
@@ -76,20 +76,7 @@ const PricePreview = (props) => {
     );
   };
 
-  const [productData_prices, setProductData_prices] = useState(
-    previewDataRefactoring()
-  );
-  console.log(productData_prices);
-  console.log(productData_prices[0].varient_rows[0].value);
-  console.log(productData_prices[0].varient_rows[1].value);
-  console.log(
-    productData_prices[0].varient_rows[0].value <
-      productData_prices[1].varient_rows[0].value
-  );
-
-  // // preview data refactoring
   // useEffect(() => {
-  //   console.log('hi');
   //   const refactored_varients = productData.prices.map((price) => {
   //     const varient_rows = price.varient_value_ids.map((varient_value_id) => {
   //       // find the varient value
@@ -115,11 +102,25 @@ const PricePreview = (props) => {
   //         value: required_varient_value_name,
   //       };
   //     });
-  //     return { ...price, varient_rows };
+  //     return {
+  //       ...price,
+  //       varient_rows: varient_rows.sort((a, b) => a.level - b.level),
+  //     };
   //   });
-  //   console.log('hi', refactored_varients);
-  //   setProductData_prices(refactored_varients);
-  // }, [productData, varients, varientValues, setProductData_prices]);
+  //   setProductData_prices(
+  //     refactored_varients.sort((a, b) =>
+  //       // sorting with same level of varient value
+  //       a.varient_rows[0].value.localeCompare(b.varient_rows[0].value)
+  //     )
+  //   );
+  //   console.log('hihihihihi');
+  // }, [productData, varients, varientValues]);
+
+  // const [productData_prices, setProductData_prices] = useState(
+  //   previewDataRefactoring()
+  // );
+
+  let productData_prices = previewDataRefactoring();
 
   return (
     <div>
@@ -145,7 +146,10 @@ const PricePreview = (props) => {
         />
       </div>
       {popWindow && (
-        <PriceUpdate productData={productData} setPopWindow={setPopWindow} />
+        <PriceUpdate
+          productData_prices={productData_prices}
+          setPopWindow={setPopWindow}
+        />
       )}
     </div>
   );

@@ -1,9 +1,29 @@
+import { useProductDataRowContext } from '../store/ProductDataRowContext';
+import { useProductDatasContext } from '../store/ProductDatasContext';
 import Icon from './common/Icon';
 import WindowPop from './common/WindowPop';
 import styles from './PriceUpdate.module.css';
 
 const PriceUpdate = (props) => {
-  let { productData, setPopWindow } = props;
+  let { productData_prices, setPopWindow } = props;
+
+  const { dispatchProductDatas } = useProductDatasContext();
+
+  const { product_id } = useProductDataRowContext();
+
+  // update row function
+  const updatePriceRow = (price_id, name, value) => {
+    let new_row_data = {};
+    new_row_data[name] = value;
+    dispatchProductDatas({
+      product_id,
+      type: 'updatePriceRow',
+      payload: {
+        id: price_id,
+        new_row_data,
+      },
+    });
+  };
 
   return (
     <WindowPop setPopWindow={setPopWindow}>
@@ -16,21 +36,77 @@ const PriceUpdate = (props) => {
         <p>Supplier</p>
         <p>Link</p>
       </div>
-      {productData.prices.map((row, i) => (
-        <div key={i} className={styles.row}>
+      {productData_prices.map((row) => (
+        <div key={row.price_id} className={styles.row}>
           <Icon src={row.img} width={'60px'} />
           <input
             type="text"
-            defaultValue={productData.varients
-              .map((varient) => row.varientValue[varient.name])
+            defaultValue={row.varient_rows
+              .sort((a, b) => a.level - b.level)
+              .map((v) => v.value)
               .join(' / ')}
             disabled
           />
-          <input type="text" defaultValue={row.currency} />
-          <input type="number" defaultValue={row.price} />
-          <input type="number" defaultValue={row.stock} />
-          <input type="text" defaultValue={row.supplier} />
-          <input type="text" defaultValue={row.link} />
+          <input
+            type="text"
+            name="currency"
+            defaultValue={row.currency}
+            onChange={(event) =>
+              updatePriceRow(
+                row.price_id,
+                event.target.name,
+                event.target.value
+              )
+            }
+          />
+          <input
+            type="number"
+            name="price"
+            defaultValue={row.price}
+            onChange={(event) =>
+              updatePriceRow(
+                row.price_id,
+                event.target.name,
+                event.target.value
+              )
+            }
+          />
+          <input
+            type="number"
+            name="stock"
+            defaultValue={row.stock}
+            onChange={(event) =>
+              updatePriceRow(
+                row.price_id,
+                event.target.name,
+                event.target.value
+              )
+            }
+          />
+          <input
+            type="text"
+            name="supplier"
+            defaultValue={row.supplier}
+            onChange={(event) =>
+              updatePriceRow(
+                row.price_id,
+                event.target.name,
+                event.target.value
+              )
+            }
+          />
+          <input
+            type="text"
+            name="link"
+            defaultValue={row.link}
+            onChange={(event) =>
+              updatePriceRow(
+                row.price_id,
+                event.target.name,
+                event.target.value
+              )
+            }
+          />
         </div>
       ))}
     </WindowPop>

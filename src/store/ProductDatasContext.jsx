@@ -412,6 +412,27 @@ export const ProductDatasProvider = ({ children }) => {
         new_productDatas[row]['description'] = txt;
         return new_productDatas;
       }
+      case 'updatePriceRow': {
+        const { id, new_row_data } = payload;
+        // finding the changed row
+        const price_row = new_productDatas[row]['prices']
+          .map((el, i) => {
+            if (el.price_id === id) {
+              return i;
+            }
+          })
+          .filter((el) => el !== undefined)[0];
+        // required row data
+        let required_row = new_productDatas[row]['prices'].filter(
+          (el) => el.price_id === id
+        )[0];
+        const updated_row = { ...required_row, ...new_row_data };
+        console.log(updated_row);
+        // re-assign data
+        new_productDatas[row]['prices'][price_row] = updated_row;
+        console.log(new_productDatas[row]['prices']);
+        return new_productDatas;
+      }
     }
   };
   const [productDatas, dispatchProductDatas] = useReducer(

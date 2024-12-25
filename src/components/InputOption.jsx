@@ -7,7 +7,7 @@ import InputField from './common/InputField';
 import { useProductDataRowContext } from '../store/ProductDataRowContext';
 
 const InputOption = (props) => {
-  const { options, selectedOptions, label_type, dispatch } = props;
+  const { options, selectedOptions, updateOptionData, addOptionData } = props;
   const productDataRow = useProductDataRowContext();
 
   // controls
@@ -37,30 +37,30 @@ const InputOption = (props) => {
   };
 
   // handle data
-  const updateOptionData = (id, checked) => {
-    if (checked) {
-      dispatch({
-        type: 'checkSelectedLabels',
-        product_id: productDataRow.product_id,
-        payload: { id },
-      });
-    } else {
-      dispatch({
-        type: 'uncheckSelectedLabels',
-        product_id: productDataRow.product_id,
-        payload: { id },
-      });
-    }
-  };
+  // const updateOptionData = (id, checked) => {
+  //   if (checked) {
+  //     dispatch({
+  //       type: 'checkSelectedLabels',
+  //       product_id: productDataRow.product_id,
+  //       payload: { id },
+  //     });
+  //   } else {
+  //     dispatch({
+  //       type: 'uncheckSelectedLabels',
+  //       product_id: productDataRow.product_id,
+  //       payload: { id },
+  //     });
+  //   }
+  // };
 
   // add option data
-  const addOptionData = (value) => {
-    dispatch({
-      type: 'addSelectedLabels',
-      product_id: productDataRow.product_id,
-      payload: { label_type: label_type, name: value },
-    });
-  };
+  // const addOptionData = (value) => {
+  //   dispatch({
+  //     type: 'addSelectedLabels',
+  //     product_id: productDataRow.product_id,
+  //     payload: { label_type: label_type, name: value },
+  //   });
+  // };
 
   // add the value into option
   const handleEnterPress = (value) => {

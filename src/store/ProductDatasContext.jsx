@@ -427,7 +427,6 @@ export const ProductDatasProvider = ({ children }) => {
           (el) => el.price_id === id
         )[0];
         const updated_row = { ...required_row, ...new_row_data };
-        console.log(updated_row);
         // re-assign data
         new_productDatas[row]['prices'][price_row] = updated_row;
         console.log(new_productDatas[row]['prices']);

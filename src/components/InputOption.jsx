@@ -36,32 +36,6 @@ const InputOption = (props) => {
     inputReference.current.focus();
   };
 
-  // handle data
-  // const updateOptionData = (id, checked) => {
-  //   if (checked) {
-  //     dispatch({
-  //       type: 'checkSelectedLabels',
-  //       product_id: productDataRow.product_id,
-  //       payload: { id },
-  //     });
-  //   } else {
-  //     dispatch({
-  //       type: 'uncheckSelectedLabels',
-  //       product_id: productDataRow.product_id,
-  //       payload: { id },
-  //     });
-  //   }
-  // };
-
-  // add option data
-  // const addOptionData = (value) => {
-  //   dispatch({
-  //     type: 'addSelectedLabels',
-  //     product_id: productDataRow.product_id,
-  //     payload: { label_type: label_type, name: value },
-  //   });
-  // };
-
   // add the value into option
   const handleEnterPress = (value) => {
     if (!value) return;

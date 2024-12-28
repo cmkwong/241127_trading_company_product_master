@@ -5,7 +5,7 @@ import InputOption from './InputOption';
 import Varient from './Varient';
 
 import { makeComplexId } from '../utils/string';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import AddStackBtn from './common/AddStackBtn';
 import { useProductDataRowContext } from '../store/ProductDataRowContext';
 import { useProductDatasContext } from '../store/ProductDatasContext';
@@ -26,7 +26,7 @@ const Varients = () => {
   };
 
   // get the varient stack
-  const getVarientStack = (varient_level, varient_value) => {
+  const getVarientStack = useCallback((varient_level, varient_value) => {
     return varient_level
       .sort((a, b) => a.level - b.level) // sorting from 0 level
       .map((vl) => {
@@ -41,7 +41,7 @@ const Varients = () => {
           selectedVarientValue
         );
       });
-  };
+  }, []);
 
   // storing the varient key
   const [varientStack, setVarientStack] = useState(
@@ -50,7 +50,7 @@ const Varients = () => {
 
   useEffect(() => {
     setVarientStack(getVarientStack(varient_level, varient_value));
-  }, [varient_level, varient_value]);
+  }, [getVarientStack, varient_level, varient_value]);
 
   // hide the add new varient option
   const [showAdd, setShowAdd] = useState(true);

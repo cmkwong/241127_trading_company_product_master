@@ -6,6 +6,7 @@ import { makeComplexId } from '../utils/string';
 import PriceUpdate from './PriceUpdate';
 import Icon from './common/Icon';
 import { useProductDatasContext } from '../store/ProductDatasContext';
+import { useProductDataRowContext } from '../store/ProductDataRowContext';
 
 const PricePreviewRow = (props) => {
   let { row, varient_rows } = props;
@@ -34,24 +35,25 @@ const PricePreviewRow = (props) => {
 const PricePreview = (props) => {
   let { productData } = props;
 
+  const { prices, varient_level, varient_value } = useProductDataRowContext();
   const { varientValues } = useProductDatasContext();
 
   const [popWindow, setPopWindow] = useState(false);
 
   // preview data refactoring
   const previewDataRefactoring = () => {
-    const refactored_varients = productData.prices.map((price) => {
+    const refactored_varients = prices.map((price) => {
       const varient_rows = price.varient_value_ids.map((varient_value_id) => {
         // find the varient value
-        const required_varient_value = productData.varient_value.filter(
+        const required_varient_value = varient_value.filter(
           (vv) => vv.varient_value_id === varient_value_id
         )[0];
         // find the varient level
-        const required_varient_level = productData.varient_level.filter(
+        const required_varient_level = varient_level.filter(
           (vl) => vl.varient_id === required_varient_value.varient_id
         )[0]['level'];
         // find the varient label
-        const required_varient_name = productData.varient_level.filter(
+        const required_varient_name = varient_level.filter(
           (v) => v.varient_id === required_varient_value.varient_id
         )[0]['name'];
         // find the varient value label

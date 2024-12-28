@@ -24,18 +24,6 @@ const Varient = (props) => {
 
   const [inputVarientName, setInputVarientName] = useState('');
 
-  const addVarient = (value, level) => {
-    if (!inputVarientName) return;
-    dispatchProductDatas({
-      type: 'addProductVarient',
-      product_id,
-      payload: {
-        value: inputVarientName,
-        level,
-      },
-    });
-  };
-
   const updateVarientValue = (varient_value_id, checked) => {
     if (checked) {
       dispatchProductDatas({
@@ -77,11 +65,6 @@ const Varient = (props) => {
         />
         <InputOption
           options={varientValues}
-          // selectedOptions={varient_value.map((el) => {
-          //   if (el.varient_id === id) {
-          //     return el.varient_value_id;
-          //   }
-          // })}
           selectedOptions={selectedVarientValue}
           updateOptionData={updateVarientValue}
           addOptionData={addVarientValue}

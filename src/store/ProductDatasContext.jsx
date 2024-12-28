@@ -213,6 +213,30 @@ export const ProductDatasProvider = ({ children }) => {
   // const [varients, setVarients] = useState(_varients);
   const [varientValues, setVarientValues] = useState(_varientValues);
 
+  // remove the duplicated prices
+  const removeDuplicatedPrices = (prices) => {
+    const duplicatedRows = prices
+      .map((p, i) => {
+        const valueIdsStr = JSON.stringify(
+          p.varient_value_ids.sort((a, b) => a - b)
+        );
+        return prices
+          .map((pp, ii) => {
+            if (i >= ii) return;
+            const valueIdsStr_compared = JSON.stringify(
+              pp.varient_value_ids.sort((a, b) => a - b)
+            );
+            if (valueIdsStr === valueIdsStr_compared) {
+              return pp.price_id;
+            }
+          })
+          .filter((el) => el);
+      })
+      .filter((el) => el)
+      .reduce((acc, curr) => acc.concat(curr), []);
+    return prices.filter((el) => !duplicatedRows.includes(el.price_id));
+  };
+
   // product data reducer
   const reducer = (productDatas, action) => {
     const { product_id, payload } = action;

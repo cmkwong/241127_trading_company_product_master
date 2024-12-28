@@ -267,18 +267,10 @@ export const ProductDatasProvider = ({ children }) => {
       }
       case 'checkSelectedLabels': {
         const { id } = payload;
-        console.log(
-          'before checkSelectedLabels: ',
-          new_productDatas[row]['labels']
-        );
         new_productDatas[row]['labels'] = [
           ...new_productDatas[row]['labels'],
           id,
         ];
-        console.log(
-          'after checkSelectedLabels: ',
-          new_productDatas[row]['labels']
-        );
         return new_productDatas;
       }
       case 'uncheckSelectedLabels': {
@@ -288,45 +280,6 @@ export const ProductDatasProvider = ({ children }) => {
         ].filter((el) => el !== id);
         return new_productDatas;
       }
-      // case 'addEmptyVarient': {
-      //   // create in varient master
-      //   const required_id = [...varients].sort((a, b) => b.id - a.id)[0].id + 1;
-      //   setVarients((prv) => [...prv, { id: required_id, name: '' }]);
-
-      //   // find the the most highest level
-      //   const level =
-      //     [...new_productDatas[row]['varient_level']].sort(
-      //       (a, b) => b.level - a.level
-      //     )[0].level + 1;
-      //   // create into varient level
-      //   new_productDatas[row]['varient_level'] = [
-      //     ...new_productDatas[row]['varient_level'],
-      //     { varient_id: required_id, level },
-      //   ];
-      //   return new_productDatas;
-      // }
-      // case 'addProductVarient': {
-      //   const { value, level } = payload;
-      //   // find if exist in varient master
-      //   const found = varients.filter(
-      //     (el) => el.name.toLowerCase() === value.toLowerCase()
-      //   );
-      //   let required_id;
-      //   // if existed, get the varient id
-      //   if (found.length > 0) {
-      //     required_id = found[0]['id'];
-      //   } else {
-      //     // not found then add value into master
-      //     required_id = [...varients].sort((a, b) => b.id - a.id)[0].id + 1;
-      //     setVarients((prv) => [...prv, { id: required_id, name: value }]);
-      //   }
-      //   // update specific product
-      //   new_productDatas[row]['varient_level'] = [
-      //     ...new_productDatas[row]['varient_level'],
-      //     { varient_id: required_id, level: level },
-      //   ];
-      //   return new_productDatas;
-      // }
       case 'addProductVarient': {
         const { name, level } = payload;
         // get the required id
@@ -410,31 +363,14 @@ export const ProductDatasProvider = ({ children }) => {
       }
       case 'checkProductVarientValue': {
         const { varient_id, varient_value_id } = payload;
-        console.log('run twice?');
-        // console.log(
-        //   'checkProductVarientValue',
-        //   product_id,
-        //   row,
-        //   varient_id,
-        //   varient_value_id
-        // );
-        console.log('before: ', new_productDatas[row]['varient_value']);
         new_productDatas[row]['varient_value'] = [
           ...new_productDatas[row]['varient_value'],
           { varient_value_id, varient_id },
         ];
-        console.log('after: ', new_productDatas[row]['varient_value']);
         return new_productDatas;
       }
       case 'uncheckProductVarientValue': {
         const { varient_id, varient_value_id } = payload;
-        console.log(
-          'uncheckProductVarientValue',
-          product_id,
-          row,
-          varient_id,
-          varient_value_id
-        );
         new_productDatas[row]['varient_value'] = new_productDatas[row][
           'varient_value'
         ].filter(
@@ -444,46 +380,6 @@ export const ProductDatasProvider = ({ children }) => {
         );
         return new_productDatas;
       }
-      // case 'updateVarient': {
-      //   const { id, value } = payload;
-      //   // Step 1a. need to merge the existed varient name, if varient name was used
-      //   // find if exist in varient master
-      //   const found = varients.filter(
-      //     (el) => el.name.toLowerCase() === value.toLowerCase()
-      //   );
-      //   // Step 1b. if new to existed varient_id, create new one
-
-      //   // Step 2: update the current varient value data
-      //   break;
-      // }
-      // case 'deleteVarient': {
-      //   const { id } = payload;
-      //   // remove the varient master
-      //   setVarients(varients.filter((el) => el.id !== id));
-
-      //   // get current level
-      //   const current_level = new_productDatas[row]['varient_level'].filter(
-      //     (el) => el.id === id
-      //   )[0].level;
-      //   // remove the varient level
-      //   new_productDatas[row]['varient_level'] = new_productDatas[row][
-      //     'varient_level'
-      //   ]
-      //     .filter((el) => el.varient_id !== id)
-      //     .map((el) => {
-      //       if (el.level >= current_level) {
-      //         return { ...el, level: el.level - 1 };
-      //       }
-      //     });
-
-      //   // remove the varient value
-      //   new_productDatas[row]['varient_value'] = [
-      //     ...new_productDatas[row]['varient_value'].filter(
-      //       (el) => el.varient_id !== id
-      //     ),
-      //   ];
-      //   return new_productDatas;
-      // }
       case 'addSelectedMedia': {
         const { media_type, filename } = payload;
         // find in master
@@ -546,7 +442,6 @@ export const ProductDatasProvider = ({ children }) => {
         const updated_row = { ...required_row, ...new_row_data };
         // re-assign data
         new_productDatas[row]['prices'][price_row] = updated_row;
-        console.log(new_productDatas[row]['prices']);
         return new_productDatas;
       }
     }

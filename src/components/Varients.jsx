@@ -11,7 +11,7 @@ import { useProductDataRowContext } from '../store/ProductDataRowContext';
 import { useProductDatasContext } from '../store/ProductDatasContext';
 
 const Varients = () => {
-  const { varientValues } = useProductDatasContext();
+  const { varientValues, dispatchProductDatas } = useProductDatasContext();
   const { product_id, varient_level, varient_value } =
     useProductDataRowContext();
 
@@ -30,13 +30,10 @@ const Varients = () => {
     return varient_level
       .sort((a, b) => a.level - b.level) // sorting from 0 level
       .map((vl) => {
-        // getting name from varient master
-        // const varient = varients.filter((v) => v.id === vl.varient_id)[0];
         // getting the varient values
         const selectedVarientValue = varient_value
           .filter((vv) => vv.varient_id === vl.varient_id)
           .map((el) => el.varient_value_id);
-        console.log('selectedVarientValue2: ', selectedVarientValue);
         return varientStackTemplate(
           vl.varient_id,
           vl.name,
@@ -50,6 +47,10 @@ const Varients = () => {
   const [varientStack, setVarientStack] = useState(
     getVarientStack(varient_level, varient_value)
   );
+
+  useEffect(() => {
+    setVarientStack(getVarientStack(varient_level, varient_value));
+  }, [varient_level, varient_value]);
 
   // hide the add new varient option
   const [showAdd, setShowAdd] = useState(true);
@@ -87,6 +88,9 @@ const Varients = () => {
             selectedVarientValue={el.selectedVarientValue}
             removeStack={removeStack}
             product_id={product_id}
+            varient_value={varient_value}
+            varientValues={varientValues}
+            dispatchProductDatas={dispatchProductDatas}
           />
         ))}
       </div>

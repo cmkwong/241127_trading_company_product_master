@@ -12,20 +12,22 @@ const Varient = (props) => {
     level,
     varientName,
     selectedVarientValue,
+    varient_value,
     product_id,
     removeStack,
+    varientValues,
+    dispatchProductDatas,
   } = props;
-  const { varientValues, dispatchProductDatas } = useProductDatasContext();
+  // const { varientValues } = useProductDatasContext();
 
-  const { varient_level, varient_value } = useProductDataRowContext();
+  // const { varient_level, varient_value } = useProductDataRowContext();
 
   const [inputVarientName, setInputVarientName] = useState('');
 
   const addVarient = (value, level) => {
-    console.log(inputVarientName, value, level);
     if (!inputVarientName) return;
     dispatchProductDatas({
-      type: 'addVarient',
+      type: 'addProductVarient',
       product_id,
       payload: {
         value: inputVarientName,
@@ -35,7 +37,6 @@ const Varient = (props) => {
   };
 
   const updateVarientValue = (varient_value_id, checked) => {
-    console.log('updateVarientValue', varient_value_id, checked);
     if (checked) {
       dispatchProductDatas({
         product_id,
@@ -74,15 +75,14 @@ const Varient = (props) => {
           defaultValue={varientName}
           onChange={(event) => setInputVarientName(event.target.value)}
         />
-        {console.log('varientValues: ', varientValues)}
-        {console.log('selectedVarientValue: ', selectedVarientValue)}
         <InputOption
           options={varientValues}
-          selectedOptions={varient_value.map((el) => {
-            if (el.varient_id === id) {
-              return el.varient_value_id;
-            }
-          })}
+          // selectedOptions={varient_value.map((el) => {
+          //   if (el.varient_id === id) {
+          //     return el.varient_value_id;
+          //   }
+          // })}
+          selectedOptions={selectedVarientValue}
           updateOptionData={updateVarientValue}
           addOptionData={addVarientValue}
         />

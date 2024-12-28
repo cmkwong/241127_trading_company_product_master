@@ -2,56 +2,54 @@ import styles from './Varients.module.css';
 import drag_icon from '../assets/dragIndicator.svg';
 import close_icon from '../assets/close.svg';
 import InputOption from './InputOption';
+import Varient from './Varient';
 
 import { makeComplexId } from '../utils/string';
-
 import { useEffect, useState } from 'react';
 import AddStackBtn from './common/AddStackBtn';
 import { useProductDataRowContext } from '../store/ProductDataRowContext';
-
-const Varient = (props) => {
-  const { varientValues } = useProductDataRowContext();
-  let options = [
-    { id: 1, label: 'pet brush' },
-    { id: 2, label: 'pet mats' },
-    { id: 3, label: 'clean up' },
-    { id: 4, label: 'clipper' },
-    { id: 5, label: 'shower' },
-    { id: 6, label: 'headwears' },
-    { id: 7, label: 'tops' },
-    { id: 8, label: 'Pet Bowl' },
-    { id: 9, label: 'Drinking Tools' },
-    { id: 10, label: 'Feeding Tools' },
-    { id: 11, label: 'Glasses' },
-    { id: 12, label: 'collar' },
-    { id: 13, label: 'leash' },
-  ];
-  let selectedOptions = [6, 1, 7, 12];
-
-  let { id, removeStack } = props;
-
-  return (
-    <div className={styles.upperSide}>
-      <img className={styles.drag} src={drag_icon} alt="drag" />
-      <div className={styles.edit}>
-        <input className={styles.inputvarient} />
-        <InputOption
-          selectedOptions={selectedOptions}
-          options={varientValues}
-        />
-      </div>
-      <div onClick={() => removeStack(id)}>
-        <img className={styles.close} src={close_icon} alt="X" />
-      </div>
-    </div>
-  );
-};
+import { useProductDatasContext } from '../store/ProductDatasContext';
 
 const Varients = () => {
-  // storing the varient key
-  const [varientStack, setVarientStack] = useState([]);
+  const { varientValues } = useProductDatasContext();
+  const { product_id, varient_level, varient_value } =
+    useProductDataRowContext();
 
-  const { product_id } = useProductDataRowContext();
+  // template for varient stack
+  const varientStackTemplate = (
+    id,
+    varientName,
+    level,
+    selectedVarientValue
+  ) => {
+    return { id, varientName, level, selectedVarientValue };
+  };
+
+  // get the varient stack
+  const getVarientStack = (varient_level, varient_value) => {
+    return varient_level
+      .sort((a, b) => a.level - b.level) // sorting from 0 level
+      .map((vl) => {
+        // getting name from varient master
+        // const varient = varients.filter((v) => v.id === vl.varient_id)[0];
+        // getting the varient values
+        const selectedVarientValue = varient_value
+          .filter((vv) => vv.varient_id === vl.varient_id)
+          .map((el) => el.varient_value_id);
+        console.log('selectedVarientValue2: ', selectedVarientValue);
+        return varientStackTemplate(
+          vl.varient_id,
+          vl.name,
+          vl.level,
+          selectedVarientValue
+        );
+      });
+  };
+
+  // storing the varient key
+  const [varientStack, setVarientStack] = useState(
+    getVarientStack(varient_level, varient_value)
+  );
 
   // hide the add new varient option
   const [showAdd, setShowAdd] = useState(true);
@@ -67,19 +65,30 @@ const Varients = () => {
 
   const handleAddClick = () => {
     const key = makeComplexId(8);
-    setVarientStack((prv) => [...prv, key]);
+    setVarientStack((prv) => [
+      ...prv,
+      varientStackTemplate(key, '', varientStack.length + 1, []),
+    ]);
   };
 
   const removeStack = (key) => {
-    setVarientStack(varientStack.filter((el) => el !== key));
+    setVarientStack(varientStack.filter((el) => el.id !== key));
   };
 
   return (
     <>
       <div className={styles.container}>
-        {varientStack.map((el) => {
-          return <Varient key={el} id={el} removeStack={removeStack} />;
-        })}
+        {varientStack.map((el) => (
+          <Varient
+            key={el.id}
+            id={el.id}
+            level={el.level}
+            varientName={el.varientName}
+            selectedVarientValue={el.selectedVarientValue}
+            removeStack={removeStack}
+            product_id={product_id}
+          />
+        ))}
       </div>
       {showAdd && (
         <AddStackBtn

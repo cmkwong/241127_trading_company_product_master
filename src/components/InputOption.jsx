@@ -4,9 +4,10 @@ import { useRef } from 'react';
 import OptionRow from './OptionRow';
 import TagPlate from './tagPlate';
 import InputField from './common/InputField';
-import { useProductDataRowContext } from '../store/ProductDataRowContext';
 
 const InputOption = (props) => {
+  // options: [ { id, name } ]
+  // selectedOptions: [1, 2, 3, ...]
   const { options, selectedOptions, updateOptionData, addOptionData } = props;
 
   // controls

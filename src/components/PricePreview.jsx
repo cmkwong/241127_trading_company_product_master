@@ -33,8 +33,6 @@ const PricePreviewRow = (props) => {
 };
 
 const PricePreview = (props) => {
-  let { productData } = props;
-
   const { prices, varient_level, varient_value } = useProductDataRowContext();
   const { varientValues } = useProductDatasContext();
 

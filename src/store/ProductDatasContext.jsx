@@ -213,7 +213,7 @@ export const ProductDatasProvider = ({ children }) => {
   // const [varients, setVarients] = useState(_varients);
   const [varientValues, setVarientValues] = useState(_varientValues);
 
-  // remove the duplicated prices
+  // remove the duplicated prices (from last one occurred)
   const removeDuplicatedPrices = (prices) => {
     const duplicatedRows = prices
       .map((p, i) => {
@@ -235,6 +235,53 @@ export const ProductDatasProvider = ({ children }) => {
       .filter((el) => el)
       .reduce((acc, curr) => acc.concat(curr), []);
     return prices.filter((el) => !duplicatedRows.includes(el.price_id));
+  };
+
+  // update the prices data based on changed by varient value
+  const updatePricesVarientValue = (
+    old_varient_value,
+    new_varient_value,
+    prices
+  ) => {
+    // check if dimension increased or decreased
+    let dimension_inc = false;
+    const old_varient_id_set = new Set(
+      old_varient_value.map((el) => el.varient_id)
+    );
+    const new_varient_id_set = new Set(
+      new_varient_value.map((el) => el.varient_id)
+    );
+    if (new_varient_id_set.length > old_varient_id_set.length) {
+      dimension_inc = true;
+    }
+    // check if varient_value increased
+    let varient_value_inc = false;
+    if (new_varient_value.length > old_varient_value.length) {
+      varient_value_inc = true;
+    }
+    // build the new varient value's combination
+    const new_varient_value_arr = [...new_varient_id_set].map((vi) => {
+      return new_varient_value.filter((nvv) => nvv.varient_id === vi);
+    });
+    console.log('new_varient_value_arr: ', new_varient_value_arr);
+    let varient_arr = [];
+    for (let d = 0; d < new_varient_value_arr.length; d++) {
+      let varient_value_row = [];
+      for (let i = 0; i < new_varient_value_arr[d].length; i++) {
+        varient_value_row.push(new_varient_value_arr[d][i]);
+      }
+      varient_arr.push(varient_value_row);
+    }
+    console.log('hi: ', varient_arr);
+
+    // dimension increase and varient value increased
+    // let new_prices = [...prices];
+    // if (dimension_inc && varient_value_inc) {
+    //   return;
+    // }
+    // dimension same but varient value increased
+    // dimension same but varient value decreased
+    // dimension decreased varient value decreased
   };
 
   // product data reducer
@@ -387,10 +434,17 @@ export const ProductDatasProvider = ({ children }) => {
       }
       case 'checkProductVarientValue': {
         const { varient_id, varient_value_id } = payload;
+        const old_varient_value = new_productDatas[row]['varient_value'];
         new_productDatas[row]['varient_value'] = [
-          ...new_productDatas[row]['varient_value'],
+          ...old_varient_value,
           { varient_value_id, varient_id },
         ];
+        const new_prices = updatePricesVarientValue(
+          old_varient_value,
+          new_productDatas[row]['varient_value'],
+          new_productDatas[row]['prices']
+        );
+        new_productDatas[row]['prices'] = new_prices;
         return new_productDatas;
       }
       case 'uncheckProductVarientValue': {

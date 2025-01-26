@@ -1,5 +1,6 @@
 import { useReducer, useState } from 'react';
 import { useContext, createContext } from 'react';
+import { removeDuplicatedRow } from '../utils/arr';
 
 const _labels = [
   { id: 1, label_type: 'collections', name: 'pet brush' },
@@ -134,16 +135,30 @@ let _productDatas = [
       { varient_id: 1, name: 'color', level: 1 },
     ],
     varient_value: [
-      { varient_value_id: 1, varient_id: 1 },
-      { varient_value_id: 2, varient_id: 1 },
-      { varient_value_id: 3, varient_id: 1 },
-      { varient_value_id: 4, varient_id: 3 },
-      { varient_value_id: 5, varient_id: 3 },
+      { key: 11, varient_value_id: 1, varient_id: 1 }, // key is concat the value and varient id
+      { key: 21, varient_value_id: 2, varient_id: 1 },
+      { key: 31, varient_value_id: 3, varient_id: 1 },
+      { key: 43, varient_value_id: 4, varient_id: 3 },
+      { key: 53, varient_value_id: 5, varient_id: 3 },
     ],
+    // price_varient_value_ids: [
+    //   { price_id: 1, varient_value_id: 1, varient_id: 1 },
+    //   { price_id: 1, varient_value_id: 4, varient_id: 3 },
+    //   { price_id: 2, varient_value_id: 1, varient_id: 1 },
+    //   { price_id: 2, varient_value_id: 5, varient_id: 3 },
+    //   { price_id: 3, varient_value_id: 2, varient_id: 1 },
+    //   { price_id: 3, varient_value_id: 4, varient_id: 3 },
+    //   { price_id: 4, varient_value_id: 2, varient_id: 1 },
+    //   { price_id: 4, varient_value_id: 5, varient_id: 3 },
+    //   { price_id: 5, varient_value_id: 3, varient_id: 1 },
+    //   { price_id: 5, varient_value_id: 4, varient_id: 3 },
+    //   { price_id: 6, varient_value_id: 3, varient_id: 1 },
+    //   { price_id: 6, varient_value_id: 5, varient_id: 3 },
+    // ],
     prices: [
       {
         price_id: 1,
-        varient_value_ids: [1, 4],
+        varient_value_keys: [11, 43],
         currency: 'HKD',
         img: '/products/785027093526.jpg',
         price: 125,
@@ -153,7 +168,7 @@ let _productDatas = [
       },
       {
         price_id: 2,
-        varient_value_ids: [1, 5],
+        varient_value_keys: [11, 53],
         currency: 'HKD',
         img: '',
         price: 125,
@@ -163,7 +178,7 @@ let _productDatas = [
       },
       {
         price_id: 3,
-        varient_value_ids: [2, 4],
+        varient_value_keys: [21, 43],
         currency: 'HKD',
         img: '',
         price: 137,
@@ -173,7 +188,7 @@ let _productDatas = [
       },
       {
         price_id: 4,
-        varient_value_ids: [2, 5],
+        varient_value_keys: [21, 53],
         currency: 'HKD',
         img: '',
         price: 125,
@@ -183,7 +198,7 @@ let _productDatas = [
       },
       {
         price_id: 5,
-        varient_value_ids: [3, 4],
+        varient_value_keys: [31, 43],
         currency: 'HKD',
         img: '',
         price: 137,
@@ -193,7 +208,7 @@ let _productDatas = [
       },
       {
         price_id: 6,
-        varient_value_ids: [3, 5],
+        varient_value_keys: [31, 53],
         currency: 'HKD',
         img: '/products/1173534224478.jpg',
         price: 137,
@@ -218,13 +233,13 @@ export const ProductDatasProvider = ({ children }) => {
     const duplicatedRows = prices
       .map((p, i) => {
         const valueIdsStr = JSON.stringify(
-          p.varient_value_ids.sort((a, b) => a - b)
+          p.varient_value_keys.sort((a, b) => a - b)
         );
         return prices
           .map((pp, ii) => {
             if (i >= ii) return;
             const valueIdsStr_compared = JSON.stringify(
-              pp.varient_value_ids.sort((a, b) => a - b)
+              pp.varient_value_keys.sort((a, b) => a - b)
             );
             if (valueIdsStr === valueIdsStr_compared) {
               return pp.price_id;
@@ -243,8 +258,10 @@ export const ProductDatasProvider = ({ children }) => {
     new_varient_value,
     prices
   ) => {
+    console.log('old_varient_value: ', old_varient_value);
+    console.log('new_varient_value: ', new_varient_value);
     // check if dimension increased or decreased
-    let dimension_inc = false;
+    let varient_inc = false;
     const old_varient_id_set = new Set(
       old_varient_value.map((el) => el.varient_id)
     );
@@ -252,36 +269,57 @@ export const ProductDatasProvider = ({ children }) => {
       new_varient_value.map((el) => el.varient_id)
     );
     if (new_varient_id_set.length > old_varient_id_set.length) {
-      dimension_inc = true;
+      varient_inc = true;
     }
     // check if varient_value increased
     let varient_value_inc = false;
+    console.log('old_varient_id_set: ', old_varient_id_set);
+    console.log('new_varient_id_set: ', new_varient_id_set);
     if (new_varient_value.length > old_varient_value.length) {
       varient_value_inc = true;
     }
     // build the new varient value's combination
-    const new_varient_value_arr = [...new_varient_id_set].map((vi) => {
+    const new_varient_value_mappings = [...new_varient_id_set].map((vi) => {
       return new_varient_value.filter((nvv) => nvv.varient_id === vi);
     });
-    console.log('new_varient_value_arr: ', new_varient_value_arr);
-    let varient_arr = [];
-    for (let d = 0; d < new_varient_value_arr.length; d++) {
-      let varient_value_row = [];
-      for (let i = 0; i < new_varient_value_arr[d].length; i++) {
-        varient_value_row.push(new_varient_value_arr[d][i]);
-      }
-      varient_arr.push(varient_value_row);
-    }
-    console.log('hi: ', varient_arr);
+    console.log('new_varient_value_mappings: ', new_varient_value_mappings);
 
-    // dimension increase and varient value increased
+    let new_varient_value_keys_arr = [];
+    new_varient_value_mappings.map((varient, v) => {
+      let new_varient_value_keys = [];
+      new_varient_value_mappings.map();
+    });
+    for (let d = 0; d < new_varient_value_mappings.length; d++) {
+      let new_varient_value_keys = [];
+      for (let v1 = 0; v1 < new_varient_value_mappings[d].length; v1++) {
+        new_varient_value_keys.push(new_varient_value_mappings[d][v1]);
+        for (let v2 = 0; v2 < new_varient_value_mappings[1].length; v2++) {
+          new_varient_value_keys.push(new_varient_value_mappings[1][v2]);
+        }
+      }
+      new_varient_value_keys_arr.push(new_varient_value_keys);
+    }
+
+    // // building nested array for prepare the mapping
+    // let varient_mapping_arr = [];
+    // for (let d = 0; d < new_varient_value_mappings.length; d++) {
+    //   let varient_value_row = [];
+    //   for (let i = 0; i < new_varient_value_mappings[d].length; i++) {
+    //     varient_value_row.push(new_varient_value_mappings[d][i]);
+    //   }
+    //   varient_mapping_arr.push(varient_value_row);
+    // }
+    // console.log('varient_mapping_arr: ', varient_mapping_arr);
+
+    // varients increase and varient value increased
     // let new_prices = [...prices];
-    // if (dimension_inc && varient_value_inc) {
+    // if (varient_inc && varient_value_inc) {
     //   return;
     // }
-    // dimension same but varient value increased
-    // dimension same but varient value decreased
-    // dimension decreased varient value decreased
+    // varients same but varient value increased
+    // varients same but varient value decreased
+    // varients decreased varient value decreased
+    return prices;
   };
 
   // product data reducer
@@ -435,10 +473,17 @@ export const ProductDatasProvider = ({ children }) => {
       case 'checkProductVarientValue': {
         const { varient_id, varient_value_id } = payload;
         const old_varient_value = new_productDatas[row]['varient_value'];
+        const newKey = `${varient_value_id}${varient_id}`;
+        // assign new varient value
         new_productDatas[row]['varient_value'] = [
           ...old_varient_value,
-          { varient_value_id, varient_id },
+          { key: parseInt(newKey), varient_value_id, varient_id },
         ];
+        // remove the duplicated row if needed
+        new_productDatas[row]['varient_value'] = removeDuplicatedRow(
+          new_productDatas[row]['varient_value']
+        );
+        // update the varient value in prices
         const new_prices = updatePricesVarientValue(
           old_varient_value,
           new_productDatas[row]['varient_value'],

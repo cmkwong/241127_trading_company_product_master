@@ -41,10 +41,11 @@ const PricePreview = (props) => {
   // preview data refactoring
   const previewDataRefactoring = () => {
     const refactored_varients = prices.map((price) => {
-      const varient_rows = price.varient_value_ids.map((varient_value_id) => {
+      const price_id = price.price_id;
+      const varient_rows = price.varient_value_keys.map((varient_value_id) => {
         // find the varient value
         const required_varient_value = varient_value.filter(
-          (vv) => vv.varient_value_id === varient_value_id
+          (vv) => vv.key === varient_value_id
         )[0];
         // find the varient level
         const required_varient_level = varient_level.filter(
@@ -61,8 +62,8 @@ const PricePreview = (props) => {
         )[0]['name'];
         return {
           level: required_varient_level,
-          varient: required_varient_name,
-          value: required_varient_value_name,
+          varient: required_varient_name, // varient label
+          value: required_varient_value_name, // varient value label
         };
       });
       return {
@@ -78,7 +79,7 @@ const PricePreview = (props) => {
 
   // useEffect(() => {
   //   const refactored_varients = productData.prices.map((price) => {
-  //     const varient_rows = price.varient_value_ids.map((varient_value_id) => {
+  //     const varient_rows = price.varient_value_keys.map((varient_value_id) => {
   //       // find the varient value
   //       const required_varient_value = productData.varient_value.filter(
   //         (vv) => vv.varient_value_id === varient_value_id

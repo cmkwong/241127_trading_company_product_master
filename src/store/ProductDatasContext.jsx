@@ -220,6 +220,105 @@ let _productDatas = [
   },
 ];
 
+// update the prices data based on changed by varient value
+const updatePricesVarientValue = (
+  old_varient_value,
+  new_varient_value,
+  prices
+) => {
+  console.log('old_varient_value: ', old_varient_value);
+  console.log('new_varient_value: ', new_varient_value);
+  // check if dimension increased or decreased
+  let varient_inc = false;
+  const old_varient_id_set = new Set(
+    old_varient_value.map((el) => el.varient_id)
+  );
+  const new_varient_id_set = new Set(
+    new_varient_value.map((el) => el.varient_id)
+  );
+  if (new_varient_id_set.length > old_varient_id_set.length) {
+    varient_inc = true;
+  }
+  // check if varient_value increased
+  let varient_value_inc = false;
+  console.log('old_varient_id_set: ', old_varient_id_set);
+  console.log('new_varient_id_set: ', new_varient_id_set);
+  if (new_varient_value.length > old_varient_value.length) {
+    varient_value_inc = true;
+  }
+  // build the new varient value's combination
+  const new_varient_value_mappings = [...new_varient_id_set].map((vi) => {
+    return new_varient_value.filter((nvv) => nvv.varient_id === vi);
+  });
+  console.log('new_varient_value_mappings: ', new_varient_value_mappings);
+
+  // number of value in varient
+  let varient_current_info = new_varient_value_mappings.map((el, d) => {
+    return { dim: d, size: el.length, pos: 0 };
+  });
+  let varient_dimension_total_counts = varient_current_info.reduce(
+    (acc, curr) => acc * curr.size,
+    1
+  );
+  let new_varient_value_keys_arr = [];
+  // loop for all combination looping
+  for (let c = 0; c < varient_dimension_total_counts; c++) {
+    // update the index count
+    let remainder = c;
+    varient_current_info = varient_current_info.map((el, vci) => {
+      // calculate the multipler
+      let multipler = varient_current_info.reduce((acc, curr, ri) => {
+        if (ri > vci) {
+          return curr.size * acc;
+        } else {
+          return 1;
+        }
+      }, 1);
+      // calculate the quotient
+      let quotient = Math.floor(remainder / multipler);
+      remainder = remainder % multipler;
+      console.log(
+        'multipler, quotient, remainder: ',
+        multipler,
+        quotient,
+        remainder
+      );
+
+      return { dim: el.dim, size: el.size, pos: quotient };
+      // if (vci === varient_current_info.length - 1) {
+      //   return { dim: el.dim, size: el.size, pos: remainder };
+      // } else {
+      //   return { dim: el.dim, size: el.size, pos: quotient };
+      // }
+    });
+    let new_varient_value_keys = [];
+    for (let d = 0; d < varient_current_info.length; d++) {
+      let pos = varient_current_info.filter((info) => info.dim === d)[0].pos;
+      console.log('d, pos: ', d, pos);
+      new_varient_value_keys.push(new_varient_value_mappings[d][pos].key);
+    }
+    // push the new varient value key
+    new_varient_value_keys_arr.push(new_varient_value_keys);
+    console.log('varient_current_info: ', varient_current_info);
+    // let updated = false;
+    // let new_varient_current_info = varient_current_info
+    //   .sort((a, b) => b.dim - a.dim)
+    //   .map((el) => {
+    //     if (!updated && el.size - 1 > el.pos) {
+    //       updated = true;
+    //       return { dim: el.dim, size: el.size, pos: el.pos + 1 };
+    //     } else {
+    //       return { dim: el.dim, size: el.size, pos: el.pos };
+    //     }
+    //   });
+    // console.log(new_varient_current_info);
+    // varient_current_info = new_varient_current_info;
+  }
+  console.log('new_varient_value_keys_arr: ', new_varient_value_keys_arr);
+
+  return prices;
+};
+
 const ProductDatasContext = createContext(null);
 
 export const ProductDatasProvider = ({ children }) => {
@@ -250,141 +349,6 @@ export const ProductDatasProvider = ({ children }) => {
       .filter((el) => el)
       .reduce((acc, curr) => acc.concat(curr), []);
     return prices.filter((el) => !duplicatedRows.includes(el.price_id));
-  };
-
-  // update the prices data based on changed by varient value
-  const updatePricesVarientValue = (
-    old_varient_value,
-    new_varient_value,
-    prices
-  ) => {
-    console.log('old_varient_value: ', old_varient_value);
-    console.log('new_varient_value: ', new_varient_value);
-    // check if dimension increased or decreased
-    let varient_inc = false;
-    const old_varient_id_set = new Set(
-      old_varient_value.map((el) => el.varient_id)
-    );
-    const new_varient_id_set = new Set(
-      new_varient_value.map((el) => el.varient_id)
-    );
-    if (new_varient_id_set.length > old_varient_id_set.length) {
-      varient_inc = true;
-    }
-    // check if varient_value increased
-    let varient_value_inc = false;
-    console.log('old_varient_id_set: ', old_varient_id_set);
-    console.log('new_varient_id_set: ', new_varient_id_set);
-    if (new_varient_value.length > old_varient_value.length) {
-      varient_value_inc = true;
-    }
-    // build the new varient value's combination
-    const new_varient_value_mappings = [...new_varient_id_set].map((vi) => {
-      return new_varient_value.filter((nvv) => nvv.varient_id === vi);
-    });
-    console.log('new_varient_value_mappings: ', new_varient_value_mappings);
-
-    // number of value in varient
-    let varient_current_info = new_varient_value_mappings.map((el, d) => {
-      return { dim: d, size: el.length, pos: 0 };
-    });
-    let varient_dimension_total_counts = varient_current_info.reduce(
-      (acc, curr) => acc * curr.size,
-      1
-    );
-    let new_varient_value_keys_arr = [];
-    // loop for all combination looping
-    for (let c = 0; c < varient_dimension_total_counts; c++) {
-      let new_varient_value_keys = [];
-      for (let d = 0; d < varient_current_info.length; d++) {
-        let pos = varient_current_info.filter((info) => info.dim === d)[0].pos;
-        new_varient_value_keys.push(new_varient_value_mappings[d][pos].key);
-      }
-      // push the new varient value key
-      new_varient_value_keys_arr.push(new_varient_value_keys);
-      // update the index count
-      let remainder = c;
-      varient_current_info = varient_current_info.map((el, vci) => {
-        // calculate the multipler
-        let multipler = varient_current_info.reduce((acc, curr, ri) => {
-          if (ri > vci) {
-            return curr.size * acc;
-          } else {
-            return 1;
-          }
-        }, 1);
-        // calculate the quotient
-        let quotient = Math.floor(remainder / multipler);
-        remainder = remainder % multipler;
-        console.log(
-          'multipler, quotient, remainder: ',
-          multipler,
-          quotient,
-          remainder
-        );
-
-        return { dim: el.dim, size: el.size, pos: quotient };
-        // if (vci === varient_current_info.length - 1) {
-        //   return { dim: el.dim, size: el.size, pos: remainder };
-        // } else {
-        //   return { dim: el.dim, size: el.size, pos: quotient };
-        // }
-      });
-      console.log('varient_current_info: ', varient_current_info);
-      // let updated = false;
-      // let new_varient_current_info = varient_current_info
-      //   .sort((a, b) => b.dim - a.dim)
-      //   .map((el) => {
-      //     if (!updated && el.size - 1 > el.pos) {
-      //       updated = true;
-      //       return { dim: el.dim, size: el.size, pos: el.pos + 1 };
-      //     } else {
-      //       return { dim: el.dim, size: el.size, pos: el.pos };
-      //     }
-      //   });
-      // console.log(new_varient_current_info);
-      // varient_current_info = new_varient_current_info;
-    }
-    console.log('new_varient_value_keys_arr: ', new_varient_value_keys_arr);
-
-    // -----------------------------------------------------------
-    // let new_varient_value_keys_arr = [];
-    // new_varient_value_mappings.map((varient, v) => {
-    //   let new_varient_value_keys = [];
-    //   new_varient_value_mappings.map();
-    // });
-    // for (let d = 0; d < new_varient_value_mappings.length; d++) {
-    //   let new_varient_value_keys = [];
-    //   for (let v1 = 0; v1 < new_varient_value_mappings[d].length; v1++) {
-    //     new_varient_value_keys.push(new_varient_value_mappings[d][v1]);
-    //     for (let v2 = 0; v2 < new_varient_value_mappings[1].length; v2++) {
-    //       new_varient_value_keys.push(new_varient_value_mappings[1][v2]);
-    //     }
-    //   }
-    //   new_varient_value_keys_arr.push(new_varient_value_keys);
-    // }
-    // -----------------------------------------------------------
-
-    // // building nested array for prepare the mapping
-    // let varient_mapping_arr = [];
-    // for (let d = 0; d < new_varient_value_mappings.length; d++) {
-    //   let varient_value_row = [];
-    //   for (let i = 0; i < new_varient_value_mappings[d].length; i++) {
-    //     varient_value_row.push(new_varient_value_mappings[d][i]);
-    //   }
-    //   varient_mapping_arr.push(varient_value_row);
-    // }
-    // console.log('varient_mapping_arr: ', varient_mapping_arr);
-
-    // varients increase and varient value increased
-    // let new_prices = [...prices];
-    // if (varient_inc && varient_value_inc) {
-    //   return;
-    // }
-    // varients same but varient value increased
-    // varients same but varient value decreased
-    // varients decreased varient value decreased
-    return prices;
   };
 
   // product data reducer

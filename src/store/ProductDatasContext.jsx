@@ -284,21 +284,86 @@ export const ProductDatasProvider = ({ children }) => {
     });
     console.log('new_varient_value_mappings: ', new_varient_value_mappings);
 
-    let new_varient_value_keys_arr = [];
-    new_varient_value_mappings.map((varient, v) => {
-      let new_varient_value_keys = [];
-      new_varient_value_mappings.map();
+    // number of value in varient
+    let varient_current_info = new_varient_value_mappings.map((el, d) => {
+      return { dim: d, size: el.length, pos: 0 };
     });
-    for (let d = 0; d < new_varient_value_mappings.length; d++) {
+    let varient_dimension_total_counts = varient_current_info.reduce(
+      (acc, curr) => acc * curr.size,
+      1
+    );
+    let new_varient_value_keys_arr = [];
+    // loop for all combination looping
+    for (let c = 0; c < varient_dimension_total_counts; c++) {
       let new_varient_value_keys = [];
-      for (let v1 = 0; v1 < new_varient_value_mappings[d].length; v1++) {
-        new_varient_value_keys.push(new_varient_value_mappings[d][v1]);
-        for (let v2 = 0; v2 < new_varient_value_mappings[1].length; v2++) {
-          new_varient_value_keys.push(new_varient_value_mappings[1][v2]);
-        }
+      for (let d = 0; d < varient_current_info.length; d++) {
+        let pos = varient_current_info.filter((info) => info.dim === d)[0].pos;
+        new_varient_value_keys.push(new_varient_value_mappings[d][pos].key);
       }
+      // push the new varient value key
       new_varient_value_keys_arr.push(new_varient_value_keys);
+      // update the index count
+      let remainder = c;
+      varient_current_info = varient_current_info.map((el, vci) => {
+        // calculate the multipler
+        let multipler = varient_current_info.reduce((acc, curr, ri) => {
+          if (ri > vci) {
+            return curr.size * acc;
+          } else {
+            return 1;
+          }
+        }, 1);
+        // calculate the quotient
+        let quotient = Math.floor(remainder / multipler);
+        remainder = remainder % multipler;
+        console.log(
+          'multipler, quotient, remainder: ',
+          multipler,
+          quotient,
+          remainder
+        );
+
+        return { dim: el.dim, size: el.size, pos: quotient };
+        // if (vci === varient_current_info.length - 1) {
+        //   return { dim: el.dim, size: el.size, pos: remainder };
+        // } else {
+        //   return { dim: el.dim, size: el.size, pos: quotient };
+        // }
+      });
+      console.log('varient_current_info: ', varient_current_info);
+      // let updated = false;
+      // let new_varient_current_info = varient_current_info
+      //   .sort((a, b) => b.dim - a.dim)
+      //   .map((el) => {
+      //     if (!updated && el.size - 1 > el.pos) {
+      //       updated = true;
+      //       return { dim: el.dim, size: el.size, pos: el.pos + 1 };
+      //     } else {
+      //       return { dim: el.dim, size: el.size, pos: el.pos };
+      //     }
+      //   });
+      // console.log(new_varient_current_info);
+      // varient_current_info = new_varient_current_info;
     }
+    console.log('new_varient_value_keys_arr: ', new_varient_value_keys_arr);
+
+    // -----------------------------------------------------------
+    // let new_varient_value_keys_arr = [];
+    // new_varient_value_mappings.map((varient, v) => {
+    //   let new_varient_value_keys = [];
+    //   new_varient_value_mappings.map();
+    // });
+    // for (let d = 0; d < new_varient_value_mappings.length; d++) {
+    //   let new_varient_value_keys = [];
+    //   for (let v1 = 0; v1 < new_varient_value_mappings[d].length; v1++) {
+    //     new_varient_value_keys.push(new_varient_value_mappings[d][v1]);
+    //     for (let v2 = 0; v2 < new_varient_value_mappings[1].length; v2++) {
+    //       new_varient_value_keys.push(new_varient_value_mappings[1][v2]);
+    //     }
+    //   }
+    //   new_varient_value_keys_arr.push(new_varient_value_keys);
+    // }
+    // -----------------------------------------------------------
 
     // // building nested array for prepare the mapping
     // let varient_mapping_arr = [];

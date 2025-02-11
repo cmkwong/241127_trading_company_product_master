@@ -25,6 +25,16 @@ const Varient = (props) => {
   const [inputVarientName, setInputVarientName] = useState('');
 
   const updateVarientValue = (varient_value_id, checked) => {
+    // add the varient
+    dispatchProductDatas({
+      product_id,
+      type: 'addProductVarient',
+      payload: {
+        name: inputVarientName,
+        level: level,
+      },
+    });
+    // update the varient values
     if (checked) {
       dispatchProductDatas({
         product_id,

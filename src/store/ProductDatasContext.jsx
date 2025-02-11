@@ -141,20 +141,6 @@ let _productDatas = [
       { key: 43, varient_value_id: 4, varient_id: 3 },
       { key: 53, varient_value_id: 5, varient_id: 3 },
     ],
-    // price_varient_value_ids: [
-    //   { price_id: 1, varient_value_id: 1, varient_id: 1 },
-    //   { price_id: 1, varient_value_id: 4, varient_id: 3 },
-    //   { price_id: 2, varient_value_id: 1, varient_id: 1 },
-    //   { price_id: 2, varient_value_id: 5, varient_id: 3 },
-    //   { price_id: 3, varient_value_id: 2, varient_id: 1 },
-    //   { price_id: 3, varient_value_id: 4, varient_id: 3 },
-    //   { price_id: 4, varient_value_id: 2, varient_id: 1 },
-    //   { price_id: 4, varient_value_id: 5, varient_id: 3 },
-    //   { price_id: 5, varient_value_id: 3, varient_id: 1 },
-    //   { price_id: 5, varient_value_id: 4, varient_id: 3 },
-    //   { price_id: 6, varient_value_id: 3, varient_id: 1 },
-    //   { price_id: 6, varient_value_id: 5, varient_id: 3 },
-    // ],
     prices: [
       {
         price_id: 1,
@@ -220,6 +206,35 @@ let _productDatas = [
   },
 ];
 
+// sorting prices based on varient value keys
+const sortingPrices = (prices) => {
+  return prices.sort((a, b) => {
+    let a_keyConcat = parseInt(
+      a.varient_value_keys.reduce((acc, curr) => {
+        acc + `${curr}`;
+      }, '')
+    );
+    let b_keyConcat = parseInt(
+      b.varient_value_keys.reduce((acc, curr) => {
+        acc + `${curr}`;
+      }, '')
+    );
+    return a_keyConcat - b_keyConcat;
+  });
+};
+
+// return the 0-1 similarity
+const _similarity_varient_value = (old_key, new_key) => {
+  const similarity = new_key.reduce((acc, curr) => {
+    if (old_key.includes(curr)) {
+      acc += 1;
+    }
+    return acc;
+  }, 0);
+  // similarity / dimension
+  return similarity / new_key.length;
+};
+
 // update the prices data based on changed by varient value
 const updatePricesVarientValue = (
   old_varient_value,
@@ -277,20 +292,9 @@ const updatePricesVarientValue = (
       // calculate the quotient
       let quotient = Math.floor(remainder / multipler);
       remainder = remainder % multipler;
-      console.log(
-        'multipler, quotient, remainder: ',
-        multipler,
-        quotient,
-        remainder
-      );
-
       return { dim: el.dim, size: el.size, pos: quotient };
-      // if (vci === varient_current_info.length - 1) {
-      //   return { dim: el.dim, size: el.size, pos: remainder };
-      // } else {
-      //   return { dim: el.dim, size: el.size, pos: quotient };
-      // }
     });
+    // update new varient value keys
     let new_varient_value_keys = [];
     for (let d = 0; d < varient_current_info.length; d++) {
       let pos = varient_current_info.filter((info) => info.dim === d)[0].pos;
@@ -299,23 +303,25 @@ const updatePricesVarientValue = (
     }
     // push the new varient value key
     new_varient_value_keys_arr.push(new_varient_value_keys);
-    console.log('varient_current_info: ', varient_current_info);
-    // let updated = false;
-    // let new_varient_current_info = varient_current_info
-    //   .sort((a, b) => b.dim - a.dim)
-    //   .map((el) => {
-    //     if (!updated && el.size - 1 > el.pos) {
-    //       updated = true;
-    //       return { dim: el.dim, size: el.size, pos: el.pos + 1 };
-    //     } else {
-    //       return { dim: el.dim, size: el.size, pos: el.pos };
-    //     }
-    //   });
-    // console.log(new_varient_current_info);
-    // varient_current_info = new_varient_current_info;
   }
   console.log('new_varient_value_keys_arr: ', new_varient_value_keys_arr);
-
+  // mapping the most similar varient value keys
+  new_varient_value_keys_arr.map((newKey) => {
+    const mostMatched = prices.reduce(
+      (result, price, i) => {
+        const oldKey = price.varient_value_keys;
+        const similarity = _similarity_varient_value(oldKey, newKey);
+        // find the max matched position
+        if (similarity > result.maxValue) {
+          return { maxValue: similarity, pos: i };
+        } else {
+          return result;
+        }
+      },
+      { maxValue: 0, pos: null }
+    );
+    console.log('newKey, mostMatched: ', newKey, mostMatched);
+  });
   return prices;
 };
 
@@ -429,6 +435,10 @@ export const ProductDatasProvider = ({ children }) => {
           ...new_productDatas[row]['varient_level'],
           { varient_id: required_id, name: name, level: level },
         ];
+        console.log(
+          "new_productDatas[row]['varient_level']: ",
+          new_productDatas[row]['varient_level']
+        );
         return new_productDatas;
       }
       case 'updateProductVarient': {
@@ -530,6 +540,14 @@ export const ProductDatasProvider = ({ children }) => {
             el.varient_id !== varient_id &&
             el.varient_value_id !== varient_value_id
         );
+        // update the varient value in prices
+        const old_varient_value = new_productDatas[row]['varient_value'];
+        const new_prices = updatePricesVarientValue(
+          old_varient_value,
+          new_productDatas[row]['varient_value'],
+          new_productDatas[row]['prices']
+        );
+        new_productDatas[row]['prices'] = new_prices;
         return new_productDatas;
       }
       case 'addSelectedMedia': {

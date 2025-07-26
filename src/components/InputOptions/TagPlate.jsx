@@ -1,5 +1,5 @@
 import styles from './TagPlate.module.css';
-import close_icon from '../assets/close.svg';
+import close_icon from '../../assets/close.svg';
 import { useState } from 'react';
 
 const TagPlate = (props) => {
@@ -12,7 +12,7 @@ const TagPlate = (props) => {
       <div key={id} className={styles.container}>
         <p className={styles.label}>{name}</p>
         <img
-          className={`${styles.img} ${hover ? styles.hover : ''}`}
+          className={`${styles.cancel} ${hover ? styles.hover : ''}`}
           onClick={() => updateOptionData(parseInt(id), false)}
           onMouseOver={() => setHover(true)}
           onMouseLeave={() => setHover(false)}

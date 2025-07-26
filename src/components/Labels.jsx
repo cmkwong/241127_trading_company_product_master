@@ -1,4 +1,4 @@
-import InputOption from './InputOption';
+import InputOption from './InputOptions/InputOption';
 import { useProductDatasContext } from '../store/ProductDatasContext';
 import { useProductDataRowContext } from '../store/ProductDataRowContext';
 

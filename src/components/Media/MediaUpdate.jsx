@@ -1,11 +1,11 @@
 import { useRef, useState } from 'react';
-import WindowPop from './common/WindowPop';
+import WindowPop from './WindowPop';
 import styles from './MediaUpdate.module.css';
 
 import { Editor } from 'primereact/editor';
 import ImageBox from './ImageBox';
-import { useProductDatasContext } from '../store/ProductDatasContext';
-import { useProductDataRowContext } from '../store/ProductDataRowContext';
+import { useProductDatasContext } from '../../store/ProductDatasContext';
+import { useProductDataRowContext } from '../../store/ProductDataRowContext';
 
 const MediaUpdate = (props) => {
   let { setPopWindow, type } = props;

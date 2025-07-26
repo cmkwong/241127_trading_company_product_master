@@ -1,12 +1,15 @@
 import styles from './ProductTableRow.module.css';
-import MediaPreview from './MediaPreview';
+// import MediaPreview from './MediaPreview';
 import PricePreview from './PricePreview';
 import TextCell from './TextCell';
 import Varients from './Varients';
 import Category from './Category';
 import { ProductDataRowProvider } from '../store/ProductDataRowContext';
-import { useProductDatasContext } from '../store/ProductDatasContext';
+// import { useProductDatasContext } from '../store/ProductDatasContext';
 import Labels from './Labels';
+import ImagePreview from './Media/ImagePreview';
+import VideoPreview from './Media/VideoPreview';
+import DescriptionPreview from './Media/DescriptionPreview';
 
 const ProductTableRow = (props) => {
   const { productData } = props;
@@ -29,13 +32,13 @@ const ProductTableRow = (props) => {
         <Labels label_type={'tags'} productData={productData} />
       </div>
       <div>
-        <MediaPreview type="image" />
+        <ImagePreview />
       </div>
       <div>
-        <MediaPreview type="video" />
+        <VideoPreview />
       </div>
       <div>
-        <MediaPreview type="description" />
+        <DescriptionPreview />
       </div>
       <div>
         <Varients />

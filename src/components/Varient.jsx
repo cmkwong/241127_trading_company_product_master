@@ -1,10 +1,10 @@
 import styles from './Varients.module.css';
 import drag_icon from '../assets/dragIndicator.svg';
 import close_icon from '../assets/close.svg';
-import InputOption from './InputOption';
+import InputOption from './InputOptions/InputOption';
 import { useState } from 'react';
-import { useProductDatasContext } from '../store/ProductDatasContext';
-import { useProductDataRowContext } from '../store/ProductDataRowContext';
+// import { useProductDatasContext } from '../store/ProductDatasContext';
+// import { useProductDataRowContext } from '../store/ProductDataRowContext';
 
 const Varient = (props) => {
   const {

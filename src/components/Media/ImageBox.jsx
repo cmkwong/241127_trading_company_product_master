@@ -1,5 +1,5 @@
 import styles from './ImageBox.module.css';
-import checked_icon from '../assets/image_checked.svg';
+import checked_icon from '../../assets/image_checked.svg';
 import { useState } from 'react';
 
 const ImageBox = (props) => {

@@ -1,3 +1,16 @@
+.inputContainer {
+  width: 100%;
+  height: 28px;
+  border-radius: 9px;
+  /* overflow: hidden; */
+  border: 1px solid #000000;
+  background-color: #fff8f8;
+}
+
+.inputContainer:focus-within {
+  border: 1px solid #e08a8a;
+}
+
 .inputField {
   width: 90%;
   border: 0px;

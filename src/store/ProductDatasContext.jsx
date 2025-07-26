@@ -18,6 +18,8 @@ const _labels = [
   { id: 13, label_type: 'tags', name: 'leash' },
 ];
 
+const ProductFolder =
+  'C:\\Users\\Chris\\Desktop\\StockData\\Business\\Pet Product Images';
 const _allMedia = [
   { id: 1, media_type: 'image', filename: '785027093526.jpg' },
   { id: 2, media_type: 'image', filename: '1173534224478.jpg' },

@@ -11,17 +11,19 @@ const InputField = (props) => {
     value,
   } = props;
   return (
-    <input
-      className={styles.inputField}
-      type="text"
-      ref={reference}
-      onClick={onClick}
-      onBlur={onBlur}
-      onKeyDown={onKeyDown}
-      onChange={onChange}
-      defaultValue={defaultValue}
-      value={value}
-    />
+    <div className={styles.inputContainer}>
+      <input
+        className={styles.inputField}
+        type="text"
+        ref={reference}
+        onClick={onClick}
+        onBlur={onBlur}
+        onKeyDown={onKeyDown}
+        onChange={onChange}
+        defaultValue={defaultValue}
+        value={value}
+      />
+    </div>
   );
 };
 

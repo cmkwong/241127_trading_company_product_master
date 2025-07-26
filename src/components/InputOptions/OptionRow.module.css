@@ -1,6 +1,9 @@
 .container {
   /* width: 100px; */
+  width: 100%;
+  position: relative;
   display: flex;
+  padding-left: 5%;
   align-items: center;
   justify-content: left;
   cursor: pointer;

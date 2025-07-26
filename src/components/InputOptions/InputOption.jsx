@@ -1,9 +1,8 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import styles from './InputOption.module.css';
-import { useRef } from 'react';
 import OptionRow from './OptionRow';
-import TagPlate from './tagPlate';
-import InputField from './common/InputField';
+import TagPlate from './TagPlate';
+import InputField from '../common/InputField';
 
 const InputOption = (props) => {
   // options: [ { id, name } ]
@@ -59,10 +58,9 @@ const InputOption = (props) => {
     addOptionData(value);
   };
 
-  const inputWidth = '100%';
   return (
     <div className={styles.inputOption}>
-      <div style={{ width: inputWidth }} className={styles.inputContainer}>
+      <div className={styles.inputContainer}>
         <InputField
           reference={inputReference}
           onClick={handleFocus}
@@ -78,7 +76,6 @@ const InputOption = (props) => {
         {showOption && (
           <div
             className={styles.optionList}
-            style={{ width: inputWidth }}
             onMouseEnter={handleSelectionMouseEnter}
             onMouseLeave={handleSelectionMouseOut}
             onClick={handleClickSelection}

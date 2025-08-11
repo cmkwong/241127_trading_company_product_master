@@ -15,16 +15,6 @@ const Varients = () => {
   const { product_id, varient_level, varient_value } =
     useProductDataRowContext();
 
-  // template for varient stack
-  const varientStackTemplate = (
-    id,
-    varientName,
-    level,
-    selectedVarientValue
-  ) => {
-    return { id, varientName, level, selectedVarientValue };
-  };
-
   // get the varient stack
   const getVarientStack = useCallback((varient_level, varient_value) => {
     return varient_level
@@ -34,12 +24,12 @@ const Varients = () => {
         const selectedVarientValue = varient_value
           .filter((vv) => vv.varient_id === vl.varient_id)
           .map((el) => el.varient_value_id);
-        return varientStackTemplate(
-          vl.varient_id,
-          vl.name,
-          vl.level,
-          selectedVarientValue
-        );
+        return {
+          id: vl.varient_id,
+          varientName: vl.name,
+          level: vl.level,
+          selectedVarientValue: selectedVarientValue,
+        };
       });
   }, []);
 
@@ -48,9 +38,9 @@ const Varients = () => {
     getVarientStack(varient_level, varient_value)
   );
 
-  useEffect(() => {
-    setVarientStack(getVarientStack(varient_level, varient_value));
-  }, [getVarientStack, varient_level, varient_value]);
+  // useEffect(() => {
+  //   setVarientStack(getVarientStack(varient_level, varient_value));
+  // }, [getVarientStack, varient_level, varient_value]);
 
   // hide the add new varient option
   const [showAdd, setShowAdd] = useState(true);
@@ -64,16 +54,48 @@ const Varients = () => {
     }
   }, [varientStack]);
 
-  const handleAddClick = () => {
+  // handle the click the Add button
+  const handleAddClick = useCallback(() => {
     const key = makeComplexId(8);
     setVarientStack((prv) => [
       ...prv,
-      varientStackTemplate(key, '', varientStack.length + 1, []),
+      {
+        id: key,
+        varientName: '',
+        level: varientStack.length + 1,
+        selectedVarientValue: [],
+      },
     ]);
-  };
+    // update the context
+    addVarient('', calculateLevel() + 1);
+  }, []);
 
-  const removeStack = (key) => {
+  const addVarient = useCallback((inputVarientName, level) => {
+    // add the varient
+    dispatchProductDatas({
+      product_id,
+      type: 'addProductVarient',
+      payload: {
+        name: inputVarientName,
+        level: level,
+      },
+    });
+  }, []);
+
+  const removeStack = useCallback((key) => {
     setVarientStack(varientStack.filter((el) => el.id !== key));
+  }, []);
+
+  // calculate the current level
+  const calculateLevel = () => {
+    let maxLevel = 0;
+    varientStack.map((el) => {
+      if (maxLevel < el.level) {
+        maxLevel = el.level;
+      }
+      return maxLevel;
+    });
+    return maxLevel;
   };
 
   return (

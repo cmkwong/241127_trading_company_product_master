@@ -423,11 +423,11 @@ export const ProductDatasProvider = ({ children }) => {
       case 'checkProductVarientValue': {
         const { varient_id, varient_value_id } = payload;
         const old_varient_value = new_productDatas[row]['varient_value'];
-        const newKey = `${varient_value_id}${varient_id}`;
+        const newKey = `${varient_value_id};${varient_id}`;
         // assign new varient value
         new_productDatas[row]['varient_value'] = [
           ...old_varient_value,
-          { key: parseInt(newKey), varient_value_id, varient_id },
+          { key: newKey, varient_value_id, varient_id },
         ];
         // remove the duplicated row if needed
         new_productDatas[row]['varient_value'] = removeDuplicatedRow(
@@ -440,6 +440,7 @@ export const ProductDatasProvider = ({ children }) => {
           new_productDatas[row]['prices']
         );
         new_productDatas[row]['prices'] = new_prices;
+        console.log('----new_productDatas---: ', new_productDatas);
         return new_productDatas;
       }
       case 'uncheckProductVarientValue': {

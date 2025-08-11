@@ -1,4 +1,4 @@
-.addVarient {
+.addVarientBtn {
   border-top: 1px solid #efefef;
   padding: 5px;
   display: flex;
@@ -6,11 +6,11 @@
   cursor: pointer;
 }
 
-.addVarient:hover {
+.addVarientBtn:hover {
   font-weight: 700;
 }
 
-.addVarient p {
+.addVarientBtn p {
   margin: 0;
   padding-left: 5px;
   font-size: 12px;

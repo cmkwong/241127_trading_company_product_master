@@ -15,20 +15,25 @@ const InitProductData = [
     media: [8, 9],
     description: '',
     varient_level: [
-      { varient_id: 3, name: 'lock', level: 0 },
-      { varient_id: 1, name: 'color', level: 1 },
+      { varient_id: 3, name: 'lock', level: 0, values: [4, 5] },
+      {
+        varient_id: 1,
+        name: 'color',
+        level: 1,
+        values: [1, 2, 3],
+      },
     ],
     varient_value: [
-      { key: 11, varient_value_id: 1, varient_id: 1 }, // key is concat the value and varient id
-      { key: 21, varient_value_id: 2, varient_id: 1 },
-      { key: 31, varient_value_id: 3, varient_id: 1 },
-      { key: 43, varient_value_id: 4, varient_id: 3 },
-      { key: 53, varient_value_id: 5, varient_id: 3 },
+      { key: '1;1', varient_value_id: 1, varient_id: 1 }, // key is concat the value and varient id
+      { key: '2;1', varient_value_id: 2, varient_id: 1 },
+      { key: '3;1', varient_value_id: 3, varient_id: 1 },
+      { key: '4;3', varient_value_id: 4, varient_id: 3 },
+      { key: '5;3', varient_value_id: 5, varient_id: 3 },
     ],
     prices: [
       {
         price_id: 1,
-        varient_value_keys: [11, 43],
+        varient_value_keys: ['1;1', '4;3'],
         currency: 'HKD',
         img: '/products/785027093526.jpg',
         price: 125,
@@ -38,7 +43,7 @@ const InitProductData = [
       },
       {
         price_id: 2,
-        varient_value_keys: [11, 53],
+        varient_value_keys: ['1;1', '5;3'],
         currency: 'HKD',
         img: '',
         price: 125,
@@ -48,7 +53,7 @@ const InitProductData = [
       },
       {
         price_id: 3,
-        varient_value_keys: [21, 43],
+        varient_value_keys: ['2;1', '4;3'],
         currency: 'HKD',
         img: '',
         price: 137,
@@ -58,7 +63,7 @@ const InitProductData = [
       },
       {
         price_id: 4,
-        varient_value_keys: [21, 53],
+        varient_value_keys: ['2;1', '5;3'],
         currency: 'HKD',
         img: '',
         price: 125,
@@ -68,7 +73,7 @@ const InitProductData = [
       },
       {
         price_id: 5,
-        varient_value_keys: [31, 43],
+        varient_value_keys: ['3;1', '4;3'],
         currency: 'HKD',
         img: '',
         price: 137,
@@ -78,7 +83,7 @@ const InitProductData = [
       },
       {
         price_id: 6,
-        varient_value_keys: [31, 53],
+        varient_value_keys: ['3;1', '5;3'],
         currency: 'HKD',
         img: '/products/1173534224478.jpg',
         price: 137,

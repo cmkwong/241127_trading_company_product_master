@@ -422,44 +422,31 @@ export const ProductDatasProvider = ({ children }) => {
       }
       case 'checkProductVarientValue': {
         const { varient_id, varient_value_id } = payload;
-        const old_varient_value = new_productDatas[row]['varient_value'];
-        const newKey = `${varient_value_id};${varient_id}`;
-        // assign new varient value
-        new_productDatas[row]['varient_value'] = [
-          ...old_varient_value,
-          { key: newKey, varient_value_id, varient_id },
-        ];
-        // remove the duplicated row if needed
-        new_productDatas[row]['varient_value'] = removeDuplicatedRow(
-          new_productDatas[row]['varient_value']
-        );
+        const required_varient_level = new_productDatas[row][
+          'varient_level'
+        ].find((el) => el.varient_id === varient_id);
+        // push the updated varient value id
+        if (required_varient_level) {
+          required_varient_level.values.push(varient_value_id);
+        }
+        console.log('check', required_varient_level);
         // update the varient value in prices
-        const new_prices = updatePricesVarientValue(
-          old_varient_value,
-          new_productDatas[row]['varient_value'],
-          new_productDatas[row]['prices']
-        );
-        new_productDatas[row]['prices'] = new_prices;
-        console.log('----new_productDatas---: ', new_productDatas);
         return new_productDatas;
       }
       case 'uncheckProductVarientValue': {
         const { varient_id, varient_value_id } = payload;
-        new_productDatas[row]['varient_value'] = new_productDatas[row][
-          'varient_value'
-        ].filter(
-          (el) =>
-            el.varient_id !== varient_id &&
-            el.varient_value_id !== varient_value_id
-        );
+        let required_varient_level = new_productDatas[row][
+          'varient_level'
+        ].find((el) => el.varient_id === varient_id);
+        // push the updated varient value id
+        if (required_varient_level) {
+          required_varient_level.values = required_varient_level.values.filter(
+            (value) => value !== varient_value_id
+          );
+        }
+        console.log('uncheck', required_varient_level);
+        console.log('uncheck', new_productDatas);
         // update the varient value in prices
-        const old_varient_value = new_productDatas[row]['varient_value'];
-        const new_prices = updatePricesVarientValue(
-          old_varient_value,
-          new_productDatas[row]['varient_value'],
-          new_productDatas[row]['prices']
-        );
-        new_productDatas[row]['prices'] = new_prices;
         return new_productDatas;
       }
       case 'addSelectedMedia': {

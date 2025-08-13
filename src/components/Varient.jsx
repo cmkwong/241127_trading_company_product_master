@@ -12,7 +12,6 @@ const Varient = (props) => {
     level,
     varientName,
     selectedVarientValue,
-    varient_value,
     product_id,
     removeStack,
     varientValues,
@@ -54,6 +53,8 @@ const Varient = (props) => {
       payload: { varient_id: id, varientValue },
     });
   };
+
+  console.log('selectedVarientValue: ', selectedVarientValue);
 
   return (
     <div className={styles.upperSide}>

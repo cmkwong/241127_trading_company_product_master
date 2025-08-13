@@ -12,35 +12,36 @@ import { useProductDatasContext } from '../store/ProductDatasContext';
 
 const Varients = () => {
   const { varientValues, dispatchProductDatas } = useProductDatasContext();
-  const { product_id, varient_level, varient_value } =
-    useProductDataRowContext();
+  const { product_id, varient_level } = useProductDataRowContext();
 
+  console.log('varient_level: ', varient_level);
   // get the varient stack
-  const getVarientStack = useCallback((varient_level, varient_value) => {
+  const getVarientStack = useCallback((varient_level) => {
+    console.log('varient_level (inside callback): ', varient_level);
     return varient_level
       .sort((a, b) => a.level - b.level) // sorting from 0 level
       .map((vl) => {
         // getting the varient values
-        const selectedVarientValue = varient_value
-          .filter((vv) => vv.varient_id === vl.varient_id)
-          .map((el) => el.varient_value_id);
+        // const selectedVarientValue = vl.values;
         return {
           id: vl.varient_id,
           varientName: vl.name,
           level: vl.level,
-          selectedVarientValue: selectedVarientValue,
+          selectedVarientValue: vl.values,
         };
       });
   }, []);
 
   // storing the varient key
   const [varientStack, setVarientStack] = useState(
-    getVarientStack(varient_level, varient_value)
+    getVarientStack(varient_level)
   );
 
-  // useEffect(() => {
-  //   setVarientStack(getVarientStack(varient_level, varient_value));
-  // }, [getVarientStack, varient_level, varient_value]);
+  useEffect(() => {
+    console.log('use Effect running!!!!');
+    setVarientStack(getVarientStack(varient_level));
+  }, [varient_level]);
+  console.log('new new varientStack: ', varientStack);
 
   // hide the add new varient option
   const [showAdd, setShowAdd] = useState(true);
@@ -97,11 +98,12 @@ const Varients = () => {
     });
     return maxLevel;
   };
+  console.log('new varientStack: ', varientStack);
 
   return (
     <>
       <div className={styles.container}>
-        {varientStack.map((el) => (
+        {getVarientStack(varient_level).map((el) => (
           <Varient
             key={el.id}
             id={el.id}
@@ -110,7 +112,6 @@ const Varients = () => {
             selectedVarientValue={el.selectedVarientValue}
             removeStack={removeStack}
             product_id={product_id}
-            varient_value={varient_value}
             varientValues={varientValues}
             dispatchProductDatas={dispatchProductDatas}
           />

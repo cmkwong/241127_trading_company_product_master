@@ -14,22 +14,20 @@ const InitProductData = [
     labels: [5, 7, 12, 13],
     media: [8, 9],
     description: '',
-    varient_level: [
-      { varient_id: 3, name: 'lock', level: 0, values: [4, 5] },
-      {
-        varient_id: 1,
+    varient_level: {
+      BTqbUerM: {
+        varient_id: 'BTqbUerM',
+        name: 'lock',
+        level: 0,
+        values: [4, 5],
+      },
+      fnvGdNmX: {
+        varient_id: 'fnvGdNmX',
         name: 'color',
         level: 1,
         values: [1, 2, 3],
       },
-    ],
-    varient_value: [
-      { key: '1;1', varient_value_id: 1, varient_id: 1 }, // key is concat the value and varient id
-      { key: '2;1', varient_value_id: 2, varient_id: 1 },
-      { key: '3;1', varient_value_id: 3, varient_id: 1 },
-      { key: '4;3', varient_value_id: 4, varient_id: 3 },
-      { key: '5;3', varient_value_id: 5, varient_id: 3 },
-    ],
+    },
     prices: [
       {
         price_id: 1,

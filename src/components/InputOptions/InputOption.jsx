@@ -88,7 +88,7 @@ const InputOption = (props) => {
                   key={el.id}
                   id={el.id}
                   name={el.name}
-                  checked={selectedOptions.includes(el.id)}
+                  checked={selectedOptions && selectedOptions.includes(el.id)}
                   updateOptionData={updateOptionData}
                 />
               );
@@ -99,7 +99,7 @@ const InputOption = (props) => {
       <div className={styles.tagContainer}>
         {options.map((el) => {
           // Showing the tag plate
-          if (selectedOptions.includes(el.id)) {
+          if (selectedOptions && selectedOptions.includes(el.id)) {
             return (
               <TagPlate
                 key={el.id}

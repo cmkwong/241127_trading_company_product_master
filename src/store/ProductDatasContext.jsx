@@ -99,12 +99,12 @@ const _allMedia = [
   },
 ];
 
-const _varients = [
-  { id: 1, name: 'color' },
-  { id: 2, name: 'size' },
-  { id: 3, name: 'lock' },
-  { id: 4, name: 'gender' },
-];
+const _varients = {
+  1: { id: 1, name: 'color' },
+  2: { id: 2, name: 'size' },
+  3: { id: 3, name: 'lock' },
+  4: { id: 4, name: 'gender' },
+};
 
 const _varientValues = [
   { id: 1, name: 'red' },
@@ -231,7 +231,6 @@ const updatePricesVarientValue = (
       },
       { maxValue: 0, pos: null }
     );
-    console.log('newKey, mostMatched: ', newKey, mostMatched);
   });
   return prices;
 };
@@ -336,16 +335,16 @@ export const ProductDatasProvider = ({ children }) => {
         return new_productDatas;
       }
       case 'addProductVarient': {
-        const { name, level } = payload;
+        const { key, name, level } = payload;
         // get the required id
         const required_id =
-          [...new_productDatas[row]['varient_level']].sort(
+          [...Object.values(new_productDatas[row]['varient_level'])].sort(
             (a, b) => b.varient_id - a.varient_id
           )[0].varient_id + 1;
-        new_productDatas[row]['varient_level'] = [
+        new_productDatas[row]['varient_level'] = {
           ...new_productDatas[row]['varient_level'],
-          { varient_id: required_id, name: name, level: level },
-        ];
+          [key]: { varient_id: required_id, name: name, level: level },
+        };
         console.log(
           "new_productDatas[row]['varient_level']: ",
           new_productDatas[row]['varient_level']
@@ -426,11 +425,11 @@ export const ProductDatasProvider = ({ children }) => {
           'varient_level'
         ].find((el) => el.varient_id === varient_id);
         // push the updated varient value id
-        if (required_varient_level) {
+        if (required_varient_level && required_varient_level.values) {
           required_varient_level.values.push(varient_value_id);
         }
-        console.log('check', required_varient_level);
         // update the varient value in prices
+        // TODO
         return new_productDatas;
       }
       case 'uncheckProductVarientValue': {
@@ -444,9 +443,8 @@ export const ProductDatasProvider = ({ children }) => {
             (value) => value !== varient_value_id
           );
         }
-        console.log('uncheck', required_varient_level);
-        console.log('uncheck', new_productDatas);
         // update the varient value in prices
+        // TODO
         return new_productDatas;
       }
       case 'addSelectedMedia': {

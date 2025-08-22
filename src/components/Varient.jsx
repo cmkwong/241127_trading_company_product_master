@@ -54,8 +54,6 @@ const Varient = (props) => {
     });
   };
 
-  console.log('selectedVarientValue: ', selectedVarientValue);
-
   return (
     <div className={styles.upperSide}>
       <img className={styles.drag} src={drag_icon} alt="drag" />

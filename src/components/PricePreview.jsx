@@ -48,11 +48,11 @@ const PricePreview = (props) => {
           (vv) => vv.key === varient_value_id
         )[0];
         // find the varient level
-        const required_varient_level = varient_level.filter(
+        const required_varient_level = Object.values(varient_level).filter(
           (vl) => vl.varient_id === required_varient_value.varient_id
         )[0]['level'];
         // find the varient label
-        const required_varient_name = varient_level.filter(
+        const required_varient_name = Object.values(varient_level).filter(
           (v) => v.varient_id === required_varient_value.varient_id
         )[0]['name'];
         // find the varient value label

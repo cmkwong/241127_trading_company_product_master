@@ -14,11 +14,9 @@ const Varients = () => {
   const { varientValues, dispatchProductDatas } = useProductDatasContext();
   const { product_id, varient_level } = useProductDataRowContext();
 
-  console.log('varient_level: ', varient_level);
   // get the varient stack
   const getVarientStack = useCallback((varient_level) => {
-    console.log('varient_level (inside callback): ', varient_level);
-    return varient_level
+    return Object.values(varient_level)
       .sort((a, b) => a.level - b.level) // sorting from 0 level
       .map((vl) => {
         // getting the varient values
@@ -37,11 +35,11 @@ const Varients = () => {
     getVarientStack(varient_level)
   );
 
-  useEffect(() => {
-    console.log('use Effect running!!!!');
-    setVarientStack(getVarientStack(varient_level));
-  }, [varient_level]);
-  console.log('new new varientStack: ', varientStack);
+  // useEffect(() => {
+  //   console.log('use Effect running!!!!');
+  //   setVarientStack(getVarientStack(varient_level));
+  // }, [varient_level]);
+  // console.log('new new varientStack: ', varientStack);
 
   // hide the add new varient option
   const [showAdd, setShowAdd] = useState(true);
@@ -57,6 +55,7 @@ const Varients = () => {
 
   // handle the click the Add button
   const handleAddClick = useCallback(() => {
+    // random generated key
     const key = makeComplexId(8);
     setVarientStack((prv) => [
       ...prv,
@@ -68,15 +67,17 @@ const Varients = () => {
       },
     ]);
     // update the context
-    addVarient('', calculateLevel() + 1);
+    addVarient(key, '', calculateLevel() + 1);
+    console.log('added varient!!!!!');
   }, []);
 
-  const addVarient = useCallback((inputVarientName, level) => {
+  const addVarient = useCallback((key, inputVarientName, level) => {
     // add the varient
     dispatchProductDatas({
       product_id,
       type: 'addProductVarient',
       payload: {
+        key,
         name: inputVarientName,
         level: level,
       },
@@ -98,24 +99,27 @@ const Varients = () => {
     });
     return maxLevel;
   };
-  console.log('new varientStack: ', varientStack);
 
   return (
     <>
       <div className={styles.container}>
-        {getVarientStack(varient_level).map((el) => (
-          <Varient
-            key={el.id}
-            id={el.id}
-            level={el.level}
-            varientName={el.varientName}
-            selectedVarientValue={el.selectedVarientValue}
-            removeStack={removeStack}
-            product_id={product_id}
-            varientValues={varientValues}
-            dispatchProductDatas={dispatchProductDatas}
-          />
-        ))}
+        {getVarientStack(varient_level).map((el) => {
+          // random generated key
+          const key = makeComplexId(8);
+          return (
+            <Varient
+              key={key}
+              id={el.id}
+              level={el.level}
+              varientName={el.varientName}
+              selectedVarientValue={el.selectedVarientValue}
+              removeStack={removeStack}
+              product_id={product_id}
+              varientValues={varientValues}
+              dispatchProductDatas={dispatchProductDatas}
+            />
+          );
+        })}
       </div>
       {showAdd && (
         <AddStackBtn

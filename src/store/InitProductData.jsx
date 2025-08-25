@@ -28,10 +28,17 @@ const InitProductData = [
         values: [1, 2, 3],
       },
     },
+    varient_value: [
+      { key: '1;1', varient_value_id: 1, varient_id: 'BTqbUerM' }, // key is concat the value and varient id
+      { key: '2;1', varient_value_id: 2, varient_id: 'BTqbUerM' },
+      { key: '3;1', varient_value_id: 3, varient_id: 'BTqbUerM' },
+      { key: '4;3', varient_value_id: 4, varient_id: 'fnvGdNmX' },
+      { key: '5;3', varient_value_id: 5, varient_id: 'fnvGdNmX' },
+    ],
     prices: [
       {
         price_id: 1,
-        varient_value_keys: ['1;1', '4;3'],
+        varient_value_keys: [1, 4],
         currency: 'HKD',
         img: '/products/785027093526.jpg',
         price: 125,
@@ -41,7 +48,7 @@ const InitProductData = [
       },
       {
         price_id: 2,
-        varient_value_keys: ['1;1', '5;3'],
+        varient_value_keys: [1, 5],
         currency: 'HKD',
         img: '',
         price: 125,
@@ -51,7 +58,7 @@ const InitProductData = [
       },
       {
         price_id: 3,
-        varient_value_keys: ['2;1', '4;3'],
+        varient_value_keys: [2, 4],
         currency: 'HKD',
         img: '',
         price: 137,
@@ -61,7 +68,7 @@ const InitProductData = [
       },
       {
         price_id: 4,
-        varient_value_keys: ['2;1', '5;3'],
+        varient_value_keys: [2, 5],
         currency: 'HKD',
         img: '',
         price: 125,
@@ -71,7 +78,7 @@ const InitProductData = [
       },
       {
         price_id: 5,
-        varient_value_keys: ['3;1', '4;3'],
+        varient_value_keys: [3, 4],
         currency: 'HKD',
         img: '',
         price: 137,
@@ -81,7 +88,7 @@ const InitProductData = [
       },
       {
         price_id: 6,
-        varient_value_keys: ['3;1', '5;3'],
+        varient_value_keys: [3, 5],
         currency: 'HKD',
         img: '/products/1173534224478.jpg',
         price: 137,

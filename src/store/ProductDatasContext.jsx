@@ -2,6 +2,7 @@ import { useReducer, useState } from 'react';
 import { useContext, createContext } from 'react';
 import { removeDuplicatedRow } from '../utils/arr';
 import InitProductData from './InitProductData';
+// import structuredClone from '@ungap/structured-clone';
 
 const _labels = [
   { id: 1, label_type: 'collections', name: 'pet brush' },
@@ -106,17 +107,16 @@ const _varients = {
   4: { id: 4, name: 'gender' },
 };
 
-const _varientValues = [
-  { id: 1, name: 'red' },
-  { id: 2, name: 'green' },
-  { id: 3, name: 'orange' },
-  { id: 4, name: 'front' },
-  { id: 5, name: 'back' },
-  { id: 6, name: 'small' },
-  { id: 7, name: 'middle' },
-  { id: 8, name: 'large' },
-];
-
+const _varientValues = {
+  1: { id: 1, name: 'red' },
+  2: { id: 2, name: 'green' },
+  3: { id: 3, name: 'orange' },
+  4: { id: 4, name: 'front' },
+  5: { id: 5, name: 'back' },
+  6: { id: 6, name: 'small' },
+  7: { id: 7, name: 'middle' },
+  8: { id: 8, name: 'large' },
+};
 // sorting prices based on varient value keys
 const sortingPrices = (prices) => {
   return prices.sort((a, b) => {
@@ -278,7 +278,9 @@ export const ProductDatasProvider = ({ children }) => {
         }
       })
       .filter((el) => el !== undefined)[0];
-    let new_productDatas = [...productDatas];
+    // create whole new object
+    // let new_productDatas = [...productDatas];
+    let new_productDatas = JSON.parse(JSON.stringify(productDatas));
     switch (action.type) {
       case 'updateProductName': {
         const { new_value } = payload;
@@ -343,12 +345,30 @@ export const ProductDatasProvider = ({ children }) => {
           )[0].varient_id + 1;
         new_productDatas[row]['varient_level'] = {
           ...new_productDatas[row]['varient_level'],
-          [key]: { varient_id: required_id, name: name, level: level },
+          [key]: {
+            varient_id: key,
+            name: name,
+            level: level,
+            values: [],
+          },
         };
         console.log(
           "new_productDatas[row]['varient_level']: ",
           new_productDatas[row]['varient_level']
         );
+        return new_productDatas;
+      }
+      case 'removeProductVarient': {
+        const { id } = payload;
+        console.log('delete id: ', id);
+        console.log(
+          'Is they are equal? ',
+          new_productDatas[row]['varient_level'] ===
+            productDatas[row]['varient_level']
+        );
+        let new_row_variant_level = new_productDatas[row]['varient_level'];
+        delete new_row_variant_level[id];
+        new_productDatas[row]['varient_level'] = new_row_variant_level;
         return new_productDatas;
       }
       case 'updateProductVarient': {
@@ -397,33 +417,44 @@ export const ProductDatasProvider = ({ children }) => {
       case 'addProductVarientValue': {
         const { varient_id, varientValue } = payload;
         // find if exist in varient master
-        const found = varientValues.filter(
+        const found = Object.values(varientValues).filter(
           (el) => el.name.toLowerCase() === varientValue.toLowerCase()
         );
-        let required_id;
+        let new_varient_value_id;
         // if existed, get the varient id
         if (found.length > 0) {
-          required_id = found[0]['id'];
+          new_varient_value_id = found[0]['id'];
         } else {
           // not found then add value into master
-          required_id =
-            [...varientValues].sort((a, b) => b.id - a.id)[0].id + 1;
-          setVarientValues((prv) => [
-            ...prv,
-            { id: required_id, name: varientValue },
-          ]);
+          new_varient_value_id =
+            [...Object.values(varientValues)].sort((a, b) => b.id - a.id)[0]
+              .id + 1;
+          setVarientValues((prv) => {
+            return {
+              ...prv,
+              [new_varient_value_id]: {
+                id: new_varient_value_id,
+                name: varientValue,
+              },
+            };
+          });
         }
-        new_productDatas[row]['varient_value'] = [
-          ...new_productDatas[row]['varient_value'],
-          { varient_value_id: required_id, varient_id },
+        // assign the varient values
+        console.log(varient_id);
+        const originalValues = [
+          ...new_productDatas[row]['varient_level'][varient_id].values,
+        ];
+        new_productDatas[row]['varient_level'][varient_id].values = [
+          ...originalValues,
+          new_varient_value_id,
         ];
         return new_productDatas;
       }
       case 'checkProductVarientValue': {
         const { varient_id, varient_value_id } = payload;
-        const required_varient_level = new_productDatas[row][
-          'varient_level'
-        ].find((el) => el.varient_id === varient_id);
+        const required_varient_level = Object.values(
+          new_productDatas[row]['varient_level']
+        ).find((el) => el.varient_id === varient_id);
         // push the updated varient value id
         if (required_varient_level && required_varient_level.values) {
           required_varient_level.values.push(varient_value_id);

@@ -45,7 +45,7 @@ const InputOption = (props) => {
     setInputValue('');
 
     // finding if it has the same element, then set it into checked and no need to add new
-    let duplicatedOptions = options.filter(
+    let duplicatedOptions = Object.values(options).filter(
       (el) => el.name.toLowerCase() === value.toLowerCase()
     );
     if (duplicatedOptions.length > 0) {
@@ -80,7 +80,7 @@ const InputOption = (props) => {
             onMouseLeave={handleSelectionMouseOut}
             onClick={handleClickSelection}
           >
-            {options.map((el) => {
+            {Object.values(options).map((el) => {
               // Showing the option item in a list
               if (inputValue && !el.name.includes(inputValue)) return;
               return (
@@ -97,7 +97,7 @@ const InputOption = (props) => {
         )}
       </div>
       <div className={styles.tagContainer}>
-        {options.map((el) => {
+        {Object.values(options).map((el) => {
           // Showing the tag plate
           if (selectedOptions && selectedOptions.includes(el.id)) {
             return (

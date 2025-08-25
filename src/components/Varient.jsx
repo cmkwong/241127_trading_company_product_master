@@ -17,9 +17,6 @@ const Varient = (props) => {
     varientValues,
     dispatchProductDatas,
   } = props;
-  // const { varientValues } = useProductDatasContext();
-
-  // const { varient_level, varient_value } = useProductDataRowContext();
 
   const [inputVarientName, setInputVarientName] = useState('');
 

@@ -41,7 +41,7 @@ const PricePreview = (props) => {
   // preview data refactoring
   const previewDataRefactoring = () => {
     const refactored_varients = prices.map((price) => {
-      const price_id = price.price_id;
+      const { price_id } = price;
       const varient_rows = price.varient_value_keys.map((varient_value_id) => {
         // find the varient value
         const required_varient_value = varient_value.filter(
@@ -49,16 +49,15 @@ const PricePreview = (props) => {
         )[0];
         // find the varient level
         const required_varient_level = Object.values(varient_level).filter(
-          (vl) => vl.varient_id === required_varient_value.varient_id
+          (vl) => vl.values.includes(varient_value_id)
         )[0]['level'];
         // find the varient label
         const required_varient_name = Object.values(varient_level).filter(
-          (v) => v.varient_id === required_varient_value.varient_id
+          (vl) => vl.values.includes(varient_value_id)
         )[0]['name'];
         // find the varient value label
-        const required_varient_value_name = varientValues.filter(
-          (varientValue) =>
-            varientValue.id === required_varient_value.varient_value_id
+        const required_varient_value_name = Object.values(varientValues).filter(
+          (varientValue) => varientValue.id === varient_value_id
         )[0]['name'];
         return {
           level: required_varient_level,

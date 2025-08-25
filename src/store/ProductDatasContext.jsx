@@ -352,20 +352,10 @@ export const ProductDatasProvider = ({ children }) => {
             values: [],
           },
         };
-        console.log(
-          "new_productDatas[row]['varient_level']: ",
-          new_productDatas[row]['varient_level']
-        );
         return new_productDatas;
       }
       case 'removeProductVarient': {
         const { id } = payload;
-        console.log('delete id: ', id);
-        console.log(
-          'Is they are equal? ',
-          new_productDatas[row]['varient_level'] ===
-            productDatas[row]['varient_level']
-        );
         let new_row_variant_level = new_productDatas[row]['varient_level'];
         delete new_row_variant_level[id];
         new_productDatas[row]['varient_level'] = new_row_variant_level;

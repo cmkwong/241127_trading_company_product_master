@@ -28,13 +28,13 @@ const InitProductData = [
         values: [1, 2, 3],
       },
     },
-    varient_value: [
-      { key: '1;1', varient_value_id: 1, varient_id: 'BTqbUerM' }, // key is concat the value and varient id
-      { key: '2;1', varient_value_id: 2, varient_id: 'BTqbUerM' },
-      { key: '3;1', varient_value_id: 3, varient_id: 'BTqbUerM' },
-      { key: '4;3', varient_value_id: 4, varient_id: 'fnvGdNmX' },
-      { key: '5;3', varient_value_id: 5, varient_id: 'fnvGdNmX' },
-    ],
+    // varient_value: [
+    //   { key: '1;1', varient_value_id: 1, varient_id: 'BTqbUerM' }, // key is concat the value and varient id
+    //   { key: '2;1', varient_value_id: 2, varient_id: 'BTqbUerM' },
+    //   { key: '3;1', varient_value_id: 3, varient_id: 'BTqbUerM' },
+    //   { key: '4;3', varient_value_id: 4, varient_id: 'fnvGdNmX' },
+    //   { key: '5;3', varient_value_id: 5, varient_id: 'fnvGdNmX' },
+    // ],
     prices: [
       {
         price_id: 1,

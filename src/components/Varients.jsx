@@ -41,12 +41,6 @@ const Varients = () => {
   // hide the add new varient option
   const [showAdd, setShowAdd] = useState(true);
 
-  console.log('varient_level----: ', varient_level);
-  console.log(
-    'getVarientStack(varient_level).length----: ',
-    getVarientStack(varient_level).length
-  );
-
   // calculate the current level
   const calculateLevel = useCallback(() => {
     let maxLevel = 0;
@@ -58,18 +52,8 @@ const Varients = () => {
     return maxLevel;
   }, [varientStack]);
 
-  // useEffect(() => {
-  //   console.log('use Effect running!!!!');
-  //   setVarientStack(getVarientStack(varient_level));
-  // }, [varient_level]);
-  // console.log('new new varientStack: ', varientStack);
-
   // check the max length, if reach max, then hide the add button
   useEffect(() => {
-    console.log(
-      'getVarientStack(varient_level)************: ',
-      getVarientStack(varient_level)
-    );
     if (getVarientStack(varient_level).length >= 3) {
       setShowAdd(false);
     } else {
@@ -89,8 +73,6 @@ const Varients = () => {
           level: level,
         },
       });
-      // check if need to add button
-      // checkIfShowAddVarient();
     },
     [dispatchProductDatas, product_id]
   );
@@ -123,8 +105,6 @@ const Varients = () => {
         id,
       },
     });
-    // // check if need to add button
-    // checkIfShowAddVarient();
   };
 
   return (

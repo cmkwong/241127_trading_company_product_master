@@ -361,6 +361,17 @@ export const ProductDatasProvider = ({ children }) => {
         new_productDatas[row]['varient_level'] = new_row_variant_level;
         return new_productDatas;
       }
+      case 'updateProductVarientName': {
+        const { varient_id, new_name } = payload;
+        let new_row_variant_level = new_productDatas[row]['varient_level'];
+        console.log(
+          'new_row_variant_level, id: ',
+          new_row_variant_level,
+          varient_id
+        );
+        new_row_variant_level[varient_id]['name'] = new_name;
+        return new_productDatas;
+      }
       case 'updateProductVarient': {
         const { id, name, level } = payload;
         // find the required row

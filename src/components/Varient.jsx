@@ -2,7 +2,7 @@ import styles from './Varients.module.css';
 import drag_icon from '../assets/dragIndicator.svg';
 import close_icon from '../assets/close.svg';
 import InputOption from './InputOptions/InputOption';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 // import { useProductDatasContext } from '../store/ProductDatasContext';
 // import { useProductDataRowContext } from '../store/ProductDataRowContext';
 
@@ -20,7 +20,7 @@ const Varient = (props) => {
 
   const [inputVarientName, setInputVarientName] = useState('');
 
-  const updateVarientValue = (varient_value_id, checked) => {
+  const updateVarientValue_checked = (varient_value_id, checked) => {
     // update the varient values
     if (checked) {
       dispatchProductDatas({
@@ -43,11 +43,22 @@ const Varient = (props) => {
     }
   };
 
+  // varient value being added
   const addVarientValue = (varientValue) => {
     dispatchProductDatas({
       product_id,
       type: 'addProductVarientValue',
       payload: { varient_id: id, varientValue },
+    });
+  };
+
+  // Varient name input-field being changed
+  const changeInputVarient = (event) => {
+    setInputVarientName(event.target.value);
+    dispatchProductDatas({
+      product_id,
+      type: 'updateProductVarientName',
+      payload: { varient_id: id, new_name: inputVarientName },
     });
   };
 
@@ -58,12 +69,12 @@ const Varient = (props) => {
         <input
           className={styles.inputvarient}
           defaultValue={varientName}
-          onChange={(event) => setInputVarientName(event.target.value)}
+          onChange={changeInputVarient}
         />
         <InputOption
           options={varientValues}
           selectedOptions={selectedVarientValue}
-          updateOptionData={updateVarientValue}
+          updateOptionData={updateVarientValue_checked}
           addOptionData={addVarientValue}
         />
       </div>

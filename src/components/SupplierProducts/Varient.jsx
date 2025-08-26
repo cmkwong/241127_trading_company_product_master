@@ -1,8 +1,8 @@
 import styles from './Varients.module.css';
-import drag_icon from '../assets/dragIndicator.svg';
-import close_icon from '../assets/close.svg';
-import InputOption from './InputOptions/InputOption';
-import { useState, useEffect } from 'react';
+import drag_icon from '../../assets/dragIndicator.svg';
+import close_icon from '../../assets/close.svg';
+import InputOption from '../InputOptions/InputOption';
+import { useState } from 'react';
 // import { useProductDatasContext } from '../store/ProductDatasContext';
 // import { useProductDataRowContext } from '../store/ProductDataRowContext';
 

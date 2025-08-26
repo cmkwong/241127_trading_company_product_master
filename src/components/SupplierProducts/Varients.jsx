@@ -1,14 +1,11 @@
 import Varient from './Varient';
 import styles from './Varients.module.css';
-// import drag_icon from '../assets/dragIndicator.svg';
-// import close_icon from '../assets/close.svg';
-// import InputOption from './InputOption/InputOption';
 
 import { useCallback, useEffect, useState } from 'react';
-import { makeComplexId } from '../utils/string';
-import AddStackBtn from './common/AddStackBtn';
-import { useProductDataRowContext } from '../store/ProductDataRowContext';
-import { useProductDatasContext } from '../store/ProductDatasContext';
+import { makeComplexId } from '../../utils/string';
+import AddStackBtn from '../common/AddStackBtn';
+import { useProductDataRowContext } from '../../store/ProductDataRowContext';
+import { useProductDatasContext } from '../../store/ProductDatasContext';
 
 const Varients = () => {
   const { varientValues, dispatchProductDatas } = useProductDatasContext();

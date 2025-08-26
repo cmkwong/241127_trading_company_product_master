@@ -1,8 +1,8 @@
 import styles from './ProductTableRow.module.css';
 // import MediaPreview from './MediaPreview';
-import PricePreview from './PricePreview';
+import PricePreview from './SupplierProducts/PricePreview';
 import TextCell from './TextCell';
-import Varients from './Varients';
+import Varients from './SupplierProducts/Varients';
 import Category from './Category';
 import { ProductDataRowProvider } from '../store/ProductDataRowContext';
 // import { useProductDatasContext } from '../store/ProductDatasContext';

@@ -1,7 +1,7 @@
-import { useProductDataRowContext } from '../store/ProductDataRowContext';
-import { useProductDatasContext } from '../store/ProductDatasContext';
-import Icon from './common/Icon';
-import WindowPop from './Media/WindowPop';
+import { useProductDataRowContext } from '../../store/ProductDataRowContext';
+import { useProductDatasContext } from '../../store/ProductDatasContext';
+import Icon from '../common/Icon';
+import WindowPop from '../Media/WindowPop';
 import styles from './PriceUpdate.module.css';
 
 const PriceUpdate = (props) => {

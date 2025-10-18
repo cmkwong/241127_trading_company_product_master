@@ -1,0 +1,199 @@
+import { useState, useRef, useMemo, useCallback } from 'react';
+import styles from './InputOption.module.css';
+import TagPlate from './TagPlate';
+import InputField from './InputField';
+import OptionList from './OptionList';
+
+const InputOption = (props) => {
+  // options: [ { id, name } ]
+  // selectedOptions: [1, 2, 3, ...]
+  const {
+    options: propsOptions,
+    selectedOptions: propsSelectedOptions,
+    updateOptionData: propsUpdateOptionData,
+    onChange, // (nextOptions, nextSelectedOptions) => void
+    // Uncontrolled defaults
+    defaultOptions = [],
+    defaultSelectedOptions = [],
+    // Optional ID generator for new items
+    generateId,
+  } = props;
+
+  // controlled flags
+  const isOptionsControlled = propsOptions !== undefined;
+  const isSelectedControlled = propsSelectedOptions !== undefined;
+
+  // Internal state when uncontrolled
+  const [innerOptions, setInnerOptions] = useState(defaultOptions);
+  const [innerSelected, setInnerSelected] = useState(defaultSelectedOptions);
+
+  // Resolved state
+  const options = isOptionsControlled ? propsOptions : innerOptions;
+  const selectedOptions = isSelectedControlled
+    ? propsSelectedOptions
+    : innerSelected;
+
+  // UI controls
+  const inputReference = useRef(null);
+  const [inputValue, setInputValue] = useState('');
+  const [showOption, setShowOption] = useState(false);
+  const [selectionMouseIn, setSelectionMouseIn] = useState(false);
+
+  // Update selection for one option
+  const updateOptionData = useCallback(
+    (id, checked) => {
+      if (propsUpdateOptionData) {
+        // Fully controlled by parent
+        propsUpdateOptionData(id, checked);
+        return;
+      }
+      const nextSelected = checked
+        ? Array.from(new Set([...(selectedOptions || []), id]))
+        : (selectedOptions || []).filter((x) => x !== id);
+
+      if (!isSelectedControlled) setInnerSelected(nextSelected);
+      onChange?.(options, nextSelected);
+    },
+    [
+      propsUpdateOptionData,
+      selectedOptions,
+      isSelectedControlled,
+      onChange,
+      options,
+    ]
+  );
+
+  // Internal addOptionData
+  const addOptionData = useCallback(
+    (name) => {
+      const trimmed = (name || '').trim();
+      if (!trimmed) return;
+
+      // Check duplicates (case-insensitive)
+      const dup = (options || []).filter(
+        (el) => el.name.toLowerCase() === trimmed.toLowerCase()
+      );
+      if (dup.length > 0) {
+        dup.forEach((el) => updateOptionData(el.id, true));
+        return;
+      }
+
+      const newId = generateId
+        ? generateId(trimmed)
+        : `opt_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+
+      const newOption = { id: newId, name: trimmed };
+      const nextOptions = [...(options || []), newOption];
+      const nextSelected = Array.from(
+        new Set([...(selectedOptions || []), newId])
+      );
+
+      if (!isOptionsControlled) setInnerOptions(nextOptions);
+      if (!isSelectedControlled) setInnerSelected(nextSelected);
+
+      onChange?.(nextOptions, nextSelected);
+    },
+    [
+      options,
+      selectedOptions,
+      isOptionsControlled,
+      isSelectedControlled,
+      onChange,
+      updateOptionData,
+      generateId,
+    ]
+  );
+
+  // handle layout
+  const handleFocus = (event) => {
+    setShowOption(true);
+  };
+  const handleFocusOut = (event) => {
+    if (!selectionMouseIn) {
+      setShowOption(false);
+    }
+  };
+
+  const handleSelectionMouseEnter = (event) => {
+    setSelectionMouseIn(true);
+  };
+  const handleSelectionMouseOut = (event) => {
+    setSelectionMouseIn(false);
+  };
+  const handleClickSelection = (event) => {
+    inputReference.current.focus();
+  };
+
+  // add the value into option
+  const handleEnterPress = (value) => {
+    if (!value) return;
+    // hide the option choice
+    setShowOption(false);
+    // clear the value after enter pressed
+    if (inputReference.current) inputReference.current.value = '';
+    setInputValue('');
+    // // finding if it has the same element, then set it into checked and no need to add new
+    // let duplicatedOptions = Object.values(options).filter(
+    //   (el) => el.name.toLowerCase() === value.toLowerCase()
+    // );
+    // if (duplicatedOptions.length > 0) {
+    //   duplicatedOptions.map((el) => {
+    //     updateOptionData(el.id, true);
+    //   });
+    //   return;
+    // }
+    // add data into option
+    addOptionData(value);
+  };
+
+  const filteredOptions = useMemo(() => {
+    if (!inputValue) return options || [];
+    const v = inputValue.toLowerCase();
+    return (options || []).filter((el) => el.name.toLowerCase().includes(v));
+  }, [options, inputValue]);
+
+  return (
+    <div className={styles.inputOption}>
+      <div className={styles.inputContainer}>
+        <InputField
+          reference={inputReference}
+          onClick={handleFocus}
+          onBlur={handleFocusOut}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') {
+              handleEnterPress(event.target.value);
+            }
+          }}
+          // sorting the key words
+          onChange={() => setInputValue(inputReference.current?.value || '')}
+        />
+        {showOption && (
+          <OptionList
+            handleSelectionMouseEnter={handleSelectionMouseEnter}
+            handleSelectionMouseOut={handleSelectionMouseOut}
+            handleClickSelection={handleClickSelection}
+            filteredOptions={filteredOptions}
+            inputValue={inputValue}
+            selectedOptions={selectedOptions}
+            updateOptionData={updateOptionData}
+          />
+        )}
+      </div>
+      <div className={styles.tagContainer}>
+        {(options || []).map((el) =>
+          // Showing the tag plate
+          selectedOptions && selectedOptions.includes(el.id) ? (
+            <TagPlate
+              key={el.id}
+              id={el.id}
+              name={el.name}
+              updateOptionData={updateOptionData}
+            />
+          ) : null
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default InputOption;

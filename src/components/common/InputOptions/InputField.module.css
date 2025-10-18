@@ -5,10 +5,11 @@
   /* overflow: hidden; */
   border: 1px solid #000000;
   background-color: #fff8f8;
+  padding: 0 8px 0 8px;
 }
 
 .inputContainer:focus-within {
-  border: 1px solid #e08a8a;
+  border: 1px solid #bdbdbd;
 }
 
 .inputField {

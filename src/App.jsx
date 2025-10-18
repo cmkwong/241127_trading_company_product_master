@@ -1,17 +1,7 @@
-import Background from './components/Background';
-import ProductTable from './components/ProductTable';
-import SearchBox from './components/SearchBox';
-import { ProductDatasProvider } from './store/ProductDatasContext';
+import ProductMaster from './components/projects/ProductMaster';
 
 function App() {
-  return (
-    <ProductDatasProvider>
-      <Background>
-        <SearchBox />
-        <ProductTable />
-      </Background>
-    </ProductDatasProvider>
-  );
+  return <ProductMaster />;
 }
 
 export default App;

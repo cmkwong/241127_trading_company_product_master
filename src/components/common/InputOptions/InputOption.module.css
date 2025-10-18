@@ -1,0 +1,13 @@
+.inputOption {
+  /* position: relative; */
+  margin: 10px;
+}
+
+.inputContainer {
+  position: relative;
+}
+
+.tagContainer {
+  height: auto;
+  overflow-y: auto;
+}

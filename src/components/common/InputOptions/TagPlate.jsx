@@ -1,5 +1,5 @@
 import styles from './TagPlate.module.css';
-import close_icon from '../../assets/close.svg';
+import close_icon from '../../../assets/close.svg';
 import { useState } from 'react';
 
 const TagPlate = (props) => {

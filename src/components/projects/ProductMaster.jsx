@@ -13,7 +13,7 @@ const options = [
 const ProductMaster = () => {
   return (
     <>
-      <InputOption options={options} />
+      <InputOption defaultOptions={options} />
     </>
   );
 };

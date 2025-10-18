@@ -13,7 +13,7 @@ const TagPlate = (props) => {
         <p className={styles.label}>{name}</p>
         <img
           className={`${styles.cancel} ${hover ? styles.hover : ''}`}
-          onClick={() => updateOptionData(parseInt(id), false)}
+          onClick={() => updateOptionData(id, false)}
           onMouseOver={() => setHover(true)}
           onMouseLeave={() => setHover(false)}
           src={close_icon}

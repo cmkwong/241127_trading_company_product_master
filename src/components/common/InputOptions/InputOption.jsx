@@ -132,16 +132,6 @@ const InputOption = (props) => {
     // clear the value after enter pressed
     if (inputReference.current) inputReference.current.value = '';
     setInputValue('');
-    // // finding if it has the same element, then set it into checked and no need to add new
-    // let duplicatedOptions = Object.values(options).filter(
-    //   (el) => el.name.toLowerCase() === value.toLowerCase()
-    // );
-    // if (duplicatedOptions.length > 0) {
-    //   duplicatedOptions.map((el) => {
-    //     updateOptionData(el.id, true);
-    //   });
-    //   return;
-    // }
     // add data into option
     addOptionData(value);
   };
@@ -149,7 +139,9 @@ const InputOption = (props) => {
   const filteredOptions = useMemo(() => {
     if (!inputValue) return options || [];
     const v = inputValue.toLowerCase();
-    return (options || []).filter((el) => el.name.toLowerCase().includes(v));
+    return (options || []).filter((el) => {
+      return el.name.toLowerCase().includes(v);
+    });
   }, [options, inputValue]);
 
   return (
@@ -173,7 +165,6 @@ const InputOption = (props) => {
             handleSelectionMouseOut={handleSelectionMouseOut}
             handleClickSelection={handleClickSelection}
             filteredOptions={filteredOptions}
-            inputValue={inputValue}
             selectedOptions={selectedOptions}
             updateOptionData={updateOptionData}
           />

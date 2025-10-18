@@ -7,12 +7,12 @@ const OptionRow = (props) => {
   const checkboxRef = useRef(null);
 
   const handleChange = (event) => {
-    updateOptionData(parseInt(event.target.id), event.target.checked);
+    updateOptionData(id, event.target.checked);
   };
 
   const handleClick = (event) => {
     checkboxRef.current.checked = !checkboxRef.current.checked;
-    updateOptionData(parseInt(id), checkboxRef.current.checked);
+    updateOptionData(id, checkboxRef.current.checked);
   };
 
   return (

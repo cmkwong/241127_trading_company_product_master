@@ -10,8 +10,6 @@ const OptionList = (props) => {
       onClick={props.handleClickSelection}
     >
       {props.filteredOptions.map((el) => {
-        // Showing the option item in a list
-        if (props.inputValue && !el.name.includes(props.inputValue)) return;
         return (
           <OptionRow
             key={el.id}

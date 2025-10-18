@@ -17,6 +17,8 @@ const InputOption = (props) => {
     defaultSelectedOptions = [],
     // Optional ID generator for new items
     generateId,
+    // label text
+    label,
   } = props;
 
   // controlled flags
@@ -145,43 +147,46 @@ const InputOption = (props) => {
   }, [options, inputValue]);
 
   return (
-    <div className={styles.inputOption}>
-      <div className={styles.inputContainer}>
-        <InputField
-          reference={inputReference}
-          onClick={handleFocus}
-          onBlur={handleFocusOut}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter') {
-              handleEnterPress(event.target.value);
-            }
-          }}
-          // sorting the key words
-          onChange={() => setInputValue(inputReference.current?.value || '')}
-        />
-        {showOption && (
-          <OptionList
-            handleSelectionMouseEnter={handleSelectionMouseEnter}
-            handleSelectionMouseOut={handleSelectionMouseOut}
-            handleClickSelection={handleClickSelection}
-            filteredOptions={filteredOptions}
-            selectedOptions={selectedOptions}
-            updateOptionData={updateOptionData}
+    <div className={styles.inputOptionBox}>
+      <label className={styles.label}>{label}</label>
+      <div className={styles.inputOption}>
+        <div className={styles.inputContainer}>
+          <InputField
+            reference={inputReference}
+            onClick={handleFocus}
+            onBlur={handleFocusOut}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                handleEnterPress(event.target.value);
+              }
+            }}
+            // sorting the key words
+            onChange={() => setInputValue(inputReference.current?.value || '')}
           />
-        )}
-      </div>
-      <div className={styles.tagContainer}>
-        {(options || []).map((el) =>
-          // Showing the tag plate
-          selectedOptions && selectedOptions.includes(el.id) ? (
-            <TagPlate
-              key={el.id}
-              id={el.id}
-              name={el.name}
+          {showOption && (
+            <OptionList
+              handleSelectionMouseEnter={handleSelectionMouseEnter}
+              handleSelectionMouseOut={handleSelectionMouseOut}
+              handleClickSelection={handleClickSelection}
+              filteredOptions={filteredOptions}
+              selectedOptions={selectedOptions}
               updateOptionData={updateOptionData}
             />
-          ) : null
-        )}
+          )}
+        </div>
+        <div className={styles.tagContainer}>
+          {(options || []).map((el) =>
+            // Showing the tag plate
+            selectedOptions && selectedOptions.includes(el.id) ? (
+              <TagPlate
+                key={el.id}
+                id={el.id}
+                name={el.name}
+                updateOptionData={updateOptionData}
+              />
+            ) : null
+          )}
+        </div>
       </div>
     </div>
   );

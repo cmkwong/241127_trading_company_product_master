@@ -1,20 +1,16 @@
 import { useState, useRef, useMemo, useCallback } from 'react';
-import styles from './InputOption.module.css';
-import OptionRow from './OptionRow';
 import TagPlate from './TagPlate';
-import InputField from './InputField';
+import InputField from './TextField';
+import OptionList from './OptionList';
+import styles from './InputTags.module.css';
 
-// options: Array<{ id: string | number, name: string }>
-// selectedOptions: Array<string | number>
-
-const InputOption = (props) => {
+const InputTags = (props) => {
+  // options: [ { id, name } ]
+  // selectedOptions: [1, 2, 3, ...]
   const {
-    // Controlled props (optional)
     options: propsOptions,
     selectedOptions: propsSelectedOptions,
-    // Backward compatibility: if provided, delegate selection changes to parent
     updateOptionData: propsUpdateOptionData,
-    // Universal change callback
     onChange, // (nextOptions, nextSelectedOptions) => void
     // Uncontrolled defaults
     defaultOptions = [],
@@ -23,7 +19,7 @@ const InputOption = (props) => {
     generateId,
   } = props;
 
-  // Controlled flags
+  // controlled flags
   const isOptionsControlled = propsOptions !== undefined;
   const isSelectedControlled = propsSelectedOptions !== undefined;
 
@@ -66,7 +62,6 @@ const InputOption = (props) => {
       options,
     ]
   );
-
   // Internal addOptionData
   const addOptionData = useCallback(
     (name) => {
@@ -108,32 +103,49 @@ const InputOption = (props) => {
     ]
   );
 
-  // UI handlers
-  const handleFocus = () => setShowOption(true);
-  const handleFocusOut = () => {
-    if (!selectionMouseIn) setShowOption(false);
-  };
-  const handleSelectionMouseEnter = () => setSelectionMouseIn(true);
-  const handleSelectionMouseOut = () => setSelectionMouseIn(false);
-  const handleClickSelection = () => inputReference.current?.focus();
-
+  // add the value into option
   const handleEnterPress = (value) => {
     if (!value) return;
+    // hide the option choice
     setShowOption(false);
+    // clear the value after enter pressed
     if (inputReference.current) inputReference.current.value = '';
     setInputValue('');
+    // add data into option
     addOptionData(value);
+  };
+
+  // handle layout
+  const handleFocus = (event) => {
+    setShowOption(true);
+  };
+  const handleFocusOut = (event) => {
+    if (!selectionMouseIn) {
+      setShowOption(false);
+    }
+  };
+
+  const handleSelectionMouseEnter = (event) => {
+    setSelectionMouseIn(true);
+  };
+  const handleSelectionMouseOut = (event) => {
+    setSelectionMouseIn(false);
+  };
+  const handleClickSelection = (event) => {
+    inputReference.current.focus();
   };
 
   const filteredOptions = useMemo(() => {
     if (!inputValue) return options || [];
     const v = inputValue.toLowerCase();
-    return (options || []).filter((el) => el.name.toLowerCase().includes(v));
+    return (options || []).filter((el) => {
+      return el.name.toLowerCase().includes(v);
+    });
   }, [options, inputValue]);
 
   return (
-    <div className={styles.inputOption}>
-      <div className={styles.inputContainer}>
+    <>
+      <div className={styles.inputOption}>
         <InputField
           reference={inputReference}
           onClick={handleFocus}
@@ -143,29 +155,23 @@ const InputOption = (props) => {
               handleEnterPress(event.target.value);
             }
           }}
+          // sorting the key words
           onChange={() => setInputValue(inputReference.current?.value || '')}
         />
         {showOption && (
-          <div
-            className={styles.optionList}
-            onMouseEnter={handleSelectionMouseEnter}
-            onMouseLeave={handleSelectionMouseOut}
-            onClick={handleClickSelection}
-          >
-            {filteredOptions.map((el) => (
-              <OptionRow
-                key={el.id}
-                id={el.id}
-                name={el.name}
-                checked={!!(selectedOptions && selectedOptions.includes(el.id))}
-                updateOptionData={updateOptionData}
-              />
-            ))}
-          </div>
+          <OptionList
+            handleSelectionMouseEnter={handleSelectionMouseEnter}
+            handleSelectionMouseOut={handleSelectionMouseOut}
+            handleClickSelection={handleClickSelection}
+            filteredOptions={filteredOptions}
+            selectedOptions={selectedOptions}
+            updateOptionData={updateOptionData}
+          />
         )}
       </div>
       <div className={styles.tagContainer}>
         {(options || []).map((el) =>
+          // Showing the tag plate
           selectedOptions && selectedOptions.includes(el.id) ? (
             <TagPlate
               key={el.id}
@@ -176,8 +182,8 @@ const InputOption = (props) => {
           ) : null
         )}
       </div>
-    </div>
+    </>
   );
 };
 
-export default InputOption;
+export default InputTags;

@@ -1,0 +1,61 @@
+/* DropdownField.module.css */
+
+.dropdown_container {
+  position: relative; /* anchor for absolute list */
+  width: 100%;
+}
+
+.dropdown_btn {
+  width: 100%;
+  display: flex;
+  justify-content: space-between; /* text left, icon right */
+  align-items: center;
+  cursor: pointer;
+  border: 1px solid #000;
+  border-radius: 5px;
+  background: #fff;
+  padding: 8px 12px;
+}
+
+.dropdown_icon {
+  width: 16px;
+  height: 16px;
+}
+
+.selected_text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The list should appear at the left-bottom of the button */
+.list_box {
+  position: absolute;
+  left: 0; /* left-aligned to container/button */
+  top: 100%; /* directly below the button */
+  width: 100%;
+  background: #fff;
+  border: 1px solid #000;
+  border-radius: 6px;
+  margin-top: 4px;
+  z-index: 10;
+  max-height: 240px;
+  overflow: auto;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+}
+
+.list_item {
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.list_item:hover,
+.list_item:focus {
+  background: #f3f4f6;
+  outline: none;
+}
+
+.selected {
+  background: #e5e7eb;
+  font-weight: 600;
+}

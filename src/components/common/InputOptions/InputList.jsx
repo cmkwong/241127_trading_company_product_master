@@ -1,0 +1,160 @@
+import { useState, useCallback, useMemo } from 'react';
+import PropTypes from 'prop-types';
+import styles from './InputList.module.css';
+import DropdownField from './DropdownField';
+// import TextField from './TextField'; // optional
+
+/**
+ * InputList Component
+ * Manages a list of options with selection state (supports controlled/uncontrolled)
+ *
+ * onChange signature:
+ *   onChange({ options, selected })
+ *
+ * Options can be strings or { id, label } objects.
+ * Selected is either a string/id (depending on options type).
+ */
+const InputList = (props) => {
+  const {
+    // Controlled props
+    options: controlledOptions,
+    selectedOptions: controlledSelected, // naming retained from your code
+    updateOptionData, // controlled handler for options array only
+
+    // Callbacks
+    onChange = () => {},
+
+    // Uncontrolled defaults
+    defaultOptions = [],
+    defaultSelectedOption = '',
+
+    // Utility
+    generateId,
+
+    // UI
+    label,
+    dropdownId = 'input-list-dropdown',
+  } = props;
+
+  // Determine controlled/uncontrolled mode correctly
+  const { isOptionsControlled, isSelectedControlled } = useMemo(
+    () => ({
+      isOptionsControlled: controlledOptions !== undefined,
+      isSelectedControlled: controlledSelected !== undefined,
+    }),
+    [controlledOptions, controlledSelected]
+  );
+
+  // Internal state for uncontrolled mode
+  const [innerOptions, setInnerOptions] = useState(defaultOptions);
+  const [innerSelected, setInnerSelected] = useState(defaultSelectedOption);
+
+  // Resolve current state
+  const currentOptions = isOptionsControlled ? controlledOptions : innerOptions;
+  const currentSelected = isSelectedControlled
+    ? controlledSelected
+    : innerSelected;
+
+  // ID generator
+  const getNewId = useMemo(
+    () =>
+      generateId ||
+      (() => `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`),
+    [generateId]
+  );
+
+  // Update options array (both modes)
+  const setOptions = useCallback(
+    (newOptions) => {
+      if (isOptionsControlled) {
+        // Let parent handle options changes if controlled
+        updateOptionData?.(newOptions);
+      } else {
+        setInnerOptions(newOptions);
+      }
+      onChange({ options: newOptions, selected: currentSelected });
+    },
+    [isOptionsControlled, updateOptionData, currentSelected, onChange]
+  );
+
+  // Update selection (both modes)
+  const setSelected = useCallback(
+    (newSelected) => {
+      if (isSelectedControlled) {
+        // Parent manages selection in controlled mode
+        onChange({ options: currentOptions, selected: newSelected });
+      } else {
+        setInnerSelected(newSelected);
+        onChange({ options: currentOptions, selected: newSelected });
+      }
+    },
+    [isSelectedControlled, currentOptions, onChange]
+  );
+
+  // Dropdown props
+  const dropdownProps = useMemo(
+    () => ({
+      id: dropdownId,
+      options: currentOptions,
+      selectedValue: currentSelected,
+      onOptionClick: setSelected,
+      buttonAltText: 'Select an option',
+      placeholder: 'Select an option',
+    }),
+    [dropdownId, currentOptions, currentSelected, setSelected]
+  );
+
+  return (
+    <div className={styles.inputList} data-testid="input-list-container">
+      {label && (
+        <label htmlFor={dropdownId} className={styles.label}>
+          {label}
+        </label>
+      )}
+
+      <DropdownField {...dropdownProps} />
+
+      {/* Optional TextField example:
+      <TextField
+        placeholder="Add new option..."
+        onSubmit={(value) => {
+          const trimmed = value.trim();
+          if (trimmed) {
+            const newOption =
+              typeof currentOptions?.[0] === 'object'
+                ? { id: getNewId(), label: trimmed }
+                : trimmed;
+            setOptions([...(currentOptions || []), newOption]);
+          }
+        }}
+      />
+      */}
+    </div>
+  );
+};
+
+InputList.propTypes = {
+  // Controlled API
+  options: PropTypes.array,
+  selectedOptions: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  updateOptionData: PropTypes.func,
+
+  // Events
+  onChange: PropTypes.func, // onChange({ options, selected })
+
+  // Uncontrolled defaults
+  defaultOptions: PropTypes.array,
+  defaultSelectedOption: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.number,
+  ]),
+
+  // Utils
+  generateId: PropTypes.func,
+
+  // UI
+  label: PropTypes.string,
+  dropdownId: PropTypes.string,
+};
+
+export default InputList;

@@ -1,6 +1,10 @@
-import InputOption from '../common/InputOptions/InputOption';
+import InputList from '../common/InputOptions/InputList';
+import InputOptionContainer from '../common/InputOptions/InputOptionContainer';
+import InputTags from '../common/InputOptions/InputTags';
+import { useState } from 'react';
 import styles from './ProductMaster.module.css';
-const options = [
+
+const initialOptions = [
   {
     id: 1,
     name: 'Cat Toy',
@@ -11,9 +15,26 @@ const options = [
   },
 ];
 const ProductMaster = () => {
+  const [options, setOptions] = useState(initialOptions);
+  const [selectedId, setSelectedId] = useState('2');
+
+  const handleChange = ({ options: nextOptions, selected: nextSelected }) => {
+    setOptions(nextOptions);
+    setSelectedId(nextSelected);
+  };
   return (
     <>
-      <InputOption defaultOptions={options} label={'hello'} />
+      <InputOptionContainer label={'Suggest Field'}>
+        <InputTags defaultOptions={initialOptions} />
+      </InputOptionContainer>
+      <InputOptionContainer label={'List'}>
+        <InputList
+          defaultOptions={options}
+          defaultSelectedOption={'2'}
+          updateOptionData={setOptions} // control options array
+          onChange={handleChange}
+        />
+      </InputOptionContainer>
     </>
   );
 };

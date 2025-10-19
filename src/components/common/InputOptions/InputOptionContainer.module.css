@@ -1,0 +1,20 @@
+.inputOptionBox {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start; /* or center, depending on your needs */
+  gap: 12px; /* spacing between input area and tags */
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px;
+}
+
+.inputContainer {
+  flex: 0 0 80%;
+  max-width: 80%;
+  min-width: 0;
+}
+
+.label {
+  overflow: hidden;
+}

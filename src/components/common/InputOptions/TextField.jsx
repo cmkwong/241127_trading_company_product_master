@@ -1,6 +1,6 @@
-import styles from './InputField.module.css';
+import styles from './TextField.module.css';
 
-const InputField = (props) => {
+const TextField = (props) => {
   const {
     reference,
     onClick,
@@ -27,4 +27,4 @@ const InputField = (props) => {
   );
 };
 
-export default InputField;
+export default TextField;

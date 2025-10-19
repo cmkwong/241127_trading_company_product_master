@@ -1,0 +1,16 @@
+.inputOption {
+  position: relative;
+}
+
+.tagContainer {
+  height: auto;
+  overflow-y: auto;
+  /* --- */
+  max-width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap; /* let tags wrap if many */
+  gap: 8px;
+  align-content: flex-start; /* control how multiple rows align */
+  position: absolute;
+}

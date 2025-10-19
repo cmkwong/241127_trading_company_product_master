@@ -1,10 +1,10 @@
 import { useState, useRef, useMemo, useCallback } from 'react';
 import Sub_TagPlate from './Sub_TagPlate';
-import Sub_SuggestTextField from './Sub_SuggestTextField';
-import Sub_SuggestList from './Sub_SuggestList';
-import styles from './Main_SuggestField.module.css';
+import Sub_TagTextField from './Sub_TagTextField';
+import Sub_TagList from './Sub_TagList';
+import styles from './Main_TagInputField.module.css';
 
-const Main_SuggestField = (props) => {
+const Main_TagInputField = (props) => {
   // options: [ { id, name } ]
   // selectedOptions: [1, 2, 3, ...]
   const {
@@ -146,7 +146,7 @@ const Main_SuggestField = (props) => {
   return (
     <>
       <div className={styles.inputOption}>
-        <Sub_SuggestTextField
+        <Sub_TagTextField
           reference={inputReference}
           onClick={handleFocus}
           onBlur={handleFocusOut}
@@ -159,7 +159,7 @@ const Main_SuggestField = (props) => {
           onChange={() => setInputValue(inputReference.current?.value || '')}
         />
         {showOption && (
-          <Sub_SuggestList
+          <Sub_TagList
             handleSelectionMouseEnter={handleSelectionMouseEnter}
             handleSelectionMouseOut={handleSelectionMouseOut}
             handleClickSelection={handleClickSelection}
@@ -186,4 +186,4 @@ const Main_SuggestField = (props) => {
   );
 };
 
-export default Main_SuggestField;
+export default Main_TagInputField;

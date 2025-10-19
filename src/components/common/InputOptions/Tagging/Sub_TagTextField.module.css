@@ -1,0 +1,24 @@
+.inputContainer {
+  width: 100%;
+  /* height: 28px; */
+  border-radius: 5px;
+  /* overflow: hidden; */
+  border: 1px solid #000000;
+  /* background-color: #fff8f8; */
+  padding: 0 8px 0 8px;
+}
+
+.inputContainer:focus-within {
+  border: 1px solid #bdbdbd;
+}
+
+.inputField {
+  width: 90%;
+  border: 0px;
+  padding: 8px 12px;
+  /* background-color: #fff8f8; */
+}
+
+.inputField:focus {
+  outline: none;
+}

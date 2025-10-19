@@ -1,6 +1,6 @@
-import styles from './Main_OptionContainer.module.css';
+import styles from './Main_InputContainer.module.css';
 
-const Main_OptionContainer = ({ label, children }) => {
+const Main_InputContainer = ({ label, children }) => {
   return (
     <div className={styles.inputOptionBox}>
       <div className={styles.labelContainer}>
@@ -11,4 +11,4 @@ const Main_OptionContainer = ({ label, children }) => {
   );
 };
 
-export default Main_OptionContainer;
+export default Main_InputContainer;

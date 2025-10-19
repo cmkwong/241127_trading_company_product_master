@@ -1,7 +1,7 @@
 import { useRef } from 'react';
-import styles from './Sub_SuggestRow.module.css';
+import styles from './Sub_TagListRow.module.css';
 
-const Sub_SuggestRow = (props) => {
+const Sub_TagListRow = (props) => {
   let { id, name, checked, updateOptionData } = props;
 
   const checkboxRef = useRef(null);
@@ -33,4 +33,4 @@ const Sub_SuggestRow = (props) => {
   );
 };
 
-export default Sub_SuggestRow;
+export default Sub_TagListRow;

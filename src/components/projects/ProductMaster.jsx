@@ -1,11 +1,12 @@
 import InputList from '../common/InputOptions/Dropdown/Main_Dropdown';
-import Main_OptionContainer from '../common/InputOptions/OptionContainer/Main_OptionContainer';
-import InputTags from '../common/InputOptions/Suggest/Main_SuggestField';
-import { useState } from 'react';
-import styles from './ProductMaster.module.css';
+import Main_InputContainer from '../common/InputOptions/InputContainer/Main_InputContainer';
+import Main_TagInputField from '../common/InputOptions/Tagging/Main_TagInputField';
+import { useState, useEffect } from 'react';
 import Main_DateSelector from '../common/InputOptions/Date/Main_DateSelector';
 import Main_RemarkTextArea from '../common/InputOptions/Remark/Main_RemarkTextArea';
 import Main_Pack from './Packing/Main_Pack';
+import styles from './ProductMaster.module.css';
+import Main_Suggest from '../common/InputOptions/Suggest/Main_Suggest';
 
 const initialOptions = [
   {
@@ -42,20 +43,61 @@ const ProductMaster = () => {
     console.log('Added Pack Data:', packData);
   };
 
+  // -- suggestion
+  // State for suggest input
+  const [inputSuggestValue, setInputSuggestValue] = useState('');
+  const [suggestions, setSuggestions] = useState([]);
+
+  const cities = [
+    'New York',
+    'Los Angeles',
+    'Chicago',
+    'Houston',
+    'Phoenix',
+    'Philadelphia',
+    'San Antonio',
+    'San Diego',
+    'Dallas',
+    'San Jose',
+    'Austin',
+    'Jacksonville',
+    'Fort Worth',
+    'Columbus',
+    'San Francisco',
+  ];
+
+  // Update suggestions based on input
+  useEffect(() => {
+    if (inputSuggestValue.trim() === '') {
+      setSuggestions([]);
+    } else {
+      const filtered = cities.filter((city) =>
+        city.toLowerCase().includes(inputSuggestValue.toLowerCase())
+      );
+      setSuggestions(filtered);
+    }
+  }, [inputSuggestValue]);
+
+  // Suggest input change handler
+  const handleSuggestChange = ({ value }) => {
+    setInputSuggestValue(value);
+    console.log('Suggest input value:', value);
+  };
+
   return (
     <>
-      <Main_OptionContainer label={'Suggest Field'}>
-        <InputTags defaultOptions={initialOptions} />
-      </Main_OptionContainer>
-      <Main_OptionContainer label={'List'}>
+      <Main_InputContainer label={'Product Name'}>
+        <Main_TagInputField defaultOptions={initialOptions} />
+      </Main_InputContainer>
+      <Main_InputContainer label={'List'}>
         <InputList
           defaultOptions={options}
           defaultSelectedOption={'2'}
           updateOptionData={setOptions} // control options array
           onChange={handleChange}
         />
-      </Main_OptionContainer>
-      <Main_OptionContainer label="Select date">
+      </Main_InputContainer>
+      <Main_InputContainer label="Select date">
         <Main_DateSelector
           value={date}
           onChange={({ isoString }) => setDate(isoString)}
@@ -66,8 +108,8 @@ const ProductMaster = () => {
           disableDate={(d) => d.getDay() === 0} // disable Sundays
           placeholder="Pick a date"
         />
-      </Main_OptionContainer>
-      <Main_OptionContainer label="Product Remarks">
+      </Main_InputContainer>
+      <Main_InputContainer label="Product Remarks">
         <Main_RemarkTextArea
           textareaId="product-remarks"
           value={remarks}
@@ -78,13 +120,22 @@ const ProductMaster = () => {
           resize="vertical"
           ariaLabel="Product Remarks"
         />
-      </Main_OptionContainer>
-      <Main_OptionContainer label="Packing Details">
+      </Main_InputContainer>
+      <Main_InputContainer label="Packing Details">
         <Main_Pack
           dropdownOptions={dropdownOptions}
           onAdd={handleAddPackData}
         />
-      </Main_OptionContainer>
+      </Main_InputContainer>
+      <Main_InputContainer label="Search for a city">
+        <Main_Suggest
+          inputId="suggest-city"
+          value={inputSuggestValue}
+          suggestions={suggestions}
+          onChange={handleSuggestChange}
+          placeholder="Type a city name..."
+        />
+      </Main_InputContainer>
     </>
   );
 };

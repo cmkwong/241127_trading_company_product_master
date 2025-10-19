@@ -1,10 +1,10 @@
 import { useState, useRef, useMemo, useCallback } from 'react';
-import TagPlate from './TagPlate';
-import InputField from './TextField';
-import OptionList from './OptionList';
-import styles from './InputTags.module.css';
+import Sub_TagPlate from './Sub_TagPlate';
+import Sub_SuggestTextField from './Sub_SuggestTextField';
+import Sub_SuggestList from './Sub_SuggestList';
+import styles from './Main_SuggestField.module.css';
 
-const InputTags = (props) => {
+const Main_SuggestField = (props) => {
   // options: [ { id, name } ]
   // selectedOptions: [1, 2, 3, ...]
   const {
@@ -146,7 +146,7 @@ const InputTags = (props) => {
   return (
     <>
       <div className={styles.inputOption}>
-        <InputField
+        <Sub_SuggestTextField
           reference={inputReference}
           onClick={handleFocus}
           onBlur={handleFocusOut}
@@ -159,7 +159,7 @@ const InputTags = (props) => {
           onChange={() => setInputValue(inputReference.current?.value || '')}
         />
         {showOption && (
-          <OptionList
+          <Sub_SuggestList
             handleSelectionMouseEnter={handleSelectionMouseEnter}
             handleSelectionMouseOut={handleSelectionMouseOut}
             handleClickSelection={handleClickSelection}
@@ -173,7 +173,7 @@ const InputTags = (props) => {
         {(options || []).map((el) =>
           // Showing the tag plate
           selectedOptions && selectedOptions.includes(el.id) ? (
-            <TagPlate
+            <Sub_TagPlate
               key={el.id}
               id={el.id}
               name={el.name}
@@ -186,4 +186,4 @@ const InputTags = (props) => {
   );
 };
 
-export default InputTags;
+export default Main_SuggestField;

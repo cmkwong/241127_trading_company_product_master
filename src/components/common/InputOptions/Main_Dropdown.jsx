@@ -1,11 +1,11 @@
 import { useRef, useState, useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
-import styles from './InputList.module.css';
-import DropdownField from './DropdownField';
+import styles from './Main_Dropdown.module.css';
+import Sub_SelectField from './Sub_SelectField';
 // import TextField from './TextField'; // optional
 
 /**
- * InputList Component
+ * Main_Dropdown Component
  * Manages a list of options with selection state (supports controlled/uncontrolled)
  *
  * onChange signature:
@@ -14,7 +14,7 @@ import DropdownField from './DropdownField';
  * Options can be strings or { id, name } objects.
  * Selected is either a string/id (depending on options type).
  */
-const InputList = (props) => {
+const Main_Dropdown = (props) => {
   const {
     // Controlled props
     options: controlledOptions,
@@ -121,7 +121,7 @@ const InputList = (props) => {
         </label>
       )}
 
-      <DropdownField {...dropdownProps} />
+      <Sub_SelectField {...dropdownProps} />
 
       {/* Optional TextField example:
       <TextField
@@ -142,7 +142,7 @@ const InputList = (props) => {
   );
 };
 
-InputList.propTypes = {
+Main_Dropdown.propTypes = {
   // Controlled API
   options: PropTypes.array,
   selectedOptions: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
@@ -166,4 +166,4 @@ InputList.propTypes = {
   dropdownId: PropTypes.string,
 };
 
-export default InputList;
+export default Main_Dropdown;

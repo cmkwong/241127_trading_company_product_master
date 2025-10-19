@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import PropTypes from 'prop-types';
-import styles from './DropdownField.module.css';
+import styles from './Sub_SelectField.module.css';
 import dropdownLogo from '../../../assets/dropdown.svg';
 
 const isOptionObject = (o) => typeof o === 'object' && o !== null;
@@ -11,7 +11,7 @@ const getNameFromOption = (option) =>
 const getIdFromOption = (option) =>
   isOptionObject(option) ? option.id : option;
 
-const DropdownField = ({
+const Sub_SelectField = ({
   id,
   buttonAltText = 'Toggle dropdown menu',
   options = [],
@@ -171,7 +171,7 @@ const DropdownField = ({
   );
 };
 
-DropdownField.propTypes = {
+Sub_SelectField.propTypes = {
   id: PropTypes.string.isRequired,
   buttonAltText: PropTypes.string,
   options: PropTypes.arrayOf(
@@ -191,4 +191,4 @@ DropdownField.propTypes = {
   placeholder: PropTypes.string,
 };
 
-export default DropdownField;
+export default Sub_SelectField;

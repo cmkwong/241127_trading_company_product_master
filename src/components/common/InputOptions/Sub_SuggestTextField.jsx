@@ -1,6 +1,6 @@
-import styles from './TextField.module.css';
+import styles from './Sub_SuggestTextField.module.css';
 
-const TextField = (props) => {
+const Sub_SuggestTextField = (props) => {
   const {
     reference,
     onClick,
@@ -27,4 +27,4 @@ const TextField = (props) => {
   );
 };
 
-export default TextField;
+export default Sub_SuggestTextField;

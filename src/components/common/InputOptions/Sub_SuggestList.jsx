@@ -1,7 +1,7 @@
-import styles from './OptionList.module.css';
-import OptionRow from './OptionRow';
+import styles from './Sub_SuggestList.module.css';
+import Sub_SuggestRow from './Sub_SuggestRow';
 
-const OptionList = (props) => {
+const Sub_SuggestList = (props) => {
   return (
     <div
       className={styles.optionList}
@@ -11,7 +11,7 @@ const OptionList = (props) => {
     >
       {props.filteredOptions.map((el) => {
         return (
-          <OptionRow
+          <Sub_SuggestRow
             key={el.id}
             id={el.id}
             name={el.name}
@@ -26,4 +26,4 @@ const OptionList = (props) => {
   );
 };
 
-export default OptionList;
+export default Sub_SuggestList;

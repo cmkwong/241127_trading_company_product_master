@@ -1,8 +1,8 @@
-import styles from './TagPlate.module.css';
+import styles from './Sub_TagPlate.module.css';
 import close_icon from '../../../assets/close.svg';
 import { useState } from 'react';
 
-const TagPlate = (props) => {
+const Sub_TagPlate = (props) => {
   let { id, name, updateOptionData } = props;
 
   const [hover, setHover] = useState(false);
@@ -24,4 +24,4 @@ const TagPlate = (props) => {
   );
 };
 
-export default TagPlate;
+export default Sub_TagPlate;

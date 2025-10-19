@@ -1,6 +1,6 @@
-import InputList from '../common/InputOptions/InputList';
-import InputOptionContainer from '../common/InputOptions/InputOptionContainer';
-import InputTags from '../common/InputOptions/InputTags';
+import InputList from '../common/InputOptions/Main_Dropdown';
+import InputOptionContainer from '../common/InputOptions/OptionContainer/Main_OptionContainer';
+import InputTags from '../common/InputOptions/Main_SuggestField';
 import { useState } from 'react';
 import styles from './ProductMaster.module.css';
 

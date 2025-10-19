@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import PropTypes from 'prop-types';
 import styles from './Sub_SelectField.module.css';
-import dropdownLogo from '../../../assets/dropdown.svg';
+import dropdownLogo from '../../../../assets/dropdown.svg';
 
 const isOptionObject = (o) => typeof o === 'object' && o !== null;
 

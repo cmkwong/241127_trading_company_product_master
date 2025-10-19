@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useRef, useState, useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import styles from './InputList.module.css';
 import DropdownField from './DropdownField';
@@ -11,7 +11,7 @@ import DropdownField from './DropdownField';
  * onChange signature:
  *   onChange({ options, selected })
  *
- * Options can be strings or { id, label } objects.
+ * Options can be strings or { id, name } objects.
  * Selected is either a string/id (depending on options type).
  */
 const InputList = (props) => {
@@ -33,8 +33,17 @@ const InputList = (props) => {
 
     // UI
     label,
-    dropdownId = 'input-list-dropdown',
+    dropdownId,
   } = props;
+
+  const makeId = (prefix = 'input-list') =>
+    `${prefix}-${Math.random().toString(36).slice(2, 8)}-${Date.now().toString(
+      36
+    )}`;
+
+  // Stable per-mount auto id
+  const autoIdRef = useRef(dropdownId || makeId('input-list'));
+  const resolvedId = dropdownId || autoIdRef.current;
 
   // Determine controlled/uncontrolled mode correctly
   const { isOptionsControlled, isSelectedControlled } = useMemo(
@@ -94,14 +103,14 @@ const InputList = (props) => {
   // Dropdown props
   const dropdownProps = useMemo(
     () => ({
-      id: dropdownId,
+      id: resolvedId,
       options: currentOptions,
       selectedValue: currentSelected,
       onOptionClick: setSelected,
       buttonAltText: 'Select an option',
       placeholder: 'Select an option',
     }),
-    [dropdownId, currentOptions, currentSelected, setSelected]
+    [resolvedId, currentOptions, currentSelected, setSelected]
   );
 
   return (

@@ -5,10 +5,10 @@ import dropdownLogo from '../../../assets/dropdown.svg';
 
 const isOptionObject = (o) => typeof o === 'object' && o !== null;
 
-const getLabelFromOption = (option) =>
+const getNameFromOption = (option) =>
   isOptionObject(option) ? option.name : option;
 
-const getValueFromOption = (option) =>
+const getIdFromOption = (option) =>
   isOptionObject(option) ? option.id : option;
 
 const DropdownField = ({
@@ -45,9 +45,9 @@ const DropdownField = ({
     // Match by id/value for object options
     if (options.length && options.some(isOptionObject)) {
       const found = options.find(
-        (opt) => getValueFromOption(opt) === selectedValue
+        (opt) => getIdFromOption(opt) === selectedValue
       );
-      return found ? getLabelFromOption(found) : placeholder;
+      return found ? getNameFromOption(found) : placeholder;
     }
     // For string options
     return options.includes(selectedValue) ? selectedValue : placeholder;
@@ -100,7 +100,7 @@ const DropdownField = ({
 
   const handleSelect = useCallback(
     (option) => {
-      const value = getValueFromOption(option);
+      const value = getIdFromOption(option);
       onOptionClick(value);
       closeDropdown();
     },
@@ -128,20 +128,20 @@ const DropdownField = ({
       </button>
 
       {open && (
-        <ul
+        <div
           id={`${id}-list`}
           className={combinedListClasses}
           role="listbox"
           aria-labelledby={id}
         >
           {options.map((option, index) => {
-            const value = getValueFromOption(option);
-            const name = getLabelFromOption(option);
+            const value = getIdFromOption(option);
+            const name = getNameFromOption(option);
             const isSelected = value === selectedValue;
             const ref = index === 0 ? firstItemRef : undefined;
 
             return (
-              <li
+              <div
                 key={String(value)}
                 ref={ref}
                 className={`${styles.list_item} ${
@@ -162,10 +162,10 @@ const DropdownField = ({
                 }}
               >
                 {name}
-              </li>
+              </div>
             );
           })}
-        </ul>
+        </div>
       )}
     </div>
   );

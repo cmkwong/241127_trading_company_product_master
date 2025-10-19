@@ -10,7 +10,7 @@
 }
 
 .container:hover {
-  background-color: #ffeaea;
+  background-color: #f3f4f6;
 }
 
 .container .checkbox {
@@ -19,5 +19,4 @@
 .container .label {
   margin: 0;
   padding: 5px;
-  font-size: 12px;
 }

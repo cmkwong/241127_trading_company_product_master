@@ -4,7 +4,7 @@
 
 .container {
   /* layout */
-  height: 20px;
+  /* height: 20px; */
   padding: 0px 5px 0px 8px;
   display: flex;
   /* justify-content: space-between; */
@@ -12,10 +12,11 @@
   /* style */
   margin: 3px;
   border-radius: 20px;
-  background-color: #ffcaca;
-  font-size: 12px;
+  /* background-color: #ffcaca; */
+  /* font-size: 12px; */
   font-weight: 300;
   cursor: pointer;
+  border: 1px solid #000;
 }
 
 .cancel {

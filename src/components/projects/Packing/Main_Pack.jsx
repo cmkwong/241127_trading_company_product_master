@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import PropTypes from 'prop-types';
 import styles from './Main_Pack.module.css';
-import Main_Dropdown from '../Dropdown/Main_Dropdown';
+import Main_Dropdown from '../../common/InputOptions/Dropdown/Main_Dropdown';
 
 const Main_Pack = ({ dropdownOptions, onAdd }) => {
   const [packRows, setPackRows] = useState([

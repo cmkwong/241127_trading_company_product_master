@@ -5,7 +5,7 @@ import { useState } from 'react';
 import styles from './ProductMaster.module.css';
 import Main_DateSelector from '../common/InputOptions/Date/Main_DateSelector';
 import Main_RemarkTextArea from '../common/InputOptions/Remark/Main_RemarkTextArea';
-import Main_Pack from '../common/InputOptions/Packing/Main_Pack';
+import Main_Pack from './Packing/Main_Pack';
 
 const initialOptions = [
   {

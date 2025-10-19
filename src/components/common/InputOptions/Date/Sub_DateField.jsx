@@ -6,7 +6,7 @@ import React, {
   useCallback,
 } from 'react';
 import PropTypes from 'prop-types';
-import styles from './Main_DateSelector.module.css';
+import styles from './Sub_DateField.module.css';
 
 const weekdays = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 

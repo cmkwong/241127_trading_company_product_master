@@ -1,21 +1,26 @@
 .inputOptionBox {
   display: flex;
-  flex-direction: row;
-  /*or center, depending on your needs */
-  align-items: flex-start;
-  gap: 12px; /* spacing between input area and tags */
-  width: 100%;
-  justify-content: space-between;
-  align-items: center;
-  padding: 5px;
+  flex-direction: column;
+  gap: 10px; /* Space between label and children */
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 15px;
+  background-color: #f9f9f9;
 }
 
-.inputContainer {
-  flex: 0 0 80%;
-  max-width: 80%;
-  min-width: 0;
+.labelContainer {
+  display: flex;
+  justify-content: flex-start; /* Align label to the start (left) */
 }
 
 .label {
-  overflow: hidden;
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+}
+
+.inputContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px; /* Space between child elements */
 }

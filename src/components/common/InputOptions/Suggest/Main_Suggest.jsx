@@ -1,14 +1,15 @@
 import { useState, useMemo, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import styles from './Main_Suggest.module.css';
-import Sub_SuggestTextField from './Sub_SuggestTextField';
+import Sub_SuggestTextField from './Sub_SuggestTextField.jsx';
+import ControlRowBtn from '../../../projects/ControlRowBtn.jsx';
 
 /**
  * Main_Suggest Component
  * Provides an input field with a suggestion list based on user input.
  *
  * onChange signature:
- *   onChange({ value, suggestions })
+ *   onChange({ value, suggestions, rowValues })
  *
  * Suggestions can be strings or { id, name } objects.
  */
@@ -26,23 +27,25 @@ const Main_Suggest = (props) => {
     defaultSuggestions = [],
     defaultValue = '',
 
-    // Utility
-    generateId,
-
     // UI
     label,
     inputId,
     placeholder = 'Type to search...',
   } = props;
 
+  // State to manage multiple rows of input fields
+  const [rows, setRows] = useState([
+    {
+      id: Math.random().toString(36).slice(2, 8),
+      value: defaultValue,
+      suggestions: defaultSuggestions,
+    },
+  ]);
+
   const makeId = (prefix = 'suggest-input') =>
     `${prefix}-${Math.random().toString(36).slice(2, 8)}-${Date.now().toString(
       36
     )}`;
-
-  // Stable per-mount auto id
-  const autoIdRef = useState(inputId || makeId('suggest-input'))[0];
-  const resolvedId = inputId || autoIdRef;
 
   // Determine controlled/uncontrolled mode correctly
   const { isSuggestionsControlled, isValueControlled } = useMemo(
@@ -61,15 +64,7 @@ const Main_Suggest = (props) => {
   const currentSuggestions = isSuggestionsControlled
     ? controlledSuggestions
     : innerSuggestions;
-  const currentValue = isValueControlled ? controlledValue : innerValue;
-
-  // ID generator
-  const getNewId = useMemo(
-    () =>
-      generateId ||
-      (() => `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`),
-    [generateId]
-  );
+  const inputValue = isValueControlled ? controlledValue : innerValue;
 
   // Update suggestions array (both modes)
   const setSuggestions = useCallback(
@@ -80,9 +75,9 @@ const Main_Suggest = (props) => {
       } else {
         setInnerSuggestions(newSuggestions);
       }
-      onChange({ value: currentValue, suggestions: newSuggestions });
+      onChange({ value: inputValue, suggestions: newSuggestions });
     },
-    [isSuggestionsControlled, updateSuggestions, currentValue, onChange]
+    [isSuggestionsControlled, updateSuggestions, inputValue, onChange]
   );
 
   // Update input value (both modes)
@@ -99,28 +94,92 @@ const Main_Suggest = (props) => {
     [isValueControlled, currentSuggestions, onChange]
   );
 
+  // when user typed in input, filter the required suggestions
+  const filterSuggestions = useMemo(() => {
+    if (!inputValue) return currentSuggestions || [];
+    const v = inputValue.toLowerCase();
+    return (currentSuggestions || []).filter((el) => {
+      return el.toLowerCase().includes(v);
+    });
+  }, [inputValue, currentSuggestions]);
+
   // Input field props
-  const inputProps = useMemo(
-    () => ({
-      id: resolvedId,
-      suggestions: currentSuggestions,
-      value: currentValue,
-      onInputChange: setValue,
-      onSuggestionClick: setValue,
+  const getInputProps = useCallback(
+    (rowValue, rowId) => ({
+      id: inputId || makeId(`suggest-input-${rowId}`),
+      suggestions: rowValue
+        ? (currentSuggestions || []).filter((el) =>
+            el.toLowerCase().includes(rowValue.toLowerCase())
+          )
+        : currentSuggestions || [],
+      value: rowValue,
+      onInputChange: (newValue) => handleRowValueChange(rowId, newValue),
+      onSuggestionClick: (newValue) => handleRowValueChange(rowId, newValue),
       placeholder,
     }),
-    [resolvedId, currentSuggestions, currentValue, setValue, placeholder]
+    [inputId, currentSuggestions, placeholder]
+  );
+
+  // Handle adding a new row
+  const handleAddClick = useCallback(() => {
+    setRows((prevRows) => [
+      ...prevRows,
+      {
+        id: Math.random().toString(36).slice(2, 8),
+        value: '',
+        suggestions: currentSuggestions,
+      },
+    ]);
+  }, [currentSuggestions]);
+
+  // Handle removing a row
+  const handleRemoveClick = useCallback((rowId) => {
+    // Don't remove the last row
+    setRows((prevRows) => {
+      if (prevRows.length <= 1) {
+        return prevRows;
+      }
+      return prevRows.filter((row) => row.id !== rowId);
+    });
+  }, []);
+
+  // Handle value change for a specific row
+  const handleRowValueChange = useCallback(
+    (rowId, newValue) => {
+      setRows((prevRows) =>
+        prevRows.map((row) =>
+          row.id === rowId ? { ...row, value: newValue } : row
+        )
+      );
+
+      // Notify parent component about all values
+      const allValues = rows
+        .map((row) => (row.id === rowId ? newValue : row.value))
+        .filter(Boolean);
+
+      onChange({
+        value: allValues.join(', '),
+        suggestions: currentSuggestions,
+        rowValues: allValues,
+      });
+    },
+    [rows, onChange, currentSuggestions]
   );
 
   return (
     <div className={styles.suggestContainer} data-testid="suggest-container">
-      {label && (
-        <label htmlFor={resolvedId} className={styles.label}>
-          {label}
-        </label>
-      )}
+      {label && <label className={styles.label}>{label}</label>}
+      <ControlRowBtn btnType="add" onClick={handleAddClick} />
 
-      <Sub_SuggestTextField {...inputProps} />
+      {rows.map((row) => (
+        <div key={row.id} className={styles.inputContainer}>
+          <Sub_SuggestTextField {...getInputProps(row.value, row.id)} />
+          <ControlRowBtn
+            btnType="remove"
+            onClick={() => handleRemoveClick(row.id)}
+          />
+        </div>
+      ))}
     </div>
   );
 };
@@ -132,7 +191,7 @@ Main_Suggest.propTypes = {
   updateSuggestions: PropTypes.func,
 
   // Events
-  onChange: PropTypes.func, // onChange({ value, suggestions })
+  onChange: PropTypes.func, // onChange({ value, suggestions, rowValues })
 
   // Uncontrolled defaults
   defaultSuggestions: PropTypes.array,

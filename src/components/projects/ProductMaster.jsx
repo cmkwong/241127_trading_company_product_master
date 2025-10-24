@@ -7,6 +7,7 @@ import Main_RemarkTextArea from '../common/InputOptions/Remark/Main_RemarkTextAr
 import Main_Pack from './Packing/Main_Pack';
 import styles from './ProductMaster.module.css';
 import Main_Suggest from '../common/InputOptions/Suggest/Main_Suggest';
+import ProductName from './ProductName/ProductName';
 
 const initialOptions = [
   {
@@ -129,6 +130,7 @@ const ProductMaster = () => {
       </Main_InputContainer>
       <Main_InputContainer label="Search for a city">
         <Main_Suggest
+          label="Hello"
           inputId="suggest-city"
           value={inputSuggestValue}
           suggestions={suggestions}
@@ -136,6 +138,7 @@ const ProductMaster = () => {
           placeholder="Type a city name..."
         />
       </Main_InputContainer>
+      <ProductName />
     </>
   );
 };

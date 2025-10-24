@@ -2,6 +2,7 @@ import { useState } from 'react';
 import PropTypes from 'prop-types';
 import styles from './Main_Pack.module.css';
 import Main_Dropdown from '../../common/InputOptions/Dropdown/Main_Dropdown';
+import ControlRowBtn from '../ControlRowBtn';
 
 const Main_Pack = ({ dropdownOptions, onAdd }) => {
   const [packRows, setPackRows] = useState([
@@ -53,9 +54,7 @@ const Main_Pack = ({ dropdownOptions, onAdd }) => {
 
   return (
     <div className={styles.container}>
-      <button className={styles.addButton} onClick={handleAddClick}>
-        +
-      </button>
+      <ControlRowBtn btnType={'add'} onClick={handleAddClick} />
       <label className={styles.label}>Packing</label>
       {packRows.map((row, index) => (
         <div key={index} className={styles.row}>
@@ -102,12 +101,10 @@ const Main_Pack = ({ dropdownOptions, onAdd }) => {
             onChange={(selected) => handleDropdownChange(index, selected)}
             label="Package Type"
           />
-          <button
-            className={styles.removeButton}
+          <ControlRowBtn
+            btnType={'remove'}
             onClick={() => handleRemoveRow(index)}
-          >
-            -
-          </button>
+          />
         </div>
       ))}
     </div>

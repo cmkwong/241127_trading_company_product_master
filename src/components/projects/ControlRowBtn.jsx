@@ -22,33 +22,40 @@ const ControlRowBtn = (props) => {
 
   return (
     <div className={styles.controlRowWrapper}>
-      {rows.map((row) => (
-        <div key={row.id} className={styles.controlRowContainer}>
-          <div className={styles.buttonsContainer}>
-            <button className={styles.addButton} onClick={handleAddRow}>
-              +
-            </button>
-            <button
-              className={styles.removeButton}
-              onClick={() => handleRemoveRow(row.id)}
-            >
-              -
-            </button>
-          </div>
-          <div className={styles.childrenContainer}>
-            {Children.map(children, (child, index) => {
-              if (!child) return null;
+      {rows.map((row, rowIndex) => {
+        const isLastRow = rowIndex === rows.length - 1;
 
-              // Generate a stable key for this child component
-              return cloneElement(child, {
-                key: `${row.id}-${index}`,
-                // We're not modifying any other props of the child components
-                // This ensures their internal state is preserved
-              });
-            })}
+        return (
+          <div key={row.id} className={styles.controlRowContainer}>
+            <div className={styles.buttonsContainer}>
+              <button
+                className={styles.removeButton}
+                onClick={() => handleRemoveRow(row.id)}
+              >
+                -
+              </button>
+              {/* Only show add button in the last row */}
+              {isLastRow && (
+                <button className={styles.addButton} onClick={handleAddRow}>
+                  +
+                </button>
+              )}
+            </div>
+            <div className={styles.childrenContainer}>
+              {Children.map(children, (child, index) => {
+                if (!child) return null;
+
+                // Generate a stable key for this child component
+                return cloneElement(child, {
+                  key: `${row.id}-${index}`,
+                  // We're not modifying any other props of the child components
+                  // This ensures their internal state is preserved
+                });
+              })}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 };

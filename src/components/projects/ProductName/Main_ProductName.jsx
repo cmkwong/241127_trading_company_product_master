@@ -1,5 +1,6 @@
 import Main_InputContainer from '../../common/InputOptions/InputContainer/Main_InputContainer';
 import Main_Suggest from '../../common/InputOptions/Suggest/Main_Suggest';
+import ControlRowBtn from '../ControlRowBtn';
 
 const defaultProductName = [
   'Elizabeth Collar Pet Grooming Shield Anti Bite Collar Dog Necklace Cat Neck Shame Collar',
@@ -16,7 +17,9 @@ const Main_ProductName = () => {
   return (
     <>
       <Main_InputContainer label={'Product Name'}>
-        <Main_Suggest defaultSuggestions={defaultProductName} />
+        <ControlRowBtn>
+          <Main_Suggest defaultSuggestions={defaultProductName} />
+        </ControlRowBtn>
       </Main_InputContainer>
     </>
   );

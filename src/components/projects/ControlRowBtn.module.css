@@ -1,6 +1,12 @@
+.controlRowWrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
 .controlRowContainer {
   display: flex;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
   width: 100%;
 }
 
@@ -11,7 +17,9 @@
 }
 
 .childrenContainer {
+  display: flex;
   flex: 1;
+  gap: 8px;
 }
 
 .addButton {

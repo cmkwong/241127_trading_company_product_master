@@ -12,7 +12,7 @@ const defaultProductName = [
   'Durable Convenient Stainless Steel Blade Free Nail Clipper No More Over Cutting Nail Trimmers',
 ];
 
-const ProductName = () => {
+const Main_ProductName = () => {
   return (
     <>
       <Main_InputContainer label={'Product Name'}>
@@ -22,4 +22,4 @@ const ProductName = () => {
   );
 };
 
-export default ProductName;
+export default Main_ProductName;

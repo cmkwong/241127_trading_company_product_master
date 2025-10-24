@@ -1,28 +1,31 @@
 .container {
   display: flex;
   flex-direction: column;
-  gap: 15px;
-  padding: 10px;
+  width: 100%;
+  margin-bottom: 16px;
 }
 
 .label {
-  font-size: 16px;
   font-weight: bold;
+  margin-bottom: 8px;
 }
 
-.row {
+.inputsContainer {
   display: flex;
   align-items: center;
-  gap: 10px;
-}
-.inputField {
-  width: 50px;
-  height: 30px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  text-align: center;
+  width: 100%;
+  gap: 8px;
 }
 
-.inputField::placeholder {
-  color: #aaa;
+.inputField {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  flex: 1;
+  min-width: 60px;
+}
+
+/* Ensure the dropdown has appropriate sizing */
+.inputsContainer > div {
+  flex: 2;
 }

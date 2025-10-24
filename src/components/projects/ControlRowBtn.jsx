@@ -2,29 +2,20 @@ import { useEffect, useState } from 'react';
 import styles from './ControlRowBtn.module.css';
 
 const ControlRowBtn = (props) => {
-  const { btnType, onClick } = props;
-
-  const [btnSign, setBtnSign] = useState('');
-
-  useEffect(() => {
-    if (btnType === 'add') {
-      setBtnSign('+');
-    } else if (btnType === 'remove') {
-      setBtnSign('-');
-    }
-  }, [btnType]);
+  const { onAdd, onRemove, children } = props;
 
   return (
-    <>
-      <button
-        className={`${styles.addButton} ${
-          btnType === 'add' ? styles.addButton : styles.removeButton
-        }`}
-        onClick={onClick}
-      >
-        {btnSign}
-      </button>
-    </>
+    <div className={styles.controlRowContainer}>
+      <div className={styles.buttonsContainer}>
+        <button className={styles.addButton} onClick={onAdd}>
+          +
+        </button>
+        <button className={styles.removeButton} onClick={onRemove}>
+          -
+        </button>
+      </div>
+      <div className={styles.childrenContainer}>{children}</div>
+    </div>
   );
 };
 

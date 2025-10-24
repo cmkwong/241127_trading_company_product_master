@@ -1,34 +1,17 @@
 import InputList from '../common/InputOptions/Dropdown/Main_Dropdown';
 import Main_InputContainer from '../common/InputOptions/InputContainer/Main_InputContainer';
-import Main_TagInputField from '../common/InputOptions/Tagging/Main_TagInputField';
 import { useState, useEffect } from 'react';
 import Main_DateSelector from '../common/InputOptions/Date/Main_DateSelector';
 import Main_RemarkTextArea from '../common/InputOptions/Remark/Main_RemarkTextArea';
 import Main_Pack from './Packing/Main_Pack';
 import styles from './ProductMaster.module.css';
 import Main_Suggest from '../common/InputOptions/Suggest/Main_Suggest';
-import ProductName from './ProductName/ProductName';
+import Main_ProductName from './ProductName/Main_ProductName';
+import Main_Category from './Categories/Main_Category';
+import Main_Supplier from './Suppliers/Main_Supplier';
 
-const initialOptions = [
-  {
-    id: 1,
-    name: 'Cat Toy',
-  },
-  {
-    id: 2,
-    name: 'Dog Toy',
-  },
-];
 const ProductMaster = () => {
-  const [options, setOptions] = useState(initialOptions);
-  const [selectedId, setSelectedId] = useState('2');
-
   const [date, setDate] = useState('2025-10-19');
-
-  const handleChange = ({ options: nextOptions, selected: nextSelected }) => {
-    setOptions(nextOptions);
-    setSelectedId(nextSelected);
-  };
 
   // State to manage the remarks
   const [remarks, setRemarks] = useState('');
@@ -87,17 +70,17 @@ const ProductMaster = () => {
 
   return (
     <>
-      <Main_InputContainer label={'Product Name'}>
-        <Main_TagInputField defaultOptions={initialOptions} />
-      </Main_InputContainer>
-      <Main_InputContainer label={'List'}>
+      <Main_ProductName />
+      <Main_Category />
+      {/* <Main_InputContainer label={'List'}>
         <InputList
           defaultOptions={options}
           defaultSelectedOption={'2'}
           updateOptionData={setOptions} // control options array
           onChange={handleChange}
         />
-      </Main_InputContainer>
+      </Main_InputContainer> */}
+      <Main_Supplier />
       <Main_InputContainer label="Select date">
         <Main_DateSelector
           value={date}
@@ -138,7 +121,6 @@ const ProductMaster = () => {
           placeholder="Type a city name..."
         />
       </Main_InputContainer>
-      <ProductName />
     </>
   );
 };

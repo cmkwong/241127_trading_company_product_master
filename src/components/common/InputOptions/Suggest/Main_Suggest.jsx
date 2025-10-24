@@ -94,19 +94,11 @@ const Main_Suggest = (props) => {
     [isValueControlled, currentSuggestions, onChange]
   );
 
-  // when user typed in input, filter the required suggestions
-  const filterSuggestions = useMemo(() => {
-    if (!inputValue) return currentSuggestions || [];
-    const v = inputValue.toLowerCase();
-    return (currentSuggestions || []).filter((el) => {
-      return el.toLowerCase().includes(v);
-    });
-  }, [inputValue, currentSuggestions]);
-
   // Input field props
   const getInputProps = useCallback(
     (rowValue, rowId) => ({
       id: inputId || makeId(`suggest-input-${rowId}`),
+      // when user typed in input, filter the required suggestions
       suggestions: rowValue
         ? (currentSuggestions || []).filter((el) =>
             el.toLowerCase().includes(rowValue.toLowerCase())
@@ -169,16 +161,15 @@ const Main_Suggest = (props) => {
   return (
     <div className={styles.suggestContainer} data-testid="suggest-container">
       {label && <label className={styles.label}>{label}</label>}
-      <ControlRowBtn btnType="add" onClick={handleAddClick} />
 
       {rows.map((row) => (
-        <div key={row.id} className={styles.inputContainer}>
+        <ControlRowBtn
+          key={row.id}
+          onAdd={handleAddClick}
+          onRemove={() => handleRemoveClick(row.id)}
+        >
           <Sub_SuggestTextField {...getInputProps(row.value, row.id)} />
-          <ControlRowBtn
-            btnType="remove"
-            onClick={() => handleRemoveClick(row.id)}
-          />
-        </div>
+        </ControlRowBtn>
       ))}
     </div>
   );

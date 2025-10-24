@@ -1,4 +1,4 @@
-import { useState, useEffect, cloneElement, Children } from 'react';
+import { useState, cloneElement, Children } from 'react';
 import styles from './ControlRowBtn.module.css';
 
 const ControlRowBtn = (props) => {
@@ -36,13 +36,16 @@ const ControlRowBtn = (props) => {
             </button>
           </div>
           <div className={styles.childrenContainer}>
-            {Children.map(children, (child) =>
-              child
-                ? cloneElement(child, {
-                    key: `${row.id}-${child.key || Math.random()}`,
-                  })
-                : null
-            )}
+            {Children.map(children, (child, index) => {
+              if (!child) return null;
+
+              // Generate a stable key for this child component
+              return cloneElement(child, {
+                key: `${row.id}-${index}`,
+                // We're not modifying any other props of the child components
+                // This ensures their internal state is preserved
+              });
+            })}
           </div>
         </div>
       ))}

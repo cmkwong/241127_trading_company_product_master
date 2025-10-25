@@ -1,3 +1,6 @@
 .productIconContainer {
   width: 100%;
+  max-width: 400px; /* Maximum width */
+  margin: 0 auto; /* Center the container */
+  height: 300px; /* Fixed height to match the imageContainer */
 }

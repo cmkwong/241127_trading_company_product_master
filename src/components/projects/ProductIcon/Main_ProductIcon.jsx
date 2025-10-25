@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import styles from './Main_ProductIcon.module.css';
 import Main_InputContainer from '../../common/InputOptions/InputContainer/Main_InputContainer';
 import Sub_UploadArea from './Sub_UploadArea';
-import Sub_ImagePreview from './Sub_IconPreview';
+import Sub_IconPreview from './Sub_IconPreview';
 
 /**
  * Main_ProductIcon Component
@@ -57,7 +57,7 @@ const Main_ProductIcon = ({ onChange = () => {} }) => {
         {!image ? (
           <Sub_UploadArea onFileSelect={handleFileSelection} />
         ) : (
-          <Sub_ImagePreview
+          <Sub_IconPreview
             image={image}
             onChangeClick={handleChangeClick}
             onRemoveClick={handleRemoveImage}

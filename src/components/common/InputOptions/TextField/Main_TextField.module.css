@@ -1,0 +1,40 @@
+.textFieldContainer {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 16px;
+  width: 100%;
+}
+
+.label {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 6px;
+  color: #333;
+}
+
+.required:after {
+  content: ' *';
+  color: #d32f2f;
+}
+
+.helperText {
+  font-size: 12px;
+  margin-top: 4px;
+  color: #666;
+}
+
+.error .label {
+  color: #d32f2f;
+}
+
+.error input {
+  border-color: #d32f2f;
+}
+
+.error input:focus {
+  box-shadow: 0 0 0 2px rgba(211, 47, 47, 0.2);
+}
+
+.errorText {
+  color: #d32f2f;
+}

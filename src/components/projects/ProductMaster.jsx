@@ -2,13 +2,14 @@ import InputList from '../common/InputOptions/Dropdown/Main_Dropdown';
 import Main_InputContainer from '../common/InputOptions/InputContainer/Main_InputContainer';
 import { useState, useEffect } from 'react';
 import Main_DateSelector from '../common/InputOptions/Date/Main_DateSelector';
-import Main_RemarkTextArea from '../common/InputOptions/Remark/Main_RemarkTextArea';
+import Main_RemarkTextArea from '../common/InputOptions/Textarea/Main_TextArea';
 import Main_Pack from './Packing/Main_Pack';
 import styles from './ProductMaster.module.css';
 import Main_Suggest from '../common/InputOptions/Suggest/Main_Suggest';
 import Main_ProductName from './ProductName/Main_ProductName';
 import Main_Category from './Categories/Main_Category';
 import Main_Supplier from './Suppliers/Main_Supplier';
+import Main_ProductLink from './ProductLink/Main_ProductLink';
 
 const ProductMaster = () => {
   const [date, setDate] = useState('2025-10-19');
@@ -72,15 +73,8 @@ const ProductMaster = () => {
     <>
       <Main_ProductName />
       <Main_Category />
-      {/* <Main_InputContainer label={'List'}>
-        <InputList
-          defaultOptions={options}
-          defaultSelectedOption={'2'}
-          updateOptionData={setOptions} // control options array
-          onChange={handleChange}
-        />
-      </Main_InputContainer> */}
       <Main_Supplier />
+      <Main_ProductLink />
       <Main_InputContainer label="Select date">
         <Main_DateSelector
           value={date}

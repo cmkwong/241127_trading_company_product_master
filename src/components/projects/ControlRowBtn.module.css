@@ -14,6 +14,7 @@
   display: flex;
   flex-direction: column;
   margin-right: 8px;
+  gap: 5px;
 }
 
 .childrenContainer {
@@ -26,7 +27,7 @@
   background-color: #4caf50;
   color: white;
   border: none;
-  border-radius: 50%;
+  border-radius: 15%;
   width: 24px;
   height: 24px;
   font-size: 16px;
@@ -41,7 +42,7 @@
   background-color: #f44336;
   color: white;
   border: none;
-  border-radius: 50%;
+  border-radius: 15%;
   width: 24px;
   height: 24px;
   font-size: 16px;

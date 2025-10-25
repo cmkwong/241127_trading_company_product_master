@@ -1,9 +1,9 @@
 import { useRef, useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
-import styles from './Main_RemarkTextArea.module.css';
-import Sub_RemarkField from './Sub_RemarkField';
+import styles from './Main_TextArea.module.css';
+import Sub_RemarkField from './Sub_TextArea';
 
-const Main_RemarkTextArea = (props) => {
+const Main_TextArea = (props) => {
   const {
     // Controlled
     value: controlledValue,
@@ -67,7 +67,7 @@ const Main_RemarkTextArea = (props) => {
   );
 };
 
-Main_RemarkTextArea.propTypes = {
+Main_TextArea.propTypes = {
   value: PropTypes.string,
   onChange: PropTypes.func,
   defaultValue: PropTypes.string,
@@ -83,4 +83,4 @@ Main_RemarkTextArea.propTypes = {
   ariaDescribedBy: PropTypes.string,
 };
 
-export default Main_RemarkTextArea;
+export default Main_TextArea;

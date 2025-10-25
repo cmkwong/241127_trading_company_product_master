@@ -1,8 +1,8 @@
 import { useMemo, useCallback } from 'react';
 import PropTypes from 'prop-types';
-import styles from './Sub_RemarkField.module.css';
+import styles from './Sub_TextArea.module.css';
 
-const Sub_RemarkField = ({
+const Sub_TextArea = ({
   id,
   value,
   onValueChange,
@@ -57,7 +57,7 @@ const Sub_RemarkField = ({
   );
 };
 
-Sub_RemarkField.propTypes = {
+Sub_TextArea.propTypes = {
   id: PropTypes.string.isRequired,
   value: PropTypes.string,
   onValueChange: PropTypes.func.isRequired,
@@ -72,4 +72,4 @@ Sub_RemarkField.propTypes = {
   ariaDescribedBy: PropTypes.string,
 };
 
-export default Sub_RemarkField;
+export default Sub_TextArea;

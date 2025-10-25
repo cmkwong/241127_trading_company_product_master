@@ -1,5 +1,5 @@
-import Main_TextArea from '../../common/InputOptions/Textarea/Main_TextArea';
-import Main_InputContainer from '../../common/InputOptions/InputContainer/Main_InputContainer';
+import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
+import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
 import { useState } from 'react';
 
 const Main_Remark = () => {

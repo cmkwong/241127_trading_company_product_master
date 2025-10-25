@@ -1,7 +1,7 @@
-import ProductMaster from './components/projects/ProductMaster';
+import Main_ProductMaster from './components/projects/ProductMaster/Main_ProductMaster';
 
 function App() {
-  return <ProductMaster />;
+  return <Main_ProductMaster />;
 }
 
 export default App;

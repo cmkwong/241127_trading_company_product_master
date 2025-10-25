@@ -1,6 +1,6 @@
-import Main_InputContainer from '../../common/InputOptions/InputContainer/Main_InputContainer';
-import Main_Suggest from '../../common/InputOptions/Suggest/Main_Suggest';
-import ControlRowBtn from '../ControlRowBtn';
+import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
+import Main_Suggest from '../../../common/InputOptions/Suggest/Main_Suggest';
+import ControlRowBtn from '../../../common/ControlRowBtn';
 
 const defaultProductName = [
   'Elizabeth Collar Pet Grooming Shield Anti Bite Collar Dog Necklace Cat Neck Shame Collar',

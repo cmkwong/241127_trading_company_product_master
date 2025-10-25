@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import PropTypes from 'prop-types';
 import styles from './Main_Pack.module.css';
-import Main_Dropdown from '../../common/InputOptions/Dropdown/Main_Dropdown';
-import Main_TextField from '../../common/InputOptions/TextField/Main_TextField';
-import ControlRowBtn from '../ControlRowBtn';
-import Main_InputContainer from '../../common/InputOptions/InputContainer/Main_InputContainer';
+import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
+import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
+import ControlRowBtn from '../../../common/ControlRowBtn';
+import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
 
-const Main_Pack = ({ dropdownOptions, onAdd }) => {
+const Main_Pack = ({ dropdownOptions }) => {
   const [packRows, setPackRows] = useState([
     {
       id: Math.random().toString(36).slice(2, 8),

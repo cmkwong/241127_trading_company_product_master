@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import Main_InputContainer from '../../common/InputOptions/InputContainer/Main_InputContainer';
-import Main_TagInputField from '../../common/InputOptions/Tagging/Main_TagInputField';
+import { useState } from 'react';
+import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
+import Main_TagInputField from '../../../common/InputOptions/Tagging/Main_TagInputField';
 import styles from './Main_Category.module.css';
 
 const Main_Category = () => {

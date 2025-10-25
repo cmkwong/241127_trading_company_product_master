@@ -1,7 +1,7 @@
 import styles from './Main_AlibabaLink.module.css';
-import Main_InputContainer from '../../common/InputOptions/InputContainer/Main_InputContainer';
-import Main_TextField from '../../common/InputOptions/TextField/Main_TextField';
-import ControlRowBtn from '../ControlRowBtn';
+import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
+import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
+import ControlRowBtn from '../../../common/ControlRowBtn';
 
 const Main_AlibabaLink = () => {
   return (

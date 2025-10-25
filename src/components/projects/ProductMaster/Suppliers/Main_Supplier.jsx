@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import Main_InputContainer from '../../common/InputOptions/InputContainer/Main_InputContainer';
+import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
 import styles from './Main_Supplier.module.css';
-import Main_Suggest from '../../common/InputOptions/Suggest/Main_Suggest';
-import Main_Dropdown from '../../common/InputOptions/Dropdown/Main_Dropdown';
-import ControlRowBtn from '../ControlRowBtn';
+import Main_Suggest from '../../../common/InputOptions/Suggest/Main_Suggest';
+import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
+import ControlRowBtn from '../../../common/ControlRowBtn';
 
 const Main_Supplier = () => {
   const defaultSupplier = ['Supplier A', 'Supplier B', 'Supplier C'];

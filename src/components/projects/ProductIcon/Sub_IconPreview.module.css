@@ -1,0 +1,73 @@
+.imagePreview {
+  position: relative;
+  width: 150px; /* Increased fixed width */
+  height: 150px; /* Made it square for consistency */
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  margin: 5px; /* Added margin for spacing */
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+}
+
+.previewImg {
+  width: 100%;
+  height: 100px; /* Fixed height for the image part */
+  object-fit: cover; /* This ensures the image covers the area nicely */
+  display: block;
+  flex-shrink: 0; /* Prevent the image from shrinking */
+}
+
+.imageInfo {
+  padding: 8px;
+  background-color: #f5f5f5;
+  flex-grow: 1; /* Allow this to take remaining space */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.imageName {
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.imageSize {
+  font-size: 10px;
+  color: #666;
+  margin-top: 4px;
+}
+
+.removeButton {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.imagePreview:hover .removeButton {
+  opacity: 1;
+}
+
+.removeButton:hover {
+  background-color: rgba(0, 0, 0, 0.7);
+}

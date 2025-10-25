@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import styles from './Main_ImageUpload.module.css';
 import Sub_ImagePreview from './Sub_ImagePreview';
@@ -23,6 +23,7 @@ const Main_ImageUpload = (props) => {
     label,
     multiple = true,
     disabled = false,
+    showPreview = true, // New prop to control preview visibility
 
     // Initial state
     defaultImages = [],
@@ -31,6 +32,11 @@ const Main_ImageUpload = (props) => {
   // State to store uploaded images
   const [images, setImages] = useState(defaultImages);
   const [isDragging, setIsDragging] = useState(false);
+
+  // Update internal state when defaultImages prop changes
+  useEffect(() => {
+    setImages(defaultImages);
+  }, [defaultImages]);
 
   // Handle file selection
   const handleFileSelection = useCallback(
@@ -113,7 +119,7 @@ const Main_ImageUpload = (props) => {
         multiple={multiple}
       />
 
-      {images.length > 0 && (
+      {showPreview && images.length > 0 && (
         <div className={styles.imagePreviewContainer}>
           {images.map((image) => (
             <Sub_ImagePreview
@@ -143,6 +149,7 @@ Main_ImageUpload.propTypes = {
   label: PropTypes.string,
   multiple: PropTypes.bool,
   disabled: PropTypes.bool,
+  showPreview: PropTypes.bool, // Added prop type for showPreview
 
   // Initial state
   defaultImages: PropTypes.arrayOf(

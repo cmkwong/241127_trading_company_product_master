@@ -24,7 +24,7 @@
 }
 
 .addButton {
-  background-color: #4caf50;
+  background-color: #000000;
   color: white;
   border: none;
   border-radius: 15%;
@@ -39,9 +39,9 @@
 }
 
 .removeButton {
-  background-color: #f44336;
-  color: white;
-  border: none;
+  background-color: #ffffff;
+  color: rgb(0, 0, 0);
+  border: 1px solid #000;
   border-radius: 15%;
   width: 24px;
   height: 24px;

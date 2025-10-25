@@ -117,20 +117,10 @@ const Main_ImageUpload = (props) => {
         maxSizeInMB={maxSizeInMB}
         acceptedTypes={acceptedTypes}
         multiple={multiple}
+        showPreview={showPreview}
+        images={images}
+        onRemoveImage={handleRemoveImage}
       />
-
-      {showPreview && images.length > 0 && (
-        <div className={styles.imagePreviewContainer}>
-          {images.map((image) => (
-            <Sub_ImagePreview
-              key={image.id}
-              image={image}
-              onRemove={handleRemoveImage}
-              disabled={disabled}
-            />
-          ))}
-        </div>
-      )}
     </div>
   );
 };

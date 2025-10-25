@@ -7,9 +7,9 @@
   border: 2px dashed #ccc;
   border-radius: 8px;
   background-color: #f9f9f9;
-  cursor: pointer;
   transition: all 0.2s ease;
   min-height: 150px;
+  width: 100%;
 }
 
 .dropZone:hover {
@@ -36,11 +36,46 @@
   display: none;
 }
 
+.dropZoneContent {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 16px;
+}
+
+.uploadPrompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  cursor: pointer;
+  padding: 20px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.uploadPromptWithImages {
+  border: 1px dashed #4a90e2;
+  background-color: #f0f8ff;
+  padding: 12px;
+}
+
+.uploadPrompt:hover {
+  background-color: #e6f2ff;
+}
+
 .uploadIcon {
-  width: 48px;
-  height: 48px;
+  width: 36px;
+  height: 36px;
   color: #4a90e2;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
+}
+
+.uploadPromptWithImages .uploadIcon {
+  width: 24px;
+  height: 24px;
+  margin-bottom: 4px;
 }
 
 .uploadText {
@@ -48,9 +83,31 @@
   font-weight: 500;
   margin-bottom: 8px;
   color: #333;
+  text-align: center;
+}
+
+.uploadPromptWithImages .uploadText {
+  font-size: 14px;
+  margin-bottom: 4px;
 }
 
 .uploadInfo {
   font-size: 12px;
   color: #666;
+  text-align: center;
+}
+
+.uploadPromptWithImages .uploadInfo {
+  font-size: 11px;
+}
+
+.hasImages {
+  padding: 16px;
+}
+
+.imagePreviewContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  width: 100%;
 }

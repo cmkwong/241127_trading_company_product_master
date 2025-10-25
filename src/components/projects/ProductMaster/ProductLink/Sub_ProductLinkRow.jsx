@@ -28,13 +28,13 @@ const Sub_ProductLinkRow = () => {
         <div className={styles.inputsColumn}>
           <Main_ImageUpload
             onChange={handleImageChange}
-            showPreview={false}
+            // showPreview={false}
             defaultImages={images}
           />
           <Main_TextArea label={'Remark'} />
           <Main_DateSelector />
         </div>
-        {images.length > 0 && (
+        {/* {images.length > 0 && (
           <div className={styles.previewContainer}>
             <div className={styles.previewGrid}>
               {images.map((image) => (
@@ -46,7 +46,7 @@ const Sub_ProductLinkRow = () => {
               ))}
             </div>
           </div>
-        )}
+        )} */}
       </div>
     </div>
   );

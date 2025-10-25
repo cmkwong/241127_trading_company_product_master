@@ -27,7 +27,9 @@ const Sub_DropZone = ({
 
   // Handle file input change
   const handleFileInputChange = (e) => {
-    onFileSelect(e.target.files);
+    if (e.target.files && e.target.files.length > 0) {
+      onFileSelect(e.target.files);
+    }
     // Reset the input so the same file can be selected again if needed
     e.target.value = '';
   };
@@ -55,7 +57,7 @@ const Sub_DropZone = ({
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
-    if (!disabled) {
+    if (!disabled && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       onFileSelect(e.dataTransfer.files);
     }
   };
@@ -75,7 +77,7 @@ const Sub_DropZone = ({
       <input
         ref={fileInputRef}
         type="file"
-        accept={acceptedTypes.join(',')}
+        accept={acceptedTypes.length > 0 ? acceptedTypes.join(',') : undefined}
         onChange={handleFileInputChange}
         multiple={multiple}
         disabled={disabled}

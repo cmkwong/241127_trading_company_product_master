@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import PropTypes from 'prop-types';
 import styles from './Main_FileUploads.module.css';
 import Sub_DropZone from './Sub_DropZone';
@@ -28,116 +28,72 @@ const Main_FileUploads = (props) => {
     defaultFiles = [],
   } = props;
 
-  // Use a ref to track if this is the first render
-  const isFirstRender = useRef(true);
-
   // State to store uploaded files
-  const [files, setFiles] = useState(defaultFiles || []);
+  const [fileList, setFileList] = useState(defaultFiles || []);
   const [isDragging, setIsDragging] = useState(false);
 
-  // For debugging - remove in production
-  useEffect(() => {
-    console.log('Current files state:', files);
-  }, [files]);
-
-  // Update internal state when defaultFiles prop changes
-  // Only sync with defaultFiles when the prop actually changes
-  useEffect(() => {
-    // Skip the first render since we already initialized with defaultFiles
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
+  // Handle file selection
+  const handleFileSelection = (selectedFiles) => {
+    if (!selectedFiles || selectedFiles.length === 0) {
       return;
     }
 
-    // Only update if defaultFiles has actually changed
-    // This prevents unnecessary state updates
-    const currentFileIds = (files || [])
-      .map((file) => file.id)
-      .sort()
-      .join(',');
-    const newFileIds = (defaultFiles || [])
-      .map((file) => file.id)
-      .sort()
-      .join(',');
-
-    if (currentFileIds !== newFileIds) {
-      setFiles(defaultFiles || []);
+    // Check if adding these files would exceed the max count
+    if (fileList.length + selectedFiles.length > maxFiles) {
+      onError(`You can only upload a maximum of ${maxFiles} files.`);
+      return;
     }
-  }, [defaultFiles, files]);
 
-  // Handle file selection
-  const handleFileSelection = useCallback(
-    (selectedFiles) => {
-      if (!selectedFiles || selectedFiles.length === 0) {
-        return; // No files selected
-      }
+    const newFiles = [];
+    const errors = [];
 
-      // Check if adding these files would exceed the max count
-      if (files.length + selectedFiles.length > maxFiles) {
-        onError(`You can only upload a maximum of ${maxFiles} files.`);
+    Array.from(selectedFiles).forEach((file) => {
+      // Validate file type if acceptedTypes is not empty
+      if (acceptedTypes.length > 0 && !acceptedTypes.includes(file.type)) {
+        errors.push(`File "${file.name}" is not a supported file type.`);
         return;
       }
 
-      const newFiles = [];
-      const errors = [];
-
-      Array.from(selectedFiles).forEach((file) => {
-        // Validate file type if acceptedTypes is not empty
-        if (acceptedTypes.length > 0 && !acceptedTypes.includes(file.type)) {
-          errors.push(`File "${file.name}" is not a supported file type.`);
-          return;
-        }
-
-        // Validate file size
-        if (file.size > maxSizeInMB * 1024 * 1024) {
-          errors.push(
-            `File "${file.name}" exceeds the maximum size of ${maxSizeInMB}MB.`
-          );
-          return;
-        }
-
-        newFiles.push({
-          file,
-          name: file.name,
-          size: file.size,
-          type: file.type,
-          id: `file-${Date.now()}-${Math.random()
-            .toString(36)
-            .substring(2, 9)}`,
-        });
-      });
-
-      // Report any errors
-      if (errors.length > 0) {
-        onError(errors.join('\n'));
+      // Validate file size
+      if (file.size > maxSizeInMB * 1024 * 1024) {
+        errors.push(
+          `File "${file.name}" exceeds the maximum size of ${maxSizeInMB}MB.`
+        );
+        return;
       }
 
-      // Update state with new files
-      if (newFiles.length > 0) {
-        const updatedFiles = [...files, ...newFiles];
-        setFiles(updatedFiles);
+      const newFile = {
+        file: file,
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        id: `file-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+      };
 
-        // Call onChange after the state has been updated
-        onChange(updatedFiles);
+      newFiles.push(newFile);
+    });
 
-        // For debugging - remove in production
-        console.log('Files after update:', updatedFiles);
-      }
-    },
-    [files, maxFiles, maxSizeInMB, acceptedTypes, onChange, onError]
-  );
+    // Report any errors
+    if (errors.length > 0) {
+      onError(errors.join('\n'));
+    }
+
+    // Update state with new files
+    if (newFiles.length > 0) {
+      const updatedFiles = [...fileList, ...newFiles];
+      setFileList(updatedFiles);
+      onChange(updatedFiles);
+    }
+  };
 
   // Handle file removal
-  const handleRemoveFile = useCallback(
-    (id) => {
-      if (disabled) return;
+  const handleRemoveFile = (id) => {
+    if (disabled) return;
 
-      const updatedFiles = files.filter((file) => file.id !== id);
-      setFiles(updatedFiles);
-      onChange(updatedFiles);
-    },
-    [disabled, files, onChange]
-  );
+    const updatedFiles = fileList.filter((file) => file.id !== id);
+    setFileList(updatedFiles);
+    onChange(updatedFiles);
+  };
 
   return (
     <div className={styles.fileUploadContainer}>
@@ -154,10 +110,9 @@ const Main_FileUploads = (props) => {
         multiple={multiple}
       />
 
-      {/* Add a debug message to see if files exist */}
-      {files && files.length > 0 ? (
+      {fileList && fileList.length > 0 ? (
         <Sub_FileList
-          files={files}
+          files={fileList}
           onRemoveFile={handleRemoveFile}
           disabled={disabled}
         />

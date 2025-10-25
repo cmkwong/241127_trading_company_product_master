@@ -2,8 +2,13 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 16px;
+  padding: 10px 16px;
   border-bottom: 1px solid #e0e0e0;
+  transition: background-color 0.2s;
+}
+
+.fileItem:hover {
+  background-color: #f9f9f9;
 }
 
 .fileItem:last-child {
@@ -19,8 +24,8 @@
 }
 
 .fileIcon {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   color: #4a90e2;
   flex-shrink: 0;
 }
@@ -35,10 +40,11 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-size: 13px;
 }
 
 .fileSize {
-  font-size: 12px;
+  font-size: 11px;
   color: #666;
 }
 
@@ -47,8 +53,8 @@
   border: none;
   cursor: pointer;
   color: #ff4d4f;
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   padding: 0;
   margin-left: 8px;
   display: flex;
@@ -68,6 +74,6 @@
 }
 
 .removeButton svg {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
 }

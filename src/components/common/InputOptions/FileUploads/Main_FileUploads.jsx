@@ -108,17 +108,9 @@ const Main_FileUploads = (props) => {
         maxSizeInMB={maxSizeInMB}
         acceptedTypes={acceptedTypes}
         multiple={multiple}
+        files={fileList}
+        onRemoveFile={handleRemoveFile}
       />
-
-      {fileList && fileList.length > 0 ? (
-        <Sub_FileList
-          files={fileList}
-          onRemoveFile={handleRemoveFile}
-          disabled={disabled}
-        />
-      ) : (
-        <div className={styles.noFiles}>No files uploaded yet</div>
-      )}
     </div>
   );
 };

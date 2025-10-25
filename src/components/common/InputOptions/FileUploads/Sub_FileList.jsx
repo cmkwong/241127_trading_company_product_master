@@ -13,7 +13,7 @@ const Sub_FileList = ({ files, onRemoveFile, disabled }) => {
 
   return (
     <div className={styles.fileListContainer}>
-      <h4 className={styles.fileListTitle}>Uploaded Files</h4>
+      <h4 className={styles.fileListTitle}>Uploaded Files ({files.length})</h4>
       <ul className={styles.fileList}>
         {files.map((file) => (
           <Sub_FileItem

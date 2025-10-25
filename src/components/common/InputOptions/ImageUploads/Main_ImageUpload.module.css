@@ -17,4 +17,26 @@
   flex-wrap: wrap;
   gap: 12px;
   margin-top: 16px;
+  max-height: 300px; /* Set a max height for the container */
+  overflow-y: auto; /* Add scrolling if needed */
+  padding: 4px;
+}
+
+/* Add some styling for the scrollbar to make it look better */
+.imagePreviewContainer::-webkit-scrollbar {
+  width: 6px;
+}
+
+.imagePreviewContainer::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.imagePreviewContainer::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 10px;
+}
+
+.imagePreviewContainer::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }

@@ -1,0 +1,15 @@
+.inputContainer {
+  display: flex;
+  width: 100%;
+  gap: 8px; /* Small gap between fields */
+}
+
+.idField {
+  width: 20%;
+  flex: 0 0 20%; /* Fixed at 20% width */
+}
+
+.linkField {
+  width: 80%;
+  flex: 0 0 80%; /* Fixed at 80% width */
+}

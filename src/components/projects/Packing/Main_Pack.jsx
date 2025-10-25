@@ -2,7 +2,9 @@ import { useState } from 'react';
 import PropTypes from 'prop-types';
 import styles from './Main_Pack.module.css';
 import Main_Dropdown from '../../common/InputOptions/Dropdown/Main_Dropdown';
+import Main_TextField from '../../common/InputOptions/TextField/Main_TextField';
 import ControlRowBtn from '../ControlRowBtn';
+import Main_InputContainer from '../../common/InputOptions/InputContainer/Main_InputContainer';
 
 const Main_Pack = ({ dropdownOptions, onAdd }) => {
   const [packRows, setPackRows] = useState([
@@ -33,86 +35,40 @@ const Main_Pack = ({ dropdownOptions, onAdd }) => {
     );
   };
 
-  const handleAddClick = () => {
-    setPackRows((prevRows) => [
-      ...prevRows,
-      {
-        id: Math.random().toString(36).slice(2, 8),
-        length: '',
-        width: '',
-        height: '',
-        quantity: '',
-        weight: '',
-        oppType: '',
-      },
-    ]);
-  };
-
-  const handleRemoveRow = (rowId) => {
-    // Don't remove the last row
-    setPackRows((prevRows) => {
-      if (prevRows.length <= 1) {
-        return prevRows;
-      }
-      return prevRows.filter((row) => row.id !== rowId);
-    });
-  };
-
   return (
-    <div className={styles.container}>
-      <label className={styles.label}>Packing</label>
-
+    <Main_InputContainer label={'Packing'}>
       {packRows.map((row) => (
-        <ControlRowBtn
-          key={row.id}
-          onAdd={handleAddClick}
-          onRemove={() => handleRemoveRow(row.id)}
-        >
+        <ControlRowBtn key={row.id}>
           <div className={styles.inputsContainer}>
-            <input
-              className={styles.inputField}
-              type="text"
+            <Main_TextField
               placeholder="L"
               value={row.length}
-              onChange={(e) =>
-                handleInputChange(row.id, 'length', e.target.value)
-              }
+              onChange={(value) => handleInputChange(row.id, 'length', value)}
+              className={styles.packingField}
             />
-            <input
-              className={styles.inputField}
-              type="text"
+            <Main_TextField
               placeholder="W"
               value={row.width}
-              onChange={(e) =>
-                handleInputChange(row.id, 'width', e.target.value)
-              }
+              onChange={(value) => handleInputChange(row.id, 'width', value)}
+              className={styles.packingField}
             />
-            <input
-              className={styles.inputField}
-              type="text"
+            <Main_TextField
               placeholder="H"
               value={row.height}
-              onChange={(e) =>
-                handleInputChange(row.id, 'height', e.target.value)
-              }
+              onChange={(value) => handleInputChange(row.id, 'height', value)}
+              className={styles.packingField}
             />
-            <input
-              className={styles.inputField}
-              type="text"
+            <Main_TextField
               placeholder="Qty"
               value={row.quantity}
-              onChange={(e) =>
-                handleInputChange(row.id, 'quantity', e.target.value)
-              }
+              onChange={(value) => handleInputChange(row.id, 'quantity', value)}
+              className={styles.packingField}
             />
-            <input
-              className={styles.inputField}
-              type="text"
+            <Main_TextField
               placeholder="kg"
               value={row.weight}
-              onChange={(e) =>
-                handleInputChange(row.id, 'weight', e.target.value)
-              }
+              onChange={(value) => handleInputChange(row.id, 'weight', value)}
+              className={styles.packingField}
             />
             <Main_Dropdown
               options={dropdownOptions}
@@ -123,7 +79,7 @@ const Main_Pack = ({ dropdownOptions, onAdd }) => {
           </div>
         </ControlRowBtn>
       ))}
-    </div>
+    </Main_InputContainer>
   );
 };
 

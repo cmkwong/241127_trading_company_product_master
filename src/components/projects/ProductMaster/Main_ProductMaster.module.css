@@ -1,19 +1,25 @@
 .masterContainer {
-  display: flex;
+  position: relative;
   height: 100vh;
   width: 100%;
-  position: relative;
-  overflow: hidden; /* Prevent overflow at the container level */
+  overflow: hidden;
 }
 
 .container {
-  flex: 1;
   display: flex;
-  padding: 20px;
-  gap: 20px;
-  overflow-y: auto; /* Allow scrolling within the container */
-  height: 100vh; /* Full height */
-  flex-direction: row; /* Ensure horizontal layout by default */
+  flex-direction: row;
+  height: 100%;
+  overflow: hidden;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 300px; /* Same as sidebar width */
+  transition: left 0.3s ease;
+}
+
+.container.fullWidth {
+  left: 0;
 }
 
 .inputSide {
@@ -21,23 +27,28 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
-  min-width: 0; /* Allow flex items to shrink below content size if needed */
-  overflow-y: auto; /* Allow scrolling within the input side */
-  padding-bottom: 80px; /* Add padding at the bottom for the save button */
+  padding: 20px;
+  overflow-y: auto;
+  height: 100%;
+  min-width: 0;
+  padding-bottom: 100px;
 }
 
 .icon {
   flex: 1;
   min-width: 200px;
   max-width: 300px;
-  height: fit-content; /* Adjust height to content */
+  padding: 20px;
+  height: 100%;
+  overflow-y: auto;
+  border-left: 1px solid #e0e0e0;
 }
 
 /* Sidebar toggle button */
 .sidebarToggle {
   position: absolute;
   top: 50%;
-  left: 300px; /* Aligns with default sidebar width */
+  left: 300px;
   transform: translateY(-50%);
   z-index: 10;
   background-color: #ffffff;
@@ -63,11 +74,15 @@
 
 /* Sidebar transition */
 .sidebar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
   width: 300px;
-  height: 100vh;
   transition: width 0.3s ease, margin-left 0.3s ease;
   overflow: hidden;
-  flex-shrink: 0; /* Prevent sidebar from shrinking */
+  border-right: 1px solid #e0e0e0;
+  background-color: #f5f5f5;
 }
 
 .sidebar.collapsed {
@@ -76,34 +91,48 @@
 }
 
 /* Responsive adjustments */
-@media (max-width: 1200px) {
+@media (max-width: 1024px) {
   .container {
     flex-direction: column;
   }
 
   .icon {
     max-width: 100%;
+    border-left: none;
+    border-top: 1px solid #e0e0e0;
   }
 }
 
 @media (max-width: 768px) {
   .masterContainer {
-    flex-direction: column;
     height: auto;
     min-height: 100vh;
   }
 
   .sidebar {
+    position: relative;
     width: 100%;
-    max-height: 300px;
-    transition: max-height 0.3s ease;
-    height: auto;
+    height: 300px;
+    transition: height 0.3s ease;
+    border-right: none;
+    border-bottom: 1px solid #e0e0e0;
   }
 
   .sidebar.collapsed {
-    max-height: 0;
+    height: 0;
     margin-left: 0;
     width: 100%;
+  }
+
+  .container {
+    position: relative;
+    left: 0;
+    height: auto;
+    min-height: calc(100vh - 300px);
+  }
+
+  .container.fullWidth {
+    left: 0;
   }
 
   .sidebarToggle {
@@ -116,10 +145,5 @@
   .sidebarToggle.collapsed {
     top: 0;
     left: 50%;
-  }
-
-  .container {
-    height: auto;
-    min-height: calc(100vh - 300px);
   }
 }

@@ -11,7 +11,7 @@ const mockProducts = [
     productId: 'PET-001',
     category: ['Pet Accessories', 'Dog Supplies'],
     alibabaIds: ['ALI-12345', 'ALI-67890'],
-    iconUrl: 'https://via.placeholder.com/50'
+    iconUrl: 'https://via.placeholder.com/50',
   },
   {
     id: '2',
@@ -19,7 +19,7 @@ const mockProducts = [
     productId: 'PET-002',
     category: ['Pet Toys', 'Dog Supplies'],
     alibabaIds: ['ALI-23456'],
-    iconUrl: 'https://via.placeholder.com/50'
+    iconUrl: 'https://via.placeholder.com/50',
   },
   {
     id: '3',
@@ -27,7 +27,7 @@ const mockProducts = [
     productId: 'PET-003',
     category: ['Pet Accessories', 'Car Accessories'],
     alibabaIds: ['ALI-34567', 'ALI-45678'],
-    iconUrl: 'https://via.placeholder.com/50'
+    iconUrl: 'https://via.placeholder.com/50',
   },
   {
     id: '4',
@@ -35,7 +35,7 @@ const mockProducts = [
     productId: 'PET-004',
     category: ['Pet Feeders', 'Cat Supplies'],
     alibabaIds: ['ALI-56789'],
-    iconUrl: 'https://via.placeholder.com/50'
+    iconUrl: 'https://via.placeholder.com/50',
   },
   {
     id: '5',
@@ -43,13 +43,38 @@ const mockProducts = [
     productId: 'PET-005',
     category: ['Pet Toys', 'Dog Supplies'],
     alibabaIds: ['ALI-67890'],
-    iconUrl: 'https://via.placeholder.com/50'
-  }
+    iconUrl: 'https://via.placeholder.com/50',
+  },
+  // Add more mock products to test scrolling
+  {
+    id: '6',
+    productName: 'Durable Plush Eggplant Cat Chew Toy',
+    productId: 'PET-006',
+    category: ['Pet Toys', 'Cat Supplies'],
+    alibabaIds: ['ALI-78901'],
+    iconUrl: 'https://via.placeholder.com/50',
+  },
+  {
+    id: '7',
+    productName: 'USB Interactive Cat Toys Laser Pen',
+    productId: 'PET-007',
+    category: ['Pet Toys', 'Cat Supplies'],
+    alibabaIds: ['ALI-89012'],
+    iconUrl: 'https://via.placeholder.com/50',
+  },
+  {
+    id: '8',
+    productName: 'Stainless Steel Blade Free Nail Clipper',
+    productId: 'PET-008',
+    category: ['Pet Grooming', 'Dog Supplies'],
+    alibabaIds: ['ALI-90123'],
+    iconUrl: 'https://via.placeholder.com/50',
+  },
 ];
 
 const ProductListItem = ({ product, isSelected, onClick }) => {
   return (
-    <div 
+    <div
       className={`${styles.productItem} ${isSelected ? styles.selected : ''}`}
       onClick={() => onClick(product)}
     >
@@ -60,9 +85,7 @@ const ProductListItem = ({ product, isSelected, onClick }) => {
         <div className={styles.productName}>{product.productName}</div>
         <div className={styles.productMeta}>
           <div className={styles.productId}>ID: {product.productId}</div>
-          <div className={styles.categories}>
-            {product.category.join(', ')}
-          </div>
+          <div className={styles.categories}>{product.category.join(', ')}</div>
         </div>
         <div className={styles.alibabaIds}>
           Alibaba: {product.alibabaIds.join(', ')}
@@ -74,7 +97,7 @@ const ProductListItem = ({ product, isSelected, onClick }) => {
 
 const Main_AllProductList = ({ onSelectProduct }) => {
   const { updateData } = useSavePageData();
-  const [products, setProducts] = useState(mockProducts);
+  const [products] = useState(mockProducts);
   const [filteredProducts, setFilteredProducts] = useState(mockProducts);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -87,39 +110,30 @@ const Main_AllProductList = ({ onSelectProduct }) => {
     }
 
     const lowerSearchTerm = searchTerm.toLowerCase();
-    const filtered = products.filter(product => 
-      product.productName.toLowerCase().includes(lowerSearchTerm) ||
-      product.productId.toLowerCase().includes(lowerSearchTerm) ||
-      product.alibabaIds.some(id => id.toLowerCase().includes(lowerSearchTerm)) ||
-      product.category.some(cat => cat.toLowerCase().includes(lowerSearchTerm))
+    const filtered = products.filter(
+      (product) =>
+        product.productName.toLowerCase().includes(lowerSearchTerm) ||
+        product.productId.toLowerCase().includes(lowerSearchTerm) ||
+        product.alibabaIds.some((id) =>
+          id.toLowerCase().includes(lowerSearchTerm)
+        ) ||
+        product.category.some((cat) =>
+          cat.toLowerCase().includes(lowerSearchTerm)
+        )
     );
-    
+
     setFilteredProducts(filtered);
   }, [searchTerm, products]);
 
-  // In a real app, fetch products from an API
-  useEffect(() => {
-    // Simulating API call
-    // In a real app, you would fetch data here
-    // Example:
-    // const fetchProducts = async () => {
-    //   const response = await fetch('/api/products');
-    //   const data = await response.json();
-    //   setProducts(data);
-    //   setFilteredProducts(data);
-    // };
-    // fetchProducts();
-  }, []);
-
   const handleProductSelect = (product) => {
     setSelectedProduct(product);
-    
+
     // Update the global state with the selected product data
     updateData('productName', product.productName);
     updateData('productId', product.productId);
     updateData('category', product.category);
     updateData('alibabaIds', product.alibabaIds);
-    
+
     // Call the parent component's handler if provided
     if (onSelectProduct) {
       onSelectProduct(product);
@@ -139,10 +153,10 @@ const Main_AllProductList = ({ onSelectProduct }) => {
           defaultValue={searchTerm}
         />
       </div>
-      
+
       <div className={styles.productList}>
         {filteredProducts.length > 0 ? (
-          filteredProducts.map(product => (
+          filteredProducts.map((product) => (
             <ProductListItem
               key={product.id}
               product={product}

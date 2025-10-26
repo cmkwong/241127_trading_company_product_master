@@ -15,7 +15,9 @@ import SavePageWithProvider from '../../common/SavePage/Main_SavePage';
 const Main_ProductMaster = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const [windowWidth, setWindowWidth] = useState(
+    typeof window !== 'undefined' ? window.innerWidth : 1024
+  );
 
   // Function to handle saving product data
   const onSaveProduct = async (productData) => {
@@ -46,14 +48,16 @@ const Main_ProductMaster = () => {
 
   // Track window resize for responsive behavior
   useEffect(() => {
-    const handleResize = () => {
-      setWindowWidth(window.innerWidth);
-    };
+    if (typeof window !== 'undefined') {
+      const handleResize = () => {
+        setWindowWidth(window.innerWidth);
+      };
 
-    window.addEventListener('resize', handleResize);
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
+      window.addEventListener('resize', handleResize);
+      return () => {
+        window.removeEventListener('resize', handleResize);
+      };
+    }
   }, []);
 
   return (
@@ -96,7 +100,11 @@ const Main_ProductMaster = () => {
           {sidebarCollapsed ? '›' : '‹'}
         </div>
 
-        <div className={styles.container}>
+        <div
+          className={`${styles.container} ${
+            sidebarCollapsed ? styles.fullWidth : ''
+          }`}
+        >
           <div className={styles.inputSide}>
             <Main_ProductName />
             <Main_Category />

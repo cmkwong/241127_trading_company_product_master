@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Main_Suggest from '../../../common/InputOptions/Suggest/Main_Suggest';
 import { useSavePageData } from '../../../common/SavePage/Main_SavePage';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
@@ -15,37 +15,70 @@ const defaultProductName = [
 ];
 
 // Independent ProductNameRow component with its own state
-const ProductNameRow = () => {
-  const [productName, setProductName] = useState('');
-  const [productId, setProductId] = useState('');
-  const { updateData, pageData } = useSavePageData();
+const ProductNameRow = ({ initialProductName = '', initialProductId = '' }) => {
+  const { updateData } = useSavePageData();
+
+  // Determine if this is the first row based on whether initial values were provided
+  const isFirstRow = initialProductName !== '' || initialProductId !== '';
+
+  // Use refs to track current values without causing re-renders
+  const productNameRef = useRef(initialProductName);
+  const productIdRef = useRef(initialProductId);
+
+  // Debounce timer for updating global state
+  const timerRef = useRef(null);
+
+  // Clean up timer on unmount
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, []);
 
   const handleProductNameChange = ({ value }) => {
     const nameValue =
       typeof value === 'object' && value.value ? value.value : value;
-    setProductName(nameValue);
+    productNameRef.current = nameValue;
 
-    // We can still update the global state, but each row has its own local state
-    updateData('productName', nameValue);
+    // Update the global state if this is the first row, with debounce
+    if (isFirstRow) {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+
+      timerRef.current = setTimeout(() => {
+        updateData('productName', nameValue);
+      }, 300); // 300ms debounce
+    }
   };
 
   const handleProductIdChange = (value) => {
-    setProductId(value);
-    updateData('productId', value);
+    productIdRef.current = value;
+
+    // Update the global state if this is the first row, with debounce
+    if (isFirstRow) {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+
+      timerRef.current = setTimeout(() => {
+        updateData('productId', value);
+      }, 300); // 300ms debounce
+    }
   };
 
   return (
     <>
       <Main_Suggest
         defaultSuggestions={defaultProductName}
-        defaultValue={pageData.productName}
-        value={productName}
+        defaultValue={initialProductName}
         onChange={handleProductNameChange}
       />
       <Main_TextField
         placeholder={'Product ID'}
-        defaultValue=""
-        value={productId}
+        defaultValue={initialProductId}
         onChange={handleProductIdChange}
       />
     </>

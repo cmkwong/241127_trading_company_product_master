@@ -1,0 +1,22 @@
+.inputsContainer {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 8px;
+}
+
+/* Style for the Main_TextField components */
+.packingField {
+  min-width: 60px;
+  flex: 1;
+}
+
+/* Override some Main_TextField styles to make them more compact */
+.packingField > div {
+  margin-bottom: 0;
+}
+
+/* Ensure the dropdown has appropriate sizing */
+.inputsContainer > div:last-child {
+  flex: 2;
+}

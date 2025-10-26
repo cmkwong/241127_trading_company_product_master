@@ -45,11 +45,10 @@ const ControlRowBtn = (props) => {
               {Children.map(children, (child, index) => {
                 if (!child) return null;
 
-                // Generate a stable key for this child component
+                // Generate a stable key for this child component and pass rowIndex
                 return cloneElement(child, {
                   key: `${row.id}-${index}`,
-                  // We're not modifying any other props of the child components
-                  // This ensures their internal state is preserved
+                  rowIndex: rowIndex, // Pass rowIndex to child
                 });
               })}
             </div>

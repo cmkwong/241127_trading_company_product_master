@@ -5,8 +5,15 @@ import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
 import ControlRowBtn from '../../../common/ControlRowBtn';
 import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
+import { useSavePageData } from '../../../common/SavePage/Main_SavePage';
 
-const Main_Pack = ({ dropdownOptions }) => {
+const Main_Pack = (props) => {
+  const { dropdownOptions: propsDropdownOptions } = props;
+  const {} = useSavePageData();
+
+  const dropdownOptions =
+    propsDropdownOptions !== undefined ? propsDropdownOptions : [];
+
   const [packRows, setPackRows] = useState([
     {
       id: Math.random().toString(36).slice(2, 8),

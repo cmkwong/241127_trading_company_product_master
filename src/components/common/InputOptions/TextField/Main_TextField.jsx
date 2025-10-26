@@ -14,6 +14,8 @@ const Main_TextField = (props) => {
 
     // Callbacks
     onChange = () => {},
+    onFocus,
+    onBlur,
 
     // Uncontrolled defaults
     defaultValue = '',
@@ -79,6 +81,8 @@ const Main_TextField = (props) => {
         pattern={pattern}
         autoFocus={autoFocus}
         className={className}
+        onFocus={onFocus}
+        onBlur={onBlur}
       />
       {helperText && (
         <div
@@ -97,6 +101,8 @@ Main_TextField.propTypes = {
 
   // Callbacks
   onChange: PropTypes.func,
+  onFocus: PropTypes.func,
+  onBlur: PropTypes.func,
 
   // Uncontrolled defaults
   defaultValue: PropTypes.string,

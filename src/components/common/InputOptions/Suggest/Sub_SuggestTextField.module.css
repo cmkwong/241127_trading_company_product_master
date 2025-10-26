@@ -3,34 +3,26 @@
   width: 100%;
 }
 
-.inputField {
+.suggestInput {
   width: 100%;
-  padding: 8px 12px;
-  border: 1px solid #000;
-  border-radius: 5px;
-  outline: none;
-}
-
-.inputField:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 4px rgba(0, 123, 255, 0.5);
 }
 
 .suggestionList {
   position: absolute;
   top: 100%;
   left: 0;
-  width: 100%;
-  background: #fff;
-  border: 1px solid #000;
-  border-radius: 6px;
-  margin-top: 4px;
+  right: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   z-index: 10;
-  max-height: 240px;
-  overflow: auto;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
-  list-style: none;
+  margin: 0;
   padding: 0;
+  list-style: none;
 }
 
 .suggestionItem {
@@ -40,11 +32,5 @@
 
 .suggestionItem:hover,
 .suggestionItem:focus {
-  background: #f3f4f6;
-  outline: none;
-}
-
-.suggestionItem:active {
-  background: #e5e7eb;
-  font-weight: 600;
+  background-color: #f5f5f5;
 }

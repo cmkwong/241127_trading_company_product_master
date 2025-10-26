@@ -20,6 +20,8 @@ const Sub_TextField = (props) => {
     pattern,
     autoFocus = false,
     className = '',
+    onFocus,
+    onBlur,
   } = props;
 
   const handleChange = (e) => {
@@ -42,6 +44,8 @@ const Sub_TextField = (props) => {
       minLength={minLength}
       pattern={pattern}
       autoFocus={autoFocus}
+      onFocus={onFocus}
+      onBlur={onBlur}
       data-testid="sub-text-field"
     />
   );
@@ -60,6 +64,8 @@ Sub_TextField.propTypes = {
   pattern: PropTypes.string,
   autoFocus: PropTypes.bool,
   className: PropTypes.string,
+  onFocus: PropTypes.func,
+  onBlur: PropTypes.func,
 };
 
 export default Sub_TextField;

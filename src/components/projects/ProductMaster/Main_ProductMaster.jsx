@@ -37,6 +37,9 @@ const Main_ProductMaster = () => {
           name: '',
           option: '',
         },
+        packing: {
+          dropdownOptions: ['OPP', 'carton'],
+        },
         remarks: '',
         // ... other initial values
       }}

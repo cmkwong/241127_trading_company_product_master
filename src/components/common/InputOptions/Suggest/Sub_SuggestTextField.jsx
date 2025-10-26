@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import PropTypes from 'prop-types';
 import styles from './Sub_SuggestTextField.module.css';
+import Main_TextField from '../TextField/Main_TextField';
 
 /**
  * Sub_SuggestTextField Component
  * Handles the rendering of the input field and the suggestion list.
+ * Uses Main_TextField for consistent input styling across the application.
  */
 const Sub_SuggestTextField = ({
   id,
@@ -16,8 +18,8 @@ const Sub_SuggestTextField = ({
 }) => {
   const [isFocused, setIsFocused] = useState(false);
 
-  const handleInputChange = (e) => {
-    onInputChange(e.target.value);
+  const handleInputChange = (newValue) => {
+    onInputChange(newValue);
   };
 
   const handleSuggestionClick = (suggestion) => {
@@ -25,17 +27,25 @@ const Sub_SuggestTextField = ({
     setIsFocused(false); // Close suggestion list after selection
   };
 
+  const handleFocus = () => {
+    setIsFocused(true);
+  };
+
+  const handleBlur = () => {
+    // Delay to allow click on suggestion items
+    setTimeout(() => setIsFocused(false), 150);
+  };
+
   return (
     <div className={styles.inputContainer}>
-      <input
-        id={id}
-        type="text"
+      <Main_TextField
+        inputId={id}
         value={value}
         onChange={handleInputChange}
-        onFocus={() => setIsFocused(true)}
-        onBlur={() => setTimeout(() => setIsFocused(false), 150)} // Delay to allow click
         placeholder={placeholder}
-        className={styles.inputField}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
+        className={styles.suggestInput}
       />
       {isFocused && suggestions.length > 0 && (
         <ul className={styles.suggestionList}>

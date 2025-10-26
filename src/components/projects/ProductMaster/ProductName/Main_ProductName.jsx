@@ -1,6 +1,6 @@
 import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
 import ControlRowBtn from '../../../common/ControlRowBtn';
-import ProductNameRow from './ProductNameRow';
+import Sub_ProductNameRow from './Sub_ProductNameRow';
 import { useSavePageData } from '../../../common/SavePage/Main_SavePage';
 
 const Main_ProductName = () => {
@@ -12,14 +12,14 @@ const Main_ProductName = () => {
     // Only pass initial values to the first row
     if (rowIndex === 0) {
       return (
-        <ProductNameRow
+        <Sub_ProductNameRow
           initialProductName={pageData.productName || ''}
           initialProductId={pageData.productId || ''}
         />
       );
     }
     // For other rows, don't pass initial values
-    return <ProductNameRow />;
+    return <Sub_ProductNameRow />;
   };
 
   return (

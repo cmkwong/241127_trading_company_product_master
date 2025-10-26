@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 import Main_Suggest from '../../../common/InputOptions/Suggest/Main_Suggest';
 import { useSavePageData } from '../../../common/SavePage/Main_SavePage';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
@@ -14,16 +14,15 @@ const defaultProductName = [
   'Durable Convenient Stainless Steel Blade Free Nail Clipper No More Over Cutting Nail Trimmers',
 ];
 
-// Independent ProductNameRow component with its own state
-const ProductNameRow = ({ initialProductName = '', initialProductId = '' }) => {
+// Independent Sub_ProductNameRow component with its own state
+const Sub_ProductNameRow = ({ initialProductName = '' }) => {
   const { updateData } = useSavePageData();
 
   // Determine if this is the first row based on whether initial values were provided
-  const isFirstRow = initialProductName !== '' || initialProductId !== '';
+  const isFirstRow = initialProductName !== '';
 
   // Use refs to track current values without causing re-renders
   const productNameRef = useRef(initialProductName);
-  const productIdRef = useRef(initialProductId);
 
   // Debounce timer for updating global state
   const timerRef = useRef(null);
@@ -54,21 +53,6 @@ const ProductNameRow = ({ initialProductName = '', initialProductId = '' }) => {
     }
   };
 
-  const handleProductIdChange = (value) => {
-    productIdRef.current = value;
-
-    // Update the global state if this is the first row, with debounce
-    if (isFirstRow) {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-      }
-
-      timerRef.current = setTimeout(() => {
-        updateData('productId', value);
-      }, 300); // 300ms debounce
-    }
-  };
-
   return (
     <>
       <Main_Suggest
@@ -76,13 +60,8 @@ const ProductNameRow = ({ initialProductName = '', initialProductId = '' }) => {
         defaultValue={initialProductName}
         onChange={handleProductNameChange}
       />
-      <Main_TextField
-        placeholder={'Product ID'}
-        defaultValue={initialProductId}
-        onChange={handleProductIdChange}
-      />
     </>
   );
 };
 
-export default ProductNameRow;
+export default Sub_ProductNameRow;

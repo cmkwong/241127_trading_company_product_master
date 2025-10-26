@@ -23,7 +23,7 @@ const Sub_ProductLinkRow = () => {
 
   return (
     <div className={styles.rowContainer}>
-      <Main_TextField label="link" />
+      <Main_TextField placeholder={'Link'} />
       <div className={styles.contentRow}>
         <div className={styles.inputsColumn}>
           <Main_ImageUpload

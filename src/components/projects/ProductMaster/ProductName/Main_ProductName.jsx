@@ -1,6 +1,7 @@
 import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
 import Main_Suggest from '../../../common/InputOptions/Suggest/Main_Suggest';
 import ControlRowBtn from '../../../common/ControlRowBtn';
+import { useSavePageData } from '../../../common/SavePage/Main_SavePage';
 
 const defaultProductName = [
   'Elizabeth Collar Pet Grooming Shield Anti Bite Collar Dog Necklace Cat Neck Shame Collar',
@@ -14,11 +15,21 @@ const defaultProductName = [
 ];
 
 const Main_ProductName = () => {
+  const { pageData, updateData } = useSavePageData();
+
+  const handleProductNameChange = (value) => {
+    updateData('productName', value);
+  };
+
   return (
     <>
       <Main_InputContainer label={'Product Name'}>
         <ControlRowBtn>
-          <Main_Suggest defaultSuggestions={defaultProductName} />
+          <Main_Suggest
+            defaultSuggestions={defaultProductName}
+            defaultValue={pageData.productName || ''}
+            onChange={handleProductNameChange}
+          />
         </ControlRowBtn>
       </Main_InputContainer>
     </>

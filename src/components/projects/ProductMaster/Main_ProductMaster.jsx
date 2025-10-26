@@ -8,10 +8,39 @@ import Main_AlibabaLink from './AlibabaLink/Main_AlibabaLink';
 import Main_Remark from './Remarks/Main_Remark';
 import Main_ProductIcon from './ProductIcon/Main_ProductIcon';
 import Main_CertificateData from './CertificateData/Main_CertificateData';
+import SavePageWithProvider from '../../common/SavePage/Main_SavePage';
 
 const Main_ProductMaster = () => {
+  // Function to handle saving product data
+  const onSaveProduct = async (productData) => {
+    // In a real app, you would make an API call here
+    console.log('Saving product data:', productData);
+
+    // Simulate API call
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve({ success: true });
+      }, 1000);
+    });
+  };
+
   return (
-    <>
+    <SavePageWithProvider
+      onSave={onSaveProduct}
+      saveButtonText="Save Product"
+      successMessage="Product saved successfully!"
+      initialData={{
+        // You can provide initial data here if needed
+        productName: 'ABC',
+        category: [],
+        supplier: {
+          name: '',
+          option: '',
+        },
+        remarks: '',
+        // ... other initial values
+      }}
+    >
       <div className={styles.container}>
         <div className={styles.inputSide}>
           <Main_ProductName />
@@ -27,7 +56,7 @@ const Main_ProductMaster = () => {
           <Main_ProductIcon />
         </div>
       </div>
-    </>
+    </SavePageWithProvider>
   );
 };
 

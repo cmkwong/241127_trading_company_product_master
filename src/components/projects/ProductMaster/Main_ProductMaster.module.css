@@ -1,27 +1,125 @@
-.container {
+.masterContainer {
   display: flex;
-  flex-direction: row;
+  height: 100vh;
   width: 100%;
+  position: relative;
+  overflow: hidden; /* Prevent overflow at the container level */
+}
+
+.container {
+  flex: 1;
+  display: flex;
+  padding: 20px;
+  gap: 20px;
+  overflow-y: auto; /* Allow scrolling within the container */
+  height: 100vh; /* Full height */
+  flex-direction: row; /* Ensure horizontal layout by default */
 }
 
 .inputSide {
-  flex: 3; /* Occupies 3 parts of the available space */
-  padding: 10px;
+  flex: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0; /* Allow flex items to shrink below content size if needed */
+  overflow-y: auto; /* Allow scrolling within the input side */
+  padding-bottom: 80px; /* Add padding at the bottom for the save button */
 }
 
 .icon {
-  flex: 1; /* Occupies 1 part of the available space */
+  flex: 1;
+  min-width: 200px;
+  max-width: 300px;
+  height: fit-content; /* Adjust height to content */
+}
+
+/* Sidebar toggle button */
+.sidebarToggle {
+  position: absolute;
+  top: 50%;
+  left: 300px; /* Aligns with default sidebar width */
+  transform: translateY(-50%);
+  z-index: 10;
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 0 4px 4px 0;
+  width: 24px;
+  height: 48px;
   display: flex;
-  justify-content: center;
   align-items: center;
-  padding: 10px;
-  /* Ensures it stays fixed to the top of the screen */
-  position: fixed;
-  /* Stick to the top of the screen */
-  top: 0;
-  right: 0; /* Align it to the right side */
-  background-color: white; /* Optional: To maintain a background */
-  /* Ensures it stays above other elements */
-  z-index: 100;
-  opacity: 0.9;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  transition: left 0.3s ease;
+}
+
+.sidebarToggle.collapsed {
+  left: 0;
+}
+
+.sidebarToggle:hover {
+  background-color: #f5f5f5;
+}
+
+/* Sidebar transition */
+.sidebar {
+  width: 300px;
+  height: 100vh;
+  transition: width 0.3s ease, margin-left 0.3s ease;
+  overflow: hidden;
+  flex-shrink: 0; /* Prevent sidebar from shrinking */
+}
+
+.sidebar.collapsed {
+  width: 0;
+  margin-left: -300px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .container {
+    flex-direction: column;
+  }
+
+  .icon {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .masterContainer {
+    flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .sidebar {
+    width: 100%;
+    max-height: 300px;
+    transition: max-height 0.3s ease;
+    height: auto;
+  }
+
+  .sidebar.collapsed {
+    max-height: 0;
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .sidebarToggle {
+    top: 300px;
+    left: 50%;
+    transform: translateX(-50%) rotate(90deg);
+    border-radius: 0 0 4px 4px;
+  }
+
+  .sidebarToggle.collapsed {
+    top: 0;
+    left: 50%;
+  }
+
+  .container {
+    height: auto;
+    min-height: calc(100vh - 300px);
+  }
 }

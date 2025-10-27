@@ -16,10 +16,11 @@ const Sub_ProductLinkRow = () => {
     setImages(updatedImages);
   }, []);
 
-  // handler for image removal
-  const handleRemoveImage = useCallback((id) => {
-    setImages((prevImages) => prevImages.filter((image) => image.id !== id));
-  });
+  // Handle image upload errors
+  const handleImageError = (error) => {
+    console.error('Image upload error:', error);
+    // You could add a toast notification here
+  };
 
   return (
     <div className={styles.rowContainer}>
@@ -27,8 +28,8 @@ const Sub_ProductLinkRow = () => {
       <div className={styles.contentRow}>
         <div className={styles.inputsColumn}>
           <Main_ImageUpload
+            onError={handleImageError}
             onChange={handleImageChange}
-            // showPreview={false}
             defaultImages={images}
           />
           <Main_TextArea label={'Remark'} />

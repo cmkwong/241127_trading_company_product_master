@@ -9,8 +9,8 @@ export const mockProducts = [
     ],
     category: [1, 2],
     supplier: [
-      { id: 1, code: 'S000325', remark: 'Testing' },
-      { id: 2, code: 'S000215', remark: 'Testing2' },
+      { id: 1, code: 'S000325', remark: 'Testing', images: [] },
+      { id: 2, code: 'S000215', remark: 'Testing2', images: [] },
     ],
     alibabaIds: [
       { id: 1, value: '10215135354354', link: 'http://yahoo.com.hk' },

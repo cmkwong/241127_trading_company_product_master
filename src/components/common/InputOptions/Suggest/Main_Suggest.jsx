@@ -86,9 +86,12 @@ const Main_Suggest = (props) => {
   // when user typed in input, filter the required suggestions
   const filterSuggestions = useMemo(() => {
     if (!inputValue) return currentSuggestions || [];
-    const v = inputValue.toLowerCase();
+    const v = String(inputValue).toLowerCase();
     return (currentSuggestions || []).filter((el) => {
-      return el.toLowerCase().includes(v);
+      // Make sure el is a string before calling toLowerCase
+      return typeof el === 'string'
+        ? el.toLowerCase().includes(v)
+        : String(el).toLowerCase().includes(v);
     });
   }, [inputValue, currentSuggestions]);
 

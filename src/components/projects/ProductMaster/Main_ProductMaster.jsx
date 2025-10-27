@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Main_Pack from './Packing/Main_Pack';
 import styles from './Main_ProductMaster.module.css';
 import Main_ProductName from './ProductName/Main_ProductName';
@@ -9,15 +9,12 @@ import Main_AlibabaLink from './AlibabaLink/Main_AlibabaLink';
 import Main_Remark from './Remarks/Main_Remark';
 import Main_ProductIcon from './ProductIcon/Main_ProductIcon';
 import Main_CertificateData from './CertificateData/Main_CertificateData';
-import Main_AllProductList from './AllProductList/Main_AllProductList';
 import SavePageWithProvider from '../../common/SavePage/Main_SavePage';
+import ProductSidebar from './AllProductList/ProductSidebar';
 
 const Main_ProductMaster = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [windowWidth, setWindowWidth] = useState(
-    typeof window !== 'undefined' ? window.innerWidth : 1024
-  );
 
   // Function to handle saving product data
   const onSaveProduct = async (productData) => {
@@ -35,30 +32,12 @@ const Main_ProductMaster = () => {
   // Handle product selection from the list
   const handleProductSelect = (product) => {
     setSelectedProduct(product);
-    // On mobile, collapse the sidebar after selection
-    if (windowWidth <= 768) {
-      setSidebarCollapsed(true);
-    }
   };
 
   // Toggle sidebar visibility
-  const toggleSidebar = () => {
-    setSidebarCollapsed(!sidebarCollapsed);
+  const handleToggleSidebar = (collapsed) => {
+    setSidebarCollapsed(collapsed);
   };
-
-  // Track window resize for responsive behavior
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const handleResize = () => {
-        setWindowWidth(window.innerWidth);
-      };
-
-      window.addEventListener('resize', handleResize);
-      return () => {
-        window.removeEventListener('resize', handleResize);
-      };
-    }
-  }, []);
 
   return (
     <SavePageWithProvider
@@ -82,23 +61,11 @@ const Main_ProductMaster = () => {
       }}
     >
       <div className={styles.masterContainer}>
-        <div
-          className={`${styles.sidebar} ${
-            sidebarCollapsed ? styles.collapsed : ''
-          }`}
-        >
-          <Main_AllProductList onSelectProduct={handleProductSelect} />
-        </div>
-
-        {/* Toggle button for sidebar */}
-        <div
-          className={`${styles.sidebarToggle} ${
-            sidebarCollapsed ? styles.collapsed : ''
-          }`}
-          onClick={toggleSidebar}
-        >
-          {sidebarCollapsed ? '›' : '‹'}
-        </div>
+        <ProductSidebar
+          onSelectProduct={handleProductSelect}
+          isCollapsed={sidebarCollapsed}
+          onToggleCollapse={handleToggleSidebar}
+        />
 
         <div
           className={`${styles.container} ${

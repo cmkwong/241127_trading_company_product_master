@@ -2,6 +2,7 @@ import { useRef, useEffect } from 'react';
 import Main_Suggest from '../../../common/InputOptions/Suggest/Main_Suggest';
 import { useSavePageData } from '../../../common/SavePage/Main_SavePage';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
+import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
 
 const defaultProductName = [
   'Elizabeth Collar Pet Grooming Shield Anti Bite Collar Dog Necklace Cat Neck Shame Collar',
@@ -60,6 +61,7 @@ const Sub_ProductNameRow = ({ initialProductName = '' }) => {
         defaultValue={initialProductName}
         onChange={handleProductNameChange}
       />
+      <Main_Dropdown defaultOptions={['Option A', 'Option B']} />
     </>
   );
 };

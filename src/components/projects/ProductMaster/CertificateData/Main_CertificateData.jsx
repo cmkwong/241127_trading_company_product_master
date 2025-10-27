@@ -22,7 +22,7 @@ const Main_CertificateData = () => {
     <Main_InputContainer label="Certificates">
       <ControlRowBtn>
         <div className={styles.fileUploadContainer}>
-          <Main_Dropdown label="Certificate Type" defaultOptions={options} />
+          <Main_Dropdown label="Type" defaultOptions={options} />
           <Main_FileUploads
             label="Upload Certificates"
             onChange={handleFileChange}

@@ -12,10 +12,7 @@ const Main_ProductName = () => {
     // Only pass initial values to the first row
     if (rowIndex === 0) {
       return (
-        <Sub_ProductNameRow
-          initialProductName={pageData.productName || ''}
-          initialProductId={pageData.productId || ''}
-        />
+        <Sub_ProductNameRow initialProductName={pageData.productName || ''} />
       );
     }
     // For other rows, don't pass initial values

@@ -6,9 +6,9 @@ const ProductItem = ({ product, isSelected, onClick }) => {
       className={`${styles.productItem} ${isSelected ? styles.selected : ''}`}
       onClick={() => onClick(product)}
     >
-      <ProductIcon url={product.iconUrl} alt={product.productName} />
+      <ProductIcon url={product.iconUrl} alt={product.productName[0].name} />
       <ProductInfo
-        name={product.productName}
+        name={product.productName[0].name}
         id={product.productId}
         categories={product.category}
         alibabaIds={product.alibabaIds}

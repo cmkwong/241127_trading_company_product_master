@@ -22,8 +22,8 @@ const ControlRowBtn = (props) => {
 
   return (
     <div className={styles.controlRowWrapper}>
-      {rows.map((row, rowIndex) => {
-        const isLastRow = rowIndex === rows.length - 1;
+      {rows.map((row, rowindex) => {
+        const isLastRow = rowindex === rows.length - 1;
 
         return (
           <div key={row.id} className={styles.controlRowContainer}>
@@ -45,10 +45,10 @@ const ControlRowBtn = (props) => {
               {Children.map(children, (child, index) => {
                 if (!child) return null;
 
-                // Generate a stable key for this child component and pass rowIndex
+                // Generate a stable key for this child component and pass rowindex
                 return cloneElement(child, {
                   key: `${row.id}-${index}`,
-                  rowIndex: rowIndex, // Pass rowIndex to child
+                  rowindex: rowindex, // Pass rowindex to child
                 });
               })}
             </div>

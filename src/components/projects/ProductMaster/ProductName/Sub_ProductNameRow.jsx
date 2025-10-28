@@ -1,8 +1,7 @@
-import { useRef, useEffect } from 'react';
+import { useRef } from 'react';
 import Main_Suggest from '../../../common/InputOptions/Suggest/Main_Suggest';
-import { useSavePageData } from '../../../common/SavePage/Main_SavePage';
-import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
 import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
+import { mockProductNameType } from '../../../../datas/Options/ProductOptions';
 
 const defaultProductName = [
   'Elizabeth Collar Pet Grooming Shield Anti Bite Collar Dog Necklace Cat Neck Shame Collar',
@@ -15,12 +14,23 @@ const defaultProductName = [
   'Durable Convenient Stainless Steel Blade Free Nail Clipper No More Over Cutting Nail Trimmers',
 ];
 
-// Independent Sub_ProductNameRow component with its own state
-const Sub_ProductNameRow = () => {
-  const { updateData } = useSavePageData();
+// The Sub_ProductNameRow component that receives props including rowindex from ControlRowBtn
+const Sub_ProductNameRow = (props) => {
+  // Extract the props we need and ignore the rest to prevent passing them to DOM elements
+  const { productNames = [], onChange, rowindex = 0, ...restProps } = props;
+
+  // Get the current product name data for this row, or use default values
+  const currentProduct = productNames[rowindex] || { name: '', type: 1 };
+  console.log('rowindex: ', rowindex);
+  console.log('productNames: ', productNames);
+  console.log('currentProduct: ', currentProduct);
 
   const handleProductNameChange = ({ value }) => {
-    updateData('productName', value);
+    onChange(rowindex, 'name', value);
+  };
+
+  const handleTypeChange = (selected) => {
+    onChange(rowindex, 'type', selected);
   };
 
   return (
@@ -28,8 +38,13 @@ const Sub_ProductNameRow = () => {
       <Main_Suggest
         defaultSuggestions={defaultProductName}
         onChange={handleProductNameChange}
+        value={currentProduct.name}
       />
-      <Main_Dropdown defaultOptions={['Option A', 'Option B']} />
+      <Main_Dropdown
+        defaultOptions={mockProductNameType}
+        selectedOptions={currentProduct.type}
+        onChange={({ selected }) => handleTypeChange(selected)}
+      />
     </>
   );
 };

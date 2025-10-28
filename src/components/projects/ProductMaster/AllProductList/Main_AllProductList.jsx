@@ -39,7 +39,7 @@ const Main_AllProductList = ({ onSelectProduct }) => {
     setSelectedProduct(product);
 
     // Update the global state with the selected product data
-    updateData('productName', product.productName[0].name);
+    updateData('productName', product.productName);
     updateData('productId', product.productId);
     updateData('category', product.category);
     updateData('alibabaIds', product.alibabaIds);

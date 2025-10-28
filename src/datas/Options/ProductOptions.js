@@ -2,7 +2,7 @@ export const mockProductNameType = [
   { id: 1, name: 'Alibaba' },
   { id: 2, name: '1688' },
   { id: 3, name: 'Amazon' },
-  { id: 3, name: 'Internal' },
+  { id: 4, name: 'Internal' },
 ];
 
 export const mockCategory = [

@@ -1,19 +1,65 @@
+import { useState, useEffect } from 'react';
 import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
 import ControlRowBtn from '../../../common/ControlRowBtn';
 import Sub_ProductNameRow from './Sub_ProductNameRow';
 import { useSavePageData } from '../../../common/SavePage/Main_SavePage';
 
+// Create a wrapper component to handle the rowindex prop
+const ProductNameRowWrapper = (props) => {
+  const { rowindex, productNames, onChange } = props;
+  return (
+    <Sub_ProductNameRow
+      productNames={productNames}
+      onChange={onChange}
+      rowindex={rowindex}
+    />
+  );
+};
+
 const Main_ProductName = () => {
-  const { pageData } = useSavePageData();
+  const { pageData, updateData } = useSavePageData();
+  const [productNames, setProductNames] = useState(pageData.productName || []);
+
+  // Initialize with default data if none exists
+  useEffect(() => {
+    if (!pageData.productName || pageData.productName.length === 0) {
+      const initialProductName = [{ id: 1, name: '', type: 1 }];
+      updateData('productName', initialProductName);
+    } else {
+      setProductNames(pageData.productName);
+    }
+  }, [pageData.productName, updateData]);
+
+  const handleProductNameChange = (rowindex, field, value) => {
+    const updatedProductNames = [...productNames];
+
+    // Ensure the row exists in our array
+    if (!updatedProductNames[rowindex]) {
+      updatedProductNames[rowindex] = { id: rowindex + 1, name: '', type: 1 };
+    }
+
+    // Update the specified field
+    updatedProductNames[rowindex] = {
+      ...updatedProductNames[rowindex],
+      [field]: value,
+    };
+
+    setProductNames(updatedProductNames);
+    updateData('productName', updatedProductNames);
+  };
 
   return (
     <>
       <Main_InputContainer label={'Product Name'}>
-        <ControlRowBtn>
-          <Sub_ProductNameRow />
+        <ControlRowBtn initialRowCount={Math.max(1, productNames.length)}>
+          <ProductNameRowWrapper
+            productNames={productNames}
+            onChange={handleProductNameChange}
+          />
         </ControlRowBtn>
       </Main_InputContainer>
     </>
   );
 };
+
 export default Main_ProductName;

@@ -3,7 +3,7 @@ import Main_Pack from './Packing/Main_Pack';
 import styles from './Main_ProductMaster.module.css';
 import Main_ProductName from './ProductName/Main_ProductName';
 import Main_Category from './Categories/Main_Category';
-import Main_Supplier from './Suppliers/Main_Supplier';
+import Main_Supplier from './Customization/Main_Customization';
 import Main_ProductLink from './ProductLink/Main_ProductLink';
 import Main_AlibabaLink from './AlibabaLink/Main_AlibabaLink';
 import Main_Remark from './Remarks/Main_Remark';
@@ -44,21 +44,32 @@ const Main_ProductMaster = () => {
       onSave={onSaveProduct}
       saveButtonText="Save Product"
       successMessage="Product saved successfully!"
-      initialData={{
-        // You can provide initial data here if needed
-        productName: selectedProduct ? selectedProduct.productName : 'ABC',
-        productId: selectedProduct ? selectedProduct.productId : '',
-        category: selectedProduct ? selectedProduct.category : [],
-        supplier: {
-          name: '',
-          option: '',
-        },
-        packing: {
-          dropdownOptions: ['OPP', 'carton'],
-        },
-        remarks: '',
-        // ... other initial values
-      }}
+      initialData={
+        selectedProduct || {
+          id: '',
+          productId: '',
+          iconUrl: 'https://via.placeholder.com/50',
+          productName: [
+            { id: 1, name: '', type: 1 },
+            { id: 2, name: '', type: 2 },
+          ],
+          category: [],
+          customization: [{ id: 1, code: '', remark: '', images: [] }],
+          productLinks: [
+            {
+              id: 1,
+              link: '',
+              images: [],
+              remark: '',
+              date: new Date().toISOString().split('T')[0],
+            },
+          ],
+          alibabaIds: [{ id: 1, value: '', link: '' }],
+          packings: [{ id: 1, L: 0, W: 0, H: 0, qty: 1, kg: 0, type: 1 }],
+          certificates: [{ id: 1, type: 1, files: [], remark: '' }],
+          remark: '',
+        }
+      }
     >
       <div className={styles.masterContainer}>
         <ProductSidebar

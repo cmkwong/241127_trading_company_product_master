@@ -1,11 +1,12 @@
 import { useCallback, useState } from 'react';
-import styles from './SupplierRow.module.css';
+import styles from './Sub_CustomizationRow.module.css';
 import Main_Suggest from '../../../common/InputOptions/Suggest/Main_Suggest';
 import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
 import Main_ImageUpload from '../../../common/InputOptions/ImageUploads/Main_ImageUpload';
 import ControlRowBtn from '../../../common/ControlRowBtn';
+import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
 
-const SupplierRow = () => {
+const Sub_CustomizationRow = () => {
   const defaultSuppliers = ['Supplier A', 'Supplier B', 'Supplier C'];
 
   // Each row has its own images state
@@ -25,7 +26,11 @@ const SupplierRow = () => {
   return (
     <>
       <div className={styles.textInput}>
-        <Main_Suggest defaultSuggestions={defaultSuppliers} />
+        <Main_TextField placeholder={'Customization provided'} />
+        <Main_Suggest
+          defaultSuggestions={defaultSuppliers}
+          placeholder={'Suppliers'}
+        />
         <Main_TextArea />
       </div>
       <Main_ImageUpload
@@ -39,4 +44,4 @@ const SupplierRow = () => {
   );
 };
 
-export default SupplierRow;
+export default Sub_CustomizationRow;

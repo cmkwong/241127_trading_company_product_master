@@ -8,9 +8,21 @@ export const mockProducts = [
       { id: 2, name: '狗仔花花頸圈', type: 2 },
     ],
     category: [1, 2],
-    supplier: [
-      { id: 1, code: 'S000325', remark: 'Testing', images: [] },
-      { id: 2, code: 'S000215', remark: 'Testing2', images: [] },
+    customization: [
+      {
+        id: 1,
+        name: 'custom package',
+        code: 'S000325',
+        remark: 'Testing',
+        images: [],
+      },
+      {
+        id: 2,
+        name: 'custom labels',
+        code: '',
+        remark: 'Testing2',
+        images: [],
+      },
     ],
 
     productLinks: [

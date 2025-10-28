@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
-import styles from './Main_Supplier.module.css';
+import styles from './Main_Customization.module.css';
 import { useSavePageData } from '../../../common/SavePage/Main_SavePage';
-import SupplierRow from './SupplierRow';
+import SupplierRow from './Sub_CustomizationRow';
 import ControlRowBtn from '../../../common/ControlRowBtn';
 
-const Main_Supplier = () => {
+const Main_Customization = () => {
   return (
-    <Main_InputContainer label={'Supplier'}>
+    <Main_InputContainer label={'Customization'}>
       <ControlRowBtn>
         <SupplierRow />
       </ControlRowBtn>
@@ -15,4 +15,4 @@ const Main_Supplier = () => {
   );
 };
 
-export default Main_Supplier;
+export default Main_Customization;

@@ -16,49 +16,17 @@ const defaultProductName = [
 ];
 
 // Independent Sub_ProductNameRow component with its own state
-const Sub_ProductNameRow = ({ initialProductName = '' }) => {
+const Sub_ProductNameRow = () => {
   const { updateData } = useSavePageData();
 
-  // Determine if this is the first row based on whether initial values were provided
-  const isFirstRow = initialProductName !== '';
-
-  // Use refs to track current values without causing re-renders
-  const productNameRef = useRef(initialProductName);
-
-  // Debounce timer for updating global state
-  const timerRef = useRef(null);
-
-  // Clean up timer on unmount
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-      }
-    };
-  }, []);
-
   const handleProductNameChange = ({ value }) => {
-    const nameValue =
-      typeof value === 'object' && value.value ? value.value : value;
-    productNameRef.current = nameValue;
-
-    // Update the global state if this is the first row, with debounce
-    if (isFirstRow) {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-      }
-
-      timerRef.current = setTimeout(() => {
-        updateData('productName', nameValue);
-      }, 300); // 300ms debounce
-    }
+    updateData('productName', value);
   };
 
   return (
     <>
       <Main_Suggest
         defaultSuggestions={defaultProductName}
-        defaultValue={initialProductName}
         onChange={handleProductNameChange}
       />
       <Main_Dropdown defaultOptions={['Option A', 'Option B']} />

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSavePageData } from '../../../common/SavePage/Main_SavePage';
 import styles from './Main_AllProductList.module.css';
 import SearchBar from './SearchBar';
@@ -19,6 +19,8 @@ const Main_AllProductList = ({ onSelectProduct }) => {
       return;
     }
 
+    // console.log('pageData: ', pageData);
+
     const lowerSearchTerm = searchTerm.toLowerCase();
     const filtered = products.filter(
       (product) =>
@@ -35,20 +37,23 @@ const Main_AllProductList = ({ onSelectProduct }) => {
     setFilteredProducts(filtered);
   }, [searchTerm, products]);
 
-  const handleProductSelect = (product) => {
-    setSelectedProduct(product);
+  const handleProductSelect = useCallback(
+    (product) => {
+      setSelectedProduct(product);
 
-    // Update the global state with the selected product data
-    updateData('productName', product.productName);
-    updateData('productId', product.productId);
-    updateData('category', product.category);
-    updateData('alibabaIds', product.alibabaIds);
+      // Update the global state with the selected product data
+      updateData('productName', product.productName);
+      updateData('productId', product.productId);
+      updateData('category', product.category);
+      updateData('alibabaIds', product.alibabaIds);
 
-    // Call the parent component's handler if provided
-    if (onSelectProduct) {
-      onSelectProduct(product);
-    }
-  };
+      // Call the parent component's handler if provided
+      if (onSelectProduct) {
+        onSelectProduct(product);
+      }
+    },
+    [updateData]
+  );
 
   const handleSearchChange = (value) => {
     setSearchTerm(value);

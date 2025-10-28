@@ -17,13 +17,10 @@ const defaultProductName = [
 // The Sub_ProductNameRow component that receives props including rowindex from ControlRowBtn
 const Sub_ProductNameRow = (props) => {
   // Extract the props we need and ignore the rest to prevent passing them to DOM elements
-  const { productNames = [], onChange, rowindex = 0, ...restProps } = props;
+  const { productNames = [], onChange, rowindex = 0 } = props;
 
   // Get the current product name data for this row, or use default values
   const currentProduct = productNames[rowindex] || { name: '', type: 1 };
-  console.log('rowindex: ', rowindex);
-  console.log('productNames: ', productNames);
-  console.log('currentProduct: ', currentProduct);
 
   const handleProductNameChange = ({ value }) => {
     onChange(rowindex, 'name', value);

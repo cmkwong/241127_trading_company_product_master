@@ -4,18 +4,6 @@ import ControlRowBtn from '../../../common/ControlRowBtn';
 import Sub_ProductNameRow from './Sub_ProductNameRow';
 import { useSavePageData } from '../../../common/SavePage/Main_SavePage';
 
-// Create a wrapper component to handle the rowindex prop
-const ProductNameRowWrapper = (props) => {
-  const { rowindex, productNames, onChange } = props;
-  return (
-    <Sub_ProductNameRow
-      productNames={productNames}
-      onChange={onChange}
-      rowindex={rowindex}
-    />
-  );
-};
-
 const Main_ProductName = () => {
   const { pageData, updateData } = useSavePageData();
   const [productNames, setProductNames] = useState(pageData.productName || []);
@@ -52,7 +40,7 @@ const Main_ProductName = () => {
     <>
       <Main_InputContainer label={'Product Name'}>
         <ControlRowBtn initialRowCount={Math.max(1, productNames.length)}>
-          <ProductNameRowWrapper
+          <Sub_ProductNameRow
             productNames={productNames}
             onChange={handleProductNameChange}
           />

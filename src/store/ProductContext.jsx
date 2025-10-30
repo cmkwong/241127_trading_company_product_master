@@ -1,4 +1,5 @@
 import { createContext, useState, useContext, useCallback } from 'react';
+import { mockProducts } from '../datas/Products/mockProducts';
 
 // Create context for data collection
 export const ProductContext = createContext();
@@ -9,6 +10,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState(null);
+  const [products, setProducts] = useState(mockProducts);
 
   // Function to update specific field in the data
   const updateData = useCallback((field, value) => {
@@ -25,6 +27,40 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
       ...dataObject,
     }));
   }, []);
+
+  // Function to load product data by ID
+  const loadProductById = useCallback(
+    (productId, productsList = mockProducts) => {
+      // Find the product in the provided list or fallback to mockProducts
+      const product = products.find(
+        (p) => p.id === productId || p.productId === productId
+      );
+
+      if (!product) {
+        console.error(`Product with ID ${productId} not found`);
+        return false;
+      }
+
+      // Update all product data at once
+      setPageData({
+        ...pageData,
+        id: product.id,
+        productId: product.productId,
+        productName: product.productName || [],
+        category: product.category || [],
+        customization: product.customization || [],
+        productLinks: product.productLinks || [],
+        alibabaIds: product.alibabaIds || [],
+        packings: product.packings || [],
+        certificates: product.certificates || [],
+        remark: product.remark || '',
+        iconUrl: product.iconUrl || 'https://via.placeholder.com/50',
+      });
+
+      return true;
+    },
+    [pageData]
+  );
 
   // Function to handle save action
   const handleSave = useCallback(
@@ -65,6 +101,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
         pageData,
         updateData,
         updateMultipleData,
+        loadProductById,
         handleSave,
         getAllData,
         isSaving,

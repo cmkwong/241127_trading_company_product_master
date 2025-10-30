@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react';
 import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
 import ControlRowBtn from '../../../common/ControlRowBtn';
 import Sub_ProductNameRow from './Sub_ProductNameRow';
-import { useSavePageData } from '../../../common/SavePage/Main_SavePage';
+import { useProductContext } from '../../../../store/ProductContext';
 
 const Main_ProductName = () => {
-  const { pageData, updateData } = useSavePageData();
+  const { pageData, updateData } = useProductContext;
+  console.log('pageData, updateData: ', pageData, updateData);
   const [productNames, setProductNames] = useState(pageData.productName || []);
 
   // Initialize with default data if none exists
@@ -13,6 +14,12 @@ const Main_ProductName = () => {
     if (!pageData.productName || pageData.productName.length === 0) {
       const initialProductName = [{ id: 1, name: '', type: 1 }];
       updateData('productName', initialProductName);
+    } else if (typeof pageData.productName === 'string') {
+      // Convert string productName to array format
+      const initialProductName = [
+        { id: 1, name: pageData.productName, type: 1 },
+      ];
+      setProductNames(initialProductName);
     } else {
       setProductNames(pageData.productName);
     }

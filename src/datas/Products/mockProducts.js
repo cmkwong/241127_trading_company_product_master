@@ -24,7 +24,6 @@ export const mockProducts = [
         images: [],
       },
     ],
-
     productLinks: [
       {
         id: 1,

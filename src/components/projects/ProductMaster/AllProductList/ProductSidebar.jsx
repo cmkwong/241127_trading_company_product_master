@@ -2,7 +2,12 @@ import { useState, useEffect } from 'react';
 import styles from './ProductSidebar.module.css';
 import Main_AllProductList from './Main_AllProductList';
 
-const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
+const ProductSidebar = ({
+  onSelectProduct,
+  isCollapsed,
+  onToggleCollapse,
+  productsList,
+}) => {
   const [windowWidth, setWindowWidth] = useState(
     typeof window !== 'undefined' ? window.innerWidth : 1024
   );
@@ -39,7 +44,10 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
       <div
         className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ''}`}
       >
-        <Main_AllProductList onSelectProduct={handleProductSelect} />
+        <Main_AllProductList
+          onSelectProduct={handleProductSelect}
+          productsList={productsList}
+        />
       </div>
 
       {/* Toggle button for sidebar */}

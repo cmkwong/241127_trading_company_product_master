@@ -2,11 +2,10 @@ import { useState, useEffect } from 'react';
 import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
 import ControlRowBtn from '../../../common/ControlRowBtn';
 import Sub_ProductNameRow from './Sub_ProductNameRow';
-import { useProductContext } from '../../../../store/ProductContext';
+import { useProductContext } from '../../../../store/ProductContext.jsx';
 
 const Main_ProductName = () => {
-  const { pageData, updateData } = useProductContext;
-  console.log('pageData, updateData: ', pageData, updateData);
+  const { pageData, updateData } = useProductContext();
   const [productNames, setProductNames] = useState(pageData.productName || []);
 
   // Initialize with default data if none exists

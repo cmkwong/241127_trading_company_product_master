@@ -28,10 +28,20 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
     }));
   }, []);
 
+  // Function to get all products
+  const getAllProducts = useCallback(() => {
+    return products;
+  }, [products]);
+
+  // Function to update products list
+  const updateProducts = useCallback((newProducts) => {
+    setProducts(newProducts);
+  }, []);
+
   // Function to load product data by ID
   const loadProductById = useCallback(
-    (productId, productsList = mockProducts) => {
-      // Find the product in the provided list or fallback to mockProducts
+    (productId) => {
+      // Find the product in the internal products state
       const product = products.find(
         (p) => p.id === productId || p.productId === productId
       );
@@ -54,12 +64,12 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
         packings: product.packings || [],
         certificates: product.certificates || [],
         remark: product.remark || '',
-        iconUrl: product.iconUrl || 'https://via.placeholder.com/50',
+        iconUrl: product.iconUrl || '',
       });
 
       return true;
     },
-    [pageData]
+    [pageData, products]
   );
 
   // Function to handle save action
@@ -72,6 +82,32 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
         // If onSave callback is provided, call it with the current data
         if (typeof onSave === 'function') {
           await onSave(pageData);
+          console.log(pageData);
+
+          // Update the products list if the saved product exists
+          if (pageData.id) {
+            setProducts((prevProducts) => {
+              const updatedProducts = [...prevProducts];
+              const existingIndex = updatedProducts.findIndex(
+                (p) => p.id === pageData.id
+              );
+
+              if (existingIndex !== -1) {
+                // Update existing product
+                updatedProducts[existingIndex] = {
+                  ...updatedProducts[existingIndex],
+                  ...pageData,
+                };
+              } else {
+                // Add new product
+                updatedProducts.push({
+                  ...pageData,
+                });
+              }
+
+              return updatedProducts;
+            });
+          }
         }
 
         setSaveSuccess(true);
@@ -99,9 +135,12 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
     <ProductContext.Provider
       value={{
         pageData,
+        products,
         updateData,
         updateMultipleData,
         loadProductById,
+        getAllProducts,
+        updateProducts,
         handleSave,
         getAllData,
         isSaving,

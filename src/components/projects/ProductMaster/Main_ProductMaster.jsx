@@ -19,16 +19,17 @@ const Main_ProductMaster = () => {
   const [productsList, setProductsList] = useState(mockProducts);
 
   // Function to handle saving product data
-  const onSaveProduct = async (productData) => {
+  const onSaveProduct = async (new_productData) => {
     // In a real app, you would make an API call here
-    console.log('Saving product data:', productData);
+    console.log('Saving product data:', new_productData);
 
     // Create a copy of the products list
     const updatedProductsList = [...productsList];
 
     // Check if the product already exists in the list
     const existingProductIndex = updatedProductsList.findIndex(
-      (p) => p.id === productData.id || p.productId === productData.productId
+      (p) =>
+        p.id === new_productData.id || p.productId === new_productData.productId
     );
 
     if (existingProductIndex >= 0) {
@@ -36,40 +37,42 @@ const Main_ProductMaster = () => {
       updatedProductsList[existingProductIndex] = {
         ...updatedProductsList[existingProductIndex],
         // Keep the original structure for productName field from mockProducts
-        // If productData.productName exists and is a string, use it directly
+        // If new_productData.productName exists and is a string, use it directly
         // If it's an array, use the first non-empty name or the original value
-        productName: Array.isArray(productData.productName)
-          ? productData.productName
+        productName: Array.isArray(new_productData.productName)
+          ? new_productData.productName
           : [],
         // Only update fields that are present in mockProducts
-        ...(productData.category && { category: productData.category }),
-        ...(productData.alibabaIds && {
-          alibabaIds: productData.alibabaIds
+        ...(new_productData.category && { category: new_productData.category }),
+        ...(new_productData.alibabaIds && {
+          alibabaIds: new_productData.alibabaIds
             .map((item) => (typeof item === 'object' ? item.value || '' : item))
             .filter(Boolean),
         }),
-        ...(productData.iconUrl && { iconUrl: productData.iconUrl }),
+        ...(new_productData.iconUrl && { iconUrl: new_productData.iconUrl }),
       };
-    } else if (productData.id || productData.productId) {
+      // if cannot find, it is new product
+    } else if (new_productData.id || new_productData.productId) {
       // Add new product following the mockProducts structure
       updatedProductsList.push({
-        id: productData.id || `product-${Date.now()}`,
-        productId: productData.productId || `PID-${Date.now().toString(36)}`,
+        id: new_productData.id || `product-${Date.now()}`,
+        productId:
+          new_productData.productId || `PID-${Date.now().toString(36)}`,
         // Format productName according to mockProducts structure (as a string)
-        productName: Array.isArray(productData.productName)
-          ? productData.productName
+        productName: Array.isArray(new_productData.productName)
+          ? new_productData.productName
           : [],
-        category: Array.isArray(productData.category)
-          ? productData.category
+        category: Array.isArray(new_productData.category)
+          ? new_productData.category
           : [],
-        alibabaIds: Array.isArray(productData.alibabaIds)
-          ? productData.alibabaIds
+        alibabaIds: Array.isArray(new_productData.alibabaIds)
+          ? new_productData.alibabaIds
               .map((item) =>
                 typeof item === 'object' ? item.value || '' : item
               )
               .filter(Boolean)
           : [],
-        iconUrl: productData.iconUrl || 'https://via.placeholder.com/50',
+        iconUrl: new_productData.iconUrl || 'https://via.placeholder.com/50',
       });
     }
 

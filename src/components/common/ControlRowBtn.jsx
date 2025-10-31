@@ -1,8 +1,10 @@
-import { useState, cloneElement, Children } from 'react';
+import { useState, cloneElement, Children, useEffect } from 'react';
 import styles from './ControlRowBtn.module.css';
 
 const ControlRowBtn = (props) => {
   const { children, initialRowCount = 1 } = props;
+
+  // Initialize rows state based on initialRowCount
   const [rows, setRows] = useState(
     Array(initialRowCount)
       .fill(null)

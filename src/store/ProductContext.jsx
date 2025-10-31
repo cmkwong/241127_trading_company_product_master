@@ -38,7 +38,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
     setProducts(newProducts);
   }, []);
 
-  // Function to load product data by ID
+  // load product into page data by ID
   const loadProductById = useCallback(
     (productId) => {
       // Find the product in the internal products state
@@ -72,42 +72,41 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
     [pageData, products]
   );
 
-  // Function to handle save action
+  // Function to handle save action with built-in product list update
   const handleSave = useCallback(
-    async (onSave) => {
+    async (externalSaveCallback = null) => {
       setIsSaving(true);
       setSaveError(null);
 
       try {
-        // If onSave callback is provided, call it with the current data
-        if (typeof onSave === 'function') {
-          await onSave(pageData);
-          console.log(pageData);
+        // If external save callback is provided (e.g., for API calls), call it with the current data
+        if (typeof externalSaveCallback === 'function') {
+          await externalSaveCallback(pageData);
+        }
 
-          // Update the products list if the saved product exists
-          if (pageData.id) {
-            setProducts((prevProducts) => {
-              const updatedProducts = [...prevProducts];
-              const existingIndex = updatedProducts.findIndex(
-                (p) => p.id === pageData.id
-              );
+        // Always update the products list if the saved product has an ID
+        if (pageData.id) {
+          setProducts((prevProducts) => {
+            const updatedProducts = [...prevProducts];
+            const existingIndex = updatedProducts.findIndex(
+              (p) => p.id === pageData.id
+            );
 
-              if (existingIndex !== -1) {
-                // Update existing product
-                updatedProducts[existingIndex] = {
-                  ...updatedProducts[existingIndex],
-                  ...pageData,
-                };
-              } else {
-                // Add new product
-                updatedProducts.push({
-                  ...pageData,
-                });
-              }
+            if (existingIndex !== -1) {
+              // Update existing product
+              updatedProducts[existingIndex] = {
+                ...updatedProducts[existingIndex],
+                ...pageData,
+              };
+            } else {
+              // Add new product
+              updatedProducts.push({
+                ...pageData,
+              });
+            }
 
-              return updatedProducts;
-            });
-          }
+            return updatedProducts;
+          });
         }
 
         setSaveSuccess(true);
@@ -116,15 +115,35 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
         setTimeout(() => {
           setSaveSuccess(false);
         }, 3000);
+
+        return true; // Indicate successful save
       } catch (error) {
         console.error('Error saving data:', error);
         setSaveError(error.message || 'Failed to save data');
+        return false; // Indicate failed save
       } finally {
         setIsSaving(false);
       }
     },
     [pageData]
   );
+
+  // Create a new product (clear page data)
+  const createNewProduct = useCallback(() => {
+    setPageData({
+      id: `new-${Date.now()}`, // Temporary ID that will be replaced when saved to backend
+      productId: '',
+      productName: [{ id: 1, name: '', type: 1 }],
+      category: [],
+      customization: [],
+      productLinks: [],
+      alibabaIds: [{ id: 1, value: '', link: '' }],
+      packings: [],
+      certificates: [],
+      remark: '',
+      iconUrl: '',
+    });
+  }, []);
 
   // Get all collected data
   const getAllData = useCallback(() => {
@@ -142,6 +161,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
         getAllProducts,
         updateProducts,
         handleSave,
+        createNewProduct,
         getAllData,
         isSaving,
         saveSuccess,

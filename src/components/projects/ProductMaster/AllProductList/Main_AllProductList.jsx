@@ -2,43 +2,15 @@ import { useState, useEffect, useCallback } from 'react';
 import styles from './Main_AllProductList.module.css';
 import SearchBar from './SearchBar';
 import ProductList from './ProductList';
-import { mockProducts } from '../../../../datas/Products/mockProducts';
 import { useProductContext } from '../../../../store/ProductContext';
 
-const Main_AllProductList = ({ onSelectProduct, productsList }) => {
-  const { loadProductById } = useProductContext();
-  const [products, setProducts] = useState(productsList || mockProducts);
+const Main_AllProductList = ({ onSelectProduct }) => {
+  const { loadProductById, products } = useProductContext();
   const [filteredProducts, setFilteredProducts] = useState(products);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Update products when productsList prop changes
-  useEffect(() => {
-    if (productsList) {
-      setProducts(productsList);
-
-      // Also update filtered products, preserving any search filter
-      if (searchTerm.trim()) {
-        const lowerSearchTerm = searchTerm.toLowerCase();
-        const filtered = productsList.filter(
-          (product) =>
-            product.productName.toLowerCase().includes(lowerSearchTerm) ||
-            product.productId.toLowerCase().includes(lowerSearchTerm) ||
-            product.alibabaIds.some((id) =>
-              id.toLowerCase().includes(lowerSearchTerm)
-            ) ||
-            product.category.some((cat) =>
-              cat.toLowerCase().includes(lowerSearchTerm)
-            )
-        );
-        setFilteredProducts(filtered);
-      } else {
-        setFilteredProducts(productsList);
-      }
-    }
-  }, [productsList, searchTerm]);
-
-  // Filter products when search term changes
+  // Update filtered products when products from context or search term changes
   useEffect(() => {
     if (!searchTerm.trim()) {
       setFilteredProducts(products);
@@ -48,14 +20,25 @@ const Main_AllProductList = ({ onSelectProduct, productsList }) => {
     const lowerSearchTerm = searchTerm.toLowerCase();
     const filtered = products.filter(
       (product) =>
-        product.productName.toLowerCase().includes(lowerSearchTerm) ||
+        (typeof product.productName === 'string' &&
+          product.productName.toLowerCase().includes(lowerSearchTerm)) ||
+        (Array.isArray(product.productName) &&
+          product.productName.some((name) =>
+            name.name.toLowerCase().includes(lowerSearchTerm)
+          )) ||
         product.productId.toLowerCase().includes(lowerSearchTerm) ||
-        product.alibabaIds.some((id) =>
-          id.toLowerCase().includes(lowerSearchTerm)
-        ) ||
-        product.category.some((cat) =>
-          cat.toLowerCase().includes(lowerSearchTerm)
-        )
+        (Array.isArray(product.alibabaIds) &&
+          product.alibabaIds.some((id) =>
+            typeof id === 'string'
+              ? id.toLowerCase().includes(lowerSearchTerm)
+              : id.value && id.value.toLowerCase().includes(lowerSearchTerm)
+          )) ||
+        (Array.isArray(product.category) &&
+          product.category.some((cat) =>
+            typeof cat === 'string' || typeof cat === 'number'
+              ? String(cat).toLowerCase().includes(lowerSearchTerm)
+              : false
+          ))
     );
 
     setFilteredProducts(filtered);
@@ -65,15 +48,15 @@ const Main_AllProductList = ({ onSelectProduct, productsList }) => {
     (product) => {
       setSelectedProduct(product);
 
-      // Use the new loadProductById function instead of updating each field individually
-      loadProductById(product.id, products);
+      // Use the loadProductById function to load all product data
+      loadProductById(product.id);
 
       // Call the parent component's handler if provided
       if (onSelectProduct) {
         onSelectProduct(product);
       }
     },
-    [loadProductById, onSelectProduct, products]
+    [loadProductById, onSelectProduct]
   );
 
   const handleSearchChange = (value) => {

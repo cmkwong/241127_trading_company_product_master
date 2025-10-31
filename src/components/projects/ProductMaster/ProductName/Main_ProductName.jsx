@@ -13,17 +13,12 @@ const Main_ProductName = () => {
     if (!pageData.productName || pageData.productName.length === 0) {
       const initialProductName = [{ id: 1, name: '', type: 1 }];
       updateData('productName', initialProductName);
-    } else if (typeof pageData.productName === 'string') {
-      // Convert string productName to array format
-      const initialProductName = [
-        { id: 1, name: pageData.productName, type: 1 },
-      ];
-      setProductNames(initialProductName);
     } else {
       setProductNames(pageData.productName);
     }
   }, [pageData.productName, updateData]);
 
+  // handle the product name fields being changed
   const handleProductNameChange = (rowindex, field, value) => {
     const updatedProductNames = [...productNames];
 

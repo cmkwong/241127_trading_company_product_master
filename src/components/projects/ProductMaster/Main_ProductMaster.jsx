@@ -16,73 +16,16 @@ import { mockProducts } from '../../../datas/Products/mockProducts';
 const Main_ProductMaster = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [productsList, setProductsList] = useState(mockProducts);
 
   // Function to handle saving product data
-  const onSaveProduct = async (new_productData) => {
+  const onSaveProduct = async () => {
     // In a real app, you would make an API call here
-    console.log('Saving product data:', new_productData);
-
-    // Create a copy of the products list
-    const updatedProductsList = [...productsList];
-
-    // Check if the product already exists in the list
-    const existingProductIndex = updatedProductsList.findIndex(
-      (p) =>
-        p.id === new_productData.id || p.productId === new_productData.productId
-    );
-
-    if (existingProductIndex >= 0) {
-      // Update existing product while preserving its original structure
-      updatedProductsList[existingProductIndex] = {
-        ...updatedProductsList[existingProductIndex],
-        // Keep the original structure for productName field from mockProducts
-        // If new_productData.productName exists and is a string, use it directly
-        // If it's an array, use the first non-empty name or the original value
-        productName: Array.isArray(new_productData.productName)
-          ? new_productData.productName
-          : [],
-        // Only update fields that are present in mockProducts
-        ...(new_productData.category && { category: new_productData.category }),
-        ...(new_productData.alibabaIds && {
-          alibabaIds: new_productData.alibabaIds
-            .map((item) => (typeof item === 'object' ? item.value || '' : item))
-            .filter(Boolean),
-        }),
-        ...(new_productData.iconUrl && { iconUrl: new_productData.iconUrl }),
-      };
-      // if cannot find, it is new product
-    } else if (new_productData.id || new_productData.productId) {
-      // Add new product following the mockProducts structure
-      updatedProductsList.push({
-        id: new_productData.id || `product-${Date.now()}`,
-        productId:
-          new_productData.productId || `PID-${Date.now().toString(36)}`,
-        // Format productName according to mockProducts structure (as a string)
-        productName: Array.isArray(new_productData.productName)
-          ? new_productData.productName
-          : [],
-        category: Array.isArray(new_productData.category)
-          ? new_productData.category
-          : [],
-        alibabaIds: Array.isArray(new_productData.alibabaIds)
-          ? new_productData.alibabaIds
-              .map((item) =>
-                typeof item === 'object' ? item.value || '' : item
-              )
-              .filter(Boolean)
-          : [],
-        iconUrl: new_productData.iconUrl || 'https://via.placeholder.com/50',
-      });
-    }
-
-    // Update the state with the new list
-    setProductsList(updatedProductsList);
+    console.log('Saving data to database ... ');
 
     // Simulate API call
     return new Promise((resolve) => {
       setTimeout(() => {
-        resolve({ success: true, updatedProducts: updatedProductsList });
+        resolve({ success: true });
       }, 1000);
     });
   };
@@ -134,7 +77,6 @@ const Main_ProductMaster = () => {
           onSelectProduct={handleProductSelect}
           isCollapsed={sidebarCollapsed}
           onToggleCollapse={handleToggleSidebar}
-          productsList={productsList}
         />
 
         <div

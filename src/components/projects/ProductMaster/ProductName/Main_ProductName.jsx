@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
 import ControlRowBtn from '../../../common/ControlRowBtn';
 import Sub_ProductNameRow from './Sub_ProductNameRow';
@@ -6,6 +6,7 @@ import { useProductContext } from '../../../../store/ProductContext.jsx';
 
 const Main_ProductName = () => {
   const { pageData, updateData } = useProductContext();
+  const prevRowCountRef = useRef(0);
 
   // Process productNames from pageData with proper validation
   const processedProductNames = useMemo(() => {
@@ -17,13 +18,14 @@ const Main_ProductName = () => {
       return pageData.productName;
     }
   }, [pageData.productName]);
+
   // Use the processed names as state
   const [productNames, setProductNames] = useState(processedProductNames);
 
-  // Initialize with default data if none exists
+  // Update local state when pageData changes
   useEffect(() => {
-    setProductNames(pageData.productName);
-  }, [pageData.productName]);
+    setProductNames(processedProductNames);
+  }, [processedProductNames]);
 
   // handle the product name fields being changed
   const handleProductNameChange = useCallback(
@@ -41,20 +43,30 @@ const Main_ProductName = () => {
         [field]: value,
       };
 
-      // setProductNames(updatedProductNames);
       updateData('productName', updatedProductNames);
     },
     [updateData, productNames]
   );
 
-  // Calculate row count for ControlRowBtn - use key to force re-render
+  // Calculate row count for ControlRowBtn
   const rowCount = Math.max(1, productNames.length);
-  // Added a unique key prop to ControlRowBtn that changes when rowCount changes, forcing React to recreate the component
-  const controlRowKey = `product-names-${rowCount}-${Date.now()}`;
+
+  // Only generate a new key when rowCount changes
+  const controlRowKeyRef = useRef(`product-names-${rowCount}`);
+
+  // Update the key reference only when rowCount changes
+  if (prevRowCountRef.current !== rowCount) {
+    controlRowKeyRef.current = `product-names-${rowCount}-${Date.now()}`;
+    prevRowCountRef.current = rowCount;
+  }
+
   return (
     <>
       <Main_InputContainer label={'Product Name'}>
-        <ControlRowBtn key={controlRowKey} initialRowCount={rowCount}>
+        <ControlRowBtn
+          key={controlRowKeyRef.current}
+          initialRowCount={rowCount}
+        >
           <Sub_ProductNameRow
             productNames={productNames}
             onChange={handleProductNameChange}

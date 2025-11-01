@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
 import ControlRowBtn from '../../../common/ControlRowBtn';
 import Sub_ProductNameRow from './Sub_ProductNameRow';
@@ -26,26 +26,30 @@ const Main_ProductName = () => {
   }, [pageData.productName]);
 
   // handle the product name fields being changed
-  const handleProductNameChange = (rowindex, field, value) => {
-    const updatedProductNames = [...productNames];
+  const handleProductNameChange = useCallback(
+    (rowindex, field, value) => {
+      const updatedProductNames = [...productNames];
 
-    // Ensure the row exists in our array
-    if (!updatedProductNames[rowindex]) {
-      updatedProductNames[rowindex] = { id: rowindex + 1, name: '', type: 1 };
-    }
+      // Ensure the row exists in our array
+      if (!updatedProductNames[rowindex]) {
+        updatedProductNames[rowindex] = { id: rowindex + 1, name: '', type: 1 };
+      }
 
-    // Update the specified field
-    updatedProductNames[rowindex] = {
-      ...updatedProductNames[rowindex],
-      [field]: value,
-    };
+      // Update the specified field
+      updatedProductNames[rowindex] = {
+        ...updatedProductNames[rowindex],
+        [field]: value,
+      };
 
-    // setProductNames(updatedProductNames);
-    updateData('productName', updatedProductNames);
-  };
-  // Added a unique key prop to ControlRowBtn that changes when rowCount changes, forcing React to recreate the component
+      // setProductNames(updatedProductNames);
+      updateData('productName', updatedProductNames);
+    },
+    [updateData, productNames]
+  );
+
   // Calculate row count for ControlRowBtn - use key to force re-render
   const rowCount = Math.max(1, productNames.length);
+  // Added a unique key prop to ControlRowBtn that changes when rowCount changes, forcing React to recreate the component
   const controlRowKey = `product-names-${rowCount}-${Date.now()}`;
   return (
     <>

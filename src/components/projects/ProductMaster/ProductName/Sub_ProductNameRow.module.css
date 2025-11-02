@@ -1,0 +1,9 @@
+.inputWrapper {
+  flex-grow: 1;
+  flex-basis: 70%;
+  margin-right: 8px;
+}
+
+.dropdownWrapper {
+  flex-basis: 30%;
+}

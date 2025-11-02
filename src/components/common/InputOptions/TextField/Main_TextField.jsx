@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, forwardRef } from 'react';
 import PropTypes from 'prop-types';
 import styles from './Main_TextField.module.css';
 import Sub_TextField from './Sub_TextField.jsx';
@@ -7,7 +7,7 @@ import Sub_TextField from './Sub_TextField.jsx';
  * Main_TextField Component
  * A wrapper component for the text input field with label and additional features
  */
-const Main_TextField = (props) => {
+const Main_TextField = forwardRef((props, ref) => {
   const {
     // Controlled props
     value: controlledValue,
@@ -69,6 +69,7 @@ const Main_TextField = (props) => {
         </label>
       )}
       <Sub_TextField
+        ref={ref}
         id={inputId}
         value={inputValue}
         onInputChange={handleInputChange}
@@ -93,7 +94,7 @@ const Main_TextField = (props) => {
       )}
     </div>
   );
-};
+});
 
 Main_TextField.propTypes = {
   // Controlled props
@@ -122,5 +123,8 @@ Main_TextField.propTypes = {
   helperText: PropTypes.string,
   error: PropTypes.bool,
 };
+
+// Add displayName for better debugging
+Main_TextField.displayName = 'Main_TextField';
 
 export default Main_TextField;

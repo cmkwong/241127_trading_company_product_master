@@ -1,13 +1,11 @@
-import { useRef } from 'react';
+import { useState, useRef, useEffect, forwardRef } from 'react';
 import PropTypes from 'prop-types';
 import styles from './Sub_TextField.module.css';
-import CursorPreservingInput from '../CursorPreservingInput/CursorPreservingInput';
-
 /**
  * Sub_TextField Component
- * A simple text input field component
+ * A simple text input field component with cursor position preservation
  */
-const Sub_TextField = (props) => {
+const Sub_TextField = forwardRef((props, externalRef) => {
   const {
     id,
     value = '',
@@ -25,14 +23,39 @@ const Sub_TextField = (props) => {
     onBlur,
   } = props;
 
-  const handleChange = (newValue) => {
+  const internalRef = useRef(null);
+  const cursorPositionRef = useRef(null);
+
+  // Combine external and internal refs
+  const inputRef = externalRef || internalRef;
+
+  // Store cursor position when input changes
+  const handleChange = (e) => {
     if (onInputChange) {
-      onInputChange(newValue);
+      // Save the current cursor position
+      cursorPositionRef.current = e.target.selectionStart;
+      onInputChange(e.target.value);
     }
   };
 
+  // Restore cursor position after render
+  useEffect(() => {
+    if (
+      inputRef.current &&
+      cursorPositionRef.current !== null &&
+      document.activeElement === inputRef.current &&
+      inputRef.current.value.length >= cursorPositionRef.current
+    ) {
+      inputRef.current.setSelectionRange(
+        cursorPositionRef.current,
+        cursorPositionRef.current
+      );
+    }
+  }, [value, inputRef]);
+
   return (
-    <CursorPreservingInput
+    <input
+      ref={inputRef}
       id={id}
       className={`${styles.textField} ${className}`}
       type={type}
@@ -50,8 +73,7 @@ const Sub_TextField = (props) => {
       data-testid="sub-text-field"
     />
   );
-};
-
+});
 Sub_TextField.propTypes = {
   id: PropTypes.string,
   value: PropTypes.string,
@@ -69,4 +91,6 @@ Sub_TextField.propTypes = {
   onBlur: PropTypes.func,
 };
 
+// Add displayName for better debugging
+Sub_TextField.displayName = 'Sub_TextField';
 export default Sub_TextField;

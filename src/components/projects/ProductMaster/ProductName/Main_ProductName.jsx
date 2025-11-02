@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
 import ControlRowBtn from '../../../common/ControlRowBtn';
 import Sub_ProductNameRow from './Sub_ProductNameRow';
@@ -6,6 +6,7 @@ import { useProductContext } from '../../../../store/ProductContext.jsx';
 
 const Main_ProductName = () => {
   const { pageData, updateData } = useProductContext();
+  const rowRefs = useRef({});
 
   // Process productNames from pageData with proper validation
   const processedProductNames = useMemo(() => {
@@ -34,6 +35,38 @@ const Main_ProductName = () => {
     setRowCount(Math.max(1, processedProductNames.length));
   }, [processedProductNames]);
 
+  // Handle row count changes from ControlRowBtn
+  const handleRowsChange = useCallback(
+    (newRowCount) => {
+      // Ensure productNames array has the correct number of items
+      const currentNames = [...productNames];
+
+      // If we need more rows, add empty ones
+      if (newRowCount > currentNames.length) {
+        for (let i = currentNames.length; i < newRowCount; i++) {
+          currentNames.push({ id: i + 1, name: '', type: 1 });
+        }
+
+        // Update the context with the new array
+        updateData('productName', currentNames);
+
+        // Focus the new row after a short delay
+        setTimeout(() => {
+          const newRowIndex = newRowCount - 1;
+          if (rowRefs.current[newRowIndex]) {
+            rowRefs.current[newRowIndex].focus();
+          }
+        }, 50);
+      }
+      // If we need fewer rows, remove from the end
+      else if (newRowCount < currentNames.length) {
+        currentNames.splice(newRowCount);
+        updateData('productName', currentNames);
+      }
+    },
+    [productNames, updateData]
+  );
+
   // handle the product name fields being changed
   const handleProductNameChange = useCallback(
     (rowindex, field, value) => {
@@ -58,6 +91,11 @@ const Main_ProductName = () => {
   // Generate a key that changes when productNames length changes
   const controlRowKey = `product-names-${processedProductNames.length}`;
 
+  // Set up ref for a row
+  const setRowRef = useCallback((index, ref) => {
+    rowRefs.current[index] = ref;
+  }, []);
+
   return (
     <>
       <Main_InputContainer label={'Product Name'}>
@@ -65,10 +103,12 @@ const Main_ProductName = () => {
           key={controlRowKey}
           initialRowCount={rowCount}
           setRowCount={setRowCount}
+          onRowsChange={handleRowsChange}
         >
           <Sub_ProductNameRow
             productNames={productNames}
             onChange={handleProductNameChange}
+            setRowRef={setRowRef}
           />
         </ControlRowBtn>
       </Main_InputContainer>

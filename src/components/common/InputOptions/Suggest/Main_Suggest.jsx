@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, forwardRef } from 'react';
 import PropTypes from 'prop-types';
 import styles from './Main_Suggest.module.css';
 import Sub_SuggestTextField from './Sub_SuggestTextField.jsx';
@@ -12,7 +12,7 @@ import Sub_SuggestTextField from './Sub_SuggestTextField.jsx';
  *
  * Suggestions can be strings or { id, name } objects.
  */
-const Main_Suggest = (props) => {
+const Main_Suggest = forwardRef((props, ref) => {
   const {
     // Controlled props
     suggestions: controlledSuggestions,
@@ -104,8 +104,9 @@ const Main_Suggest = (props) => {
       onInputChange: setValue,
       onSuggestionClick: setValue,
       placeholder,
+      ref, // Forward the ref to Sub_SuggestTextField
     }),
-    [inputId, filterSuggestions, inputValue, setValue, placeholder]
+    [inputId, filterSuggestions, inputValue, setValue, placeholder, ref]
   );
 
   return (
@@ -116,7 +117,7 @@ const Main_Suggest = (props) => {
       </div>
     </div>
   );
-};
+});
 
 Main_Suggest.propTypes = {
   // Controlled API
@@ -138,5 +139,8 @@ Main_Suggest.propTypes = {
   inputId: PropTypes.string,
   placeholder: PropTypes.string,
 };
+
+// Add displayName for better debugging
+Main_Suggest.displayName = 'Main_Suggest';
 
 export default Main_Suggest;

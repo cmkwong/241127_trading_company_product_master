@@ -1,7 +1,8 @@
-import { useRef } from 'react';
+import { useRef, useEffect } from 'react';
 import Main_Suggest from '../../../common/InputOptions/Suggest/Main_Suggest';
 import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
 import { mockProductNameType } from '../../../../datas/Options/ProductOptions';
+import styles from './Sub_ProductNameRow.module.css';
 
 const defaultProductName = [
   'Elizabeth Collar Pet Grooming Shield Anti Bite Collar Dog Necklace Cat Neck Shame Collar',
@@ -17,10 +18,28 @@ const defaultProductName = [
 // The Sub_ProductNameRow component that receives props including rowindex from ControlRowBtn
 const Sub_ProductNameRow = (props) => {
   // Extract the props we need and ignore the rest to prevent passing them to DOM elements
-  const { productNames = [], onChange, rowindex = 0 } = props;
+  const { productNames = [], onChange, rowindex = 0, setRowRef } = props;
+  const inputRef = useRef(null);
 
   // Get the current product name data for this row, or use default values
   const currentProduct = productNames[rowindex] || { name: '', type: 1 };
+
+  // Register this row's ref with the parent component
+  useEffect(() => {
+    if (setRowRef && inputRef.current) {
+      setRowRef(rowindex, {
+        focus: () => {
+          if (inputRef.current) {
+            // Use the underlying input element's focus method
+            const inputElement = inputRef.current.querySelector('input');
+            if (inputElement) {
+              inputElement.focus();
+            }
+          }
+        },
+      });
+    }
+  }, [rowindex, setRowRef]);
 
   const handleProductNameChange = ({ value }) => {
     onChange(rowindex, 'name', value);
@@ -32,16 +51,20 @@ const Sub_ProductNameRow = (props) => {
 
   return (
     <>
-      <Main_Suggest
-        defaultSuggestions={defaultProductName}
-        onChange={handleProductNameChange}
-        value={currentProduct.name}
-      />
-      <Main_Dropdown
-        defaultOptions={mockProductNameType}
-        selectedOptions={currentProduct.type}
-        onChange={({ selected }) => handleTypeChange(selected)}
-      />
+      <div ref={inputRef} className={styles.inputWrapper}>
+        <Main_Suggest
+          defaultSuggestions={defaultProductName}
+          onChange={handleProductNameChange}
+          value={currentProduct.name}
+        />
+      </div>
+      <div className={styles.dropdownWrapper}>
+        <Main_Dropdown
+          defaultOptions={mockProductNameType}
+          selectedOptions={currentProduct.type}
+          onChange={({ selected }) => handleTypeChange(selected)}
+        />
+      </div>
     </>
   );
 };

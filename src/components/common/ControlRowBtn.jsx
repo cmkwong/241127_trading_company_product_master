@@ -2,7 +2,7 @@ import { useState, cloneElement, Children, useEffect } from 'react';
 import styles from './ControlRowBtn.module.css';
 
 const ControlRowBtn = (props) => {
-  const { children, setRowCount, initialRowCount = 1 } = props;
+  const { children, setRowCount, initialRowCount = 1, onRowsChange } = props;
 
   // Initialize rows state based on initialRowCount
   const [rows, setRows] = useState(
@@ -27,13 +27,18 @@ const ControlRowBtn = (props) => {
 
       setRows(newRows);
     }
-  }, [initialRowCount, rows]);
+  }, [initialRowCount]);
 
   const handleAddRow = () => {
     const newRows = [...rows, { id: Math.random().toString(36).slice(2, 8) }];
     setRows(newRows);
     if (setRowCount) {
       setRowCount(newRows.length);
+    }
+
+    // Notify parent component about row change
+    if (onRowsChange) {
+      onRowsChange(newRows.length);
     }
   };
 
@@ -43,6 +48,11 @@ const ControlRowBtn = (props) => {
     setRows(newRows);
     if (setRowCount) {
       setRowCount(newRows.length);
+    }
+
+    // Notify parent component about row change
+    if (onRowsChange) {
+      onRowsChange(newRows.length);
     }
   };
 

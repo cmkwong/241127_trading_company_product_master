@@ -18,7 +18,7 @@ const defaultProductName = [
 const Sub_ProductNameRow = (props) => {
   // Extract the props we need and ignore the rest to prevent passing them to DOM elements
   const { productNames = [], onChange, rowindex = 0 } = props;
-  console.log('hi');
+
   // Get the current product name data for this row, or use default values
   const currentProduct = productNames[rowindex] || { name: '', type: 1 };
 

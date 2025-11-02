@@ -2,7 +2,7 @@ import { useState, cloneElement, Children, useEffect } from 'react';
 import styles from './ControlRowBtn.module.css';
 
 const ControlRowBtn = (props) => {
-  const { children, initialRowCount = 1 } = props;
+  const { children, setRowCount, initialRowCount = 1 } = props;
 
   // Initialize rows state based on initialRowCount
   const [rows, setRows] = useState(
@@ -13,13 +13,37 @@ const ControlRowBtn = (props) => {
       }))
   );
 
+  // Update rows when initialRowCount changes
+  useEffect(() => {
+    if (rows.length !== initialRowCount) {
+      const newRows = Array(initialRowCount)
+        .fill(null)
+        .map((_, index) => {
+          // Try to preserve existing row IDs when possible
+          return index < rows.length
+            ? rows[index]
+            : { id: Math.random().toString(36).slice(2, 8) };
+        });
+
+      setRows(newRows);
+    }
+  }, [initialRowCount, rows]);
+
   const handleAddRow = () => {
-    setRows([...rows, { id: Math.random().toString(36).slice(2, 8) }]);
+    const newRows = [...rows, { id: Math.random().toString(36).slice(2, 8) }];
+    setRows(newRows);
+    if (setRowCount) {
+      setRowCount(newRows.length);
+    }
   };
 
   const handleRemoveRow = (rowId) => {
     if (rows.length <= 1) return; // Don't remove the last row
-    setRows(rows.filter((row) => row.id !== rowId));
+    const newRows = rows.filter((row) => row.id !== rowId);
+    setRows(newRows);
+    if (setRowCount) {
+      setRowCount(newRows.length);
+    }
   };
 
   return (

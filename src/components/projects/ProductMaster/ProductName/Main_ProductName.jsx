@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
 import ControlRowBtn from '../../../common/ControlRowBtn';
 import Sub_ProductNameRow from './Sub_ProductNameRow';
@@ -6,7 +6,6 @@ import { useProductContext } from '../../../../store/ProductContext.jsx';
 
 const Main_ProductName = () => {
   const { pageData, updateData } = useProductContext();
-  const prevRowCountRef = useRef(0);
 
   // Process productNames from pageData with proper validation
   const processedProductNames = useMemo(() => {
@@ -22,9 +21,17 @@ const Main_ProductName = () => {
   // Use the processed names as state
   const [productNames, setProductNames] = useState(processedProductNames);
 
-  // Update local state when pageData changes
+  // Update productNames when pageData changes
   useEffect(() => {
     setProductNames(processedProductNames);
+  }, [processedProductNames]);
+
+  // Track row count for ControlRowBtn
+  const [rowCount, setRowCount] = useState(Math.max(1, productNames.length));
+
+  // Update rowCount when productNames changes
+  useEffect(() => {
+    setRowCount(Math.max(1, processedProductNames.length));
   }, [processedProductNames]);
 
   // handle the product name fields being changed
@@ -48,24 +55,16 @@ const Main_ProductName = () => {
     [updateData, productNames]
   );
 
-  // Calculate row count for ControlRowBtn
-  const rowCount = Math.max(1, productNames.length);
-
-  // Only generate a new key when rowCount changes
-  const controlRowKeyRef = useRef(`product-names-${rowCount}`);
-
-  // Update the key reference only when rowCount changes
-  if (prevRowCountRef.current !== rowCount) {
-    controlRowKeyRef.current = `product-names-${rowCount}-${Date.now()}`;
-    prevRowCountRef.current = rowCount;
-  }
+  // Generate a key that changes when productNames length changes
+  const controlRowKey = `product-names-${processedProductNames.length}`;
 
   return (
     <>
       <Main_InputContainer label={'Product Name'}>
         <ControlRowBtn
-          key={controlRowKeyRef.current}
+          key={controlRowKey}
           initialRowCount={rowCount}
+          setRowCount={setRowCount}
         >
           <Sub_ProductNameRow
             productNames={productNames}

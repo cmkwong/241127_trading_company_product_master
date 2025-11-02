@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useRef } from 'react';
 import PropTypes from 'prop-types';
 import styles from './Sub_TextField.module.css';
+import CursorPreservingInput from '../CursorPreservingInput/CursorPreservingInput';
 
 /**
  * Sub_TextField Component
@@ -24,14 +25,14 @@ const Sub_TextField = (props) => {
     onBlur,
   } = props;
 
-  const handleChange = (e) => {
+  const handleChange = (newValue) => {
     if (onInputChange) {
-      onInputChange(e.target.value);
+      onInputChange(newValue);
     }
   };
 
   return (
-    <input
+    <CursorPreservingInput
       id={id}
       className={`${styles.textField} ${className}`}
       type={type}

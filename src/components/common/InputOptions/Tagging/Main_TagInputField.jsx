@@ -172,14 +172,18 @@ const Main_TagInputField = (props) => {
       <div className={styles.tagContainer}>
         {(options || []).map((el) =>
           // Showing the tag plate
-          selectedOptions && selectedOptions.includes(el.id) ? (
-            <Sub_TagPlate
-              key={el.id}
-              id={el.id}
-              name={el.name}
-              updateOptionData={updateOptionData}
-            />
-          ) : null
+          {
+            console.log('options: ', options);
+            console.log('selectedOptions: ', selectedOptions);
+            return selectedOptions && selectedOptions.includes(el.id) ? (
+              <Sub_TagPlate
+                key={el.id}
+                id={el.id}
+                name={el.name}
+                updateOptionData={updateOptionData}
+              />
+            ) : null;
+          }
         )}
       </div>
     </>

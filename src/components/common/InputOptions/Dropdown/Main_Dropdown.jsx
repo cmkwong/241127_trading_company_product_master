@@ -120,24 +120,7 @@ const Main_Dropdown = (props) => {
           {label}
         </label>
       )}
-
       <Sub_SelectField {...dropdownProps} />
-
-      {/* Optional TextField example:
-      <TextField
-        placeholder="Add new option..."
-        onSubmit={(value) => {
-          const trimmed = value.trim();
-          if (trimmed) {
-            const newOption =
-              typeof currentOptions?.[0] === 'object'
-                ? { id: getNewId(), label: trimmed }
-                : trimmed;
-            setOptions([...(currentOptions || []), newOption]);
-          }
-        }}
-      />
-      */}
     </div>
   );
 };

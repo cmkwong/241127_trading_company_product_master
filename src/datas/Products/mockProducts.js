@@ -7,7 +7,7 @@ export const mockProducts = [
       { id: 1, name: 'Elizabeth Collar Pet Grooming Shield', type: 1 },
       { id: 2, name: '狗仔花花頸圈', type: 2 },
     ],
-    category: [1, 2],
+    category: [1],
     customization: [
       {
         id: 1,

@@ -5,18 +5,31 @@ import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
 import Main_ImageUpload from '../../../common/InputOptions/ImageUploads/Main_ImageUpload';
 import ControlRowBtn from '../../../common/ControlRowBtn';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
+import { mockSuppliers } from '../../../../datas/Suppliers/mockSuppliers';
 
-const Sub_CustomizationRow = () => {
-  const defaultSuppliers = ['Supplier A', 'Supplier B', 'Supplier C'];
+const defaultSuppliers = ['Supplier A', 'Supplier B', 'Supplier C'];
 
-  // Each row has its own images state
-  const [images, setImages] = useState([]);
+const Sub_CustomizationRow = (props) => {
+  const { template_data, customizations, onChange, rowindex = 0 } = props;
+
+  const customization = customizations[rowindex] || template_data;
+
+  const handleNameChange = ({ value }) => {
+    onChange(rowindex, 'name', value);
+  };
+
+  const handleCodeChange = ({ value }) => {
+    onChange(rowindex, 'code', value);
+  };
+
+  const handleRemarkChange = ({ value }) => {
+    onChange(rowindex, 'remark', value);
+  };
 
   // handler for image uploads
-  const handleImageChange = useCallback((updatedImages) => {
-    setImages(updatedImages);
-  }, []);
-
+  const handleImageChange = ({ updatedImages }) => {
+    onChange(rowindex, 'images', updatedImages);
+  };
   // Handle image upload errors
   const handleImageError = (error) => {
     console.error('Image upload error:', error);
@@ -26,19 +39,29 @@ const Sub_CustomizationRow = () => {
   return (
     <>
       <div className={styles.textInput}>
-        <Main_TextField placeholder={'Customization provided'} />
-        <Main_Suggest
-          defaultSuggestions={defaultSuppliers}
-          placeholder={'Suppliers'}
+        <Main_TextField
+          placeholder={'What Customization?'}
+          onChange={handleNameChange}
+          value={customization.name}
         />
-        <Main_TextArea />
+        <Main_Suggest
+          defaultSuggestions={mockSuppliers.map((supplier) => supplier.code)}
+          placeholder={'Suppliers'}
+          onChange={handleCodeChange}
+          value={customization.code}
+        />
+        <Main_TextArea
+          onChange={handleRemarkChange}
+          placeholder={'Customization remarks ... '}
+          value={customization.remark}
+        />
       </div>
       <Main_ImageUpload
         onError={handleImageError}
         onChange={handleImageChange}
-        defaultImages={images}
         maxFiles={10}
         maxSizeInMB={5}
+        defaultImages={customization.images}
       />
     </>
   );

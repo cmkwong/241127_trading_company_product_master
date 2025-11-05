@@ -3,15 +3,21 @@ import Main_InputContainer from '../../../common/InputOptions/InputContainer/Mai
 import ControlRowBtn from '../../../common/ControlRowBtn';
 import Sub_ProductNameRow from './Sub_ProductNameRow';
 import { useProductContext } from '../../../../store/ProductContext.jsx';
+import { useRowsHandler } from '../../../../utils/formHandlers.js';
 
 const Main_ProductName = () => {
   const { pageData, updateData } = useProductContext();
-  const rowRefs = useRef({});
+  const rowRef = useRef({});
+
+  const template_data = {
+    name: '',
+    type: 1,
+  };
 
   // Process productNames from pageData with proper validation
   const processedProductNames = useMemo(() => {
     if (!pageData.productName || pageData.productName.length === 0) {
-      return [{ id: 1, name: '', type: 1 }];
+      return [{ id: 1, ...template_data }];
     } else if (typeof pageData.productName === 'string') {
       return [{ id: 1, name: pageData.productName, type: 1 }];
     } else {
@@ -36,35 +42,12 @@ const Main_ProductName = () => {
   }, [processedProductNames]);
 
   // Handle row count changes from ControlRowBtn
-  const handleRowsChange = useCallback(
-    (newRowCount) => {
-      // Ensure productNames array has the correct number of items
-      const currentNames = [...productNames];
-
-      // If we need more rows, add empty ones
-      if (newRowCount > currentNames.length) {
-        for (let i = currentNames.length; i < newRowCount; i++) {
-          currentNames.push({ id: i + 1, name: '', type: 1 });
-        }
-
-        // Update the context with the new array
-        updateData('productName', currentNames);
-
-        // Focus the new row after a short delay
-        setTimeout(() => {
-          const newRowIndex = newRowCount - 1;
-          if (rowRefs.current[newRowIndex]) {
-            rowRefs.current[newRowIndex].focus();
-          }
-        }, 50);
-      }
-      // If we need fewer rows, remove from the end
-      else if (newRowCount < currentNames.length) {
-        currentNames.splice(newRowCount);
-        updateData('productName', currentNames);
-      }
-    },
-    [productNames, updateData]
+  const handleRowsChange = useRowsHandler(
+    productNames,
+    updateData,
+    'productName',
+    template_data,
+    rowRef
   );
 
   // handle the product name fields being changed
@@ -74,7 +57,7 @@ const Main_ProductName = () => {
 
       // Ensure the row exists in our array
       if (!updatedProductNames[rowindex]) {
-        updatedProductNames[rowindex] = { id: rowindex + 1, name: '', type: 1 };
+        updatedProductNames[rowindex] = { id: rowindex + 1, ...template_data };
       }
 
       // Update the specified field
@@ -89,18 +72,18 @@ const Main_ProductName = () => {
   );
 
   // Generate a key that changes when productNames length changes
-  const controlRowKey = `product-names-${processedProductNames.length}`;
+  // const controlRowKey = `product-names-${processedProductNames.length}`;
 
   // Set up ref for a row
   const setRowRef = useCallback((index, ref) => {
-    rowRefs.current[index] = ref;
+    rowRef.current[index] = ref;
   }, []);
 
   return (
     <>
       <Main_InputContainer label={'Product Name'}>
         <ControlRowBtn
-          key={controlRowKey}
+          // key={controlRowKey}
           initialRowCount={rowCount}
           setRowCount={setRowCount}
           onRowsChange={handleRowsChange}

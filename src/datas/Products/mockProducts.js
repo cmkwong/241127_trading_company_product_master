@@ -1,3 +1,39 @@
+export const mockProduct_template = {
+  id: `new-product-${Date.now()}`,
+  productId: `PID-${Date.now().toString(36)}`,
+  iconUrl: '',
+  productName: [{ id: `product-name-${Date.now()}`, name: '', type: 1 }],
+  category: [],
+  customizations: [
+    { id: `customization-${Date.now()}`, code: '', remark: '', images: [] },
+  ],
+  productLinks: [
+    {
+      id: `product-link-${Date.now()}`,
+      link: '',
+      images: [],
+      remark: '',
+      date: new Date().toISOString().split('T')[0],
+    },
+  ],
+  alibabaIds: [{ id: `alibaba-ids-${Date.now()}`, value: '', link: '' }],
+  packings: [
+    {
+      id: `packings-${Date.now()}`,
+      L: 0,
+      W: 0,
+      H: 0,
+      qty: 1,
+      kg: 0,
+      type: 1,
+    },
+  ],
+  certificates: [
+    { id: `certificates-${Date.now()}`, type: 1, files: [], remark: '' },
+  ],
+  remark: '',
+};
+
 export const mockProducts = [
   {
     id: '1',
@@ -8,13 +44,15 @@ export const mockProducts = [
       { id: 2, name: '狗仔花花頸圈', type: 2 },
     ],
     category: [1],
-    customization: [
+    customizations: [
       {
         id: 1,
         name: 'custom package',
         code: 'S000325',
         remark: 'Testing',
-        images: [],
+        images: [
+          // 'C:\\Users\\Chris\\Desktop\\StockData\\Business\\Pet Product Images\\202511051340\\display\\Main_01.jpg',
+        ],
       },
       {
         id: 2,

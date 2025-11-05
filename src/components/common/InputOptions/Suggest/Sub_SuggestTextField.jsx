@@ -15,19 +15,19 @@ const Sub_SuggestTextField = forwardRef(
       suggestions = [],
       value = '',
       onInputChange,
-      onSuggestionClick,
+      onSuggestionItemClick,
       placeholder = 'Type to search...',
     },
     ref
   ) => {
     const [isFocused, setIsFocused] = useState(false);
 
-    const handleInputChange = (newValue) => {
-      onInputChange(newValue);
+    const handleInputChange = ({ value }) => {
+      onInputChange({ value });
     };
 
-    const handleSuggestionClick = (suggestion) => {
-      onSuggestionClick(suggestion.name || suggestion);
+    const handleSuggestionItemClick = (suggestion) => {
+      onSuggestionItemClick({ value: suggestion });
       setIsFocused(false); // Close suggestion list after selection
     };
 
@@ -56,12 +56,12 @@ const Sub_SuggestTextField = forwardRef(
           <ul className={styles.suggestionList}>
             {suggestions.map((suggestion, index) => (
               <li
-                key={suggestion.id || index}
+                key={index}
                 className={styles.suggestionItem}
-                onClick={() => handleSuggestionClick(suggestion)}
+                onClick={() => handleSuggestionItemClick(suggestion)}
                 tabIndex={0}
               >
-                {suggestion.name || suggestion}
+                {suggestion}
               </li>
             ))}
           </ul>
@@ -76,7 +76,7 @@ Sub_SuggestTextField.propTypes = {
   suggestions: PropTypes.array,
   value: PropTypes.string,
   onInputChange: PropTypes.func.isRequired,
-  onSuggestionClick: PropTypes.func.isRequired,
+  onSuggestionItemClick: PropTypes.func.isRequired,
   placeholder: PropTypes.string,
 };
 

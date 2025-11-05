@@ -11,7 +11,10 @@ import Main_ProductIcon from './ProductIcon/Main_ProductIcon';
 import Main_CertificateData from './CertificateData/Main_CertificateData';
 import SavePageWithProvider from '../../common/SavePage/Main_SavePage';
 import ProductSidebar from './AllProductList/ProductSidebar';
-import { mockProducts } from '../../../datas/Products/mockProducts';
+import {
+  mockProduct_template,
+  mockProducts,
+} from '../../../datas/Products/mockProducts';
 
 const Main_ProductMaster = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -45,32 +48,7 @@ const Main_ProductMaster = () => {
       onSave={onSaveProduct}
       saveButtonText="Save Product"
       successMessage="Product saved successfully!"
-      initialData={
-        selectedProduct || {
-          id: `new-product-${Date.now()}`,
-          productId: `PID-${Date.now().toString(36)}`,
-          iconUrl: 'https://via.placeholder.com/50',
-          productName: [
-            { id: 1, name: '', type: 1 },
-            { id: 2, name: '', type: 2 },
-          ],
-          category: [],
-          customization: [{ id: 1, code: '', remark: '', images: [] }],
-          productLinks: [
-            {
-              id: 1,
-              link: '',
-              images: [],
-              remark: '',
-              date: new Date().toISOString().split('T')[0],
-            },
-          ],
-          alibabaIds: [{ id: 1, value: '', link: '' }],
-          packings: [{ id: 1, L: 0, W: 0, H: 0, qty: 1, kg: 0, type: 1 }],
-          certificates: [{ id: 1, type: 1, files: [], remark: '' }],
-          remark: '',
-        }
-      }
+      initialData={selectedProduct || mockProduct_template}
     >
       <div className={styles.masterContainer}>
         <ProductSidebar

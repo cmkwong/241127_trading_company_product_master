@@ -34,7 +34,7 @@ const Sub_TextField = forwardRef((props, externalRef) => {
     if (onInputChange) {
       // Save the current cursor position
       cursorPositionRef.current = e.target.selectionStart;
-      onInputChange(e.target.value);
+      onInputChange({ value: e.target.value });
     }
   };
 

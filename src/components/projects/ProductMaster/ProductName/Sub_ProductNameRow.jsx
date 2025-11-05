@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import Main_Suggest from '../../../common/InputOptions/Suggest/Main_Suggest';
 import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
 import { mockProductNameType } from '../../../../datas/Options/ProductOptions';
@@ -45,7 +45,7 @@ const Sub_ProductNameRow = (props) => {
     onChange(rowindex, 'name', value);
   };
 
-  const handleTypeChange = (selected) => {
+  const handleTypeChange = ({ selected }) => {
     onChange(rowindex, 'type', selected);
   };
 
@@ -62,7 +62,7 @@ const Sub_ProductNameRow = (props) => {
         <Main_Dropdown
           defaultOptions={mockProductNameType}
           selectedOptions={currentProduct.type}
-          onChange={({ selected }) => handleTypeChange(selected)}
+          onChange={handleTypeChange}
         />
       </div>
     </>

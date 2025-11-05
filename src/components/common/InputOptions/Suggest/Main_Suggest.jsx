@@ -71,19 +71,19 @@ const Main_Suggest = forwardRef((props, ref) => {
 
   // Update input value (both modes)
   const setValue = useCallback(
-    (newValue) => {
+    ({ value }) => {
       if (isValueControlled) {
         // Parent manages value in controlled mode
-        onChange({ value: newValue, suggestions: currentSuggestions });
+        onChange({ value: value, suggestions: currentSuggestions });
       } else {
-        setInnerValue(newValue);
-        onChange({ value: newValue, suggestions: currentSuggestions });
+        setInnerValue(value);
+        onChange({ value: value, suggestions: currentSuggestions });
       }
     },
     [isValueControlled, currentSuggestions, onChange]
   );
 
-  // when user typed in input, filter the required suggestions
+  // when user typed in input, filter the required suggestions to show on list
   const filterSuggestions = useMemo(() => {
     if (!inputValue) return currentSuggestions || [];
     const v = String(inputValue).toLowerCase();
@@ -102,7 +102,7 @@ const Main_Suggest = forwardRef((props, ref) => {
       suggestions: filterSuggestions,
       value: inputValue,
       onInputChange: setValue,
-      onSuggestionClick: setValue,
+      onSuggestionItemClick: setValue,
       placeholder,
       ref, // Forward the ref to Sub_SuggestTextField
     }),

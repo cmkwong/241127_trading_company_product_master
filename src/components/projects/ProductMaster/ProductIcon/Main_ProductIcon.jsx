@@ -53,7 +53,7 @@ const Main_ProductIcon = ({ onChange = () => {}, initialProductId }) => {
   };
 
   const handleProductIdChange = (value) => {
-    console.log(value);
+    console.log('handleProductIdChange: ', value);
   };
 
   return (

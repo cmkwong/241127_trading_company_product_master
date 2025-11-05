@@ -1,5 +1,8 @@
 import { createContext, useState, useContext, useCallback } from 'react';
-import { mockProducts } from '../datas/Products/mockProducts';
+import {
+  mockProduct_template,
+  mockProducts,
+} from '../datas/Products/mockProducts';
 
 // Create context for data collection
 export const ProductContext = createContext();
@@ -58,7 +61,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
         productId: product.productId,
         productName: product.productName || [],
         category: product.category || [],
-        customization: product.customization || [],
+        customizations: product.customizations || [],
         productLinks: product.productLinks || [],
         alibabaIds: product.alibabaIds || [],
         packings: product.packings || [],
@@ -130,19 +133,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
 
   // Create a new product (clear page data)
   const createNewProduct = useCallback(() => {
-    setPageData({
-      id: `new-${Date.now()}`, // Temporary ID that will be replaced when saved to backend
-      productId: '',
-      productName: [{ id: 1, name: '', type: 1 }],
-      category: [],
-      customization: [],
-      productLinks: [],
-      alibabaIds: [{ id: 1, value: '', link: '' }],
-      packings: [],
-      certificates: [],
-      remark: '',
-      iconUrl: '',
-    });
+    setPageData(mockProduct_template);
   }, []);
 
   // Get all collected data

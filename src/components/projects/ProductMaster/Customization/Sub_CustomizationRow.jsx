@@ -7,8 +7,6 @@ import ControlRowBtn from '../../../common/ControlRowBtn';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
 import { mockSuppliers } from '../../../../datas/Suppliers/mockSuppliers';
 
-const defaultSuppliers = ['Supplier A', 'Supplier B', 'Supplier C'];
-
 const Sub_CustomizationRow = (props) => {
   const { template_data, customizations, onChange, rowindex = 0 } = props;
 
@@ -28,6 +26,7 @@ const Sub_CustomizationRow = (props) => {
 
   // handler for image uploads
   const handleImageChange = ({ updatedImages }) => {
+    console.log('updatedImages: ', updatedImages);
     onChange(rowindex, 'images', updatedImages);
   };
   // Handle image upload errors

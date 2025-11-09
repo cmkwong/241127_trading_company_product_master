@@ -89,9 +89,9 @@ const Sub_DropZone = ({
         {/* Show previews if we have images and showPreview is true */}
         {showPreview && images.length > 0 && (
           <div className={styles.imagePreviewContainer}>
-            {images.map((image) => (
+            {images.map((image, i) => (
               <Sub_ImagePreview
-                key={image.id}
+                key={i}
                 image={image}
                 onRemove={onRemoveImage}
                 disabled={disabled}

@@ -29,14 +29,92 @@ const Main_ImageUpload = (props) => {
     defaultImages = [],
   } = props;
 
+  // Preprocess defaultImages to ensure they have all required properties
+  const processDefaultImages = useCallback((images) => {
+    return images.map((image) => {
+      // If image is just a string URL
+      if (typeof image === 'string') {
+        const url = image;
+        // Extract filename from URL
+        const name = url.split('/').pop() || 'image';
+        // Guess image type from extension
+        let type = 'image/jpeg'; // default
+        if (url.endsWith('.png')) type = 'image/png';
+        else if (url.endsWith('.gif')) type = 'image/gif';
+        else if (url.endsWith('.jpg') || url.endsWith('.jpeg'))
+          type = 'image/jpeg';
+
+        return {
+          url,
+          name,
+          // Use a default size since we can't determine actual size
+          size: 100000, // 100KB default
+          type,
+          id: `image-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        };
+      }
+
+      // If image is already an object but missing some properties
+      if (typeof image === 'object') {
+        const processed = { ...image };
+
+        // Ensure all required properties exist
+        if (!processed.name && processed.url) {
+          processed.name = processed.url.split('/').pop() || 'image';
+        }
+
+        if (!processed.size) {
+          processed.size = 100000; // 100KB default
+        }
+
+        if (!processed.type) {
+          // Guess type from URL if available
+          let type = 'image/jpeg'; // default
+          if (processed.url) {
+            if (processed.url.endsWith('.png')) type = 'image/png';
+            else if (processed.url.endsWith('.gif')) type = 'image/gif';
+            else if (
+              processed.url.endsWith('.jpg') ||
+              processed.url.endsWith('.jpeg')
+            )
+              type = 'image/jpeg';
+          }
+          processed.type = type;
+        }
+
+        if (!processed.id) {
+          processed.id = `image-${Date.now()}-${Math.random()
+            .toString(36)
+            .substr(2, 9)}`;
+        }
+
+        return processed;
+      }
+
+      // Fallback for any unexpected input
+      return {
+        url: '',
+        name: 'unknown',
+        size: 0,
+        type: 'image/jpeg',
+        id: `image-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      };
+    });
+  }, []);
+
+  // Process defaultImages on initial render and when they change
+  const processedDefaultImages = useCallback(() => {
+    return processDefaultImages(defaultImages);
+  }, [defaultImages, processDefaultImages]);
+
   // State to store uploaded images
-  const [images, setImages] = useState(defaultImages);
+  const [images, setImages] = useState(() => processedDefaultImages());
   const [isDragging, setIsDragging] = useState(false);
 
   // Update internal state when defaultImages prop changes
   useEffect(() => {
-    setImages(defaultImages);
-  }, [defaultImages]);
+    setImages(processedDefaultImages());
+  }, [defaultImages, processedDefaultImages]);
 
   // Handle file selection
   const handleFileSelection = useCallback(
@@ -85,8 +163,9 @@ const Main_ImageUpload = (props) => {
       // Update state with new images
       if (newImages.length > 0) {
         const updatedImages = [...images, ...newImages];
+        console.log('newImages: ', newImages);
         setImages(updatedImages);
-        onChange(updatedImages);
+        onChange({ updatedImages });
       }
     },
     [images, maxFiles, maxSizeInMB, acceptedTypes, onChange, onError]
@@ -99,7 +178,7 @@ const Main_ImageUpload = (props) => {
 
       const updatedImages = images.filter((image) => image.id !== id);
       setImages(updatedImages);
-      onChange(updatedImages);
+      onChange({ updatedImages });
     },
     [disabled, images, onChange]
   );
@@ -142,15 +221,18 @@ Main_ImageUpload.propTypes = {
   showPreview: PropTypes.bool, // Added prop type for showPreview
 
   // Initial state
-  defaultImages: PropTypes.arrayOf(
-    PropTypes.shape({
-      url: PropTypes.string.isRequired,
-      name: PropTypes.string.isRequired,
-      size: PropTypes.number.isRequired,
-      type: PropTypes.string,
-      id: PropTypes.string.isRequired,
-    })
-  ),
+  defaultImages: PropTypes.oneOfType([
+    PropTypes.arrayOf(PropTypes.string),
+    PropTypes.arrayOf(
+      PropTypes.shape({
+        url: PropTypes.string.isRequired,
+        name: PropTypes.string,
+        size: PropTypes.number,
+        type: PropTypes.string,
+        id: PropTypes.string,
+      })
+    ),
+  ]),
 };
 
 export default Main_ImageUpload;

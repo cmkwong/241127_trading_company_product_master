@@ -51,7 +51,9 @@ export const mockProducts = [
         code: 'S000325',
         remark: 'Testing',
         images: [
-          // 'C:\\Users\\Chris\\Desktop\\StockData\\Business\\Pet Product Images\\202511051340\\display\\Main_01.jpg',
+          '\\pet_product_images\\202510282119\\display\\display_202510282117_06_800x800.jpg',
+          '\\pet_product_images\\202510282119\\display\\display_202510282117_02_800x800.jpg',
+          '\\pet_product_images\\202510282119\\display\\display_202510282117_03_800x800.jpg',
         ],
       },
       {
@@ -59,7 +61,9 @@ export const mockProducts = [
         name: 'custom labels',
         code: '',
         remark: 'Testing2',
-        images: [],
+        images: [
+          '\\pet_product_images\\202510282119\\display\\display_202510282117_03_800x800.jpg',
+        ],
       },
     ],
     productLinks: [

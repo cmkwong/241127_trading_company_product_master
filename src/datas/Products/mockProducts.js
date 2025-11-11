@@ -70,7 +70,7 @@ export const mockProducts = [
       {
         id: 1,
         link: 'http://yahoo.com.hk',
-        images: [],
+        images: ['\\pet_product_images\\202511032115\\display\\Main_01.jpg'],
         remark: '',
         date: '2025-10-27',
       },

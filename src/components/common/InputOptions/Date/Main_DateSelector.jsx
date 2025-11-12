@@ -51,7 +51,7 @@ const Main_DateSelector = ({
     (d) => {
       const valid = d && !isNaN(d.getTime()) ? stripTime(d) : undefined;
       const isoString = valid ? valid.toISOString().slice(0, 10) : '';
-      onChange({ date: valid, isoString });
+      onChange({ value: valid, isoString });
     },
     [onChange]
   );

@@ -71,13 +71,16 @@ export const mockProducts = [
         id: 1,
         link: 'http://yahoo.com.hk',
         images: ['\\pet_product_images\\202511032115\\display\\Main_01.jpg'],
-        remark: '',
+        remark: 'test remark',
         date: '2025-10-27',
       },
       {
         id: 2,
         link: 'www.google.com',
-        images: [],
+        images: [
+          '\\pet_product_images\\202511032115\\display\\Main_02.jpg',
+          '\\pet_product_images\\202511032115\\display\\Main_03.jpg',
+        ],
         remark: '',
         date: '2025-10-27',
       },
@@ -85,15 +88,26 @@ export const mockProducts = [
     alibabaIds: [
       { id: 1, value: '10215135354354', link: 'http://yahoo.com.hk' },
       { id: 2, value: '48412151513215', link: 'www.google.com' },
+      { id: 3, value: '84548454545888', link: 'www.instagram.com' },
     ],
     packings: [
       { id: 1, L: 12, W: 52, H: 25, qty: 1, kg: 5, type: 1 },
       { id: 2, L: 24, W: 52, H: 50, qty: 10, kg: 10, type: 2 },
     ],
     certificates: [
-      { id: 1, type: 1, files: [], remark: 'MSDS remark' },
-      { id: 2, type: 2, files: [], remark: 'RoHS remark' },
+      {
+        id: 1,
+        type: 1,
+        files: ['\\pet_product_images\\202511032115\\display\\Main_02.jpg'],
+        remark: 'MSDS remark',
+      },
+      {
+        id: 2,
+        type: 2,
+        files: ['\\pet_product_images\\202511032115\\display\\Main_01.jpg'],
+        remark: 'RoHS remark',
+      },
     ],
-    remark: '',
+    remark: 'main remark',
   },
 ];

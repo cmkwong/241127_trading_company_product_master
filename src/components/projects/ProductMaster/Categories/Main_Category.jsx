@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
 import Main_TagInputField from '../../../common/InputOptions/Tagging/Main_TagInputField';
 import styles from './Main_Category.module.css';
@@ -8,18 +8,23 @@ import { useProductContext } from '../../../../store/ProductContext';
 const Main_Category = () => {
   const { pageData, updateData } = useProductContext();
 
-  // Initialize state with category IDs from pageData
-  const [selectedCategoryIds, setSelectedCategoryIds] = useState(
-    pageData.category || []
-  );
+  // Process category data from pageData
+  const processedCategories = useMemo(() => {
+    return pageData.category || [];
+  }, [pageData.category]);
+
+  // Initialize state with processed categories
+  const [selectedCategoryIds, setSelectedCategoryIds] =
+    useState(processedCategories);
 
   // Update local state when pageData changes
   useEffect(() => {
-    setSelectedCategoryIds(pageData.category || []);
-  }, [pageData.category]);
+    setSelectedCategoryIds(processedCategories);
+  }, [processedCategories]);
 
   // Handle category changes and update the context
   const handleCategoryChange = (nextOptions, nextSelectedIds) => {
+    // Update both local state and context
     setSelectedCategoryIds(nextSelectedIds);
     updateData('category', nextSelectedIds);
   };
@@ -27,6 +32,7 @@ const Main_Category = () => {
   return (
     <Main_InputContainer label={'Category'}>
       <Main_TagInputField
+        key={`category-input-${selectedCategoryIds.length}`}
         options={mockCategory}
         selectedOptions={selectedCategoryIds}
         onChange={handleCategoryChange}

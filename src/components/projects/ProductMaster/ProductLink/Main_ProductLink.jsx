@@ -4,7 +4,6 @@ import ControlRowBtn from '../../../common/ControlRowBtn';
 import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
 import Sub_ProductLinkRow from './Sub_ProductLinkRow';
 import { useProductContext } from '../../../../store/ProductContext';
-import { useRowsHandler } from '../../../../utils/formHandlers';
 
 const Main_ProductLink = () => {
   const { pageData, updateData } = useProductContext();
@@ -20,17 +19,25 @@ const Main_ProductLink = () => {
   const processedProductLinks = useMemo(() => {
     if (!pageData.productLinks || pageData.productLinks.length === 0) {
       // If there are no product links, return just one empty row
-      return [{ id: 1, ...template_data }];
+      return [{ id: `product-link-${Date.now()}-0`, ...template_data }];
     } else {
-      // Otherwise, return the existing product links
-      return pageData.productLinks;
+      // Otherwise, return the existing product links with ID check
+      return pageData.productLinks.map((item, index) => ({
+        ...item,
+        id: item.id || `product-link-${Date.now()}-${index}`,
+      }));
     }
   }, [pageData.productLinks]);
 
   // Initialize state with processed product links
-  const [rowCount, setRowCount] = useState(processedProductLinks.length);
   const [productLinks, setProductLinks] = useState(processedProductLinks);
   const rowRef = useRef({});
+
+  // Extract just the IDs for the ControlRowBtn
+  const rowIds = useMemo(
+    () => productLinks.map((item) => item.id),
+    [productLinks]
+  );
 
   const setRowRef = useCallback((index, ref) => {
     rowRef.current[index] = ref;
@@ -39,35 +46,53 @@ const Main_ProductLink = () => {
   // Update the productLinks state when pageData changes
   useEffect(() => {
     setProductLinks(processedProductLinks);
-    setRowCount(processedProductLinks.length);
   }, [processedProductLinks]);
 
-  // Handle row count changes from ControlRowBtn
-  const handleRowsChange = useCallback(
-    (newRowCount) => {
-      // Create a copy of the current product links
-      let updatedProductLinks = [...productLinks];
-
-      // If we need more rows, add them
-      if (newRowCount > updatedProductLinks.length) {
-        for (let i = updatedProductLinks.length; i < newRowCount; i++) {
-          updatedProductLinks.push({
-            id: `product-link-${Date.now()}-${i}`,
-            ...template_data,
-          });
-        }
-      }
-      // If we need fewer rows, remove from the end
-      else if (newRowCount < updatedProductLinks.length) {
-        updatedProductLinks = updatedProductLinks.slice(0, newRowCount);
-      }
+  // Handle row IDs changes
+  const handleRowIdsChange = useCallback(
+    (newRowIds) => {
+      // Filter productLinks to keep only the rows with IDs in newRowIds
+      const updatedProductLinks = productLinks.filter((item) =>
+        newRowIds.includes(item.id)
+      );
 
       // Update both local state and context
       setProductLinks(updatedProductLinks);
       updateData('productLinks', updatedProductLinks);
-      setRowCount(newRowCount);
+    },
+    [productLinks, updateData]
+  );
+
+  // Handle adding a new row
+  const handleRowAdd = useCallback(
+    (newRowId) => {
+      const newRow = {
+        id: newRowId,
+        ...template_data,
+        date: new Date().toISOString().split('T')[0], // Ensure date is always current
+      };
+
+      const updatedProductLinks = [...productLinks, newRow];
+
+      // Update both local state and context
+      setProductLinks(updatedProductLinks);
+      updateData('productLinks', updatedProductLinks);
     },
     [productLinks, template_data, updateData]
+  );
+
+  // Handle removing a row
+  const handleRowRemove = useCallback(
+    (rowId) => {
+      const updatedProductLinks = productLinks.filter(
+        (item) => item.id !== rowId
+      );
+
+      // Update both local state and context
+      setProductLinks(updatedProductLinks);
+      updateData('productLinks', updatedProductLinks);
+    },
+    [productLinks, updateData]
   );
 
   const handleProductLinkChange = useCallback(
@@ -93,9 +118,10 @@ const Main_ProductLink = () => {
   return (
     <Main_InputContainer label="Product Links">
       <ControlRowBtn
-        initialRowCount={rowCount}
-        setRowCount={setRowCount}
-        onRowsChange={handleRowsChange}
+        rowIds={rowIds}
+        setRowIds={handleRowIdsChange}
+        onRowAdd={handleRowAdd}
+        onRowRemove={handleRowRemove}
       >
         <Sub_ProductLinkRow
           template_data={template_data}

@@ -7,7 +7,7 @@ import ProductIcon from './ProductIcon';
 import ProductInfo from './ProductInfo';
 
 const ProductItem = ({ product, isSelected, onClick }) => {
-  const productName = product.productName[0].name;
+  const productName = product.productNames[0].name;
   const productId = product.productId;
   const categoryLabels = getLabelsFromLookup(product.category, mockCategory);
 

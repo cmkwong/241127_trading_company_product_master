@@ -2,7 +2,7 @@ export const mockProduct_template = {
   id: `new-product-${Date.now()}`,
   productId: `PID-${Date.now().toString(36)}`,
   iconUrl: '',
-  productName: [{ id: `product-name-${Date.now()}`, name: '', type: 1 }],
+  productNames: [{ id: `product-name-${Date.now()}`, name: '', type: 1 }],
   category: [],
   customizations: [
     { id: `customization-${Date.now()}`, code: '', remark: '', images: [] },
@@ -39,11 +39,11 @@ export const mockProducts = [
     id: '1',
     productId: '202510271831',
     iconUrl: 'https://via.placeholder.com/50',
-    productName: [
+    productNames: [
       { id: 1, name: 'Elizabeth Collar Pet Grooming Shield', type: 1 },
       { id: 2, name: '狗仔花花頸圈', type: 2 },
     ],
-    category: [1],
+    category: [1, 2],
     customizations: [
       {
         id: 1,
@@ -83,6 +83,16 @@ export const mockProducts = [
         ],
         remark: '',
         date: '2025-10-27',
+      },
+      {
+        id: 3,
+        link: 'www.google.com',
+        images: [
+          '\\pet_product_images\\202511032115\\display\\Main_04.jpg',
+          '\\pet_product_images\\202511032115\\display\\Main_05.jpg',
+        ],
+        remark: 'testing remark 3',
+        date: '2025-11-13',
       },
     ],
     alibabaIds: [

@@ -1,101 +1,133 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ControlRowBtn from '../../../common/ControlRowBtn';
+import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
 import Sub_ProductNameRow from './Sub_ProductNameRow';
-import { useProductContext } from '../../../../store/ProductContext.jsx';
-import { useRowsHandler } from '../../../../utils/formHandlers.js';
+import { useProductContext } from '../../../../store/ProductContext';
 
 const Main_ProductName = () => {
   const { pageData, updateData } = useProductContext();
-  const rowRef = useRef({});
 
   const template_data = {
     name: '',
-    type: 1,
+    language: 1, // Default language ID
   };
 
-  // Process productNames from pageData with proper validation
+  // Process product names from page data
   const processedProductNames = useMemo(() => {
-    if (!pageData.productName || pageData.productName.length === 0) {
-      return [{ id: 1, ...template_data }];
-    } else if (typeof pageData.productName === 'string') {
-      return [{ id: 1, name: pageData.productName, type: 1 }];
+    if (!pageData.productNames || pageData.productNames.length === 0) {
+      // If there are no product names, return just one empty row
+      return [{ id: `product-name-${Date.now()}-0`, ...template_data }];
     } else {
-      return pageData.productName;
+      // Otherwise, return the existing product names with ID check
+      return pageData.productNames.map((item, index) => ({
+        ...item,
+        id: item.id || `product-name-${Date.now()}-${index}`,
+      }));
     }
-  }, [pageData.productName]);
+  }, [pageData.productNames]);
 
-  // Use the processed names as state
+  // Initialize state with processed product names
   const [productNames, setProductNames] = useState(processedProductNames);
+  const rowRef = useRef({});
 
-  // Update productNames when pageData changes
-  useEffect(() => {
-    setProductNames(processedProductNames);
-  }, [processedProductNames]);
-
-  // Track row count for ControlRowBtn
-  const [rowCount, setRowCount] = useState(Math.max(1, productNames.length));
-
-  // Update rowCount when productNames changes
-  useEffect(() => {
-    setRowCount(Math.max(1, processedProductNames.length));
-  }, [processedProductNames]);
-
-  // Handle row count changes from ControlRowBtn
-  const handleRowsChange = useRowsHandler(
-    productNames,
-    updateData,
-    'productName',
-    template_data,
-    rowRef
+  // Extract just the IDs for the ControlRowBtn
+  const rowIds = useMemo(
+    () => productNames.map((item) => item.id),
+    [productNames]
   );
 
-  // handle the product name fields being changed
-  const handleProductNameChange = useCallback(
-    (rowindex, field, value) => {
-      const updatedProductNames = [...productNames];
-
-      // Ensure the row exists in our array
-      if (!updatedProductNames[rowindex]) {
-        updatedProductNames[rowindex] = { id: rowindex + 1, ...template_data };
-      }
-
-      // Update the specified field
-      updatedProductNames[rowindex] = {
-        ...updatedProductNames[rowindex],
-        [field]: value,
-      };
-
-      updateData('productName', updatedProductNames);
-    },
-    [updateData, productNames]
-  );
-
-  // Generate a key that changes when productNames length changes
-  // const controlRowKey = `product-names-${processedProductNames.length}`;
-
-  // Set up ref for a row
   const setRowRef = useCallback((index, ref) => {
     rowRef.current[index] = ref;
   }, []);
 
+  // Update the productNames state when pageData changes
+  useEffect(() => {
+    setProductNames(processedProductNames);
+  }, [processedProductNames]);
+
+  // Handle row IDs changes
+  const handleRowIdsChange = useCallback(
+    (newRowIds) => {
+      // Filter productNames to keep only the rows with IDs in newRowIds
+      const updatedProductNames = productNames.filter((item) =>
+        newRowIds.includes(item.id)
+      );
+
+      // Update both local state and context
+      setProductNames(updatedProductNames);
+      updateData('productNames', updatedProductNames);
+    },
+    [productNames, updateData]
+  );
+
+  // Handle adding a new row
+  const handleRowAdd = useCallback(
+    (newRowId) => {
+      const newRow = {
+        id: newRowId,
+        ...template_data,
+      };
+
+      const updatedProductNames = [...productNames, newRow];
+
+      // Update both local state and context
+      setProductNames(updatedProductNames);
+      updateData('productNames', updatedProductNames);
+    },
+    [productNames, template_data, updateData]
+  );
+
+  // Handle removing a row
+  const handleRowRemove = useCallback(
+    (rowId) => {
+      const updatedProductNames = productNames.filter(
+        (item) => item.id !== rowId
+      );
+
+      // Update both local state and context
+      setProductNames(updatedProductNames);
+      updateData('productNames', updatedProductNames);
+    },
+    [productNames, updateData]
+  );
+
+  // Handle field changes
+  const handleProductNameChange = useCallback(
+    (rowIndex, field, value) => {
+      // Ensure we have a valid row index
+      if (rowIndex < 0 || rowIndex >= productNames.length) return;
+
+      const updatedProductNames = [...productNames];
+
+      // Update the specified field
+      updatedProductNames[rowIndex] = {
+        ...updatedProductNames[rowIndex],
+        [field]: value,
+      };
+
+      // Update both local state and context
+      setProductNames(updatedProductNames);
+      updateData('productNames', updatedProductNames);
+    },
+    [productNames, updateData]
+  );
+
   return (
-    <>
-      <Main_InputContainer label={'Product Name'}>
-        <ControlRowBtn
-          // key={controlRowKey}
-          initialRowCount={rowCount}
-          setRowCount={setRowCount}
-          onRowsChange={handleRowsChange}
-        >
-          <Sub_ProductNameRow
-            productNames={productNames}
-            onChange={handleProductNameChange}
-            setRowRef={setRowRef}
-          />
-        </ControlRowBtn>
-      </Main_InputContainer>
-    </>
+    <Main_InputContainer label="Product Names">
+      <ControlRowBtn
+        rowIds={rowIds}
+        setRowIds={handleRowIdsChange}
+        onRowAdd={handleRowAdd}
+        onRowRemove={handleRowRemove}
+      >
+        <Sub_ProductNameRow
+          template_data={template_data}
+          productNames={productNames}
+          onChange={handleProductNameChange}
+          setRowRef={setRowRef}
+        />
+      </ControlRowBtn>
+    </Main_InputContainer>
   );
 };
 

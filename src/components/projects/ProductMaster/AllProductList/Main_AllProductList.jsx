@@ -20,10 +20,10 @@ const Main_AllProductList = ({ onSelectProduct }) => {
     const lowerSearchTerm = searchTerm.toLowerCase();
     const filtered = products.filter(
       (product) =>
-        (typeof product.productName === 'string' &&
-          product.productName.toLowerCase().includes(lowerSearchTerm)) ||
-        (Array.isArray(product.productName) &&
-          product.productName.some((name) =>
+        (typeof product.productNames === 'string' &&
+          product.productNames.toLowerCase().includes(lowerSearchTerm)) ||
+        (Array.isArray(product.productNames) &&
+          product.productNames.some((name) =>
             name.name.toLowerCase().includes(lowerSearchTerm)
           )) ||
         product.productId.toLowerCase().includes(lowerSearchTerm) ||

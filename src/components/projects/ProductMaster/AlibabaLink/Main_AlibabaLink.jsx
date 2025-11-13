@@ -16,16 +16,22 @@ const Main_AlibabaLink = () => {
   // Process alibaba IDs from page data
   const processedAlibabaIds = useMemo(() => {
     if (!pageData.alibabaIds || pageData.alibabaIds.length === 0) {
-      return [{ id: 1, ...template_data }];
+      return [{ id: `alibaba-id-${Date.now()}-0`, ...template_data }];
     } else {
-      return pageData.alibabaIds;
+      // Ensure all items have an ID
+      return pageData.alibabaIds.map((item, index) => ({
+        ...item,
+        id: item.id || `alibaba-id-${Date.now()}-${index}`,
+      }));
     }
   }, [pageData.alibabaIds]);
 
   // Initialize state
-  const [rowCount, setRowCount] = useState(processedAlibabaIds.length);
   const [alibabaIds, setAlibabaIds] = useState(processedAlibabaIds);
   const rowRef = useRef({});
+
+  // Extract just the IDs for the ControlRowBtn
+  const rowIds = useMemo(() => alibabaIds.map((item) => item.id), [alibabaIds]);
 
   const setRowRef = useCallback((index, ref) => {
     rowRef.current[index] = ref;
@@ -34,35 +40,50 @@ const Main_AlibabaLink = () => {
   // Update state when page data changes
   useEffect(() => {
     setAlibabaIds(processedAlibabaIds);
-    setRowCount(processedAlibabaIds.length);
   }, [processedAlibabaIds]);
 
-  // Handle row count changes
-  const handleRowsChange = useCallback(
-    (newRowCount) => {
-      // Create a copy of the current alibaba IDs
-      let updatedAlibabaIds = [...alibabaIds];
-
-      // If we need more rows, add them
-      if (newRowCount > updatedAlibabaIds.length) {
-        for (let i = updatedAlibabaIds.length; i < newRowCount; i++) {
-          updatedAlibabaIds.push({
-            id: `alibaba-id-${Date.now()}-${i}`,
-            ...template_data,
-          });
-        }
-      }
-      // If we need fewer rows, remove from the end
-      else if (newRowCount < updatedAlibabaIds.length) {
-        updatedAlibabaIds = updatedAlibabaIds.slice(0, newRowCount);
-      }
+  // Handle row IDs changes
+  const handleRowIdsChange = useCallback(
+    (newRowIds) => {
+      // Filter alibabaIds to keep only the rows with IDs in newRowIds
+      const updatedAlibabaIds = alibabaIds.filter((item) =>
+        newRowIds.includes(item.id)
+      );
 
       // Update both local state and context
       setAlibabaIds(updatedAlibabaIds);
       updateData('alibabaIds', updatedAlibabaIds);
-      setRowCount(newRowCount);
+    },
+    [alibabaIds, updateData]
+  );
+
+  // Handle adding a new row
+  const handleRowAdd = useCallback(
+    (newRowId) => {
+      const newRow = {
+        id: newRowId,
+        ...template_data,
+      };
+
+      const updatedAlibabaIds = [...alibabaIds, newRow];
+
+      // Update both local state and context
+      setAlibabaIds(updatedAlibabaIds);
+      updateData('alibabaIds', updatedAlibabaIds);
     },
     [alibabaIds, template_data, updateData]
+  );
+
+  // Handle removing a row
+  const handleRowRemove = useCallback(
+    (rowId) => {
+      const updatedAlibabaIds = alibabaIds.filter((item) => item.id !== rowId);
+
+      // Update both local state and context
+      setAlibabaIds(updatedAlibabaIds);
+      updateData('alibabaIds', updatedAlibabaIds);
+    },
+    [alibabaIds, updateData]
   );
 
   // Handle field changes
@@ -89,9 +110,10 @@ const Main_AlibabaLink = () => {
   return (
     <Main_InputContainer label={'Alibaba'}>
       <ControlRowBtn
-        initialRowCount={rowCount}
-        setRowCount={setRowCount}
-        onRowsChange={handleRowsChange}
+        rowIds={rowIds}
+        setRowIds={handleRowIdsChange}
+        onRowAdd={handleRowAdd}
+        onRowRemove={handleRowRemove}
       >
         <Sub_AlibabaLink
           template_data={template_data}

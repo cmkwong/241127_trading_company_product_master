@@ -59,7 +59,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
         ...pageData,
         id: product.id,
         productId: product.productId,
-        productName: product.productName || [],
+        productNames: product.productNames || [],
         category: product.category || [],
         customizations: product.customizations || [],
         productLinks: product.productLinks || [],

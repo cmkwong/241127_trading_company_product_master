@@ -17,16 +17,25 @@ const Main_CertificateData = () => {
   // Process certificates from page data
   const processedCertificates = useMemo(() => {
     if (!pageData.certificates || pageData.certificates.length === 0) {
-      return [{ id: 1, ...template_data }];
+      return [{ id: `certificate-${Date.now()}-0`, ...template_data }];
     } else {
-      return pageData.certificates;
+      // Ensure all items have an ID
+      return pageData.certificates.map((item, index) => ({
+        ...item,
+        id: item.id || `certificate-${Date.now()}-${index}`,
+      }));
     }
   }, [pageData.certificates]);
 
-  // Initialize state
-  const [rowCount, setRowCount] = useState(processedCertificates.length);
+  // Initialize state with processed certificates
   const [certificates, setCertificates] = useState(processedCertificates);
   const rowRef = useRef({});
+
+  // Extract just the IDs for the ControlRowBtn
+  const rowIds = useMemo(
+    () => certificates.map((item) => item.id),
+    [certificates]
+  );
 
   const setRowRef = useCallback((index, ref) => {
     rowRef.current[index] = ref;
@@ -35,35 +44,52 @@ const Main_CertificateData = () => {
   // Update state when page data changes
   useEffect(() => {
     setCertificates(processedCertificates);
-    setRowCount(processedCertificates.length);
   }, [processedCertificates]);
 
-  // Handle row count changes
-  const handleRowsChange = useCallback(
-    (newRowCount) => {
-      // Create a copy of the current certificates
-      let updatedCertificates = [...certificates];
-
-      // If we need more rows, add them
-      if (newRowCount > updatedCertificates.length) {
-        for (let i = updatedCertificates.length; i < newRowCount; i++) {
-          updatedCertificates.push({
-            id: `certificate-${Date.now()}-${i}`,
-            ...template_data,
-          });
-        }
-      }
-      // If we need fewer rows, remove from the end
-      else if (newRowCount < updatedCertificates.length) {
-        updatedCertificates = updatedCertificates.slice(0, newRowCount);
-      }
+  // Handle row IDs changes
+  const handleRowIdsChange = useCallback(
+    (newRowIds) => {
+      // Filter certificates to keep only the rows with IDs in newRowIds
+      const updatedCertificates = certificates.filter((item) =>
+        newRowIds.includes(item.id)
+      );
 
       // Update both local state and context
       setCertificates(updatedCertificates);
       updateData('certificates', updatedCertificates);
-      setRowCount(newRowCount);
+    },
+    [certificates, updateData]
+  );
+
+  // Handle adding a new row
+  const handleRowAdd = useCallback(
+    (newRowId) => {
+      const newRow = {
+        id: newRowId,
+        ...template_data,
+      };
+
+      const updatedCertificates = [...certificates, newRow];
+
+      // Update both local state and context
+      setCertificates(updatedCertificates);
+      updateData('certificates', updatedCertificates);
     },
     [certificates, template_data, updateData]
+  );
+
+  // Handle removing a row
+  const handleRowRemove = useCallback(
+    (rowId) => {
+      const updatedCertificates = certificates.filter(
+        (item) => item.id !== rowId
+      );
+
+      // Update both local state and context
+      setCertificates(updatedCertificates);
+      updateData('certificates', updatedCertificates);
+    },
+    [certificates, updateData]
   );
 
   // Handle field changes
@@ -90,9 +116,10 @@ const Main_CertificateData = () => {
   return (
     <Main_InputContainer label="Certificates">
       <ControlRowBtn
-        initialRowCount={rowCount}
-        setRowCount={setRowCount}
-        onRowsChange={handleRowsChange}
+        rowIds={rowIds}
+        setRowIds={handleRowIdsChange}
+        onRowAdd={handleRowAdd}
+        onRowRemove={handleRowRemove}
       >
         <Sub_CertificateData
           template_data={template_data}

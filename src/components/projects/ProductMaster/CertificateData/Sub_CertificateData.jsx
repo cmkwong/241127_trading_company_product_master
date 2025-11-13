@@ -13,6 +13,7 @@ const Sub_CertificateData = forwardRef(
 
     // Process files to ensure each has a unique ID
     const processedFiles = useMemo(() => {
+      // Check if files exist
       if (
         !certificate.files ||
         !Array.isArray(certificate.files) ||
@@ -21,7 +22,7 @@ const Sub_CertificateData = forwardRef(
         return [];
       }
 
-      return certificate.files.map((file) => {
+      return certificate.files.map((file, index) => {
         // If file is already properly formatted with an ID, return it as is
         if (
           file &&
@@ -37,22 +38,27 @@ const Sub_CertificateData = forwardRef(
         const fileName =
           typeof file === 'string'
             ? file.split('/').pop()
-            : file.name || 'unknown';
-        const fileSize = file.size || 100000; // Default size if unknown
-        const fileType = file.type || 'application/octet-stream'; // Default type if unknown
+            : (file && file.name) || 'unknown';
 
-        return {
+        const fileSize = (file && file.size) || 100000; // Default size if unknown
+        const fileType = (file && file.type) || 'application/octet-stream'; // Default type if unknown
+        const fileUrl =
+          typeof file === 'string' ? file : (file && file.url) || '';
+
+        const processedFile = {
           name: fileName,
           size: fileSize,
           type: fileType,
-          url: typeof file === 'string' ? file : file.url || '',
+          url: fileUrl,
           id: `file-${Date.now()}-${Math.random()
             .toString(36)
-            .substring(2, 9)}`,
+            .substring(2, 9)}-${index}`,
           originalFile: file,
         };
+
+        return processedFile;
       });
-    }, [certificate.files]);
+    }, [certificate.files, rowindex]);
 
     const handleTypeChange = useCallback(
       ({ selected }) => {
@@ -71,9 +77,9 @@ const Sub_CertificateData = forwardRef(
     const handleFileChange = useCallback(
       (updatedFiles) => {
         // Extract original files or URLs to maintain data structure
-        const processedUpdatedFiles = updatedFiles.map(
-          (file) => file.originalFile || file.url || file
-        );
+        const processedUpdatedFiles = updatedFiles.map((file) => {
+          return file.originalFile || file.url || file;
+        });
 
         onChange(rowindex, 'files', processedUpdatedFiles);
       },
@@ -81,8 +87,7 @@ const Sub_CertificateData = forwardRef(
     );
 
     const handleFileError = useCallback((errorMessage) => {
-      console.error('File upload error:', errorMessage);
-      // You could add a toast notification here
+      console.error(`File upload error: ${errorMessage}`);
     }, []);
 
     return (
@@ -91,21 +96,35 @@ const Sub_CertificateData = forwardRef(
         ref={(el) => setRowRef(rowindex, el)}
       >
         <Main_Dropdown
+          key={`dropdown-${rowindex}-${certificate.type || 1}`}
           label="Type"
           defaultOptions={mockCertType}
-          defaultSelectedOption={certificate.type || 1}
+          // Use controlled mode instead of defaultSelectedOption
+          options={mockCertType}
+          selectedOptions={certificate.type || 1}
           onChange={handleTypeChange}
         />
         <Main_FileUploads
+          key={`file-upload-${rowindex}-${processedFiles.length}`}
           label="Upload Certificates"
           onChange={handleFileChange}
           onError={handleFileError}
           maxFiles={5}
           maxSizeInMB={2}
           acceptedTypes={[
+            // Document types
             'application/pdf',
             'application/msword',
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            // Image types
+            'image/jpeg',
+            'image/jpg',
+            'image/png',
+            'image/gif',
+            'image/webp',
+            'image/svg+xml',
+            'image/bmp',
+            'image/tiff',
           ]}
           defaultFiles={processedFiles}
         />

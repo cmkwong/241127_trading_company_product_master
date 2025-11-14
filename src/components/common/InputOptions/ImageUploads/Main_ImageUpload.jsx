@@ -24,6 +24,7 @@ const Main_ImageUpload = (props) => {
     multiple = true,
     disabled = false,
     showPreview = true, // New prop to control preview visibility
+    showMaxImagesNotice = true, // New prop to control "Maximum images reached" notice
 
     // Initial state
     defaultImages = [],
@@ -197,6 +198,7 @@ const Main_ImageUpload = (props) => {
         acceptedTypes={acceptedTypes}
         multiple={multiple}
         showPreview={showPreview}
+        showMaxImagesNotice={showMaxImagesNotice}
         images={images}
         onRemoveImage={handleRemoveImage}
       />
@@ -218,7 +220,8 @@ Main_ImageUpload.propTypes = {
   label: PropTypes.string,
   multiple: PropTypes.bool,
   disabled: PropTypes.bool,
-  showPreview: PropTypes.bool, // Added prop type for showPreview
+  showPreview: PropTypes.bool,
+  showMaxImagesNotice: PropTypes.bool, // Added prop type for showMaxImagesNotice
 
   // Initial state
   defaultImages: PropTypes.oneOfType([

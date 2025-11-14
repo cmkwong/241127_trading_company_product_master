@@ -1,99 +1,97 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import styles from './Main_ProductIcon.module.css';
 import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
-import Sub_UploadArea from './Sub_UploadArea';
-import Sub_IconPreview from './Sub_IconPreview';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
 import { useProductContext } from '../../../../store/ProductContext';
+import Main_ImageUpload from '../../../common/InputOptions/ImageUploads/Main_ImageUpload';
 
 /**
  * Main_ProductIcon Component
  * Allows selection and display of a single product image
  */
-const Main_ProductIcon = ({ onChange = () => {} }) => {
+const Main_ProductIcon = ({
+  onChange = () => {},
+  showMaxImagesNotice = false,
+}) => {
   const { pageData, updateData } = useProductContext();
 
   // product ID state setup
   const [productId, setProductId] = useState(pageData.productId || '');
-  const [image, setImage] = useState(pageData.iconUrl);
+  const [defaultImages, setDefaultImages] = useState([]);
 
+  // Process the image URL from pageData
   useEffect(() => {
-    setProductId(pageData.productId);
-  }, [pageData.productId]);
-  useEffect(() => {
-    setImage(pageData.iconUrl);
-  }, [pageData.iconUrl]);
+    setProductId(pageData.productId || '');
 
-  const fileInputRef = useRef(null);
-
-  // Handle file selection
-  const handleFileSelection = (file) => {
-    if (!file) return;
-
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      alert('Please select an image file');
-      return;
+    // Process iconUrl into the format expected by Main_ImageUpload
+    if (pageData.iconUrl) {
+      // If iconUrl is already an object with url property
+      if (typeof pageData.iconUrl === 'object' && pageData.iconUrl.url) {
+        setDefaultImages([pageData.iconUrl]);
+      }
+      // If iconUrl is a string URL
+      else if (
+        typeof pageData.iconUrl === 'string' &&
+        pageData.iconUrl.trim() !== ''
+      ) {
+        setDefaultImages([pageData.iconUrl]);
+      }
+      // Otherwise, clear the images
+      else {
+        setDefaultImages([]);
+      }
+    } else {
+      setDefaultImages([]);
     }
+  }, [pageData.productId, pageData.iconUrl]);
 
-    // Create object URL for preview
-    const imageUrl = URL.createObjectURL(file);
+  // Handle image changes from the ImageUpload component
+  const handleImageChange = ({ updatedImages }) => {
+    // Get the first image if it exists
+    const newImage =
+      updatedImages && updatedImages.length > 0 ? updatedImages[0] : null;
 
-    const newImage = {
-      file,
-      url: imageUrl,
-      name: file.name,
-      size: file.size,
-      type: file.type,
-    };
+    // Update the context with the new image
+    updateData('iconUrl', newImage);
 
-    setImage(newImage);
+    // Call the onChange prop
     onChange(newImage);
   };
 
-  // Handle image removal
-  const handleRemoveImage = () => {
-    setImage(null);
-    onChange(null);
+  // Handle errors from the ImageUpload component
+  const handleImageError = (errorMessage) => {
+    console.error('Image upload error:', errorMessage);
+    // You could show a toast notification or alert here
   };
 
-  // Handle click on the upload button in the image preview
-  const handleChangeClick = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
-    }
-  };
-
+  // Handle product ID changes
   const handleProductIdChange = (value) => {
-    console.log('handleProductIdChange: ', value);
+    setProductId(value);
+    updateData('productId', value);
   };
 
   return (
     <Main_InputContainer label="Product Icon">
       <div className={styles.productIconContainer}>
-        {!image ? (
-          <Sub_UploadArea onFileSelect={handleFileSelection} />
-        ) : (
-          <Sub_IconPreview
-            image={image}
-            onChangeClick={handleChangeClick}
-            onRemoveClick={handleRemoveImage}
+        <div className={styles.iconUploadContainer}>
+          <Main_ImageUpload
+            onChange={handleImageChange}
+            onError={handleImageError}
+            maxFiles={1}
+            multiple={false}
+            defaultImages={defaultImages}
+            showPreview={true}
+            acceptedTypes={[
+              'image/jpeg',
+              'image/png',
+              'image/gif',
+              'image/webp',
+            ]}
+            maxSizeInMB={5}
+            showMaxImagesNotice={showMaxImagesNotice}
           />
-        )}
-        {/* Hidden file input for the change button */}
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          onChange={(e) => {
-            if (e.target.files && e.target.files[0]) {
-              handleFileSelection(e.target.files[0]);
-              e.target.value = ''; // Reset input
-            }
-          }}
-          style={{ display: 'none' }}
-        />
+        </div>
         <Main_TextField
           placeholder={'Product ID'}
           value={productId}
@@ -106,6 +104,7 @@ const Main_ProductIcon = ({ onChange = () => {} }) => {
 
 Main_ProductIcon.propTypes = {
   onChange: PropTypes.func, // Callback when image changes
+  showMaxImagesNotice: PropTypes.bool, // Whether to show "Maximum 1 images reached" notice
 };
 
 export default Main_ProductIcon;

@@ -111,3 +111,14 @@
   gap: 12px;
   width: 100%;
 }
+
+/* New styles for full-size container */
+.fullSizeContainer {
+  padding: 12px;
+}
+
+.fullSizePreviewContainer {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}

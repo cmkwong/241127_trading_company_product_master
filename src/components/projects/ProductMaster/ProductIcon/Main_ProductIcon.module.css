@@ -1,10 +1,11 @@
 .productIconContainer {
-  width: 100%;
-  max-width: 400px; /* Maximum width */
-  margin: 0 auto; /* Center the container */
-  /* Fixed height to match the imageContainer */
-  /* height: 350px; */
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 16px;
+  width: 100%;
+}
+
+.iconUploadContainer {
+  width: 100%;
+  max-width: 300px; /* Adjust as needed */
 }

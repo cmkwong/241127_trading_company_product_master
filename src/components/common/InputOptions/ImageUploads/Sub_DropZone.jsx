@@ -13,6 +13,7 @@ const Sub_DropZone = ({
   acceptedTypes,
   multiple,
   showPreview = true,
+  showMaxImagesNotice = true,
   images = [],
   onRemoveImage,
 }) => {
@@ -66,7 +67,11 @@ const Sub_DropZone = ({
     <div
       className={`${styles.dropZone} ${isDragging ? styles.dragging : ''} ${
         disabled ? styles.disabled : ''
-      } ${images.length > 0 ? styles.hasImages : ''}`}
+      } ${images.length > 0 ? styles.hasImages : ''} ${
+        !showMaxImagesNotice && images.length > 0
+          ? styles.fullSizeContainer
+          : ''
+      }`}
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
       onDragOver={handleDragOver}
@@ -88,61 +93,82 @@ const Sub_DropZone = ({
       <div className={styles.dropZoneContent}>
         {/* Show previews if we have images and showPreview is true */}
         {showPreview && images.length > 0 && (
-          <div className={styles.imagePreviewContainer}>
+          <div
+            className={`${styles.imagePreviewContainer} ${
+              !showMaxImagesNotice ? styles.fullSizePreviewContainer : ''
+            }`}
+          >
             {images.map((image, i) => (
               <Sub_ImagePreview
                 key={i}
                 image={image}
                 onRemove={onRemoveImage}
                 disabled={disabled}
+                fullSizePreview={!showMaxImagesNotice}
               />
             ))}
           </div>
         )}
 
-        {/* Always show upload prompt, but style differently based on whether we have images */}
-        <div
-          className={`${styles.uploadPrompt} ${
-            images.length > 0 ? styles.uploadPromptWithImages : ''
-          }`}
-          onClick={canAddMoreImages ? handleUploadClick : undefined}
-        >
-          <div className={styles.uploadIcon}>
-            {canAddMoreImages ? (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-              </svg>
-            ) : (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" />
-              </svg>
+        {/* Only show upload prompt if we can add more images or showMaxImagesNotice is true */}
+        {(canAddMoreImages || showMaxImagesNotice) && (
+          <div
+            className={`${styles.uploadPrompt} ${
+              images.length > 0 ? styles.uploadPromptWithImages : ''
+            }`}
+            onClick={canAddMoreImages ? handleUploadClick : undefined}
+          >
+            {canAddMoreImages && (
+              <div className={styles.uploadIcon}>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+                </svg>
+              </div>
+            )}
+
+            {/* Show the upload text and info if we can add more images */}
+            {canAddMoreImages && (
+              <>
+                <div className={styles.uploadText}>
+                  {isDragging
+                    ? 'Drop images here'
+                    : images.length > 0
+                    ? 'Click or drop to add more images'
+                    : 'Click to upload or drag images here'}
+                </div>
+
+                <div className={styles.uploadInfo}>
+                  {`${images.length}/${maxFiles} images, up to ${maxSizeInMB}MB each`}
+                </div>
+              </>
+            )}
+
+            {/* Show the maximum images reached notice only if requested */}
+            {!canAddMoreImages && showMaxImagesNotice && (
+              <>
+                <div className={styles.uploadIcon}>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" />
+                  </svg>
+                </div>
+                <div className={styles.uploadText}>
+                  {`Maximum ${maxFiles} images reached`}
+                </div>
+                <div className={styles.uploadInfo}>
+                  {`To add more images, remove some first`}
+                </div>
+              </>
             )}
           </div>
-
-          <div className={styles.uploadText}>
-            {isDragging
-              ? 'Drop images here'
-              : canAddMoreImages
-              ? images.length > 0
-                ? 'Click or drop to add more images'
-                : 'Click to upload or drag images here'
-              : `Maximum ${maxFiles} images reached`}
-          </div>
-
-          <div className={styles.uploadInfo}>
-            {canAddMoreImages
-              ? `${images.length}/${maxFiles} images, up to ${maxSizeInMB}MB each`
-              : `To add more images, remove some first`}
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );
@@ -158,6 +184,7 @@ Sub_DropZone.propTypes = {
   acceptedTypes: PropTypes.arrayOf(PropTypes.string).isRequired,
   multiple: PropTypes.bool,
   showPreview: PropTypes.bool,
+  showMaxImagesNotice: PropTypes.bool,
   images: PropTypes.arrayOf(
     PropTypes.shape({
       url: PropTypes.string.isRequired,

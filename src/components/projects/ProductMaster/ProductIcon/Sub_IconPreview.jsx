@@ -4,7 +4,7 @@ import styles from './Sub_IconPreview.module.css';
 const Sub_IconPreview = ({ image, onChangeClick, onRemoveClick }) => {
   return (
     <div className={styles.imageContainer}>
-      <img src={image.url} alt="Product icon" className={styles.productImage} />
+      <img src={image} alt="Product icon" className={styles.productImage} />
       <div className={styles.imageControls}>
         <button className={styles.changeButton} onClick={onChangeClick}>
           Change

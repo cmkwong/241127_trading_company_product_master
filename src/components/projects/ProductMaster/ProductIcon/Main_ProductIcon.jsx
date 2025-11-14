@@ -1,17 +1,30 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import styles from './Main_ProductIcon.module.css';
 import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
 import Sub_UploadArea from './Sub_UploadArea';
 import Sub_IconPreview from './Sub_IconPreview';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
+import { useProductContext } from '../../../../store/ProductContext';
 
 /**
  * Main_ProductIcon Component
  * Allows selection and display of a single product image
  */
-const Main_ProductIcon = ({ onChange = () => {}, initialProductId }) => {
-  const [image, setImage] = useState(null);
+const Main_ProductIcon = ({ onChange = () => {} }) => {
+  const { pageData, updateData } = useProductContext();
+
+  // product ID state setup
+  const [productId, setProductId] = useState(pageData.productId || '');
+  const [image, setImage] = useState(pageData.iconUrl);
+
+  useEffect(() => {
+    setProductId(pageData.productId);
+  }, [pageData.productId]);
+  useEffect(() => {
+    setImage(pageData.iconUrl);
+  }, [pageData.iconUrl]);
+
   const fileInputRef = useRef(null);
 
   // Handle file selection
@@ -83,7 +96,7 @@ const Main_ProductIcon = ({ onChange = () => {}, initialProductId }) => {
         />
         <Main_TextField
           placeholder={'Product ID'}
-          defaultValue={initialProductId}
+          value={productId}
           onChange={handleProductIdChange}
         />
       </div>

@@ -1,25 +1,50 @@
+// Helper function to generate formatted timestamp in yyyymmddhhmmss format
+const getFormattedTimestamp = (secondNeed = false) => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+  if (!secondNeed) {
+    return `${year}${month}${day}${hours}${minutes}`;
+  } else {
+    return `${year}${month}${day}${hours}${minutes}${seconds}`;
+  }
+};
+
 export const mockProduct_template = {
-  id: `new-product-${Date.now()}`,
-  productId: `PID-${Date.now().toString(36)}`,
+  id: `new-product-${getFormattedTimestamp()}`,
+  productId: `${getFormattedTimestamp(true)}`,
   iconUrl: '',
-  productNames: [{ id: `product-name-${Date.now()}`, name: '', type: 1 }],
+  productNames: [
+    { id: `product-name-${getFormattedTimestamp()}`, name: '', type: 1 },
+  ],
   category: [],
   customizations: [
-    { id: `customization-${Date.now()}`, code: '', remark: '', images: [] },
+    {
+      id: `customization-${getFormattedTimestamp()}`,
+      code: '',
+      remark: '',
+      images: [],
+    },
   ],
   productLinks: [
     {
-      id: `product-link-${Date.now()}`,
+      id: `product-link-${getFormattedTimestamp()}`,
       link: '',
       images: [],
       remark: '',
       date: new Date().toISOString().split('T')[0],
     },
   ],
-  alibabaIds: [{ id: `alibaba-ids-${Date.now()}`, value: '', link: '' }],
+  alibabaIds: [
+    { id: `alibaba-ids-${getFormattedTimestamp()}`, value: '', link: '' },
+  ],
   packings: [
     {
-      id: `packings-${Date.now()}`,
+      id: `packings-${getFormattedTimestamp()}`,
       L: 0,
       W: 0,
       H: 0,
@@ -29,7 +54,12 @@ export const mockProduct_template = {
     },
   ],
   certificates: [
-    { id: `certificates-${Date.now()}`, type: 1, files: [], remark: '' },
+    {
+      id: `certificates-${getFormattedTimestamp()}`,
+      type: 1,
+      files: [],
+      remark: '',
+    },
   ],
   remark: '',
 };
@@ -38,7 +68,8 @@ export const mockProducts = [
   {
     id: '1',
     productId: '202510271831',
-    iconUrl: 'https://via.placeholder.com/50',
+    iconUrl:
+      '\\pet_product_images\\202510282119\\display\\display_202510282117_07_800x800.jpg',
     productNames: [
       { id: 1, name: 'Elizabeth Collar Pet Grooming Shield', type: 1 },
       { id: 2, name: '狗仔花花頸圈', type: 2 },

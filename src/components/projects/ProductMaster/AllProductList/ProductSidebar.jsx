@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import styles from './ProductSidebar.module.css';
 import Main_AllProductList from './Main_AllProductList';
+import { useProductContext } from '../../../../store/ProductContext';
 
 const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
   const [windowWidth, setWindowWidth] = useState(

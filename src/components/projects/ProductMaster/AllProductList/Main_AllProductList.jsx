@@ -4,8 +4,8 @@ import SearchBar from './SearchBar';
 import ProductList from './ProductList';
 import { useProductContext } from '../../../../store/ProductContext';
 
-const Main_AllProductList = ({ onSelectProduct, onCreateProduct }) => {
-  const { loadProductById, products } = useProductContext();
+const Main_AllProductList = ({ onSelectProduct }) => {
+  const { loadProductById, products, createNewProduct } = useProductContext();
   const [filteredProducts, setFilteredProducts] = useState(products);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -64,9 +64,7 @@ const Main_AllProductList = ({ onSelectProduct, onCreateProduct }) => {
   };
 
   const handleCreateProduct = () => {
-    if (onCreateProduct) {
-      onCreateProduct();
-    }
+    createNewProduct();
   };
 
   return (

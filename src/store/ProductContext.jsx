@@ -41,9 +41,115 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
     setProducts(newProducts);
   }, []);
 
+  // Function to check if pageData is the same as the corresponding product in products
+  const isDataUnchanged = useCallback(() => {
+    // If no ID, this is a new product that hasn't been saved yet
+    if (!pageData.id) {
+      return false;
+    }
+
+    // Find the corresponding product in the products array
+    const existingProduct = products.find((p) => p.id === pageData.id);
+
+    // If product doesn't exist in the list, data is changed
+    if (!existingProduct) {
+      return false;
+    }
+
+    // Define keys to compare (important fields that determine if data has changed)
+    const keysToCompare = [
+      'productId',
+      'productNames',
+      'category',
+      'customizations',
+      'productLinks',
+      'alibabaIds',
+      'packings',
+      'certificates',
+      'remark',
+      'iconUrl',
+    ];
+
+    // Check each key for equality
+    for (const key of keysToCompare) {
+      // Handle arrays specially - need to check deep equality
+      if (Array.isArray(pageData[key]) && Array.isArray(existingProduct[key])) {
+        // If array lengths differ, data has changed
+        if (pageData[key].length !== existingProduct[key].length) {
+          return false;
+        }
+
+        // For simple arrays of primitives, we can use JSON.stringify for comparison
+        // For complex arrays with objects, we need to sort and then compare
+        const sortAndStringify = (arr) => {
+          try {
+            // Try to sort by 'id' if objects have it, otherwise sort by stringified version
+            const sortedArr = [...arr].sort((a, b) => {
+              if (
+                typeof a === 'object' &&
+                a !== null &&
+                typeof b === 'object' &&
+                b !== null
+              ) {
+                if (a.id && b.id) return a.id.localeCompare(b.id);
+                if (a.name && b.name) return a.name.localeCompare(b.name);
+              }
+              return JSON.stringify(a).localeCompare(JSON.stringify(b));
+            });
+            return JSON.stringify(sortedArr);
+          } catch (e) {
+            // Fallback to simple stringify if sorting fails
+            return JSON.stringify(arr);
+          }
+        };
+
+        if (
+          sortAndStringify(pageData[key]) !==
+          sortAndStringify(existingProduct[key])
+        ) {
+          return false;
+        }
+      }
+      // Handle objects (non-arrays)
+      else if (
+        typeof pageData[key] === 'object' &&
+        pageData[key] !== null &&
+        typeof existingProduct[key] === 'object' &&
+        existingProduct[key] !== null
+      ) {
+        if (
+          JSON.stringify(pageData[key]) !== JSON.stringify(existingProduct[key])
+        ) {
+          return false;
+        }
+      }
+      // Handle primitives
+      else if (pageData[key] !== existingProduct[key]) {
+        return false;
+      }
+    }
+
+    // If we've checked all keys and found no differences, data is unchanged
+    return true;
+  }, [pageData, products]);
+
   // load product into page data by ID
   const loadProductById = useCallback(
     (productId) => {
+      // Check if there are unsaved changes in the current product
+      if (pageData.id && !isDataUnchanged()) {
+        // Show confirmation dialog
+        const confirmSwitch = window.confirm(
+          'You have unsaved changes. Do you want to continue without saving?'
+        );
+
+        // If user cancels, stay on current product
+        if (!confirmSwitch) {
+          return false;
+        }
+        // Otherwise continue with loading the new product
+      }
+
       // Find the product in the internal products state
       const product = products.find(
         (p) => p.id === productId || p.productId === productId
@@ -72,7 +178,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
 
       return true;
     },
-    [pageData, products]
+    [pageData, products, isDataUnchanged]
   );
 
   // Function to handle save action with built-in product list update
@@ -133,8 +239,23 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
 
   // Create a new product (clear page data)
   const createNewProduct = useCallback(() => {
-    setPageData(mockProduct_template);
-  }, []);
+    // Check if there are unsaved changes in the current product
+    if (pageData.id && !isDataUnchanged()) {
+      // Show confirmation dialog
+      const confirmSwitch = window.confirm(
+        'You have unsaved changes. Do you want to continue without saving?'
+      );
+
+      // If user cancels, stay on current product
+      if (!confirmSwitch) {
+        return false;
+      }
+      // Otherwise continue with creating a new product
+    }
+
+    setPageData(mockProduct_template());
+    return true;
+  }, [pageData, isDataUnchanged]);
 
   // Get all collected data
   const getAllData = useCallback(() => {
@@ -157,6 +278,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
         isSaving,
         saveSuccess,
         saveError,
+        isDataUnchanged,
       }}
     >
       {children}

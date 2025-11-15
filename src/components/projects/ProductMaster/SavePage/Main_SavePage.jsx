@@ -1,14 +1,13 @@
 import {
   ProductContext_Provider,
   useProductContext,
-} from '../../../store/ProductContext';
-import Button from '../../common/Button';
+} from '../../../../store/ProductContext';
+import Button from '../../../common/Button';
 import styles from './Main_SavePage.module.css';
 
 const Main_SavePage = ({
   children,
   onSave,
-  initialData = {},
   saveButtonText = 'Save',
   successMessage = 'Data saved successfully!',
   showSaveButton = true,

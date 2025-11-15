@@ -75,6 +75,9 @@ const ControlRowBtn = (props) => {
 
         return (
           <div key={row.id} className={styles.controlRowContainer}>
+            <div className={styles.rowNumberContainer}>
+              <span className={styles.rowNumber}>{rowindex + 1}</span>
+            </div>
             <div className={styles.buttonsContainer}>
               <button
                 className={styles.removeButton}

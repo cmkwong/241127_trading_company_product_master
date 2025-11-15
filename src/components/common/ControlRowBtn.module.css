@@ -6,8 +6,60 @@
 
 .controlRowContainer {
   display: flex;
-  margin-bottom: 12px;
+  margin-bottom: 20px; /* Increased margin for better spacing */
   width: 100%;
+  position: relative; /* Added to allow absolute positioning of children */
+  padding-top: 15px; /* Added space for the row number at top */
+  border-bottom: 1px solid #cccccc; /* Added more visible separator line */
+  padding-bottom: 15px; /* Added padding to separate content from line */
+}
+
+/* Add a special style for the last container to remove the border */
+.controlRowContainer:last-child {
+  border-bottom: none;
+}
+
+.rowNumberContainer {
+  position: absolute;
+  top: -10px;
+  right: 0; /* Changed from left:0 to right:0 to position at top-right */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  z-index: 1;
+}
+
+.rowNumber {
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  background-color: #555;
+  border-radius: 20%;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Add a horizontal line that extends across the container */
+.controlRowContainer::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(
+    to left,
+    /* Changed direction to match the new position */ #555 0%,
+    #555 30px,
+    #cccccc 30px,
+    #cccccc 100%
+  );
+  /* Creates a gradient line that's darker near the row number (now on the right) */
 }
 
 .buttonsContainer {

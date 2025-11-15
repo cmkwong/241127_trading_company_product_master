@@ -4,7 +4,7 @@ import SearchBar from './SearchBar';
 import ProductList from './ProductList';
 import { useProductContext } from '../../../../store/ProductContext';
 
-const Main_AllProductList = ({ onSelectProduct }) => {
+const Main_AllProductList = ({ onSelectProduct, onCreateProduct }) => {
   const { loadProductById, products } = useProductContext();
   const [filteredProducts, setFilteredProducts] = useState(products);
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -63,9 +63,36 @@ const Main_AllProductList = ({ onSelectProduct }) => {
     setSearchTerm(value);
   };
 
+  const handleCreateProduct = () => {
+    if (onCreateProduct) {
+      onCreateProduct();
+    }
+  };
+
   return (
     <div className={styles.productListContainer}>
-      <SearchBar value={searchTerm} onChange={handleSearchChange} />
+      <div className={styles.searchAndCreateContainer}>
+        <SearchBar value={searchTerm} onChange={handleSearchChange} />
+        <button
+          className={styles.createButton}
+          onClick={handleCreateProduct}
+          title="Create New Product"
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+        </button>
+      </div>
       <ProductList
         products={filteredProducts}
         selectedProductId={selectedProduct?.id}

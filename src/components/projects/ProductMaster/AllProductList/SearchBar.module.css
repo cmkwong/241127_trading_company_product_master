@@ -1,0 +1,33 @@
+.searchContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 5px;
+  border-bottom: 1px solid #e0e0e0;
+  background-color: white;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  flex-shrink: 0;
+  flex: 1;
+  min-height: 60px; /* Set a minimum height for consistent alignment */
+}
+
+.searchFieldWrapper {
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+/* Override the margin-bottom on the TextField container */
+.searchFieldWrapper > div {
+  margin-bottom: 0 !important;
+}
+
+/* Adjust the input field height to match the create button */
+.searchFieldWrapper input {
+  height: 40px;
+  box-sizing: border-box;
+  padding: 8px 12px;
+  margin: 0;
+}

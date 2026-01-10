@@ -35,7 +35,7 @@ const Sub_ProductLinkRow = forwardRef(
     );
 
     const handleImageChange = useCallback(
-      ({ updatedImages }) => {
+      (updatedImages) => {
         // Extract image URLs from the updatedImages object
         const imageUrls =
           updatedImages && Array.isArray(updatedImages)

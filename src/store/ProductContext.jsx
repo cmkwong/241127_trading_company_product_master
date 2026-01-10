@@ -16,7 +16,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
   const [products, setProducts] = useState(mockProducts);
 
   // Function to update specific field in the data
-  const updateData = useCallback((field, value) => {
+  const updateProductPageData = useCallback((field, value) => {
     setPageData((prevData) => ({
       ...prevData,
       [field]: value,
@@ -135,7 +135,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
 
   // load product into page data by ID
   const loadProductById = useCallback(
-    (productId) => {
+    (id) => {
       // Check if there are unsaved changes in the current product
       if (pageData.id && !isDataUnchanged()) {
         // Show confirmation dialog
@@ -151,12 +151,10 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
       }
 
       // Find the product in the internal products state
-      const product = products.find(
-        (p) => p.id === productId || p.productId === productId
-      );
+      const product = products.find((p) => p.id === id);
 
       if (!product) {
-        console.error(`Product with ID ${productId} not found`);
+        console.error(`Product with ID ${id} not found`);
         return false;
       }
 
@@ -166,6 +164,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
         id: product.id,
         productId: product.productId,
         productNames: product.productNames || [],
+        productImages: product.productImages || [],
         category: product.category || [],
         customizations: product.customizations || [],
         productLinks: product.productLinks || [],
@@ -267,7 +266,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
       value={{
         pageData,
         products,
-        updateData,
+        updateProductPageData,
         updateMultipleData,
         loadProductById,
         getAllProducts,

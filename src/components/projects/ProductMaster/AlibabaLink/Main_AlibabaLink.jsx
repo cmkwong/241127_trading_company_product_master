@@ -7,7 +7,7 @@ import { useProductContext } from '../../../../store/ProductContext';
 import useRowData from '../../../../hooks/useRowData';
 
 const Main_AlibabaLink = () => {
-  const { pageData, updateData } = useProductContext();
+  const { pageData, updateProductPageData } = useProductContext();
 
   const template_data = {
     value: '',
@@ -26,7 +26,7 @@ const Main_AlibabaLink = () => {
     handleFieldChange: handleAlibabaIdChange,
   } = useRowData({
     data: pageData.alibabaIds,
-    updateData,
+    updateProductPageData,
     dataKey: 'alibabaIds',
     template: template_data,
     idPrefix: 'alibaba-id',

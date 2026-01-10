@@ -4,13 +4,13 @@ import Sub_Remark from './Sub_Remark';
 import { useProductContext } from '../../../../store/ProductContext';
 
 const Main_Remark = () => {
-  const { pageData, updateData } = useProductContext();
+  const { pageData, updateProductPageData } = useProductContext();
 
   const handleRemarkChange = useCallback(
     (field, value) => {
-      updateData(field, value);
+      updateProductPageData(field, value);
     },
-    [updateData]
+    [updateProductPageData]
   );
 
   return (

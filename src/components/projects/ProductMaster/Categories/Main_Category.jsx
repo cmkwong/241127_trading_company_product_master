@@ -6,7 +6,7 @@ import { mockCategory } from '../../../../datas/Options/ProductOptions';
 import { useProductContext } from '../../../../store/ProductContext';
 
 const Main_Category = () => {
-  const { pageData, updateData } = useProductContext();
+  const { pageData, updateProductPageData } = useProductContext();
 
   // Process category data from pageData
   const processedCategories = useMemo(() => {
@@ -26,7 +26,7 @@ const Main_Category = () => {
   const handleCategoryChange = (nextOptions, nextSelectedIds) => {
     // Update both local state and context
     setSelectedCategoryIds(nextSelectedIds);
-    updateData('category', nextSelectedIds);
+    updateProductPageData('category', nextSelectedIds);
   };
 
   return (

@@ -6,7 +6,7 @@ import { useProductContext } from '../../../../store/ProductContext';
 import useRowData from '../../../../hooks/useRowData';
 
 const Main_ProductName = () => {
-  const { pageData, updateData } = useProductContext();
+  const { pageData, updateProductPageData } = useProductContext();
 
   const template_data = {
     name: '',
@@ -25,7 +25,7 @@ const Main_ProductName = () => {
     handleFieldChange: handleProductNameChange,
   } = useRowData({
     data: pageData.productNames,
-    updateData,
+    updateProductPageData,
     dataKey: 'productNames',
     template: template_data,
     idPrefix: 'product-name',

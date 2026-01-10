@@ -6,7 +6,7 @@ import { useProductContext } from '../../../../store/ProductContext';
 import useRowData from '../../../../hooks/useRowData';
 
 const Main_Pack = () => {
-  const { pageData, updateData } = useProductContext();
+  const { pageData, updateProductPageData } = useProductContext();
 
   const template_data = {
     type: 1,
@@ -34,7 +34,7 @@ const Main_Pack = () => {
     handleFieldChange: handlePackChange,
   } = useRowData({
     data: pageData.packings,
-    updateData,
+    updateProductPageData,
     dataKey: 'packings',
     template: template_data,
     idPrefix: 'pack',

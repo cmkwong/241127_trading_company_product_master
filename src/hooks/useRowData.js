@@ -1,137 +1,127 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 
 /**
  * Custom hook for managing row-based data with unique IDs
- * @param {Object} options - Configuration options
- * @param {Array} options.data - The data from the context
- * @param {Function} options.updateData - Function to update data in the context
- * @param {String} options.dataKey - The key in the context where data is stored
- * @param {Object} options.template - Template for new rows
- * @param {String} options.idPrefix - Prefix for generated IDs
- * @returns {Object} - Row data state and handlers
  */
-const useRowData = ({ data, updateData, dataKey, template, idPrefix }) => {
-  // Use a ref to store the timestamp for stable ID generation
-  const timestampRef = useRef(Date.now());
-
-  // Process data to ensure all items have IDs
+const useRowData = ({ data, updateProductPageData, dataKey, template }) => {
+  // 1. Process data: Ensure every item has a UUID
+  // We use a ref to track if we have initialized to avoid infinite loops
   const processedData = useMemo(() => {
+    // If no data, return one empty row
     if (!data || data.length === 0) {
-      // If there's no data, return just one empty row
-      return [{ id: `${idPrefix}-${timestampRef.current}-0`, ...template }];
-    } else {
-      // Otherwise, return the existing data with ID check
-      return data.map((item, index) => ({
-        ...item,
-        id: item.id || `${idPrefix}-${timestampRef.current}-${index}`,
-      }));
+      return [{ ...template, id: uuidv4() }];
     }
-  }, [data, idPrefix, template]);
 
-  // Initialize state with processed data
+    // Map existing data, ensuring IDs exist
+    return data.map((item) => ({
+      ...item,
+      id: item.id || uuidv4(), // Use UUID instead of index
+    }));
+  }, [data, template]);
+
+  // Initialize state
   const [rowData, setRowData] = useState(processedData);
   const rowRef = useRef({});
 
-  // Extract just the IDs for the ControlRowBtn
-  const rowIds = useMemo(() => rowData.map((item) => item.id), [rowData]);
-
-  // Update the state when data changes, but only if the data is different
+  // 2. Sync: Update local state when parent data changes externally
   useEffect(() => {
-    // Deep comparison to prevent unnecessary updates
-    const isDataDifferent =
-      JSON.stringify(rowData) !== JSON.stringify(processedData);
-    if (isDataDifferent) {
+    // We perform a length check or ID check to see if we need to resync
+    // This is much faster than JSON.stringify
+    if (data && data.length !== rowData.length) {
       setRowData(processedData);
+    } else {
+      // Optional: Check if IDs match to detect reordering/swapping
+      const isIdsDifferent =
+        data && data.some((item, i) => item.id !== rowData[i]?.id);
+      if (isIdsDifferent) {
+        setRowData(processedData);
+      }
     }
   }, [processedData]);
+
+  const rowIds = useMemo(() => rowData.map((item) => item.id), [rowData]);
 
   // Set row reference
   const setRowRef = useCallback((index, ref) => {
     rowRef.current[index] = ref;
   }, []);
 
-  // Handle row IDs changes
-  const handleRowIdsChange = useCallback(
-    (newRowIds) => {
-      // Filter data to keep only the rows with IDs in newRowIds
-      const updatedData = rowData.filter((item) => newRowIds.includes(item.id));
+  // 3. Handle adding a new row
+  const handleRowAdd = useCallback(() => {
+    const newRow = {
+      ...template,
+      id: uuidv4(), // Generate clean UUID
+      // Auto-fill date if the template has a date field
+      ...(template.hasOwnProperty('date') && {
+        date: new Date().toISOString().split('T')[0],
+      }),
+    };
 
-      // Only update if there's an actual change
-      if (updatedData.length !== rowData.length) {
-        // Update both local state and context
-        setRowData(updatedData);
-        updateData(dataKey, updatedData);
-      }
-    },
-    [rowData, updateData, dataKey]
-  );
+    const updatedData = [...rowData, newRow];
+    setRowData(updatedData);
+    updateProductPageData(dataKey, updatedData);
+  }, [rowData, template, updateProductPageData, dataKey]);
 
-  // Handle adding a new row
-  const handleRowAdd = useCallback(
-    (newRowId) => {
-      // Create new row with the provided ID and template data
-      const newRow = {
-        id: newRowId,
-        ...template,
-      };
-
-      // For date fields, ensure they're always current
-      if (template.date) {
-        newRow.date = new Date().toISOString().split('T')[0];
-      }
-
-      const updatedData = [...rowData, newRow];
-
-      // Update both local state and context
-      setRowData(updatedData);
-      updateData(dataKey, updatedData);
-    },
-    [rowData, template, updateData, dataKey]
-  );
-
-  // Handle removing a row
+  // 4. Handle removing a row
   const handleRowRemove = useCallback(
     (rowId) => {
       const updatedData = rowData.filter((item) => item.id !== rowId);
-
-      // Update both local state and context
       setRowData(updatedData);
-      updateData(dataKey, updatedData);
+      updateProductPageData(dataKey, updatedData);
     },
-    [rowData, updateData, dataKey]
+    [rowData, updateProductPageData, dataKey]
   );
 
-  // Handle field changes
+  // 5. Handle field changes (Optimized)
   const handleFieldChange = useCallback(
     (rowIndex, field, value) => {
-      // Ensure we have a valid row index
-      if (rowIndex < 0 || rowIndex >= rowData.length) return;
+      setRowData((prevData) => {
+        if (rowIndex < 0 || rowIndex >= prevData.length) return prevData;
 
-      const updatedData = [...rowData];
+        const newData = [...prevData];
+        const currentRow = { ...newData[rowIndex] };
 
-      // Handle nested fields (like dimension.length)
-      if (field.includes('.')) {
-        const [parentField, childField] = field.split('.');
-        updatedData[rowIndex] = {
-          ...updatedData[rowIndex],
-          [parentField]: {
-            ...updatedData[rowIndex][parentField],
-            [childField]: value,
-          },
-        };
-      } else {
-        // Update the specified field
-        updatedData[rowIndex] = {
-          ...updatedData[rowIndex],
-          [field]: value,
-        };
-      }
+        // Handle nested fields (e.g., 'dimension.width')
+        if (field.includes('.')) {
+          const [parent, child] = field.split('.');
+          currentRow[parent] = {
+            ...currentRow[parent],
+            [child]: value,
+          };
+        } else {
+          currentRow[field] = value;
+        }
 
-      // Update both local state and context
-      setRowData(updatedData);
-      updateData(dataKey, updatedData);
+        newData[rowIndex] = currentRow;
+
+        // Sync with parent immediately
+        // Note: In high-frequency typing, you might want to debounce this call
+        updateProductPageData(dataKey, newData);
+
+        return newData;
+      });
     },
-    [rowData, updateData, dataKey]
+    [updateProductPageData, dataKey]
+  );
+
+  // 6. Handle Reordering (via ControlRowBtn)
+  const handleRowIdsChange = useCallback(
+    (newRowIds) => {
+      // Sort the current data based on the new ID order
+      const updatedData = newRowIds
+        .map((id) => rowData.find((item) => item.id === id))
+        .filter(Boolean); // Remove undefined if any
+
+      if (
+        updatedData.length !== rowData.length ||
+        updatedData.some((item, i) => item.id !== rowData[i].id)
+      ) {
+        setRowData(updatedData);
+        updateProductPageData(dataKey, updatedData);
+      }
+    },
+    [rowData, updateProductPageData, dataKey]
   );
 
   return {

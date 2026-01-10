@@ -3,7 +3,6 @@ import styles from './Sub_CustomizationRow.module.css';
 import Main_Suggest from '../../../common/InputOptions/Suggest/Main_Suggest';
 import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
 import Main_ImageUpload from '../../../common/InputOptions/ImageUploads/Main_ImageUpload';
-import ControlRowBtn from '../../../common/ControlRowBtn';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
 import { mockSuppliers } from '../../../../datas/Suppliers/mockSuppliers';
 
@@ -24,11 +23,13 @@ const Sub_CustomizationRow = (props) => {
     onChange(rowindex, 'remark', value);
   };
 
-  // handler for image uploads
-  const handleImageChange = ({ updatedImages }) => {
+  // --- FIXED: Removed destructuring ---
+  // Main_ImageUpload passes the array directly, not an object.
+  const handleImageChange = (updatedImages) => {
     console.log('updatedImages: ', updatedImages);
     onChange(rowindex, 'images', updatedImages);
   };
+
   // Handle image upload errors
   const handleImageError = (error) => {
     console.error('Image upload error:', error);

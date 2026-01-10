@@ -12,6 +12,7 @@ import Main_CertificateData from './CertificateData/Main_CertificateData';
 import SavePageWithProvider from './SavePage/Main_SavePage';
 import ProductSidebar from './AllProductList/ProductSidebar';
 import { mockProduct_template } from '../../../datas/Products/mockProducts';
+import Main_ProductImages from './ProductImages/Main_ProductImages';
 
 const Main_ProductMaster = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -61,6 +62,7 @@ const Main_ProductMaster = () => {
         >
           <div className={styles.inputSide}>
             <Main_ProductName />
+            <Main_ProductImages />
             <Main_Category />
             <Main_Supplier />
             <Main_ProductLink />

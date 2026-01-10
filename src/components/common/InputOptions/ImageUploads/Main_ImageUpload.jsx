@@ -1,98 +1,63 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import styles from './Main_ImageUpload.module.css';
-import Sub_ImagePreview from './Sub_ImagePreview';
 import Sub_DropZone from './Sub_DropZone';
 
 /**
  * Main_ImageUpload Component
- * A component for uploading and displaying images
  */
 const Main_ImageUpload = (props) => {
   const {
-    // Callbacks
     onChange = () => {},
     onError = () => {},
-
-    // Configuration
     maxFiles = 5,
     maxSizeInMB = 5,
     acceptedTypes = ['image/jpeg', 'image/png', 'image/gif'],
-
-    // UI
     label,
     multiple = true,
     disabled = false,
-    showPreview = true, // New prop to control preview visibility
-    showMaxImagesNotice = true, // New prop to control "Maximum images reached" notice
-
-    // Initial state
+    showPreview = true,
+    showMaxImagesNotice = true,
     defaultImages = [],
   } = props;
 
-  // Preprocess defaultImages to ensure they have all required properties
-  const processDefaultImages = useCallback((images) => {
-    return images.map((image) => {
-      // If image is just a string URL
+  // Helper to process images and ensure they have IDs
+  const processDefaultImages = useCallback((imgs) => {
+    if (!Array.isArray(imgs)) return [];
+
+    return imgs.map((image) => {
       if (typeof image === 'string') {
         const url = image;
-        // Extract filename from URL
         const name = url.split('/').pop() || 'image';
-        // Guess image type from extension
-        let type = 'image/jpeg'; // default
+        let type = 'image/jpeg';
         if (url.endsWith('.png')) type = 'image/png';
         else if (url.endsWith('.gif')) type = 'image/gif';
-        else if (url.endsWith('.jpg') || url.endsWith('.jpeg'))
-          type = 'image/jpeg';
 
         return {
           url,
           name,
-          // Use a default size since we can't determine actual size
-          size: 100000, // 100KB default
+          size: 100000,
           type,
           id: `image-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         };
       }
 
-      // If image is already an object but missing some properties
       if (typeof image === 'object') {
         const processed = { ...image };
-
-        // Ensure all required properties exist
         if (!processed.name && processed.url) {
           processed.name = processed.url.split('/').pop() || 'image';
         }
-
-        if (!processed.size) {
-          processed.size = 100000; // 100KB default
-        }
-
-        if (!processed.type) {
-          // Guess type from URL if available
-          let type = 'image/jpeg'; // default
-          if (processed.url) {
-            if (processed.url.endsWith('.png')) type = 'image/png';
-            else if (processed.url.endsWith('.gif')) type = 'image/gif';
-            else if (
-              processed.url.endsWith('.jpg') ||
-              processed.url.endsWith('.jpeg')
-            )
-              type = 'image/jpeg';
-          }
-          processed.type = type;
-        }
-
+        if (!processed.size) processed.size = 100000;
+        if (!processed.type) processed.type = 'image/jpeg';
+        // Only add ID if missing, to preserve identity across renders
         if (!processed.id) {
           processed.id = `image-${Date.now()}-${Math.random()
             .toString(36)
             .substr(2, 9)}`;
         }
-
         return processed;
       }
 
-      // Fallback for any unexpected input
       return {
         url: '',
         name: 'unknown',
@@ -103,24 +68,55 @@ const Main_ImageUpload = (props) => {
     });
   }, []);
 
-  // Process defaultImages on initial render and when they change
-  const processedDefaultImages = useCallback(() => {
-    return processDefaultImages(defaultImages);
-  }, [defaultImages, processDefaultImages]);
-
-  // State to store uploaded images
-  const [images, setImages] = useState(() => processedDefaultImages());
+  const [images, setImages] = useState(() =>
+    processDefaultImages(defaultImages)
+  );
   const [isDragging, setIsDragging] = useState(false);
 
-  // Update internal state when defaultImages prop changes
+  // --- UPDATED: Safe useEffect to prevent loops ---
   useEffect(() => {
-    setImages(processedDefaultImages());
-  }, [defaultImages, processedDefaultImages]);
+    const newProcessedImages = processDefaultImages(defaultImages);
 
-  // Handle file selection
+    // Check if the new images are actually different from current state
+    // This prevents infinite loops when parent passes new array reference with same content
+    setImages((currentImages) => {
+      if (newProcessedImages.length !== currentImages.length) {
+        return newProcessedImages;
+      }
+
+      const isDifferent = newProcessedImages.some((img, index) => {
+        const current = currentImages[index];
+        // Compare URL or ID to determine if it's a different image
+        return (
+          img.url !== current.url || (img.file && img.file !== current.file)
+        );
+      });
+
+      if (isDifferent) {
+        return newProcessedImages;
+      }
+
+      return currentImages;
+    });
+  }, [defaultImages, processDefaultImages]);
+
+  const handleMoveImage = (dragIndex, insertIndex) => {
+    const updatedImages = [...images];
+    const [draggedItem] = updatedImages.splice(dragIndex, 1);
+
+    let finalIndex = insertIndex;
+    if (dragIndex < insertIndex) {
+      finalIndex = insertIndex - 1;
+    }
+
+    updatedImages.splice(finalIndex, 0, draggedItem);
+
+    setImages(updatedImages);
+    onChange(updatedImages);
+  };
+
   const handleFileSelection = useCallback(
     (files) => {
-      // Check if adding these files would exceed the max count
       if (images.length + files.length > maxFiles) {
         onError(`You can only upload a maximum of ${maxFiles} images.`);
         return;
@@ -130,13 +126,11 @@ const Main_ImageUpload = (props) => {
       const errors = [];
 
       Array.from(files).forEach((file) => {
-        // Validate file type
         if (!acceptedTypes.includes(file.type)) {
           errors.push(`File "${file.name}" is not a supported image type.`);
           return;
         }
 
-        // Validate file size
         if (file.size > maxSizeInMB * 1024 * 1024) {
           errors.push(
             `File "${file.name}" exceeds the maximum size of ${maxSizeInMB}MB.`
@@ -144,7 +138,6 @@ const Main_ImageUpload = (props) => {
           return;
         }
 
-        // Create object URL for preview
         const imageUrl = URL.createObjectURL(file);
         newImages.push({
           file,
@@ -156,33 +149,24 @@ const Main_ImageUpload = (props) => {
         });
       });
 
-      // Report any errors
       if (errors.length > 0) {
         onError(errors.join('\n'));
       }
 
-      // Update state with new images
       if (newImages.length > 0) {
         const updatedImages = [...images, ...newImages];
-        console.log('newImages: ', newImages);
         setImages(updatedImages);
-        onChange({ updatedImages });
+        onChange(updatedImages);
       }
     },
-    [images, maxFiles, maxSizeInMB, acceptedTypes, onChange, onError]
+    [images, maxFiles, acceptedTypes, maxSizeInMB, onError, onChange]
   );
 
-  // Handle image removal
-  const handleRemoveImage = useCallback(
-    (id) => {
-      if (disabled) return;
-
-      const updatedImages = images.filter((image) => image.id !== id);
-      setImages(updatedImages);
-      onChange({ updatedImages });
-    },
-    [disabled, images, onChange]
-  );
+  const handleRemoveImage = (indexToRemove) => {
+    const updatedImages = images.filter((_, index) => index !== indexToRemove);
+    setImages(updatedImages);
+    onChange(updatedImages);
+  };
 
   return (
     <div className={styles.imageUploadContainer}>
@@ -201,41 +185,24 @@ const Main_ImageUpload = (props) => {
         showMaxImagesNotice={showMaxImagesNotice}
         images={images}
         onRemoveImage={handleRemoveImage}
+        onMoveImage={handleMoveImage}
       />
     </div>
   );
 };
 
 Main_ImageUpload.propTypes = {
-  // Callbacks
   onChange: PropTypes.func,
   onError: PropTypes.func,
-
-  // Configuration
   maxFiles: PropTypes.number,
   maxSizeInMB: PropTypes.number,
   acceptedTypes: PropTypes.arrayOf(PropTypes.string),
-
-  // UI
   label: PropTypes.string,
   multiple: PropTypes.bool,
   disabled: PropTypes.bool,
+  defaultImages: PropTypes.array,
   showPreview: PropTypes.bool,
-  showMaxImagesNotice: PropTypes.bool, // Added prop type for showMaxImagesNotice
-
-  // Initial state
-  defaultImages: PropTypes.oneOfType([
-    PropTypes.arrayOf(PropTypes.string),
-    PropTypes.arrayOf(
-      PropTypes.shape({
-        url: PropTypes.string.isRequired,
-        name: PropTypes.string,
-        size: PropTypes.number,
-        type: PropTypes.string,
-        id: PropTypes.string,
-      })
-    ),
-  ]),
+  showMaxImagesNotice: PropTypes.bool,
 };
 
 export default Main_ImageUpload;

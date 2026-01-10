@@ -7,7 +7,7 @@ import { useProductContext } from '../../../../store/ProductContext';
 import useRowData from '../../../../hooks/useRowData';
 
 const Main_CertificateData = () => {
-  const { pageData, updateData } = useProductContext();
+  const { pageData, updateProductPageData } = useProductContext();
 
   const template_data = {
     type: 1,
@@ -27,7 +27,7 @@ const Main_CertificateData = () => {
     handleFieldChange: handleCertificateChange,
   } = useRowData({
     data: pageData.certificates,
-    updateData,
+    updateProductPageData,
     dataKey: 'certificates',
     template: template_data,
     idPrefix: 'certificate',

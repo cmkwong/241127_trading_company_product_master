@@ -3,7 +3,7 @@ import { useCallback } from 'react';
 // Generic utility function for handling row changes in any component
 export const useRowsHandler = (
   items,
-  updateData,
+  updateProductPageData,
   fieldName,
   defaultItemTemplate,
   rowRefs
@@ -27,7 +27,7 @@ export const useRowsHandler = (
         }
 
         // Update the context with the new array
-        updateData(fieldName, currentItems);
+        updateProductPageData(fieldName, currentItems);
 
         // Focus the new row after a short delay if rowRefs is provided
         if (rowRefs && rowRefs.current) {
@@ -42,9 +42,9 @@ export const useRowsHandler = (
       // If we need fewer rows, remove from the end
       else if (newRowCount < currentItems.length) {
         currentItems.splice(newRowCount);
-        updateData(fieldName, currentItems);
+        updateProductPageData(fieldName, currentItems);
       }
     },
-    [items, updateData, fieldName, defaultItemTemplate, rowRefs]
+    [items, updateProductPageData, fieldName, defaultItemTemplate, rowRefs]
   );
 };

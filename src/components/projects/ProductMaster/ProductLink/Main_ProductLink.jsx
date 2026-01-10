@@ -7,8 +7,9 @@ import { useProductContext } from '../../../../store/ProductContext';
 import useRowData from '../../../../hooks/useRowData';
 
 const Main_ProductLink = () => {
-  const { pageData, updateData } = useProductContext();
+  const { pageData, updateProductPageData } = useProductContext();
 
+  // TODO: getting the template data from server at once time
   const template_data = {
     link: '',
     images: [],
@@ -28,7 +29,7 @@ const Main_ProductLink = () => {
     handleFieldChange: handleProductLinkChange,
   } = useRowData({
     data: pageData.productLinks,
-    updateData,
+    updateProductPageData,
     dataKey: 'productLinks',
     template: template_data,
     idPrefix: 'product-link',

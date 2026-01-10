@@ -6,7 +6,7 @@ import { useProductContext } from '../../../../store/ProductContext';
 import useRowData from '../../../../hooks/useRowData';
 
 const Main_Customization = () => {
-  const { pageData, updateData } = useProductContext();
+  const { pageData, updateProductPageData } = useProductContext();
 
   const template_data = {
     type: 1,
@@ -27,7 +27,7 @@ const Main_Customization = () => {
     handleFieldChange: handleCustomizationChange,
   } = useRowData({
     data: pageData.customizations,
-    updateData,
+    updateProductPageData,
     dataKey: 'customizations',
     template: template_data,
     idPrefix: 'customization',

@@ -14,7 +14,7 @@ const Main_ProductIcon = ({
   onChange = () => {},
   showMaxImagesNotice = false,
 }) => {
-  const { pageData, updateData } = useProductContext();
+  const { pageData, updateProductPageData } = useProductContext();
 
   // product ID state setup
   const [productId, setProductId] = useState(pageData.productId || '');
@@ -47,13 +47,13 @@ const Main_ProductIcon = ({
   }, [pageData.productId, pageData.iconUrl]);
 
   // Handle image changes from the ImageUpload component
-  const handleImageChange = ({ updatedImages }) => {
+  const handleImageChange = (updatedImages) => {
     // Get the first image if it exists
     const newImage =
       updatedImages && updatedImages.length > 0 ? updatedImages[0] : null;
 
     // Update the context with the new image
-    updateData('iconUrl', newImage);
+    updateProductPageData('iconUrl', newImage);
 
     // Call the onChange prop
     onChange(newImage);
@@ -68,7 +68,7 @@ const Main_ProductIcon = ({
   // Handle product ID changes
   const handleProductIdChange = (value) => {
     setProductId(value);
-    updateData('productId', value);
+    updateProductPageData('productId', value);
   };
 
   return (

@@ -20,25 +20,25 @@ const Main_AllProductList = ({ onSelectProduct }) => {
     const lowerSearchTerm = searchTerm.toLowerCase();
     const filtered = products.filter(
       (product) =>
-        (typeof product.productNames === 'string' &&
-          product.productNames.toLowerCase().includes(lowerSearchTerm)) ||
-        (Array.isArray(product.productNames) &&
-          product.productNames.some((name) =>
-            name.name.toLowerCase().includes(lowerSearchTerm)
+        (typeof product.product_names === 'string' &&
+          product.product_names.toLowerCase().includes(lowerSearchTerm)) ||
+        (Array.isArray(product.product_names) &&
+          product.product_names.some((name) =>
+            name.name.toLowerCase().includes(lowerSearchTerm),
           )) ||
         product.id.toLowerCase().includes(lowerSearchTerm) ||
         (Array.isArray(product.product_alibaba_ids) &&
           product.product_alibaba_ids.some((id) =>
             typeof id === 'string'
               ? id.toLowerCase().includes(lowerSearchTerm)
-              : id.value && id.value.toLowerCase().includes(lowerSearchTerm)
+              : id.value && id.value.toLowerCase().includes(lowerSearchTerm),
           )) ||
-        (Array.isArray(product.category) &&
-          product.category.some((cat) =>
+        (Array.isArray(product.product_categories) &&
+          product.product_categories.some((cat) =>
             typeof cat === 'string' || typeof cat === 'number'
               ? String(cat).toLowerCase().includes(lowerSearchTerm)
-              : false
-          ))
+              : false,
+          )),
     );
 
     setFilteredProducts(filtered);
@@ -56,7 +56,7 @@ const Main_AllProductList = ({ onSelectProduct }) => {
         onSelectProduct(product);
       }
     },
-    [loadProductById, onSelectProduct]
+    [loadProductById, onSelectProduct],
   );
 
   const handleSearchChange = (value) => {

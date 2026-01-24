@@ -15,7 +15,7 @@ const Main_ProductName = () => {
 
   // Use the custom hook to manage product names
   const {
-    rowData: productNames,
+    rowData: product_names,
     rowIds,
     rowRef,
     setRowRef,
@@ -24,9 +24,9 @@ const Main_ProductName = () => {
     handleRowRemove,
     handleFieldChange: handleProductNameChange,
   } = useRowData({
-    data: pageData.productNames,
+    data: pageData.product_names,
     updateProductPageData,
-    dataKey: 'productNames',
+    dataKey: 'product_names',
     template: template_data,
     idPrefix: 'product-name',
   });
@@ -41,7 +41,7 @@ const Main_ProductName = () => {
       >
         <Sub_ProductNameRow
           template_data={template_data}
-          productNames={productNames}
+          product_names={product_names}
           onChange={handleProductNameChange}
           setRowRef={setRowRef}
         />

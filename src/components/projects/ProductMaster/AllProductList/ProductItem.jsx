@@ -7,12 +7,16 @@ import ProductIcon from './ProductIcon';
 import ProductInfo from './ProductInfo';
 
 const ProductItem = ({ product, isSelected, onClick }) => {
-  const productName = product.productNames[0].name;
+  const productName = product.product_names[0].name; // assume the first name is the main one
   const id = product.id;
-  const categoryLabels = getLabelsFromLookup(product.category, mockCategory);
+  const categoryLabels = getLabelsFromLookup(
+    product.product_categories,
+    mockCategory,
+  );
 
   // Extract alibaba ID values
-  const alibabaIdValues = product.product_alibaba_ids.map((item) => item.value);
+  const alibabaIdValues =
+    product.product_alibaba_ids?.map((item) => item.value) || [];
 
   return (
     <div

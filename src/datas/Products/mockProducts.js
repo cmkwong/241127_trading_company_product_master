@@ -19,7 +19,7 @@ export const mockProduct_template = () => {
   const template = {
     id: `${uuidv4()}`,
     iconUrl: '',
-    productNames: [
+    product_names: [
       { id: `product-name-${getFormattedTimestamp()}`, name: '', type: 1 },
     ],
     category: [],
@@ -1189,144 +1189,144 @@ export const mockProducts = [
   },
 ];
 
-export const mockProducts_ = [
-  {
-    id: '1',
-    productId: '202510271831',
-    iconUrl: {
-      id: 1,
-      url: '\\pet_product_images\\202510282119\\display\\display_202510282117_07_800x800.jpg',
-      base64_content: '',
-    },
-    productNames: [
-      { id: 1, name: 'Elizabeth Collar Pet Grooming Shield', type: 1 },
-      { id: 2, name: '狗仔花花頸圈', type: 2 },
-    ],
-    category: [1, 2],
-    customizations: [
-      {
-        id: 1,
-        name: 'custom package',
-        code: 'S000325',
-        remark: 'Testing',
-        images: [
-          {
-            id: 1,
-            url: '\\pet_product_images\\202510282119\\display\\display_202510282117_06_800x800.jpg',
-            base64_content: '',
-          },
-          {
-            id: 2,
-            url: '\\pet_product_images\\202510282119\\display\\display_202510282117_02_800x800.jpg',
-            base64_content: '',
-          },
-          {
-            id: 3,
-            url: '\\pet_product_images\\202510282119\\display\\display_202510282117_03_800x800.jpg',
-            base64_content: '',
-          },
-        ],
-      },
-      {
-        id: 2,
-        name: 'custom labels',
-        code: '',
-        remark: 'Testing2',
-        images: [
-          {
-            id: 1,
-            url: '\\pet_product_images\\202510282119\\display\\display_202510282117_03_800x800.jpg',
-            base64_content: '',
-          },
-        ],
-      },
-    ],
-    productLinks: [
-      {
-        id: 1,
-        link: 'http://yahoo.com.hk',
-        images: [
-          {
-            id: 1,
-            url: '\\pet_product_images\\202511032115\\display\\Main_01.jpg',
-            base64_content: '',
-          },
-        ],
-        remark: 'test remark',
-        date: '2025-10-27',
-      },
-      {
-        id: 2,
-        link: 'www.google.com',
-        images: [
-          {
-            id: 1,
-            url: '\\pet_product_images\\202511032115\\display\\Main_02.jpg',
-            base64_content: '',
-          },
-          {
-            id: 2,
-            url: '\\pet_product_images\\202511032115\\display\\Main_03.jpg',
-            base64_content: '',
-          },
-        ],
-        remark: '',
-        date: '2025-10-27',
-      },
-      {
-        id: 3,
-        link: 'www.google.com',
-        images: [
-          {
-            id: 1,
-            url: '\\pet_product_images\\202511032115\\display\\Main_04.jpg',
-            base64_content: '',
-          },
-          {
-            id: 2,
-            url: '\\pet_product_images\\202511032115\\display\\Main_05.jpg',
-            base64_content: '',
-          },
-        ],
-        remark: 'testing remark 3',
-        date: '2025-11-13',
-      },
-    ],
-    product_alibaba_ids: [
-      { id: 1, value: '10215135354354', link: 'http://yahoo.com.hk' },
-      { id: 2, value: '48412151513215', link: 'www.google.com' },
-      { id: 3, value: '84548454545888', link: 'www.instagram.com' },
-    ],
-    packings: [
-      { id: 1, L: 12, W: 52, H: 25, qty: 1, kg: 5, type: 1 },
-      { id: 2, L: 24, W: 52, H: 50, qty: 10, kg: 10, type: 2 },
-    ],
-    certificates: [
-      {
-        id: 1,
-        type: 1,
-        files: [
-          {
-            id: 1,
-            url: '\\pet_product_images\\202511032115\\display\\Main_02.jpg',
-            base64_content: '',
-          },
-        ],
-        remark: 'MSDS remark',
-      },
-      {
-        id: 2,
-        type: 2,
-        files: [
-          {
-            id: 1,
-            url: '\\pet_product_images\\202511032115\\display\\Main_01.jpg',
-            base64_content: '',
-          },
-        ],
-        remark: 'RoHS remark',
-      },
-    ],
-    remark: 'main remark',
-  },
-];
+// export const mockProducts_ = [
+//   {
+//     id: '1',
+//     productId: '202510271831',
+//     iconUrl: {
+//       id: 1,
+//       url: '\\pet_product_images\\202510282119\\display\\display_202510282117_07_800x800.jpg',
+//       base64_content: '',
+//     },
+//     product_names: [
+//       { id: 1, name: 'Elizabeth Collar Pet Grooming Shield', type: 1 },
+//       { id: 2, name: '狗仔花花頸圈', type: 2 },
+//     ],
+//     category: [1, 2],
+//     customizations: [
+//       {
+//         id: 1,
+//         name: 'custom package',
+//         code: 'S000325',
+//         remark: 'Testing',
+//         images: [
+//           {
+//             id: 1,
+//             url: '\\pet_product_images\\202510282119\\display\\display_202510282117_06_800x800.jpg',
+//             base64_content: '',
+//           },
+//           {
+//             id: 2,
+//             url: '\\pet_product_images\\202510282119\\display\\display_202510282117_02_800x800.jpg',
+//             base64_content: '',
+//           },
+//           {
+//             id: 3,
+//             url: '\\pet_product_images\\202510282119\\display\\display_202510282117_03_800x800.jpg',
+//             base64_content: '',
+//           },
+//         ],
+//       },
+//       {
+//         id: 2,
+//         name: 'custom labels',
+//         code: '',
+//         remark: 'Testing2',
+//         images: [
+//           {
+//             id: 1,
+//             url: '\\pet_product_images\\202510282119\\display\\display_202510282117_03_800x800.jpg',
+//             base64_content: '',
+//           },
+//         ],
+//       },
+//     ],
+//     productLinks: [
+//       {
+//         id: 1,
+//         link: 'http://yahoo.com.hk',
+//         images: [
+//           {
+//             id: 1,
+//             url: '\\pet_product_images\\202511032115\\display\\Main_01.jpg',
+//             base64_content: '',
+//           },
+//         ],
+//         remark: 'test remark',
+//         date: '2025-10-27',
+//       },
+//       {
+//         id: 2,
+//         link: 'www.google.com',
+//         images: [
+//           {
+//             id: 1,
+//             url: '\\pet_product_images\\202511032115\\display\\Main_02.jpg',
+//             base64_content: '',
+//           },
+//           {
+//             id: 2,
+//             url: '\\pet_product_images\\202511032115\\display\\Main_03.jpg',
+//             base64_content: '',
+//           },
+//         ],
+//         remark: '',
+//         date: '2025-10-27',
+//       },
+//       {
+//         id: 3,
+//         link: 'www.google.com',
+//         images: [
+//           {
+//             id: 1,
+//             url: '\\pet_product_images\\202511032115\\display\\Main_04.jpg',
+//             base64_content: '',
+//           },
+//           {
+//             id: 2,
+//             url: '\\pet_product_images\\202511032115\\display\\Main_05.jpg',
+//             base64_content: '',
+//           },
+//         ],
+//         remark: 'testing remark 3',
+//         date: '2025-11-13',
+//       },
+//     ],
+//     product_alibaba_ids: [
+//       { id: 1, value: '10215135354354', link: 'http://yahoo.com.hk' },
+//       { id: 2, value: '48412151513215', link: 'www.google.com' },
+//       { id: 3, value: '84548454545888', link: 'www.instagram.com' },
+//     ],
+//     packings: [
+//       { id: 1, L: 12, W: 52, H: 25, qty: 1, kg: 5, type: 1 },
+//       { id: 2, L: 24, W: 52, H: 50, qty: 10, kg: 10, type: 2 },
+//     ],
+//     certificates: [
+//       {
+//         id: 1,
+//         type: 1,
+//         files: [
+//           {
+//             id: 1,
+//             url: '\\pet_product_images\\202511032115\\display\\Main_02.jpg',
+//             base64_content: '',
+//           },
+//         ],
+//         remark: 'MSDS remark',
+//       },
+//       {
+//         id: 2,
+//         type: 2,
+//         files: [
+//           {
+//             id: 1,
+//             url: '\\pet_product_images\\202511032115\\display\\Main_01.jpg',
+//             base64_content: '',
+//           },
+//         ],
+//         remark: 'RoHS remark',
+//       },
+//     ],
+//     remark: 'main remark',
+//   },
+// ];

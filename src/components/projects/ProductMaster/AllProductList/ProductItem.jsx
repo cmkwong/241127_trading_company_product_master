@@ -8,11 +8,11 @@ import ProductInfo from './ProductInfo';
 
 const ProductItem = ({ product, isSelected, onClick }) => {
   const productName = product.productNames[0].name;
-  const productId = product.productId;
+  const id = product.id;
   const categoryLabels = getLabelsFromLookup(product.category, mockCategory);
 
   // Extract alibaba ID values
-  const alibabaIdValues = product.alibabaIds.map((item) => item.value);
+  const alibabaIdValues = product.product_alibaba_ids.map((item) => item.value);
 
   return (
     <div
@@ -22,9 +22,9 @@ const ProductItem = ({ product, isSelected, onClick }) => {
       <ProductIcon url={product.iconUrl} alt={productName} />
       <ProductInfo
         name={productName}
-        id={productId}
+        id={id}
         categoryLabels={categoryLabels.join(', ')}
-        alibabaIds={alibabaIdValues.join(', ')}
+        product_alibaba_ids={alibabaIdValues.join(', ')}
       />
     </div>
   );

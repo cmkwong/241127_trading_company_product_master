@@ -17,12 +17,12 @@ const Main_ProductIcon = ({
   const { pageData, updateProductPageData } = useProductContext();
 
   // product ID state setup
-  const [productId, setProductId] = useState(pageData.productId || '');
+  const [id, setId] = useState(pageData.id || '');
   const [defaultImages, setDefaultImages] = useState([]);
 
   // Process the image URL from pageData
   useEffect(() => {
-    setProductId(pageData.productId || '');
+    setId(pageData.id || '');
 
     // Process iconUrl into the format expected by Main_ImageUpload
     if (pageData.iconUrl) {
@@ -44,7 +44,7 @@ const Main_ProductIcon = ({
     } else {
       setDefaultImages([]);
     }
-  }, [pageData.productId, pageData.iconUrl]);
+  }, [pageData.id, pageData.iconUrl]);
 
   // Handle image changes from the ImageUpload component
   const handleImageChange = (updatedImages) => {
@@ -67,8 +67,8 @@ const Main_ProductIcon = ({
 
   // Handle product ID changes
   const handleProductIdChange = (value) => {
-    setProductId(value);
-    updateProductPageData('productId', value);
+    setId(value);
+    updateProductPageData('id', value);
   };
 
   return (
@@ -94,7 +94,7 @@ const Main_ProductIcon = ({
         </div>
         <Main_TextField
           placeholder={'Product ID'}
-          value={productId}
+          value={id}
           onChange={handleProductIdChange}
         />
       </div>

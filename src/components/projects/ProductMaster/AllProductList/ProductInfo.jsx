@@ -1,6 +1,6 @@
 import styles from './ProductInfo.module.css';
 
-const ProductInfo = ({ name, id, categoryLabels, alibabaIds }) => {
+const ProductInfo = ({ name, id, categoryLabels, product_alibaba_ids }) => {
   return (
     <div className={styles.productInfo}>
       {/* Product Name - Larger and more prominent */}
@@ -20,7 +20,7 @@ const ProductInfo = ({ name, id, categoryLabels, alibabaIds }) => {
 
         <div className={styles.detailItem}>
           <span className={styles.detailLabel}>Alibaba:</span>
-          <span className={styles.detailValue}>{alibabaIds}</span>
+          <span className={styles.detailValue}>{product_alibaba_ids}</span>
         </div>
       </div>
     </div>

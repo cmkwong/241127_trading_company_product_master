@@ -26,9 +26,9 @@ const Main_AllProductList = ({ onSelectProduct }) => {
           product.productNames.some((name) =>
             name.name.toLowerCase().includes(lowerSearchTerm)
           )) ||
-        product.productId.toLowerCase().includes(lowerSearchTerm) ||
-        (Array.isArray(product.alibabaIds) &&
-          product.alibabaIds.some((id) =>
+        product.id.toLowerCase().includes(lowerSearchTerm) ||
+        (Array.isArray(product.product_alibaba_ids) &&
+          product.product_alibaba_ids.some((id) =>
             typeof id === 'string'
               ? id.toLowerCase().includes(lowerSearchTerm)
               : id.value && id.value.toLowerCase().includes(lowerSearchTerm)

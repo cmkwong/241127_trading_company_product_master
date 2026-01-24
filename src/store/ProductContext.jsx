@@ -7,6 +7,36 @@ import {
 // Create context for data collection
 export const ProductContext = createContext();
 
+// Define keys to compare for detecting changes (single source of truth)
+const PRODUCT_COMPARISON_KEYS = [
+  'id',
+  'hs_code',
+  'remark',
+  'icon_name',
+  'product_images',
+  'product_names',
+  'product_categories',
+  'product_customizations',
+  'product_links',
+  'product_alibaba_ids',
+  'product_packings',
+  'product_certificates',
+];
+
+// Helper function to build product data object from keys
+const buildProductDataObject = (product, currentPageData) => {
+  const data = { ...currentPageData };
+
+  // Map through comparison keys and build the object
+  PRODUCT_COMPARISON_KEYS.forEach((key) => {
+    if (key in product) {
+      data[key] = product[key] || (Array.isArray(product[key]) ? [] : '');
+    }
+  });
+
+  return data;
+};
+
 // Provider component for save page data
 export const ProductContext_Provider = ({ children, initialData = {} }) => {
   const [pageData, setPageData] = useState(initialData);
@@ -56,22 +86,8 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
       return false;
     }
 
-    // Define keys to compare (important fields that determine if data has changed)
-    const keysToCompare = [
-      'productId',
-      'productNames',
-      'category',
-      'customizations',
-      'productLinks',
-      'alibabaIds',
-      'packings',
-      'certificates',
-      'remark',
-      'iconUrl',
-    ];
-
     // Check each key for equality
-    for (const key of keysToCompare) {
+    for (const key of PRODUCT_COMPARISON_KEYS) {
       // Handle arrays specially - need to check deep equality
       if (Array.isArray(pageData[key]) && Array.isArray(existingProduct[key])) {
         // If array lengths differ, data has changed
@@ -140,7 +156,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
       if (pageData.id && !isDataUnchanged()) {
         // Show confirmation dialog
         const confirmSwitch = window.confirm(
-          'You have unsaved changes. Do you want to continue without saving?'
+          'You have unsaved changes. Do you want to continue without saving?',
         );
 
         // If user cancels, stay on current product
@@ -159,25 +175,11 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
       }
 
       // Update all product data at once
-      setPageData({
-        ...pageData,
-        id: product.id,
-        productId: product.productId,
-        productNames: product.productNames || [],
-        productImages: product.productImages || [],
-        category: product.category || [],
-        customizations: product.customizations || [],
-        productLinks: product.productLinks || [],
-        alibabaIds: product.alibabaIds || [],
-        packings: product.packings || [],
-        certificates: product.certificates || [],
-        remark: product.remark || '',
-        iconUrl: product.iconUrl || '',
-      });
+      setPageData(buildProductDataObject(product, pageData));
 
       return true;
     },
-    [pageData, products, isDataUnchanged]
+    [pageData, products, isDataUnchanged],
   );
 
   // Function to handle save action with built-in product list update
@@ -197,7 +199,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
           setProducts((prevProducts) => {
             const updatedProducts = [...prevProducts];
             const existingIndex = updatedProducts.findIndex(
-              (p) => p.id === pageData.id
+              (p) => p.id === pageData.id,
             );
 
             if (existingIndex !== -1) {
@@ -233,7 +235,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
         setIsSaving(false);
       }
     },
-    [pageData]
+    [pageData],
   );
 
   // Create a new product (clear page data)
@@ -242,7 +244,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
     if (pageData.id && !isDataUnchanged()) {
       // Show confirmation dialog
       const confirmSwitch = window.confirm(
-        'You have unsaved changes. Do you want to continue without saving?'
+        'You have unsaved changes. Do you want to continue without saving?',
       );
 
       // If user cancels, stay on current product
@@ -290,7 +292,7 @@ export const useProductContext = () => {
   const context = useContext(ProductContext);
   if (!context) {
     throw new Error(
-      'useProductContext must be used within a ProductContext_Provider'
+      'useProductContext must be used within a ProductContext_Provider',
     );
   }
   return context;

@@ -4,9 +4,12 @@ import styles from './Main_AlibabaLink.module.css';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
 
 const Sub_AlibabaLink = forwardRef(
-  ({ template_data, alibabaIds, onChange, setRowRef, rowindex }, ref) => {
+  (
+    { template_data, product_alibaba_ids, onChange, setRowRef, rowindex },
+    ref
+  ) => {
     // Get the current row data or use template data if it doesn't exist
-    const alibabaLink = alibabaIds[rowindex] || { ...template_data };
+    const alibabaLink = product_alibaba_ids[rowindex] || { ...template_data };
 
     const handleValueChange = useCallback(
       ({ value }) => {
@@ -48,7 +51,7 @@ const Sub_AlibabaLink = forwardRef(
 
 Sub_AlibabaLink.propTypes = {
   template_data: PropTypes.object.isRequired,
-  alibabaIds: PropTypes.array.isRequired,
+  product_alibaba_ids: PropTypes.array.isRequired,
   onChange: PropTypes.func.isRequired,
   setRowRef: PropTypes.func.isRequired,
   rowindex: PropTypes.number,

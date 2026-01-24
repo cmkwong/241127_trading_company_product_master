@@ -16,7 +16,7 @@ const Main_AlibabaLink = () => {
 
   // Use the custom hook to manage alibaba IDs
   const {
-    rowData: alibabaIds,
+    rowData: product_alibaba_ids,
     rowIds,
     rowRef,
     setRowRef,
@@ -25,9 +25,9 @@ const Main_AlibabaLink = () => {
     handleRowRemove,
     handleFieldChange: handleAlibabaIdChange,
   } = useRowData({
-    data: pageData.alibabaIds,
+    data: pageData.product_alibaba_ids,
     updateProductPageData,
-    dataKey: 'alibabaIds',
+    dataKey: 'product_alibaba_ids',
     template: template_data,
     idPrefix: 'alibaba-id',
   });
@@ -42,7 +42,7 @@ const Main_AlibabaLink = () => {
       >
         <Sub_AlibabaLink
           template_data={template_data}
-          alibabaIds={alibabaIds}
+          product_alibaba_ids={product_alibaba_ids}
           onChange={handleAlibabaIdChange}
           setRowRef={setRowRef}
         />

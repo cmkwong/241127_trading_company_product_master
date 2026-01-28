@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import PropTypes from 'prop-types';
 import styles from './Main_FileUploads.module.css';
-import Sub_DropZone from './Sub_DropZone';
-import Sub_FileList from './Sub_FileList';
+import Main_DropZone from '../DropZone/Main_DropZone';
+import Sub_FileItem from './Sub_FileItem';
 
 /**
  * Main_FileUploads Component
@@ -57,7 +57,7 @@ const Main_FileUploads = (props) => {
       // Validate file size
       if (file.size > maxSizeInMB * 1024 * 1024) {
         errors.push(
-          `File "${file.name}" exceeds the maximum size of ${maxSizeInMB}MB.`
+          `File "${file.name}" exceeds the maximum size of ${maxSizeInMB}MB.`,
         );
         return;
       }
@@ -87,10 +87,10 @@ const Main_FileUploads = (props) => {
   };
 
   // Handle file removal
-  const handleRemoveFile = (id) => {
+  const handleRemoveFile = (index) => {
     if (disabled) return;
 
-    const updatedFiles = fileList.filter((file) => file.id !== id);
+    const updatedFiles = fileList.filter((_, i) => i !== index);
     setFileList(updatedFiles);
     onChange(updatedFiles);
   };
@@ -99,7 +99,7 @@ const Main_FileUploads = (props) => {
     <div className={styles.fileUploadContainer}>
       {label && <label className={styles.label}>{label}</label>}
 
-      <Sub_DropZone
+      <Main_DropZone
         onFileSelect={handleFileSelection}
         isDragging={isDragging}
         setIsDragging={setIsDragging}
@@ -108,8 +108,19 @@ const Main_FileUploads = (props) => {
         maxSizeInMB={maxSizeInMB}
         acceptedTypes={acceptedTypes}
         multiple={multiple}
-        files={fileList}
-        onRemoveFile={handleRemoveFile}
+        items={fileList}
+        onRemoveItem={handleRemoveFile}
+        PreviewComponent={(props) => (
+          <Sub_FileItem
+            file={props.item}
+            onRemove={props.onRemove}
+            disabled={props.disabled}
+          />
+        )}
+        showPreview={true}
+        showMaxItemsNotice={true}
+        itemType="files"
+        testIdPrefix="file"
       />
     </div>
   );
@@ -137,7 +148,7 @@ Main_FileUploads.propTypes = {
       size: PropTypes.number.isRequired,
       type: PropTypes.string,
       id: PropTypes.string.isRequired,
-    })
+    }),
   ),
 };
 

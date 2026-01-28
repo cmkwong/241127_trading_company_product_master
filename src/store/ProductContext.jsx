@@ -1,8 +1,17 @@
-import { createContext, useState, useContext, useCallback } from 'react';
+import {
+  createContext,
+  useState,
+  useContext,
+  useCallback,
+  useEffect,
+  useRef,
+} from 'react';
 import {
   mockProduct_template,
   mockProducts,
+  mockProduct_base64_config,
 } from '../datas/Products/mockProducts';
+import { releaseObjectUrls, processProductBase64 } from '../utils/browser';
 
 // Create context for data collection
 export const ProductContext = createContext();
@@ -43,7 +52,35 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState(null);
-  const [products, setProducts] = useState(mockProducts);
+  const [products, setProducts] = useState(mockProducts['products']);
+  const objectUrlRegistryRef = useRef([]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return () => {};
+    }
+
+    // Clear any previously created object URLs before regenerating new ones.
+    releaseObjectUrls(objectUrlRegistryRef.current);
+    const urlRegistry = [];
+
+    const processedProducts = mockProducts.products.map((product) =>
+      processProductBase64(
+        product,
+        'products',
+        mockProduct_base64_config,
+        urlRegistry,
+      ),
+    );
+
+    setProducts(processedProducts);
+    objectUrlRegistryRef.current = urlRegistry;
+
+    return () => {
+      releaseObjectUrls(objectUrlRegistryRef.current);
+      objectUrlRegistryRef.current = [];
+    };
+  }, []);
 
   // Function to update specific field in the data
   const updateProductPageData = useCallback((field, value) => {

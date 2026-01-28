@@ -1,7 +1,8 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import styles from './Main_ImageUpload.module.css';
-import Sub_DropZone from './Sub_DropZone';
+import Main_DropZone from '../DropZone/Main_DropZone';
+import Sub_ImagePreview from './Sub_ImagePreview';
 
 /**
  * Main_ImageUpload Component
@@ -69,7 +70,7 @@ const Main_ImageUpload = (props) => {
   }, []);
 
   const [images, setImages] = useState(() =>
-    processDefaultImages(defaultImages)
+    processDefaultImages(defaultImages),
   );
   const [isDragging, setIsDragging] = useState(false);
 
@@ -133,7 +134,7 @@ const Main_ImageUpload = (props) => {
 
         if (file.size > maxSizeInMB * 1024 * 1024) {
           errors.push(
-            `File "${file.name}" exceeds the maximum size of ${maxSizeInMB}MB.`
+            `File "${file.name}" exceeds the maximum size of ${maxSizeInMB}MB.`,
           );
           return;
         }
@@ -159,7 +160,7 @@ const Main_ImageUpload = (props) => {
         onChange(updatedImages);
       }
     },
-    [images, maxFiles, acceptedTypes, maxSizeInMB, onError, onChange]
+    [images, maxFiles, acceptedTypes, maxSizeInMB, onError, onChange],
   );
 
   const handleRemoveImage = (indexToRemove) => {
@@ -172,7 +173,7 @@ const Main_ImageUpload = (props) => {
     <div className={styles.imageUploadContainer}>
       {label && <label className={styles.label}>{label}</label>}
 
-      <Sub_DropZone
+      <Main_DropZone
         onFileSelect={handleFileSelection}
         isDragging={isDragging}
         setIsDragging={setIsDragging}
@@ -182,10 +183,13 @@ const Main_ImageUpload = (props) => {
         acceptedTypes={acceptedTypes}
         multiple={multiple}
         showPreview={showPreview}
-        showMaxImagesNotice={showMaxImagesNotice}
-        images={images}
-        onRemoveImage={handleRemoveImage}
-        onMoveImage={handleMoveImage}
+        showMaxItemsNotice={showMaxImagesNotice}
+        items={images}
+        onRemoveItem={handleRemoveImage}
+        onMoveItem={handleMoveImage}
+        PreviewComponent={Sub_ImagePreview}
+        itemType="images"
+        testIdPrefix="image"
       />
     </div>
   );

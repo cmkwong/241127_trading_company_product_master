@@ -32,7 +32,7 @@ const Sub_FileItem = ({ file, onRemove, disabled }) => {
       </div>
       <button
         className={styles.removeButton}
-        onClick={() => onRemove(file.id)}
+        onClick={() => onRemove()}
         disabled={disabled}
         aria-label={`Remove ${file.name}`}
       >

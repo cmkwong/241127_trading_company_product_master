@@ -55,7 +55,7 @@
   transition: all 0.2s ease;
 }
 
-.uploadPromptWithFiles {
+.uploadPromptWithItems {
   border: 1px dashed #4a90e2;
   background-color: #f0f8ff;
   padding: 12px;
@@ -72,7 +72,7 @@
   margin-bottom: 8px;
 }
 
-.uploadPromptWithFiles .uploadIcon {
+.uploadPromptWithItems .uploadIcon {
   width: 24px;
   height: 24px;
   margin-bottom: 4px;
@@ -86,7 +86,7 @@
   text-align: center;
 }
 
-.uploadPromptWithFiles .uploadText {
+.uploadPromptWithItems .uploadText {
   font-size: 14px;
   margin-bottom: 4px;
 }
@@ -97,19 +97,40 @@
   text-align: center;
 }
 
-.uploadPromptWithFiles .uploadInfo {
+.uploadPromptWithItems .uploadInfo {
   font-size: 11px;
 }
 
-.hasFiles {
+.hasItems {
   padding: 16px;
 }
 
-.fileListContainer {
+.previewContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  width: 100%;
+}
+
+.fullSizeContainer {
+  padding: 12px;
+}
+
+.fullSizePreviewContainer {
+  display: flex;
+  justify-content: center;
   width: 100%;
 }
 
 .acceptedTypes {
   margin-top: 4px;
   font-style: italic;
+}
+
+.maxItemsNotice {
+  font-size: 14px;
+  font-weight: 500;
+  color: #666;
+  text-align: center;
+  padding: 8px;
 }

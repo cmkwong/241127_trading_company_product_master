@@ -4,7 +4,7 @@ import styles from './Main_ProductIcon.module.css';
 import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
 import { useProductContext } from '../../../../store/ProductContext';
-import Main_ImageUpload from '../../../common/InputOptions/ImageUploads/Main_ImageUpload';
+import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_FileUploads';
 
 /**
  * Main_ProductIcon Component
@@ -24,7 +24,7 @@ const Main_ProductIcon = ({
   useEffect(() => {
     setId(pageData.id || '');
 
-    // Process iconUrl into the format expected by Main_ImageUpload
+    // Process iconUrl into the format expected by Main_FileUploads
     if (pageData.iconUrl) {
       // If iconUrl is already an object with url property
       if (typeof pageData.iconUrl === 'object' && pageData.iconUrl.url) {
@@ -75,7 +75,8 @@ const Main_ProductIcon = ({
     <Main_InputContainer label="Product Icon">
       <div className={styles.productIconContainer}>
         <div className={styles.iconUploadContainer}>
-          <Main_ImageUpload
+          <Main_FileUploads
+            mode="image"
             onChange={handleImageChange}
             onError={handleImageError}
             maxFiles={1}

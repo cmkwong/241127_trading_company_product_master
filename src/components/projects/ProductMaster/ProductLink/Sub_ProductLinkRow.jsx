@@ -1,7 +1,7 @@
 import { useCallback, forwardRef } from 'react';
 import PropTypes from 'prop-types';
 import Main_DateSelector from '../../../common/InputOptions/Date/Main_DateSelector';
-import Main_ImageUpload from '../../../common/InputOptions/ImageUploads/Main_ImageUpload';
+import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_FileUploads';
 import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
 import styles from './Sub_ProductLinkRow.module.css';
@@ -17,21 +17,21 @@ const Sub_ProductLinkRow = forwardRef(
       ({ value }) => {
         onChange(rowindex, 'link', value);
       },
-      [onChange, rowindex]
+      [onChange, rowindex],
     );
 
     const handleRemarkChange = useCallback(
       ({ value }) => {
         onChange(rowindex, 'remark', value);
       },
-      [onChange, rowindex]
+      [onChange, rowindex],
     );
 
     const handleDateChange = useCallback(
       ({ value }) => {
         onChange(rowindex, 'date', value);
       },
-      [onChange, rowindex]
+      [onChange, rowindex],
     );
 
     const handleImageChange = useCallback(
@@ -40,12 +40,12 @@ const Sub_ProductLinkRow = forwardRef(
         const imageUrls =
           updatedImages && Array.isArray(updatedImages)
             ? updatedImages.map((img) =>
-                typeof img === 'string' ? img : img.url || ''
+                typeof img === 'string' ? img : img.url || '',
               )
             : [];
         onChange(rowindex, 'images', imageUrls);
       },
-      [onChange, rowindex]
+      [onChange, rowindex],
     );
 
     // Handle image upload errors
@@ -65,7 +65,8 @@ const Sub_ProductLinkRow = forwardRef(
         />
         <div className={styles.contentRow}>
           <div className={styles.inputsColumn}>
-            <Main_ImageUpload
+            <Main_FileUploads
+              mode="image"
               onError={handleImageError}
               onChange={handleImageChange}
               defaultImages={productLink.images || []}
@@ -83,7 +84,7 @@ const Sub_ProductLinkRow = forwardRef(
         </div>
       </div>
     );
-  }
+  },
 );
 
 Sub_ProductLinkRow.propTypes = {

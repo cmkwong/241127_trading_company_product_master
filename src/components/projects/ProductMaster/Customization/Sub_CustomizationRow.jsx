@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 import styles from './Sub_CustomizationRow.module.css';
 import Main_Suggest from '../../../common/InputOptions/Suggest/Main_Suggest';
 import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
-import Main_ImageUpload from '../../../common/InputOptions/ImageUploads/Main_ImageUpload';
+import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_FileUploads';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
 import { mockSuppliers } from '../../../../datas/Suppliers/mockSuppliers';
 
@@ -24,7 +24,7 @@ const Sub_CustomizationRow = (props) => {
   };
 
   // --- FIXED: Removed destructuring ---
-  // Main_ImageUpload passes the array directly, not an object.
+  // Main_FileUploads passes the array directly, not an object.
   const handleImageChange = (updatedImages) => {
     console.log('updatedImages: ', updatedImages);
     onChange(rowindex, 'images', updatedImages);
@@ -56,7 +56,8 @@ const Sub_CustomizationRow = (props) => {
           value={customization.remark}
         />
       </div>
-      <Main_ImageUpload
+      <Main_FileUploads
+        mode="image"
         onError={handleImageError}
         onChange={handleImageChange}
         maxFiles={10}

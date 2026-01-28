@@ -11,7 +11,10 @@ import {
   mockProducts,
   mockProduct_base64_config,
 } from '../datas/Products/mockProducts';
-import { releaseObjectUrls, processProductBase64 } from '../utils/browser';
+import {
+  releaseObjectUrls,
+  recursiveProcess_base64_to_objectUrl,
+} from '../utils/objectUrlUtils';
 
 // Create context for data collection
 export const ProductContext = createContext();
@@ -65,7 +68,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
     const urlRegistry = [];
 
     const processedProducts = mockProducts.products.map((product) =>
-      processProductBase64(
+      recursiveProcess_base64_to_objectUrl(
         product,
         'products',
         mockProduct_base64_config,

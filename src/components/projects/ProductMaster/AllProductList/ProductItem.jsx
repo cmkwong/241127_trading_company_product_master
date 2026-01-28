@@ -18,23 +18,8 @@ const ProductItem = ({ product, isSelected, onClick }) => {
   const alibabaIdValues =
     product.product_alibaba_ids?.map((item) => item.value) || [];
 
-  // Get the first product image (sorted by display_order if available)
-  const getProductImage = () => {
-    if (!product.product_images || product.product_images.length === 0) {
-      return null;
-    }
-    
-    // Sort by display_order and get the first image
-    const sortedImages = [...product.product_images].sort((a, b) => {
-      const orderA = parseInt(a.display_order) || 0;
-      const orderB = parseInt(b.display_order) || 0;
-      return orderA - orderB;
-    });
-    
-    return sortedImages[0]?.image_url || sortedImages[0]?.url;
-  };
-
-  const imageUrl = getProductImage();
+  // Use icon_url for the product list thumbnail
+  const imageUrl = product.icon_url;
 
   return (
     <div

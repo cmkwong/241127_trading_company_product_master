@@ -76,6 +76,8 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
       ),
     );
 
+    console.log('processedProducts', processedProducts);
+
     setProducts(processedProducts);
     objectUrlRegistryRef.current = urlRegistry;
 

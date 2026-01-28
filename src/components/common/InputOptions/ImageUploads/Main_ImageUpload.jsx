@@ -187,10 +187,21 @@ const Main_ImageUpload = (props) => {
         items={images}
         onRemoveItem={handleRemoveImage}
         onMoveItem={handleMoveImage}
-        PreviewComponent={Sub_ImagePreview}
         itemType="images"
         testIdPrefix="image"
-      />
+      >
+        {images.map((image, index) => (
+          <Sub_ImagePreview
+            key={image.id || index}
+            index={index}
+            image={image}
+            onRemove={() => handleRemoveImage(index)}
+            onMove={handleMoveImage}
+            disabled={disabled}
+            fullSizePreview={!showMaxImagesNotice}
+          />
+        ))}
+      </Main_DropZone>
     </div>
   );
 };

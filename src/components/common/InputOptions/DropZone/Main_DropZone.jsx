@@ -22,11 +22,9 @@ const Main_DropZone = ({
 
   // Items (files/images)
   items = [],
-  onRemoveItem,
-  onMoveItem,
 
   // Preview/Display
-  PreviewComponent,
+  children,
   showPreview = true,
   showMaxItemsNotice = true,
 
@@ -108,27 +106,14 @@ const Main_DropZone = ({
       />
 
       <div className={styles.dropZoneContent}>
-        {/* Show preview/list if we have items and a PreviewComponent */}
-        {showPreview && hasItems && PreviewComponent && (
+        {/* Show preview/list if we have items and children */}
+        {showPreview && hasItems && children && (
           <div
             className={`${styles.previewContainer} ${
               !showMaxItemsNotice ? styles.fullSizePreviewContainer : ''
             }`}
           >
-            {items.map((item, i) => (
-              <PreviewComponent
-                key={item.id || i}
-                index={i}
-                item={item}
-                // For backwards compatibility with specific component props
-                image={item}
-                file={item}
-                onRemove={() => onRemoveItem && onRemoveItem(i)}
-                onMove={onMoveItem}
-                disabled={disabled}
-                fullSizePreview={!showMaxItemsNotice}
-              />
-            ))}
+            {children}
           </div>
         )}
 
@@ -214,11 +199,9 @@ Main_DropZone.propTypes = {
       type: PropTypes.string,
     }),
   ),
-  onRemoveItem: PropTypes.func,
-  onMoveItem: PropTypes.func,
 
   // Preview/Display
-  PreviewComponent: PropTypes.elementType,
+  children: PropTypes.node,
   showPreview: PropTypes.bool,
   showMaxItemsNotice: PropTypes.bool,
 

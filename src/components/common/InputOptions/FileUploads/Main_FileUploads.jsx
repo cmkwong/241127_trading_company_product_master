@@ -110,18 +110,20 @@ const Main_FileUploads = (props) => {
         multiple={multiple}
         items={fileList}
         onRemoveItem={handleRemoveFile}
-        PreviewComponent={(props) => (
-          <Sub_FileItem
-            file={props.item}
-            onRemove={props.onRemove}
-            disabled={props.disabled}
-          />
-        )}
         showPreview={true}
         showMaxItemsNotice={true}
         itemType="files"
         testIdPrefix="file"
-      />
+      >
+        {fileList.map((file, index) => (
+          <Sub_FileItem
+            key={file.id}
+            file={file}
+            onRemove={() => handleRemoveFile(index)}
+            disabled={disabled}
+          />
+        ))}
+      </Main_DropZone>
     </div>
   );
 };

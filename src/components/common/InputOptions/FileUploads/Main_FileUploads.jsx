@@ -245,7 +245,7 @@ const Main_FileUploads = (props) => {
             file={file}
             index={index}
             onRemove={() => handleRemoveFile(index)}
-            onMove={mode === 'image' ? handleMoveItem : undefined}
+            onMove={handleMoveItem}
             disabled={disabled}
             showAsImage={mode === 'image'}
             fullSizePreview={!showMaxItemsNotice}

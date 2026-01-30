@@ -1,11 +1,19 @@
 /* File List Item Styles */
 .fileItem {
+  position: relative;
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 10px 16px;
   border-bottom: 1px solid #e0e0e0;
-  transition: background-color 0.2s;
+  transition:
+    transform 0.2s cubic-bezier(0.2, 0, 0, 1),
+    background-color 0.2s;
+  cursor: grab;
+}
+
+.fileItem:active {
+  cursor: grabbing;
 }
 
 .fileItem:hover {

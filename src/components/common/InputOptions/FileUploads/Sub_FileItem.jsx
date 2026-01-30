@@ -63,17 +63,15 @@ const Sub_FileItem = ({
     const x = e.clientX - rect.left;
     const width = rect.width;
 
-    if (x < width / 2) {
-      setDropPosition('left');
-    } else {
-      setDropPosition('right');
+    const newPosition = x < width / 2 ? 'left' : 'right';
+    if (newPosition !== dropPosition) {
+      setDropPosition(newPosition);
     }
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    setDropPosition(null);
 
     const dragIndex = parseInt(e.dataTransfer.getData('text/plain'));
     let insertIndex = index;
@@ -81,8 +79,14 @@ const Sub_FileItem = ({
       insertIndex = index + 1;
     }
 
-    if (dragIndex === index && dropPosition === 'left') return;
-    if (dragIndex === index && dropPosition === 'right') return;
+    setDropPosition(null);
+
+    if (dragIndex === index && dropPosition === 'left') {
+      return;
+    }
+    if (dragIndex === index && dropPosition === 'right') {
+      return;
+    }
 
     if (onMove) {
       onMove(dragIndex, insertIndex);
@@ -103,7 +107,7 @@ const Sub_FileItem = ({
         className={`${styles.imagePreview} ${
           fullSizePreview ? styles.fullSizePreview : ''
         } ${shiftClass}`}
-        draggable={!disabled && onMove}
+        draggable={!disabled && !!onMove}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
         onDragEnter={handleDragEnter}
@@ -148,7 +152,22 @@ const Sub_FileItem = ({
 
   // Render as file list item
   return (
-    <li className={styles.fileItem}>
+    <li
+      className={`${styles.fileItem} ${shiftClass}`}
+      draggable={!disabled && !!onMove}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+      title={onMove ? 'Drag to reorder' : file.name}
+    >
+      {dropPosition === 'left' && <div className={styles.dropIndicatorLeft} />}
+      {dropPosition === 'right' && (
+        <div className={styles.dropIndicatorRight} />
+      )}
+
       <div className={styles.fileInfo}>
         <div className={styles.fileIcon}>
           <svg

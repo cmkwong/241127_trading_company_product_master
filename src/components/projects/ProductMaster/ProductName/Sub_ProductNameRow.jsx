@@ -3,6 +3,7 @@ import Main_Suggest from '../../../common/InputOptions/Suggest/Main_Suggest';
 import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
 import { mockProductNameType } from '../../../../datas/Options/ProductOptions';
 import styles from './Sub_ProductNameRow.module.css';
+import { useMasterContext } from '../../../../store/MasterContext';
 
 const defaultProductName = [
   'Elizabeth Collar Pet Grooming Shield Anti Bite Collar Dog Necklace Cat Neck Shame Collar',
@@ -20,6 +21,8 @@ const Sub_ProductNameRow = (props) => {
   // Extract the props we need and ignore the rest to prevent passing them to DOM elements
   const { product_names = [], onChange, rowindex = 0, setRowRef } = props;
   const inputRef = useRef(null);
+
+  const { productNameType } = useMasterContext();
 
   // Get the current product name data for this row, or use default values
   const currentProduct = product_names[rowindex] || { name: '', type: 1 };
@@ -46,7 +49,7 @@ const Sub_ProductNameRow = (props) => {
   };
 
   const handleTypeChange = ({ selected }) => {
-    onChange(rowindex, 'type', selected);
+    onChange(rowindex, 'name_type_id', selected);
   };
 
   return (
@@ -60,8 +63,8 @@ const Sub_ProductNameRow = (props) => {
       </div>
       <div className={styles.dropdownWrapper}>
         <Main_Dropdown
-          defaultOptions={mockProductNameType}
-          selectedOptions={currentProduct.type}
+          defaultOptions={productNameType}
+          selectedOptions={currentProduct.name_type_id}
           onChange={handleTypeChange}
         />
       </div>

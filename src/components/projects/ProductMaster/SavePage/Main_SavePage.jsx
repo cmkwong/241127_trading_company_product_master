@@ -1,4 +1,8 @@
 import {
+  MasterContext,
+  MasterContext_Provider,
+} from '../../../../store/MasterContext';
+import {
   ProductContext_Provider,
   useProductContext,
 } from '../../../../store/ProductContext';
@@ -61,18 +65,20 @@ const SavePageWithProvider = ({
   className,
 }) => {
   return (
-    <ProductContext_Provider initialData={initialData}>
-      <Main_SavePage
-        onSave={onSave}
-        saveButtonText={saveButtonText}
-        successMessage={successMessage}
-        showSaveButton={showSaveButton}
-        customSaveAction={customSaveAction}
-        className={className}
-      >
-        {children}
-      </Main_SavePage>
-    </ProductContext_Provider>
+    <MasterContext_Provider>
+      <ProductContext_Provider initialData={initialData}>
+        <Main_SavePage
+          onSave={onSave}
+          saveButtonText={saveButtonText}
+          successMessage={successMessage}
+          showSaveButton={showSaveButton}
+          customSaveAction={customSaveAction}
+          className={className}
+        >
+          {children}
+        </Main_SavePage>
+      </ProductContext_Provider>
+    </MasterContext_Provider>
   );
 };
 

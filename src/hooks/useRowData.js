@@ -70,7 +70,7 @@ const useRowData = ({ data, updateProductPageData, dataKey, template }) => {
       setRowData(updatedData);
       updateProductPageData(dataKey, updatedData);
     },
-    [rowData, updateProductPageData, dataKey]
+    [rowData, updateProductPageData, dataKey],
   );
 
   // 5. Handle field changes (Optimized)
@@ -102,7 +102,7 @@ const useRowData = ({ data, updateProductPageData, dataKey, template }) => {
         return newData;
       });
     },
-    [updateProductPageData, dataKey]
+    [updateProductPageData, dataKey],
   );
 
   // 6. Handle Reordering (via ControlRowBtn)
@@ -121,7 +121,7 @@ const useRowData = ({ data, updateProductPageData, dataKey, template }) => {
         updateProductPageData(dataKey, updatedData);
       }
     },
-    [rowData, updateProductPageData, dataKey]
+    [rowData, updateProductPageData, dataKey],
   );
 
   return {

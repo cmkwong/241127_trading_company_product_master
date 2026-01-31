@@ -19,7 +19,6 @@ const Main_Dropdown = (props) => {
     // Controlled props
     options: controlledOptions,
     selectedOptions: controlledSelected, // naming retained from your code
-    updateOptionData, // controlled handler for options array only
 
     // Callbacks
     onChange = () => {},
@@ -36,22 +35,23 @@ const Main_Dropdown = (props) => {
     dropdownId,
   } = props;
 
+  // Simple helper keeps ids unique per render without relying on external state
   const makeId = (prefix = 'input-list') =>
     `${prefix}-${Math.random().toString(36).slice(2, 8)}-${Date.now().toString(
-      36
+      36,
     )}`;
 
   // Stable per-mount auto id
   const autoIdRef = useRef(dropdownId || makeId('input-list'));
   const resolvedId = dropdownId || autoIdRef.current;
 
-  // Determine controlled/uncontrolled mode correctly
+  // Decide once per render whether consumer is controlling options/selection
   const { isOptionsControlled, isSelectedControlled } = useMemo(
     () => ({
       isOptionsControlled: controlledOptions !== undefined,
       isSelectedControlled: controlledSelected !== undefined,
     }),
-    [controlledOptions, controlledSelected]
+    [controlledOptions, controlledSelected],
   );
 
   // Internal state for uncontrolled mode
@@ -64,29 +64,7 @@ const Main_Dropdown = (props) => {
     ? controlledSelected
     : innerSelected;
 
-  // ID generator
-  const getNewId = useMemo(
-    () =>
-      generateId ||
-      (() => `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`),
-    [generateId]
-  );
-
-  // Update options array (both modes)
-  const setOptions = useCallback(
-    (newOptions) => {
-      if (isOptionsControlled) {
-        // Let parent handle options changes if controlled
-        updateOptionData?.(newOptions);
-      } else {
-        setInnerOptions(newOptions);
-      }
-      onChange({ options: newOptions, selected: currentSelected });
-    },
-    [isOptionsControlled, updateOptionData, currentSelected, onChange]
-  );
-
-  // Update selection (both modes)
+  // Bridge controlled and uncontrolled usage while always notifying parent
   const setSelected = useCallback(
     (newSelected) => {
       if (isSelectedControlled) {
@@ -97,7 +75,7 @@ const Main_Dropdown = (props) => {
         onChange({ options: currentOptions, selected: newSelected });
       }
     },
-    [isSelectedControlled, currentOptions, onChange]
+    [isSelectedControlled, currentOptions, onChange],
   );
 
   // Dropdown props
@@ -110,7 +88,7 @@ const Main_Dropdown = (props) => {
       buttonAltText: 'Select an option',
       placeholder: 'Select an option',
     }),
-    [resolvedId, currentOptions, currentSelected, setSelected]
+    [resolvedId, currentOptions, currentSelected, setSelected],
   );
 
   return (
@@ -129,7 +107,6 @@ Main_Dropdown.propTypes = {
   // Controlled API
   options: PropTypes.array,
   selectedOptions: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  updateOptionData: PropTypes.func,
 
   // Events
   onChange: PropTypes.func, // onChange({ options, selected })

@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import styles from './Sub_SelectField.module.css';
 import dropdownLogo from '../../../../assets/dropdown.svg';
 
+// Allow options to be either primitive strings or structured { id, name } objects
 const isOptionObject = (o) => typeof o === 'object' && o !== null;
 
 const getNameFromOption = (option) =>
@@ -27,13 +28,14 @@ const Sub_SelectField = ({
 
   const combinedButtonClasses = useMemo(
     () => `${styles.dropdown_btn} ${buttonClassName}`.trim(),
-    [buttonClassName]
+    [buttonClassName],
   );
   const combinedListClasses = useMemo(
     () => `${styles.list_box} ${listClassName}`.trim(),
-    [listClassName]
+    [listClassName],
   );
 
+  // Resolve the label presented on the button regardless of option shape
   const displayText = useMemo(() => {
     if (
       selectedValue === undefined ||
@@ -45,7 +47,7 @@ const Sub_SelectField = ({
     // Match by id/value for object options
     if (options.length && options.some(isOptionObject)) {
       const found = options.find(
-        (opt) => getIdFromOption(opt) === selectedValue
+        (opt) => getIdFromOption(opt) === selectedValue,
       );
       return found ? getNameFromOption(found) : placeholder;
     }
@@ -57,7 +59,7 @@ const Sub_SelectField = ({
   const closeDropdown = useCallback(() => setOpen(false), []);
   const toggleDropdown = useCallback(() => setOpen((p) => !p), []);
 
-  // Outside click close
+  // Close menu when pointer interaction occurs outside of the container
   useEffect(() => {
     if (!open) return;
 
@@ -77,7 +79,7 @@ const Sub_SelectField = ({
     };
   }, [open]);
 
-  // Keyboard handling on button
+  // Handle keyboard navigation patterns expected for accessible menus
   const onButtonKeyDown = useCallback(
     (e) => {
       if (e.key === 'Enter' || e.key === ' ') {
@@ -95,16 +97,17 @@ const Sub_SelectField = ({
         closeDropdown();
       }
     },
-    [toggleDropdown, openDropdown, closeDropdown]
+    [toggleDropdown, openDropdown, closeDropdown],
   );
 
+  // Normalize the selected value then notify parent and close the menu
   const handleSelect = useCallback(
     (option) => {
       const value = getIdFromOption(option);
       onOptionClick(value);
       closeDropdown();
     },
-    [onOptionClick, closeDropdown]
+    [onOptionClick, closeDropdown],
   );
 
   return (
@@ -182,7 +185,7 @@ Sub_SelectField.propTypes = {
           .isRequired,
         name: PropTypes.string.isRequired,
       }),
-    ])
+    ]),
   ),
   selectedValue: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   onOptionClick: PropTypes.func,

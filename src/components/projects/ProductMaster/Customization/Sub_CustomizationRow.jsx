@@ -26,7 +26,6 @@ const Sub_CustomizationRow = (props) => {
   // --- FIXED: Removed destructuring ---
   // Main_FileUploads passes the array directly, not an object.
   const handleImageChange = (updatedImages) => {
-    console.log('updatedImages: ', updatedImages);
     onChange(rowindex, 'images', updatedImages);
   };
 

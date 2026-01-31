@@ -24,27 +24,25 @@ const Main_ProductIcon = ({
   useEffect(() => {
     setId(pageData.id || '');
 
-    // Process iconUrl into the format expected by Main_FileUploads
-    if (pageData.iconUrl) {
-      // If iconUrl is already an object with url property
-      if (typeof pageData.iconUrl === 'object' && pageData.iconUrl.url) {
-        setDefaultImages([pageData.iconUrl]);
-      }
-      // If iconUrl is a string URL
-      else if (
-        typeof pageData.iconUrl === 'string' &&
-        pageData.iconUrl.trim() !== ''
-      ) {
-        setDefaultImages([pageData.iconUrl]);
-      }
-      // Otherwise, clear the images
-      else {
-        setDefaultImages([]);
-      }
-    } else {
-      setDefaultImages([]);
+    const hasIconUrl =
+      pageData?.icon_url &&
+      typeof pageData.icon_url === 'string' &&
+      pageData.icon_url.trim() !== '';
+
+    if (hasIconUrl) {
+      setDefaultImages([
+        {
+          url: pageData.icon_url,
+          name: pageData?.icon_name || 'product-icon',
+        },
+      ]);
     }
-  }, [pageData.id, pageData.iconUrl]);
+  }, [
+    pageData.id,
+    pageData.icon_url,
+    pageData.base64_image,
+    pageData.icon_name,
+  ]);
 
   // Handle image changes from the ImageUpload component
   const handleImageChange = (updatedImages) => {
@@ -53,7 +51,7 @@ const Main_ProductIcon = ({
       updatedImages && updatedImages.length > 0 ? updatedImages[0] : null;
 
     // Update the context with the new image
-    updateProductPageData('iconUrl', newImage);
+    updateProductPageData('icon_url', newImage);
 
     // Call the onChange prop
     onChange(newImage);

@@ -35,19 +35,19 @@ const PRODUCT_COMPARISON_KEYS = [
   'product_certificates',
 ];
 
-// Helper function to build product data object from keys
-const buildProductDataObject = (product, currentPageData) => {
-  const data = { ...currentPageData };
+// // Helper function to build product data object from keys
+// const buildProductDataObject = (product, currentPageData) => {
+//   const data = { ...currentPageData };
 
-  // Map through comparison keys and build the object
-  PRODUCT_COMPARISON_KEYS.forEach((key) => {
-    if (key in product) {
-      data[key] = product[key] || (Array.isArray(product[key]) ? [] : '');
-    }
-  });
+//   // Map through comparison keys and build the object
+//   PRODUCT_COMPARISON_KEYS.forEach((key) => {
+//     if (key in product) {
+//       data[key] = product[key] || (Array.isArray(product[key]) ? [] : '');
+//     }
+//   });
 
-  return data;
-};
+//   return data;
+// };
 
 // Provider component for save page data
 export const ProductContext_Provider = ({ children, initialData = {} }) => {
@@ -75,8 +75,6 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
         urlRegistry,
       ),
     );
-
-    console.log('processedProducts', processedProducts);
 
     setProducts(processedProducts);
     objectUrlRegistryRef.current = urlRegistry;
@@ -217,7 +215,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
       }
 
       // Update all product data at once
-      setPageData(buildProductDataObject(product, pageData));
+      setPageData(product);
 
       return true;
     },

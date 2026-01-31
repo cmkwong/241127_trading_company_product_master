@@ -30,7 +30,6 @@ const Main_DropZone = ({
 
   // Styling/Labels
   itemType = 'files', // 'files' or 'images'
-  testIdPrefix = 'file', // 'file' or 'image'
 }) => {
   const fileInputRef = useRef(null);
 
@@ -92,7 +91,7 @@ const Main_DropZone = ({
       onDragLeave={handleDragLeave}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
-      data-testid={`${testIdPrefix}-upload-dropzone`}
+      data-testid={`${itemType}-upload-dropzone`}
     >
       <input
         ref={fileInputRef}
@@ -102,7 +101,7 @@ const Main_DropZone = ({
         multiple={multiple}
         disabled={disabled || !canAddMoreItems}
         className={styles.fileInput}
-        data-testid={`${testIdPrefix}-upload-input`}
+        data-testid={`${itemType}-upload-input`}
       />
 
       <div className={styles.dropZoneContent}>
@@ -206,8 +205,7 @@ Main_DropZone.propTypes = {
   showMaxItemsNotice: PropTypes.bool,
 
   // Styling/Labels
-  itemType: PropTypes.string,
-  testIdPrefix: PropTypes.string,
+  itemType: PropTypes.string, // 'files' or 'images'
 };
 
 export default Main_DropZone;

@@ -38,45 +38,40 @@ const Main_FileUploads = (props) => {
   const processDefaultImages = useCallback((imgs) => {
     if (!Array.isArray(imgs)) return [];
 
-    return imgs.map((image) => {
+    return imgs.map((image, index) => {
       if (typeof image === 'string') {
         const url = image;
-        const name = url.split('/').pop() || 'image';
-        let type = 'image/jpeg';
-        if (url.endsWith('.png')) type = 'image/png';
-        else if (url.endsWith('.gif')) type = 'image/gif';
+        const nameFromUrl = url.split('/').pop();
 
         return {
+          id: `default-image-${index}`,
           url,
-          name,
-          size: 100000,
-          type,
-          id: `image-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          name: nameFromUrl || `image-${index + 1}`,
+          size: 0,
+          type: 'image/*',
         };
       }
 
-      if (typeof image === 'object') {
-        const processed = { ...image };
-        if (!processed.name && processed.url) {
-          processed.name = processed.url.split('/').pop() || 'image';
-        }
-        if (!processed.size) processed.size = 100000;
-        if (!processed.type) processed.type = 'image/jpeg';
-        // Only add ID if missing, to preserve identity across renders
-        if (!processed.id) {
-          processed.id = `image-${Date.now()}-${Math.random()
-            .toString(36)
-            .substr(2, 9)}`;
-        }
-        return processed;
+      if (image && typeof image === 'object') {
+        const name =
+          image.name || (image.url ? image.url.split('/').pop() : null);
+
+        return {
+          id: image.id || `default-image-${index}`,
+          url: image.url || '',
+          name: name || `image-${index + 1}`,
+          size: typeof image.size === 'number' ? image.size : 0,
+          type: image.type || 'image/*',
+          file: image.file,
+        };
       }
 
       return {
+        id: `default-image-${index}`,
         url: '',
-        name: 'unknown',
+        name: `image-${index + 1}`,
         size: 0,
-        type: 'image/jpeg',
-        id: `image-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        type: 'image/*',
       };
     });
   }, []);

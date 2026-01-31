@@ -70,6 +70,22 @@ export const dataUriToObjectUrl = (dataUri, urlRegistry = []) => {
 };
 
 /**
+ * Convert blob/file object to base64 data URI
+ * @param {Blob|File} blob - Blob or File object to convert
+ * @returns {Promise<string>} Promise that resolves to base64 data URI string
+ */
+export const objectUrlToDataUri = (blob) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      resolve(reader.result);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+};
+
+/**
  * Apply base64 config to a single node
  * @param {Object} node - Node to process
  * @param {string} configKey - Key to lookup in config

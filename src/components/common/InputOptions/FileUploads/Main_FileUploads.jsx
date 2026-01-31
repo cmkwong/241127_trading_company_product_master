@@ -108,7 +108,7 @@ const Main_FileUploads = (props) => {
         if (isDifferent) {
           return newProcessedImages;
         }
-
+        console.log('useEffect - newProcessedImages: ', newProcessedImages);
         return currentImages;
       });
     }

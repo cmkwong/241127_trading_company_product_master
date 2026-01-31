@@ -217,6 +217,8 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
       // Update all product data at once
       setPageData(product);
 
+      console.log('loaded product by id: ', id, product);
+
       return true;
     },
     [pageData, products, isDataUnchanged],

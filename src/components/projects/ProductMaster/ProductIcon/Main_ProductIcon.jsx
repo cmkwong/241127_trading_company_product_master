@@ -5,6 +5,7 @@ import Main_InputContainer from '../../../common/InputOptions/InputContainer/Mai
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
 import { useProductContext } from '../../../../store/ProductContext';
 import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_FileUploads';
+import { objectUrlToDataUri } from '../../../../utils/objectUrlUtils';
 
 /**
  * Main_ProductIcon Component
@@ -14,7 +15,8 @@ const Main_ProductIcon = ({
   onChange = () => {},
   showMaxImagesNotice = false,
 }) => {
-  const { pageData, updateProductPageData } = useProductContext();
+  const { pageData, updateProductPageData, updateMultipleData } =
+    useProductContext();
 
   // product ID state setup
   const [id, setId] = useState(pageData.id || '');
@@ -45,13 +47,25 @@ const Main_ProductIcon = ({
   ]);
 
   // Handle image changes from the ImageUpload component
-  const handleImageChange = (updatedImages) => {
+  const handleImageChange = async (updatedImages) => {
     // Get the first image if it exists
     const newImage =
       updatedImages && updatedImages.length > 0 ? updatedImages[0] : null;
-
+    console.log('New image selected: ', newImage);
     // Update the context with the new image
-    updateProductPageData('icon_url', newImage);
+    if (!newImage) {
+      updateMultipleData({
+        icon_url: '',
+        base64_image: '',
+        icon_name: '',
+      });
+      return;
+    }
+    updateMultipleData({
+      icon_url: newImage.url || '',
+      base64_image: (await objectUrlToDataUri(newImage.file)) || '',
+      icon_name: newImage.name || '',
+    });
 
     // Call the onChange prop
     onChange(newImage);

@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import styles from './Main_FileUploads.module.css';
 import Main_DropZone from '../DropZone/Main_DropZone';
 import Sub_FileItem from './Sub_FileItem';
+import { v4 as uuidv4 } from 'uuid';
 
 /**
  * Main_FileUploads Component
@@ -44,7 +45,7 @@ const Main_FileUploads = (props) => {
         const nameFromUrl = url.split('/').pop();
 
         return {
-          id: `default-image-${index}`,
+          id: uuidv4(),
           url,
           name: nameFromUrl || `image-${index + 1}`,
           size: 0,
@@ -57,7 +58,7 @@ const Main_FileUploads = (props) => {
           image.name || (image.url ? image.url.split('/').pop() : null);
 
         return {
-          id: image.id || `default-image-${index}`,
+          id: image.id || uuidv4(),
           url: image.url || '',
           name: name || `image-${index + 1}`,
           size: typeof image.size === 'number' ? image.size : 0,
@@ -67,7 +68,7 @@ const Main_FileUploads = (props) => {
       }
 
       return {
-        id: `default-image-${index}`,
+        id: uuidv4(),
         url: '',
         name: `image-${index + 1}`,
         size: 0,
@@ -117,6 +118,7 @@ const Main_FileUploads = (props) => {
   // Handle file/image reordering (for image mode with drag-and-drop)
   const handleMoveItem = useCallback(
     (dragIndex, insertIndex) => {
+      const oldFiles = [...fileList];
       const updatedFiles = [...fileList];
       const [draggedItem] = updatedFiles.splice(dragIndex, 1);
 
@@ -128,7 +130,7 @@ const Main_FileUploads = (props) => {
       updatedFiles.splice(finalIndex, 0, draggedItem);
 
       setFileList(updatedFiles);
-      onChange(updatedFiles);
+      onChange(oldFiles, updatedFiles);
     },
     [fileList, onChange],
   );
@@ -139,6 +141,8 @@ const Main_FileUploads = (props) => {
       if (!selectedFiles || selectedFiles.length === 0) {
         return;
       }
+
+      let newFile = null;
 
       // Check if adding these files would exceed the max count
       if (fileList.length + selectedFiles.length > maxFiles) {
@@ -168,19 +172,18 @@ const Main_FileUploads = (props) => {
           return;
         }
 
-        const newFile = {
+        newFile = {
           file: file,
           name: file.name,
           size: file.size,
           type: file.type,
-          id: `${mode}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+          id: uuidv4(),
         };
 
         // For images, create object URL for preview
         if (mode === 'image') {
           newFile.url = URL.createObjectURL(file);
         }
-
         newFiles.push(newFile);
       });
 
@@ -191,9 +194,10 @@ const Main_FileUploads = (props) => {
 
       // Update state with new files
       if (newFiles.length > 0) {
+        const oldFiles = [...fileList];
         const updatedFiles = [...fileList, ...newFiles];
         setFileList(updatedFiles);
-        onChange(updatedFiles);
+        onChange(oldFiles, updatedFiles);
       }
     },
     [fileList, maxFiles, acceptedTypes, maxSizeInMB, mode, onError, onChange],
@@ -204,9 +208,10 @@ const Main_FileUploads = (props) => {
     (index) => {
       if (disabled) return;
 
+      const oldFiles = [...fileList];
       const updatedFiles = fileList.filter((_, i) => i !== index);
       setFileList(updatedFiles);
-      onChange(updatedFiles);
+      onChange(oldFiles, updatedFiles);
     },
     [fileList, disabled, onChange],
   );

@@ -21,6 +21,7 @@ import {
   removeFromTable,
   readFromTable,
 } from '../utils/crudObj';
+import { v4 as uuidv4 } from 'uuid';
 
 // Create context for data collection
 export const ProductContext = createContext();
@@ -40,20 +41,6 @@ const PRODUCT_COMPARISON_KEYS = [
   'product_packings',
   'product_certificates',
 ];
-
-// // Helper function to build product data object from keys
-// const buildProductDataObject = (product, currentPageData) => {
-//   const data = { ...currentPageData };
-
-//   // Map through comparison keys and build the object
-//   PRODUCT_COMPARISON_KEYS.forEach((key) => {
-//     if (key in product) {
-//       data[key] = product[key] || (Array.isArray(product[key]) ? [] : '');
-//     }
-//   });
-
-//   return data;
-// };
 
 // Provider component for save page data
 export const ProductContext_Provider = ({ children, initialData = {} }) => {
@@ -230,41 +217,6 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
     [pageData, products, isDataUnchanged],
   );
 
-  // // load product into page data by ID
-  // const loadProductById = useCallback(
-  //   (id) => {
-  //     // Check if there are unsaved changes in the current product
-  //     if (pageData.id && !isDataUnchanged()) {
-  //       // Show confirmation dialog
-  //       const confirmSwitch = window.confirm(
-  //         'You have unsaved changes. Do you want to continue without saving?',
-  //       );
-
-  //       // If user cancels, stay on current product
-  //       if (!confirmSwitch) {
-  //         return false;
-  //       }
-  //       // Otherwise continue with loading the new product
-  //     }
-
-  //     // Use readFromTable to find the product by ID
-  //     const product = readFromTable({ products }, 'products', { id });
-
-  //     if (!product) {
-  //       console.error(`Product with ID ${id} not found`);
-  //       return false;
-  //     }
-
-  //     // Update all product data at once
-  //     setPageData(product);
-
-  //     console.log('loaded product by id: ', id, product);
-
-  //     return true;
-  //   },
-  //   [pageData, products, isDataUnchanged],
-  // );
-
   /**
    * Update data in a specific table (array) with optional AND conditions
    * Supports nested paths using dot notation (e.g., 'product_customizations.product_customization_images')
@@ -280,6 +232,48 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
     },
     [],
   );
+
+  /**
+   * Upsert (Update or Insert) data in a specific table
+   * If item with matching id exists, it updates; otherwise it adds a new item
+   * Supports nested paths using dot notation
+   * Automatically generates an ID using uuidv4() if not provided
+   * If dataObject contains _delete: true, removes the item instead
+   * @param {string} tableName - Name of the table/array to upsert to. Use dot notation for nested arrays.
+   * @param {object} dataObject - Object containing fields to add/update, or { id: 'xxx', _delete: true } to delete
+   */
+  const upsertProductPageData = useCallback((tableName, dataObject) => {
+    setPageData((prevData) => {
+      // Check if this is a delete operation
+      if (dataObject._delete === true) {
+        if (!dataObject.id) {
+          console.error('Delete operation requires an id field');
+          return prevData;
+        }
+        return removeFromTable(prevData, tableName, { id: dataObject.id });
+      }
+
+      // Auto-generate ID if not provided
+      const itemWithId = {
+        ...dataObject,
+        id: dataObject.id || uuidv4(),
+      };
+
+      // Try to find existing item with the same id
+      const existingItem = readFromTable(prevData, tableName, {
+        id: itemWithId.id,
+      });
+
+      // If item exists, update it; otherwise add it
+      if (existingItem) {
+        return updateTable(prevData, tableName, itemWithId, {
+          id: itemWithId.id,
+        });
+      } else {
+        return addToTable(prevData, tableName, itemWithId);
+      }
+    });
+  }, []);
 
   /**
    * Remove items from a specific table (array) based on AND conditions
@@ -398,9 +392,10 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
         addProductPageData,
         getProductData,
         updateProductPageData,
+        upsertProductPageData,
         removeProductPageData,
         updateMultipleData,
-        loadProductById,
+
         getAllProducts,
         updateProducts,
         handleSave,

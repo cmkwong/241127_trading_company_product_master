@@ -47,7 +47,7 @@ const Main_ProductIcon = ({
   ]);
 
   // Handle image changes from the ImageUpload component
-  const handleImageChange = async (updatedImages) => {
+  const handleImageChange = async (_, updatedImages) => {
     // Get the first image if it exists
     const newImage =
       updatedImages && updatedImages.length > 0 ? updatedImages[0] : null;

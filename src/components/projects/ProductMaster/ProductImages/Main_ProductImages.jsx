@@ -48,7 +48,6 @@ const Main_ProductImages = (props) => {
     // Logic to remove a product image row by rowId
   }, []);
 
-  const handleImageChange = () => {};
   return (
     <Main_InputContainer label="Product Images">
       <ControlRowBtn

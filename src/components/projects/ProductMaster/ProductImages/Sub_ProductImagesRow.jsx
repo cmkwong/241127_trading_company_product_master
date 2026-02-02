@@ -5,19 +5,9 @@ import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_File
 import { useProductContext } from '../../../../store/ProductContext';
 
 const Sub_ProductImagesRow = (props) => {
-  const { data, rowIndex = 0, setRowRef } = props;
+  const { data, rowindex, setRowRef } = props;
 
   const [imageTypeId, setImageTypeId] = useState();
-
-  // Handle image upload errors
-  const handleImageError = useCallback((error) => {
-    console.error('Image upload error:', error);
-  }, []);
-
-  const handleImageChange = useCallback((images) => {
-    console.log('Uploaded images: ', images);
-    // setDefaultImages(images);
-  }, []);
 
   const { pageData, updateProductPageData } = useProductContext();
   const { productImageType } = useMasterContext();
@@ -27,13 +17,22 @@ const Sub_ProductImagesRow = (props) => {
   // assign set default images when data changes
   useEffect(() => {
     if (data && data.length === 0) return;
-    if (!data[rowIndex]) return;
-    console.log('data[rowIndex]: ', data[rowIndex]);
-    // let [imageTypeId, images] = Object.entries(data[rowIndex])[0];
+    if (!data[rowindex]) return;
 
-    setImageTypeId(data[rowIndex].id);
-    setDefaultImages(data[rowIndex].images.map((el) => el.image_url));
-  }, [data, rowIndex]);
+    setImageTypeId(data[rowindex].id);
+    setDefaultImages(data[rowindex].images.map((el) => el.image_url));
+  }, [data, rowindex]);
+
+  // hande the image changed
+  const handleImageChange = useCallback((images) => {
+    console.log('Uploaded images: ', images);
+    // setDefaultImages(images);
+  }, []);
+
+  // Handle image upload errors
+  const handleImageError = useCallback((error) => {
+    console.error('Image upload error:', error);
+  }, []);
 
   return (
     <>

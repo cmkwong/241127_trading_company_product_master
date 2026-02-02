@@ -53,7 +53,7 @@ const useRowData = ({ data, updateProductPageData, dataKey, template }) => {
       ...template,
       id: uuidv4(), // Generate clean UUID
       // Auto-fill date if the template has a date field
-      ...(template.hasOwnProperty('date') && {
+      ...('date' in template && {
         date: new Date().toISOString().split('T')[0],
       }),
     };

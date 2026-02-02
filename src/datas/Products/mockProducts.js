@@ -110,12 +110,42 @@ export const mockProducts = {
         {
           id: '7b3acbcf-d7ec-4faa-b1c6-815f2bd30faa',
           product_id: '13649f12-f9b6-4abf-8a8c-b63fe2f11091',
-          image_type_id: 'a1e9c4b2-3d8f-4a5c-9e1b-2f3d4e5a6c7b',
+          image_type_id: 'e5c3a8f6-7b2d-8e9a-3c5f-6d7e8f9a0b1c',
           image_name: 'Main_Display.jpg',
           image_url:
             '/public/13649f12-f9b6-4abf-8a8c-b63fe2f11091/products//56bd4714-473b-4c54-8eb6-a81caf8607e0.png',
           alt_text: null,
           display_order: '1',
+          created_at: '2026-01-24T12:28:27.000Z',
+          updated_at: '2026-01-24T12:28:27.000Z',
+          base64_image:
+            'data:image/jpeg;base64,/9j/2wBDAAoHBwgHBgoICAgLCgoLDhgQDg0NDh0VFhEYIx8lJCIfIiEmKzcvJik0KSEiMEExNDk7Pj4+JS5ESUM8SDc9Pjv/2wBDAQoLCw4NDhwQEBw7KCIoOzs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozv/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAf/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAABQb/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCbgDlk/9k=',
+          is_compressed: true,
+        },
+        {
+          id: '9c3acbcf-d7ec-4faa-b1c6-815f2bd30fab',
+          product_id: '13649f12-f9b6-4abf-8a8c-b63fe2f11091',
+          image_type_id: 'a1e9c4b2-3d8f-4a5c-9e1b-2f3d4e5a6c7b',
+          image_name: 'Main_Display2.jpg',
+          image_url:
+            '/public/13649f12-f9b6-4abf-8a8c-b63fe2f11091/products//56bd4714-473b-4c54-8eb6-a81caf8607e0.png',
+          alt_text: null,
+          display_order: '2',
+          created_at: '2026-01-24T12:28:27.000Z',
+          updated_at: '2026-01-24T12:28:27.000Z',
+          base64_image:
+            'data:image/jpeg;base64,/9j/2wBDAAoHBwgHBgoICAgLCgoLDhgQDg0NDh0VFhEYIx8lJCIfIiEmKzcvJik0KSEiMEExNDk7Pj4+JS5ESUM8SDc9Pjv/2wBDAQoLCw4NDhwQEBw7KCIoOzs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozv/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAf/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAABQb/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCbgDlk/9k=',
+          is_compressed: true,
+        },
+        {
+          id: '52sacbcf-d7ec-4faa-b1c6-815f2bd30fab',
+          product_id: '13649f12-f9b6-4abf-8a8c-b63fe2f11091',
+          image_type_id: 'a1e9c4b2-3d8f-4a5c-9e1b-2f3d4e5a6c7b',
+          image_name: 'Main_Display3.jpg',
+          image_url:
+            '/public/13649f12-f9b6-4abf-8a8c-b63fe2f11091/products//56bd4714-473b-4c54-8eb6-a81caf8607e0.png',
+          alt_text: null,
+          display_order: '3',
           created_at: '2026-01-24T12:28:27.000Z',
           updated_at: '2026-01-24T12:28:27.000Z',
           base64_image:

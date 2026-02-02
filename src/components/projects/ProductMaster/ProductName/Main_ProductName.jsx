@@ -10,7 +10,7 @@ const Main_ProductName = () => {
 
   const template_data = {
     name: '',
-    language: 1, // Default language ID
+    name_type_id: '', // Default language ID
   };
 
   // Use the custom hook to manage product names
@@ -22,7 +22,7 @@ const Main_ProductName = () => {
     handleRowIdsChange,
     handleRowAdd,
     handleRowRemove,
-    handleFieldChange: handleProductNameChange,
+    handleFieldChange,
   } = useRowData({
     data: pageData.product_names,
     updateProductPageData,
@@ -42,7 +42,7 @@ const Main_ProductName = () => {
         <Sub_ProductNameRow
           template_data={template_data}
           product_names={product_names}
-          onChange={handleProductNameChange}
+          onChange={handleFieldChange}
           setRowRef={setRowRef}
         />
       </ControlRowBtn>

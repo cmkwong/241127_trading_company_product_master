@@ -396,6 +396,51 @@ export const mockCertType = [
   },
 ];
 
+export const mockProductImageType = [
+  {
+    id: 'a1e9c4b2-3d8f-4a5c-9e1b-2f3d4e5a6c7b',
+    name: '1688',
+    description: 'main image type',
+    created_at: '2026-01-24T12:27:58.000Z',
+    updated_at: '2026-01-24T12:27:58.000Z',
+  },
+  {
+    id: 'b2f0d5c3-4e9a-5b6d-0f2c-3a4b5c6d7e8f',
+    name: 'Alibaba',
+    description: 'Alibaba image type',
+    created_at: '2026-01-24T12:27:58.000Z',
+    updated_at: '2026-01-24T12:27:58.000Z',
+  },
+  {
+    id: 'c3a1e6d4-5f0b-6c7e-1a3d-4b5c6d7e8f9a',
+    name: 'Amazon',
+    description: 'Amazon image type',
+    created_at: '2026-01-24T12:27:58.000Z',
+    updated_at: '2026-01-24T12:27:58.000Z',
+  },
+  {
+    id: 'd4b2f7e5-6a1c-7d8f-2b4e-5c6d7e8f9a0b',
+    name: 'IG',
+    description: 'Instagram image type',
+    created_at: '2026-01-24T12:27:58.000Z',
+    updated_at: '2026-01-24T12:27:58.000Z',
+  },
+  {
+    id: 'e5c3a8f6-7b2d-8e9a-3c5f-6d7e8f9a0b1c',
+    name: 'Temu',
+    description: 'Temu image type',
+    created_at: '2026-01-24T12:27:58.000Z',
+    updated_at: '2026-01-24T12:27:58.000Z',
+  },
+  {
+    id: 'f6d4b9a7-8c3e-9f0b-4d6a-7e8f9a0b1c2d',
+    name: 'Video',
+    description: 'Video content type',
+    created_at: '2026-01-24T12:27:58.000Z',
+    updated_at: '2026-01-24T12:27:58.000Z',
+  },
+];
+
 // // Map category IDs to category names
 // export const getCategoryLabels = (categoryIds) => {
 //   return categoryIds.map((categoryId) => {

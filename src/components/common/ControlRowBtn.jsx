@@ -1,5 +1,6 @@
 import { useState, cloneElement, Children, useEffect } from 'react';
 import styles from './ControlRowBtn.module.css';
+import { v4 as uuidv4 } from 'uuid';
 
 const ControlRowBtn = (props) => {
   const {
@@ -21,7 +22,7 @@ const ControlRowBtn = (props) => {
       return Array(initialRowCount)
         .fill(null)
         .map(() => ({
-          id: `row-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          id: uuidv4(),
         }));
     }
   });
@@ -36,7 +37,7 @@ const ControlRowBtn = (props) => {
 
   const handleAddRow = () => {
     // Generate a new unique ID
-    const newId = `row-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const newId = uuidv4();
     const newRows = [...rows, { id: newId }];
     setRows(newRows);
 

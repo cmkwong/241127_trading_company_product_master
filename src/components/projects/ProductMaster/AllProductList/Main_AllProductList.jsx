@@ -5,7 +5,7 @@ import ProductList from './ProductList';
 import { useProductContext } from '../../../../store/ProductContext';
 
 const Main_AllProductList = ({ onSelectProduct }) => {
-  const { loadProductById, products, createNewProduct } = useProductContext();
+  const { getProductData, products, createNewProduct } = useProductContext();
   const [filteredProducts, setFilteredProducts] = useState(products);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -48,15 +48,15 @@ const Main_AllProductList = ({ onSelectProduct }) => {
     (product) => {
       setSelectedProduct(product);
 
-      // Use the loadProductById function to load all product data
-      loadProductById(product.id);
+      // Use the getProductData function to load all product data
+      getProductData('root', { id: product.id }, true);
 
       // Call the parent component's handler if provided
       if (onSelectProduct) {
         onSelectProduct(product);
       }
     },
-    [loadProductById, onSelectProduct],
+    [getProductData, onSelectProduct],
   );
 
   const handleSearchChange = (value) => {

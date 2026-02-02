@@ -15,6 +15,12 @@ import {
   releaseObjectUrls,
   recursiveProcess_base64_to_objectUrl,
 } from '../utils/objectUrlUtils';
+import {
+  addToTable,
+  updateTable,
+  removeFromTable,
+  readFromTable,
+} from '../utils/crudObj';
 
 // Create context for data collection
 export const ProductContext = createContext();
@@ -83,32 +89,6 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
       releaseObjectUrls(objectUrlRegistryRef.current);
       objectUrlRegistryRef.current = [];
     };
-  }, []);
-
-  // Function to update specific field in the data
-  const updateProductPageData = useCallback((field, value) => {
-    setPageData((prevData) => ({
-      ...prevData,
-      [field]: value,
-    }));
-  }, []);
-
-  // Function to update multiple fields at once
-  const updateMultipleData = useCallback((dataObject) => {
-    setPageData((prevData) => ({
-      ...prevData,
-      ...dataObject,
-    }));
-  }, []);
-
-  // Function to get all products
-  const getAllProducts = useCallback(() => {
-    return products;
-  }, [products]);
-
-  // Function to update products list
-  const updateProducts = useCallback((newProducts) => {
-    setProducts(newProducts);
   }, []);
 
   // Function to check if pageData is the same as the corresponding product in products
@@ -189,40 +169,145 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
     return true;
   }, [pageData, products]);
 
-  // load product into page data by ID
-  const loadProductById = useCallback(
-    (id) => {
-      // Check if there are unsaved changes in the current product
-      if (pageData.id && !isDataUnchanged()) {
-        // Show confirmation dialog
-        const confirmSwitch = window.confirm(
-          'You have unsaved changes. Do you want to continue without saving?',
-        );
+  /**
+   * Add new data to a specific table (array)
+   * Supports nested paths using dot notation (e.g., 'product_customizations.product_customization_images')
+   * Automatically generates an ID if not provided
+   * @param {string} tableName - Name of the table/array to add to. Use dot notation for nested arrays.
+   * @param {object} dataObject - Object containing fields to add
+   */
+  const addProductPageData = useCallback((tableName, dataObject) => {
+    setPageData((prevData) => addToTable(prevData, tableName, dataObject));
+  }, []);
 
-        // If user cancels, stay on current product
-        if (!confirmSwitch) {
+  /**
+   * Get product data from a specific table with optional conditions
+   * Supports nested paths using dot notation
+   * @param {string} tableName - Name of the table/array to read from, or 'root' for root data. Use dot notation for nested arrays.
+   * @param {object} [condition] - Optional AND conditions to filter items
+   * @param {boolean} [setAsPageData] - If true, searches products array and loads into pageData with unsaved changes check
+   * @returns {boolean|Array|object|null} Returns true/false if setting pageData, otherwise returns matching data
+   */
+  const getProductData = useCallback(
+    (tableName, condition = null, setAsPageData = false) => {
+      // If setAsPageData is true, load into pageData with unsaved changes check
+      if (setAsPageData) {
+        // Check if there are unsaved changes in the current product
+        if (pageData.id && !isDataUnchanged()) {
+          // Show confirmation dialog
+          const confirmSwitch = window.confirm(
+            'You have unsaved changes. Do you want to continue without saving?',
+          );
+
+          // If user cancels, stay on current product
+          if (!confirmSwitch) {
+            return false;
+          }
+        }
+
+        // When loading into pageData, always search the products array
+        // Filter products that match ALL conditions (AND logic)
+        const matchingProducts = products.filter((product) => {
+          return Object.keys(condition).every(
+            (key) => product[key] === condition[key],
+          );
+        });
+
+        if (matchingProducts.length === 0) {
+          console.error(`Product not found for conditions:`, condition);
           return false;
         }
-        // Otherwise continue with loading the new product
+
+        const requiredProduct = matchingProducts[0];
+        setPageData(requiredProduct);
+        console.log('loaded product:', requiredProduct);
+        return true;
       }
 
-      // Find the product in the internal products state
-      const product = products.find((p) => p.id === id);
-
-      if (!product) {
-        console.error(`Product with ID ${id} not found`);
-        return false;
-      }
-
-      // Update all product data at once
-      setPageData(product);
-
-      console.log('loaded product by id: ', id, product);
-
-      return true;
+      // Otherwise, just return the data without setting pageData
+      return readFromTable(pageData, tableName, condition);
     },
     [pageData, products, isDataUnchanged],
   );
+
+  // // load product into page data by ID
+  // const loadProductById = useCallback(
+  //   (id) => {
+  //     // Check if there are unsaved changes in the current product
+  //     if (pageData.id && !isDataUnchanged()) {
+  //       // Show confirmation dialog
+  //       const confirmSwitch = window.confirm(
+  //         'You have unsaved changes. Do you want to continue without saving?',
+  //       );
+
+  //       // If user cancels, stay on current product
+  //       if (!confirmSwitch) {
+  //         return false;
+  //       }
+  //       // Otherwise continue with loading the new product
+  //     }
+
+  //     // Use readFromTable to find the product by ID
+  //     const product = readFromTable({ products }, 'products', { id });
+
+  //     if (!product) {
+  //       console.error(`Product with ID ${id} not found`);
+  //       return false;
+  //     }
+
+  //     // Update all product data at once
+  //     setPageData(product);
+
+  //     console.log('loaded product by id: ', id, product);
+
+  //     return true;
+  //   },
+  //   [pageData, products, isDataUnchanged],
+  // );
+
+  /**
+   * Update data in a specific table (array) with optional AND conditions
+   * Supports nested paths using dot notation (e.g., 'product_customizations.product_customization_images')
+   * @param {string} tableName - Name of the table/array to update, or 'root' for root fields. Use dot notation for nested arrays.
+   * @param {object} dataObject - Object containing fields to update
+   * @param {object} [condition] - Optional AND conditions to filter items (e.g., { id: 'xxx', type: 'abc' })
+   */
+  const updateProductPageData = useCallback(
+    (tableName, dataObject, condition = null) => {
+      setPageData((prevData) =>
+        updateTable(prevData, tableName, dataObject, condition),
+      );
+    },
+    [],
+  );
+
+  /**
+   * Remove items from a specific table (array) based on AND conditions
+   * Supports nested paths using dot notation (e.g., 'product_customizations.product_customization_images')
+   * @param {string} tableName - Name of the table/array to remove from. Use dot notation for nested arrays.
+   * @param {object} condition - AND conditions to filter items to remove (e.g., { id: 'xxx', type: 'abc' })
+   */
+  const removeProductPageData = useCallback((tableName, condition) => {
+    setPageData((prevData) => removeFromTable(prevData, tableName, condition));
+  }, []);
+
+  // Function to update multiple fields at once
+  const updateMultipleData = useCallback((dataObject) => {
+    setPageData((prevData) => ({
+      ...prevData,
+      ...dataObject,
+    }));
+  }, []);
+
+  // Function to get all products
+  const getAllProducts = useCallback(() => {
+    return products;
+  }, [products]);
+
+  // Function to update products list
+  const updateProducts = useCallback((newProducts) => {
+    setProducts(newProducts);
+  }, []);
 
   // Function to handle save action with built-in product list update
   const handleSave = useCallback(
@@ -310,7 +395,10 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
       value={{
         pageData,
         products,
+        addProductPageData,
+        getProductData,
         updateProductPageData,
+        removeProductPageData,
         updateMultipleData,
         loadProductById,
         getAllProducts,

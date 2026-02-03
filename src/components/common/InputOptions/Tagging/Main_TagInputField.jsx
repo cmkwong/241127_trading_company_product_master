@@ -3,15 +3,15 @@ import Sub_TagPlate from './Sub_TagPlate';
 import Sub_TagTextField from './Sub_TagTextField';
 import Sub_TagList from './Sub_TagList';
 import styles from './Main_TagInputField.module.css';
+import { v4 as uuidv4 } from 'uuid';
 
 const Main_TagInputField = (props) => {
   const {
-    onChange = () => {}, // (nextOptions, nextSelectedOptions) => void
+    onChange = () => {},
+    onAdd = () => {},
     // Uncontrolled defaults
     defaultOptions = [],
     defaultSelectedOptions = [],
-    // Optional ID generator for new items
-    generateId,
   } = props;
 
   // Internal state
@@ -30,25 +30,48 @@ const Main_TagInputField = (props) => {
 
   // UI controls
   const inputReference = useRef(null);
+  const containerRef = useRef(null);
   const [inputValue, setInputValue] = useState('');
   const [showOption, setShowOption] = useState(false);
   const [selectionMouseIn, setSelectionMouseIn] = useState(false);
 
+  // Click outside handler
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target)
+      ) {
+        setShowOption(false);
+      }
+    };
+
+    if (showOption) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showOption]);
+
   // Update selection for one option
   const updateOptionData = useCallback(
     (id, checked) => {
+      const oldSelected = selectedOptions || [];
       const nextSelected = checked
         ? Array.from(new Set([...(selectedOptions || []), id]))
         : (selectedOptions || []).filter((x) => x !== id);
 
       setSelectedOptions(nextSelected);
-      onChange?.(options, nextSelected);
+      onChange?.(oldSelected, nextSelected);
     },
-    [selectedOptions, onChange, options],
+    [selectedOptions, onChange],
   );
   // Internal addOptionData
   const addOptionData = useCallback(
     (name) => {
+      const oldSelected = selectedOptions || [];
       const trimmed = (name || '').trim();
       if (!trimmed) return;
 
@@ -60,11 +83,8 @@ const Main_TagInputField = (props) => {
         dup.forEach((el) => updateOptionData(el.id, true));
         return;
       }
-
-      const newId = generateId
-        ? generateId(trimmed)
-        : `opt_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
-
+      // Add new option
+      const newId = uuidv4();
       const newOption = { id: newId, name: trimmed };
       const nextOptions = [...(options || []), newOption];
       const nextSelected = Array.from(
@@ -73,9 +93,10 @@ const Main_TagInputField = (props) => {
 
       setOptions(nextOptions);
       setSelectedOptions(nextSelected);
-      onChange?.(nextOptions, nextSelected);
+      onChange?.(oldSelected, nextSelected);
+      onAdd?.(newOption);
     },
-    [options, selectedOptions, onChange, updateOptionData, generateId],
+    [selectedOptions, onChange, updateOptionData, options],
   );
 
   // add the value into option
@@ -120,7 +141,7 @@ const Main_TagInputField = (props) => {
 
   return (
     <>
-      <div className={styles.inputOption}>
+      <div ref={containerRef} className={styles.inputOption}>
         <Sub_TagTextField
           reference={inputReference}
           onClick={handleFocus}
@@ -129,9 +150,12 @@ const Main_TagInputField = (props) => {
             if (event.key === 'Enter') {
               handleEnterPress(event.target.value);
             }
+            if (event.key === 'Escape') {
+              setShowOption(false);
+            }
           }}
           // sorting the key words
-          onChange={() => setInputValue(inputReference.current?.value || '')}
+          onChange={(ov, nv) => setInputValue(nv)}
         />
         {showOption && (
           <Sub_TagList

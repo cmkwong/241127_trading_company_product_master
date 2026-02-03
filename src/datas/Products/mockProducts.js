@@ -161,13 +161,13 @@ export const mockProducts = {
           created_at: '2026-01-24T12:28:27.000Z',
           updated_at: '2026-01-24T12:28:27.000Z',
         },
-        {
-          id: 'b9414217-3c4c-44c9-b52a-1b3406a284bd',
-          product_id: '13649f12-f9b6-4abf-8a8c-b63fe2f11091',
-          category_id: 'c1000000-0000-0000-0000-000000000000',
-          created_at: '2026-01-24T12:28:27.000Z',
-          updated_at: '2026-01-24T12:28:27.000Z',
-        },
+        // {
+        //   id: 'b9414217-3c4c-44c9-b52a-1b3406a284bd',
+        //   product_id: '13649f12-f9b6-4abf-8a8c-b63fe2f11091',
+        //   category_id: 'c1000000-0000-0000-0000-000000000000',
+        //   created_at: '2026-01-24T12:28:27.000Z',
+        //   updated_at: '2026-01-24T12:28:27.000Z',
+        // },
       ],
       product_customizations: [
         {

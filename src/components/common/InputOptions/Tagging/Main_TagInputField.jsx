@@ -1,17 +1,12 @@
-import { useState, useRef, useMemo, useCallback } from 'react';
+import { useState, useRef, useMemo, useCallback, useEffect } from 'react';
 import Sub_TagPlate from './Sub_TagPlate';
 import Sub_TagTextField from './Sub_TagTextField';
 import Sub_TagList from './Sub_TagList';
 import styles from './Main_TagInputField.module.css';
 
 const Main_TagInputField = (props) => {
-  // options: [ { id, name } ]
-  // selectedOptions: [1, 2, 3, ...]
   const {
-    options: propsOptions,
-    selectedOptions: propsSelectedOptions,
-    updateOptionData: propsUpdateOptionData,
-    onChange, // (nextOptions, nextSelectedOptions) => void
+    onChange = () => {}, // (nextOptions, nextSelectedOptions) => void
     // Uncontrolled defaults
     defaultOptions = [],
     defaultSelectedOptions = [],
@@ -19,19 +14,19 @@ const Main_TagInputField = (props) => {
     generateId,
   } = props;
 
-  // controlled flags
-  const isOptionsControlled = propsOptions !== undefined;
-  const isSelectedControlled = propsSelectedOptions !== undefined;
+  // Internal state
+  const [options, setOptions] = useState(defaultOptions);
+  const [selectedOptions, setSelectedOptions] = useState(
+    defaultSelectedOptions,
+  );
 
-  // Internal state when uncontrolled
-  const [innerOptions, setInnerOptions] = useState(defaultOptions);
-  const [innerSelected, setInnerSelected] = useState(defaultSelectedOptions);
+  useEffect(() => {
+    setOptions(defaultOptions);
+  }, [defaultOptions]);
 
-  // Resolved state
-  const options = isOptionsControlled ? propsOptions : innerOptions;
-  const selectedOptions = isSelectedControlled
-    ? propsSelectedOptions
-    : innerSelected;
+  useEffect(() => {
+    setSelectedOptions(defaultSelectedOptions);
+  }, [defaultSelectedOptions]);
 
   // UI controls
   const inputReference = useRef(null);
@@ -42,25 +37,14 @@ const Main_TagInputField = (props) => {
   // Update selection for one option
   const updateOptionData = useCallback(
     (id, checked) => {
-      if (propsUpdateOptionData) {
-        // Fully controlled by parent
-        propsUpdateOptionData(id, checked);
-        return;
-      }
       const nextSelected = checked
         ? Array.from(new Set([...(selectedOptions || []), id]))
         : (selectedOptions || []).filter((x) => x !== id);
 
-      if (!isSelectedControlled) setInnerSelected(nextSelected);
+      setSelectedOptions(nextSelected);
       onChange?.(options, nextSelected);
     },
-    [
-      propsUpdateOptionData,
-      selectedOptions,
-      isSelectedControlled,
-      onChange,
-      options,
-    ]
+    [selectedOptions, onChange, options],
   );
   // Internal addOptionData
   const addOptionData = useCallback(
@@ -70,7 +54,7 @@ const Main_TagInputField = (props) => {
 
       // Check duplicates (case-insensitive)
       const dup = (options || []).filter(
-        (el) => el.name.toLowerCase() === trimmed.toLowerCase()
+        (el) => el.name.toLowerCase() === trimmed.toLowerCase(),
       );
       if (dup.length > 0) {
         dup.forEach((el) => updateOptionData(el.id, true));
@@ -84,23 +68,14 @@ const Main_TagInputField = (props) => {
       const newOption = { id: newId, name: trimmed };
       const nextOptions = [...(options || []), newOption];
       const nextSelected = Array.from(
-        new Set([...(selectedOptions || []), newId])
+        new Set([...(selectedOptions || []), newId]),
       );
 
-      if (!isOptionsControlled) setInnerOptions(nextOptions);
-      if (!isSelectedControlled) setInnerSelected(nextSelected);
-
+      setOptions(nextOptions);
+      setSelectedOptions(nextSelected);
       onChange?.(nextOptions, nextSelected);
     },
-    [
-      options,
-      selectedOptions,
-      isOptionsControlled,
-      isSelectedControlled,
-      onChange,
-      updateOptionData,
-      generateId,
-    ]
+    [options, selectedOptions, onChange, updateOptionData, generateId],
   );
 
   // add the value into option
@@ -132,7 +107,7 @@ const Main_TagInputField = (props) => {
     setSelectionMouseIn(false);
   };
   const handleClickSelection = (event) => {
-    inputReference.current.focus();
+    // inputReference.current.focus();
   };
 
   const filteredOptions = useMemo(() => {
@@ -179,7 +154,7 @@ const Main_TagInputField = (props) => {
               name={el.name}
               updateOptionData={updateOptionData}
             />
-          ) : null
+          ) : null,
         )}
       </div>
     </>

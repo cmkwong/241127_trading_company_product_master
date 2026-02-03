@@ -6,8 +6,7 @@ import { useMasterContext } from '../../../../store/MasterContext';
 import Sub_ProductImagesRow from './Sub_ProductImagesRow';
 
 const Main_ProductImages = (props) => {
-  const { pageData, updateProductPageData } = useProductContext();
-  const { getProductImageTypes } = useMasterContext();
+  const { pageData } = useProductContext();
 
   const [processedImageData, rowIds] = useMemo(() => {
     let imageData = [];
@@ -19,7 +18,6 @@ const Main_ProductImages = (props) => {
           ...new Set(pageData.product_images.map((img) => img.image_type_id)),
         ];
       }
-      console.log('distinctTypeIds: ', distinctTypeIds);
       for (let i = 0; i < distinctTypeIds.length; i++) {
         let row = {};
         row['id'] = distinctTypeIds[i];
@@ -33,8 +31,6 @@ const Main_ProductImages = (props) => {
       return [[], []];
     }
   }, [pageData]);
-
-  console.log('processedImageData: ', processedImageData);
 
   const handleRowIdsChange = useCallback((newRowIds) => {
     // Handle any additional logic when row IDs change, if necessary

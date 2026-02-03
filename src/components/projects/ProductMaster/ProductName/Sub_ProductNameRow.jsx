@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef } from 'react';
 import Main_Suggest from '../../../common/InputOptions/Suggest/Main_Suggest';
 import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
 import styles from './Sub_ProductNameRow.module.css';

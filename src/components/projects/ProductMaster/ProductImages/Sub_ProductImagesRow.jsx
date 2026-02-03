@@ -12,7 +12,6 @@ const Sub_ProductImagesRow = (props) => {
   const { pageData, upsertProductPageData } = useProductContext();
   const { productImageType } = useMasterContext();
   const [defaultImages, setDefaultImages] = useState([]);
-  console.log('Product Image in pageData: ', pageData);
 
   // assign set default images when data changes
   useEffect(() => {

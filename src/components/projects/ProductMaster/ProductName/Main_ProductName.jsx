@@ -6,25 +6,10 @@ import { useProductContext } from '../../../../store/ProductContext';
 
 const Main_ProductName = () => {
   const { pageData } = useProductContext();
-
-  // Use the custom hook to manage product names
-  // const {
-  //   rowDatas,
-  //   rowIds,
-  //   rowRef,
-  //   setRowRef,
-  //   handleRowIdsChange,
-  //   handleRowAdd,
-  //   handleRowRemove,
-  //   handleFieldChange,
-  // } = useRowData({
-  //   data: pageData.product_names,
-  //   updateProductPageData,
-  //   dataKey: 'product_names',
-  //   idPrefix: 'product-name',
-  // });
   const [rowIds, setRowIds] = useState([]);
   const [rowDatas, setRowDatas] = useState([]);
+
+  // set the row IDs and datas when pageData changes
   useMemo(() => {
     setRowIds(
       pageData.product_names
@@ -33,6 +18,7 @@ const Main_ProductName = () => {
     );
   }, [pageData.product_names]);
 
+  // set the row data when pageData changes
   useMemo(() => {
     setRowDatas(pageData.product_names || []);
   }, [pageData.product_names]);

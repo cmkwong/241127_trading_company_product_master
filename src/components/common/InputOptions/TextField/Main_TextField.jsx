@@ -1,4 +1,4 @@
-import { useState, useCallback, forwardRef } from 'react';
+import { useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import styles from './Main_TextField.module.css';
 import Sub_TextField from './Sub_TextField.jsx';
@@ -7,11 +7,8 @@ import Sub_TextField from './Sub_TextField.jsx';
  * Main_TextField Component
  * A wrapper component for the text input field with label and additional features
  */
-const Main_TextField = forwardRef((props, ref) => {
+const Main_TextField = (props) => {
   const {
-    // Controlled props
-    value: controlledValue,
-
     // Callbacks
     onChange = () => {},
     onFocus,
@@ -36,24 +33,16 @@ const Main_TextField = forwardRef((props, ref) => {
     error = false,
   } = props;
 
-  // Internal state for uncontrolled mode
-  const [innerValue, setInnerValue] = useState(defaultValue);
-
-  // Determine if component is controlled
-  const isControlled = controlledValue !== undefined;
-
-  // Resolve current value
-  const inputValue = isControlled ? controlledValue : innerValue;
+  // Internal state
+  const [value, setValue] = useState(defaultValue);
 
   // Handle input change
   const handleInputChange = useCallback(
-    (nv, ov) => {
-      if (!isControlled) {
-        setInnerValue(nv);
-      }
-      onChange(nv, ov);
+    (ov, nv) => {
+      setValue(nv);
+      onChange(ov, nv);
     },
-    [isControlled, onChange],
+    [onChange],
   );
 
   return (
@@ -69,9 +58,8 @@ const Main_TextField = forwardRef((props, ref) => {
         </label>
       )}
       <Sub_TextField
-        ref={ref}
         id={inputId}
-        value={inputValue}
+        value={value}
         onInputChange={handleInputChange}
         placeholder={placeholder}
         type={type}
@@ -94,12 +82,9 @@ const Main_TextField = forwardRef((props, ref) => {
       )}
     </div>
   );
-});
+};
 
 Main_TextField.propTypes = {
-  // Controlled props
-  value: PropTypes.string,
-
   // Callbacks
   onChange: PropTypes.func,
   onFocus: PropTypes.func,
@@ -123,8 +108,5 @@ Main_TextField.propTypes = {
   helperText: PropTypes.string,
   error: PropTypes.bool,
 };
-
-// Add displayName for better debugging
-Main_TextField.displayName = 'Main_TextField';
 
 export default Main_TextField;

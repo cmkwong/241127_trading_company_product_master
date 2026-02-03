@@ -93,7 +93,7 @@ const Main_Suggest = (props) => {
         <div className={styles.inputContainer}>
           <Main_TextField
             inputId={inputId || uuidv4()}
-            value={inputValue}
+            defaultValue={inputValue}
             onChange={handleInputChange}
             placeholder={placeholder}
             onFocus={handleFocus}

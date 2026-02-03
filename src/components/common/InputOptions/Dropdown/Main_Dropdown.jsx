@@ -16,19 +16,12 @@ import Sub_SelectField from './Sub_SelectField';
  */
 const Main_Dropdown = (props) => {
   const {
-    // Controlled props
-    options: controlledOptions,
-    selectedOptions: controlledSelected, // naming retained from your code
-
     // Callbacks
     onChange = () => {},
 
     // Uncontrolled defaults
     defaultOptions = [],
     defaultSelectedOption = '',
-
-    // Utility
-    generateId,
 
     // UI
     label,
@@ -45,50 +38,31 @@ const Main_Dropdown = (props) => {
   const autoIdRef = useRef(dropdownId || makeId('input-list'));
   const resolvedId = dropdownId || autoIdRef.current;
 
-  // Decide once per render whether consumer is controlling options/selection
-  const { isOptionsControlled, isSelectedControlled } = useMemo(
-    () => ({
-      isOptionsControlled: controlledOptions !== undefined,
-      isSelectedControlled: controlledSelected !== undefined,
-    }),
-    [controlledOptions, controlledSelected],
-  );
+  // Internal state
+  const [options, setOptions] = useState(defaultOptions);
+  const [selected, setSelectedValue] = useState(defaultSelectedOption);
 
-  // Internal state for uncontrolled mode
-  const [innerOptions, setInnerOptions] = useState(defaultOptions);
-  const [innerSelected, setInnerSelected] = useState(defaultSelectedOption);
-
-  // Resolve current state
-  const currentOptions = isOptionsControlled ? controlledOptions : innerOptions;
-  const currentSelected = isSelectedControlled
-    ? controlledSelected
-    : innerSelected;
-
-  // Bridge controlled and uncontrolled usage while always notifying parent
+  // Handle selection change
   const setSelected = useCallback(
     (newSelected) => {
-      if (isSelectedControlled) {
-        // Parent manages selection in controlled mode
-        onChange({ options: currentOptions, selected: newSelected });
-      } else {
-        setInnerSelected(newSelected);
-        onChange({ options: currentOptions, selected: newSelected });
-      }
+      const ov = selected;
+      setSelectedValue(newSelected);
+      onChange(ov, newSelected);
     },
-    [isSelectedControlled, currentOptions, onChange],
+    [onChange, selected],
   );
 
   // Dropdown props
   const dropdownProps = useMemo(
     () => ({
       id: resolvedId,
-      options: currentOptions,
-      selectedValue: currentSelected,
+      options: options,
+      selectedValue: selected,
       onOptionClick: setSelected,
       buttonAltText: 'Select an option',
       placeholder: 'Select an option',
     }),
-    [resolvedId, currentOptions, currentSelected, setSelected],
+    [resolvedId, options, selected, setSelected],
   );
 
   return (
@@ -104,12 +78,8 @@ const Main_Dropdown = (props) => {
 };
 
 Main_Dropdown.propTypes = {
-  // Controlled API
-  options: PropTypes.array,
-  selectedOptions: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-
   // Events
-  onChange: PropTypes.func, // onChange({ options, selected })
+  onChange: PropTypes.func,
 
   // Uncontrolled defaults
   defaultOptions: PropTypes.array,
@@ -117,9 +87,6 @@ Main_Dropdown.propTypes = {
     PropTypes.string,
     PropTypes.number,
   ]),
-
-  // Utils
-  generateId: PropTypes.func,
 
   // UI
   label: PropTypes.string,

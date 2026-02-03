@@ -29,27 +29,10 @@ const Sub_ProductNameRow = (props) => {
   const inputRef = useRef(null);
 
   const { productNameType } = useMasterContext();
-  const { updateProductPageData, upsertProductPageData } = useProductContext();
+  const { upsertProductPageData } = useProductContext();
 
   // Get the current product name data for this row, or use default values
   const currentProduct = product_names[rowindex] || { name: '', type: 1 };
-
-  // // Register this row's ref with the parent component
-  // useEffect(() => {
-  //   if (setRowRef && inputRef.current) {
-  //     setRowRef(rowindex, {
-  //       focus: () => {
-  //         if (inputRef.current) {
-  //           // Use the underlying input element's focus method
-  //           const inputElement = inputRef.current.querySelector('input');
-  //           if (inputElement) {
-  //             inputElement.focus();
-  //           }
-  //         }
-  //       },
-  //     });
-  //   }
-  // }, [rowindex, setRowRef]);
 
   const handleProductNameChange = (ov, nv) => {
     upsertProductPageData('product_names', {
@@ -59,10 +42,10 @@ const Sub_ProductNameRow = (props) => {
     // onChange(rowindex, 'name', value);
   };
 
-  const handleTypeChange = ({ selected }) => {
+  const handleTypeChange = (ov, nv) => {
     upsertProductPageData('product_names', {
       id: currentProduct.id,
-      name_type_id: selected,
+      name_type_id: nv,
     });
   };
 
@@ -78,7 +61,7 @@ const Sub_ProductNameRow = (props) => {
       <div className={styles.dropdownWrapper}>
         <Main_Dropdown
           defaultOptions={productNameType}
-          selectedOptions={currentProduct.name_type_id}
+          defaultSelectedOption={currentProduct.name_type_id}
           onChange={handleTypeChange}
         />
       </div>

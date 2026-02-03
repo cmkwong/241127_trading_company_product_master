@@ -3,7 +3,6 @@ import ControlRowBtn from '../../../common/ControlRowBtn';
 import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
 import Sub_ProductNameRow from './Sub_ProductNameRow';
 import { useProductContext } from '../../../../store/ProductContext';
-import useRowData from '../../../../hooks/useRowData';
 
 const Main_ProductName = () => {
   const { pageData } = useProductContext();

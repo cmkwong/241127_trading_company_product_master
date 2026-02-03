@@ -24,7 +24,7 @@ const Main_Pack = () => {
 
   // Use the custom hook to manage pack data
   const {
-    rowData: packings,
+    rowDatas: packings,
     rowIds,
     rowRef,
     setRowRef,
@@ -44,7 +44,7 @@ const Main_Pack = () => {
     <Main_InputContainer label="Packing Information">
       <ControlRowBtn
         rowIds={rowIds}
-        setRowIds={handleRowIdsChange}
+        onRowIdsChange={handleRowIdsChange}
         onRowAdd={handleRowAdd}
         onRowRemove={handleRowRemove}
       >

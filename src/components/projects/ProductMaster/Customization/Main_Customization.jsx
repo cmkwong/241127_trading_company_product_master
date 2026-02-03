@@ -17,7 +17,7 @@ const Main_Customization = () => {
 
   // Use the custom hook to manage customization data
   const {
-    rowData: customizations,
+    rowDatas: customizations,
     rowIds,
     rowRef,
     setRowRef,
@@ -37,7 +37,7 @@ const Main_Customization = () => {
     <Main_InputContainer label="Customization Options">
       <ControlRowBtn
         rowIds={rowIds}
-        setRowIds={handleRowIdsChange}
+        onRowIdsChange={handleRowIdsChange}
         onRowAdd={handleRowAdd}
         onRowRemove={handleRowRemove}
       >

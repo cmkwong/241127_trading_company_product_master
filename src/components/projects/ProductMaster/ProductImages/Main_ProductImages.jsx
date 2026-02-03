@@ -52,7 +52,7 @@ const Main_ProductImages = (props) => {
     <Main_InputContainer label="Product Images">
       <ControlRowBtn
         rowIds={rowIds}
-        setRowIds={handleRowIdsChange}
+        onRowIdsChange={handleRowIdsChange}
         onRowAdd={handleRowAdd}
         onRowRemove={handleRowRemove}
       >

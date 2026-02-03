@@ -16,7 +16,7 @@ const Main_AlibabaLink = () => {
 
   // Use the custom hook to manage alibaba IDs
   const {
-    rowData: product_alibaba_ids,
+    rowDatas: product_alibaba_ids,
     rowIds,
     rowRef,
     setRowRef,
@@ -36,7 +36,7 @@ const Main_AlibabaLink = () => {
     <Main_InputContainer label={'Alibaba'}>
       <ControlRowBtn
         rowIds={rowIds}
-        setRowIds={handleRowIdsChange}
+        onRowIdsChange={handleRowIdsChange}
         onRowAdd={handleRowAdd}
         onRowRemove={handleRowRemove}
       >

@@ -19,7 +19,7 @@ const Main_ProductLink = () => {
 
   // Use the custom hook to manage product links
   const {
-    rowData: productLinks,
+    rowDatas: productLinks,
     rowIds,
     rowRef,
     setRowRef,
@@ -39,7 +39,7 @@ const Main_ProductLink = () => {
     <Main_InputContainer label="Product Links">
       <ControlRowBtn
         rowIds={rowIds}
-        setRowIds={handleRowIdsChange}
+        onRowIdsChange={handleRowIdsChange}
         onRowAdd={handleRowAdd}
         onRowRemove={handleRowRemove}
       >

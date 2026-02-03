@@ -15,8 +15,7 @@ const Main_ProductIcon = ({
   onChange = () => {},
   showMaxImagesNotice = false,
 }) => {
-  const { pageData, updateProductPageData, updateMultipleData } =
-    useProductContext();
+  const { pageData, updateProductPageData } = useProductContext();
 
   // product ID state setup
   const [id, setId] = useState(pageData.id || '');
@@ -54,14 +53,14 @@ const Main_ProductIcon = ({
     console.log('New image selected: ', newImage);
     // Update the context with the new image
     if (!newImage) {
-      updateMultipleData({
+      updateProductPageData('root', {
         icon_url: '',
         base64_image: '',
         icon_name: '',
       });
       return;
     }
-    updateMultipleData({
+    updateProductPageData('root', {
       icon_url: newImage.url || '',
       base64_image: (await objectUrlToDataUri(newImage.file)) || '',
       icon_name: newImage.name || '',
@@ -80,7 +79,7 @@ const Main_ProductIcon = ({
   // Handle product ID changes
   const handleProductIdChange = (value) => {
     setId(value);
-    updateProductPageData('id', value);
+    updateProductPageData('root', { id: value });
   };
 
   return (

@@ -19,7 +19,13 @@ const defaultProductName = [
 // The Sub_ProductNameRow component that receives props including rowindex from ControlRowBtn
 const Sub_ProductNameRow = (props) => {
   // Extract the props we need and ignore the rest to prevent passing them to DOM elements
-  const { product_names = [], onChange, rowindex = 0, setRowRef } = props;
+  const {
+    product_names = [],
+    onChange,
+    rowindex = 0,
+    setRowRef,
+    rowRef,
+  } = props;
   const inputRef = useRef(null);
 
   const { productNameType } = useMasterContext();

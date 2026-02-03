@@ -6,7 +6,7 @@ const ControlRowBtn = (props) => {
   const {
     children,
     rowIds = [],
-    setRowIds,
+    onRowIdsChange,
     onRowAdd,
     onRowRemove,
     initialRowCount = 1,
@@ -38,12 +38,16 @@ const ControlRowBtn = (props) => {
   const handleAddRow = () => {
     // Generate a new unique ID
     const newId = uuidv4();
-    const newRows = [...rows, { id: newId }];
+    const oldRows = rows;
+    const newRows = [...oldRows, { id: newId }];
     setRows(newRows);
 
     // Update parent component with new row IDs
-    if (setRowIds) {
-      setRowIds(newRows.map((row) => row.id));
+    if (onRowIdsChange) {
+      onRowIdsChange(
+        oldRows.map((row) => row.id),
+        newRows.map((row) => row.id),
+      );
     }
 
     // Call onRowAdd callback if provided
@@ -59,8 +63,8 @@ const ControlRowBtn = (props) => {
     setRows(newRows);
 
     // Update parent component with new row IDs
-    if (setRowIds) {
-      setRowIds(newRows.map((row) => row.id));
+    if (onRowIdsChange) {
+      onRowIdsChange(newRows.map((row) => row.id));
     }
 
     // Call onRowRemove callback if provided

@@ -8,14 +8,9 @@ import useRowData from '../../../../hooks/useRowData';
 const Main_ProductName = () => {
   const { pageData, updateProductPageData } = useProductContext();
 
-  const template_data = {
-    name: '',
-    name_type_id: '', // Default language ID
-  };
-
   // Use the custom hook to manage product names
   const {
-    rowData: product_names,
+    rowDatas,
     rowIds,
     rowRef,
     setRowRef,
@@ -27,7 +22,6 @@ const Main_ProductName = () => {
     data: pageData.product_names,
     updateProductPageData,
     dataKey: 'product_names',
-    template: template_data,
     idPrefix: 'product-name',
   });
 
@@ -35,13 +29,12 @@ const Main_ProductName = () => {
     <Main_InputContainer label="Product Names">
       <ControlRowBtn
         rowIds={rowIds}
-        setRowIds={handleRowIdsChange}
+        onRowIdsChange={handleRowIdsChange}
         onRowAdd={handleRowAdd}
         onRowRemove={handleRowRemove}
       >
         <Sub_ProductNameRow
-          template_data={template_data}
-          product_names={product_names}
+          product_names={rowDatas}
           onChange={handleFieldChange}
           setRowRef={setRowRef}
         />

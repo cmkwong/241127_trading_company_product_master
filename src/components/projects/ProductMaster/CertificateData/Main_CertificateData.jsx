@@ -17,7 +17,7 @@ const Main_CertificateData = () => {
 
   // Use the custom hook to manage certificate data
   const {
-    rowData: certificates,
+    rowDatas: certificates,
     rowIds,
     rowRef,
     setRowRef,
@@ -37,7 +37,7 @@ const Main_CertificateData = () => {
     <Main_InputContainer label="Certificates">
       <ControlRowBtn
         rowIds={rowIds}
-        setRowIds={handleRowIdsChange}
+        onRowIdsChange={handleRowIdsChange}
         onRowAdd={handleRowAdd}
         onRowRemove={handleRowRemove}
       >

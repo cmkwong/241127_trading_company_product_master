@@ -47,13 +47,13 @@ const Main_TextField = forwardRef((props, ref) => {
 
   // Handle input change
   const handleInputChange = useCallback(
-    ({ value }) => {
+    (nv, ov) => {
       if (!isControlled) {
-        setInnerValue(value);
+        setInnerValue(nv);
       }
-      onChange({ value });
+      onChange(nv, ov);
     },
-    [isControlled, onChange]
+    [isControlled, onChange],
   );
 
   return (

@@ -1,9 +1,9 @@
 import { useRef, useEffect, useState } from 'react';
 import Main_Suggest from '../../../common/InputOptions/Suggest/Main_Suggest';
 import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
-import { mockProductNameType } from '../../../../datas/Options/ProductOptions';
 import styles from './Sub_ProductNameRow.module.css';
 import { useMasterContext } from '../../../../store/MasterContext';
+import { useProductContext } from '../../../../store/ProductContext';
 
 const defaultProductName = [
   'Elizabeth Collar Pet Grooming Shield Anti Bite Collar Dog Necklace Cat Neck Shame Collar',
@@ -23,39 +23,47 @@ const Sub_ProductNameRow = (props) => {
     product_names = [],
     onChange,
     rowindex = 0,
-    setRowRef,
-    rowRef,
+    // setRowRef,
+    // rowRef,
   } = props;
   const inputRef = useRef(null);
 
   const { productNameType } = useMasterContext();
+  const { updateProductPageData, upsertProductPageData } = useProductContext();
 
   // Get the current product name data for this row, or use default values
   const currentProduct = product_names[rowindex] || { name: '', type: 1 };
 
-  // Register this row's ref with the parent component
-  useEffect(() => {
-    if (setRowRef && inputRef.current) {
-      setRowRef(rowindex, {
-        focus: () => {
-          if (inputRef.current) {
-            // Use the underlying input element's focus method
-            const inputElement = inputRef.current.querySelector('input');
-            if (inputElement) {
-              inputElement.focus();
-            }
-          }
-        },
-      });
-    }
-  }, [rowindex, setRowRef]);
+  // // Register this row's ref with the parent component
+  // useEffect(() => {
+  //   if (setRowRef && inputRef.current) {
+  //     setRowRef(rowindex, {
+  //       focus: () => {
+  //         if (inputRef.current) {
+  //           // Use the underlying input element's focus method
+  //           const inputElement = inputRef.current.querySelector('input');
+  //           if (inputElement) {
+  //             inputElement.focus();
+  //           }
+  //         }
+  //       },
+  //     });
+  //   }
+  // }, [rowindex, setRowRef]);
 
-  const handleProductNameChange = ({ value }) => {
-    onChange(rowindex, 'name', value);
+  const handleProductNameChange = (ov, nv) => {
+    upsertProductPageData('product_names', {
+      id: currentProduct.id,
+      name: nv,
+    });
+    // onChange(rowindex, 'name', value);
   };
 
   const handleTypeChange = ({ selected }) => {
-    onChange(rowindex, 'name_type_id', selected);
+    upsertProductPageData('product_names', {
+      id: currentProduct.id,
+      name_type_id: selected,
+    });
   };
 
   return (
@@ -64,7 +72,7 @@ const Sub_ProductNameRow = (props) => {
         <Main_Suggest
           defaultSuggestions={defaultProductName}
           onChange={handleProductNameChange}
-          value={currentProduct.name}
+          defaultValue={currentProduct.name}
         />
       </div>
       <div className={styles.dropdownWrapper}>

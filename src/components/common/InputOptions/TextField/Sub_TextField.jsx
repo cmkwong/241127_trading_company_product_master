@@ -25,6 +25,7 @@ const Sub_TextField = forwardRef((props, externalRef) => {
 
   const internalRef = useRef(null);
   const cursorPositionRef = useRef(null);
+  const previousValueRef = useRef(value);
 
   // Combine external and internal refs
   const inputRef = externalRef || internalRef;
@@ -32,9 +33,16 @@ const Sub_TextField = forwardRef((props, externalRef) => {
   // Store cursor position when input changes
   const handleChange = (e) => {
     if (onInputChange) {
+      const oldValue = previousValueRef.current;
+      const newValue = e.target.value;
+
       // Save the current cursor position
       cursorPositionRef.current = e.target.selectionStart;
-      onInputChange({ value: e.target.value });
+
+      // Update previous value
+      previousValueRef.current = newValue;
+
+      onInputChange(oldValue, newValue);
     }
   };
 
@@ -48,7 +56,7 @@ const Sub_TextField = forwardRef((props, externalRef) => {
     ) {
       inputRef.current.setSelectionRange(
         cursorPositionRef.current,
-        cursorPositionRef.current
+        cursorPositionRef.current,
       );
     }
   }, [value, inputRef]);

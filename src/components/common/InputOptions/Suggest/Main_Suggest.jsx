@@ -1,8 +1,8 @@
-import { useState, useMemo, useCallback, forwardRef } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import styles from './Main_Suggest.module.css';
-import Sub_SuggestTextField from './Sub_SuggestTextField.jsx';
-
+import Main_TextField from '../TextField/Main_TextField';
+import { v4 as uuidv4 } from 'uuid';
 /**
  * Main_Suggest Component
  * Provides an input field with a suggestion list based on user input.
@@ -12,13 +12,8 @@ import Sub_SuggestTextField from './Sub_SuggestTextField.jsx';
  *
  * Suggestions can be strings or { id, name } objects.
  */
-const Main_Suggest = forwardRef((props, ref) => {
+const Main_Suggest = (props) => {
   const {
-    // Controlled props
-    suggestions: controlledSuggestions,
-    value: controlledValue,
-    updateSuggestions, // controlled handler for suggestions array only
-
     // Callbacks
     onChange = () => {},
     // Uncontrolled defaults
@@ -31,102 +26,103 @@ const Main_Suggest = forwardRef((props, ref) => {
     placeholder = 'Type to search...',
   } = props;
 
-  const makeId = (prefix = 'suggest-input') =>
-    `${prefix}-${Math.random().toString(36).slice(2, 8)}-${Date.now().toString(
-      36
-    )}`;
-
-  // Determine controlled/uncontrolled mode correctly
-  const { isSuggestionsControlled, isValueControlled } = useMemo(
-    () => ({
-      isSuggestionsControlled: controlledSuggestions !== undefined,
-      isValueControlled: controlledValue !== undefined,
-    }),
-    [controlledSuggestions, controlledValue]
-  );
-
-  // Internal state for uncontrolled mode
-  const [innerSuggestions, setInnerSuggestions] = useState(defaultSuggestions);
-  const [innerValue, setInnerValue] = useState(defaultValue);
-
-  // Resolve current state
-  const currentSuggestions = isSuggestionsControlled
-    ? controlledSuggestions
-    : innerSuggestions;
-  const inputValue = isValueControlled ? controlledValue : innerValue;
-
-  // Update suggestions array (both modes)
-  const setSuggestions = useCallback(
-    (newSuggestions) => {
-      if (isSuggestionsControlled) {
-        // Let parent handle suggestions changes if controlled
-        updateSuggestions?.(newSuggestions);
-      } else {
-        setInnerSuggestions(newSuggestions);
-      }
-      onChange({ value: inputValue, suggestions: newSuggestions });
-    },
-    [isSuggestionsControlled, updateSuggestions, inputValue, onChange]
-  );
-
-  // Update input value (both modes)
-  const setValue = useCallback(
-    ({ value }) => {
-      if (isValueControlled) {
-        // Parent manages value in controlled mode
-        onChange({ value: value, suggestions: currentSuggestions });
-      } else {
-        setInnerValue(value);
-        onChange({ value: value, suggestions: currentSuggestions });
-      }
-    },
-    [isValueControlled, currentSuggestions, onChange]
-  );
+  // Internal state
+  const [inputValue, setInputValue] = useState(defaultValue);
 
   // when user typed in input, filter the required suggestions to show on list
   const filterSuggestions = useMemo(() => {
-    if (!inputValue) return currentSuggestions || [];
+    if (!inputValue) return defaultSuggestions || [];
     const v = String(inputValue).toLowerCase();
-    return (currentSuggestions || []).filter((el) => {
+    return (defaultSuggestions || []).filter((el) => {
       // Make sure el is a string before calling toLowerCase
       return typeof el === 'string'
         ? el.toLowerCase().includes(v)
         : String(el).toLowerCase().includes(v);
     });
-  }, [inputValue, currentSuggestions]);
+  }, [inputValue, defaultSuggestions]);
+
+  // Internal state for suggestion UI
+  const [isFocused, setIsFocused] = useState(false);
+
+  const handleInputChange = useCallback(
+    (ov, nv) => {
+      setInputValue(nv);
+      onChange(ov, nv);
+    },
+    [onChange],
+  );
+
+  const handleSuggestionItemClick = useCallback(
+    (suggestion) => {
+      const ov = inputValue;
+      const nv = suggestion;
+      setInputValue(nv);
+      onChange(ov, nv);
+      setIsFocused(false); // Close suggestion list after selection
+    },
+    [inputValue, onChange],
+  );
+
+  const handleFocus = useCallback(() => {
+    setIsFocused(true);
+  }, []);
+
+  const handleBlur = () => {
+    // Delay to allow click on suggestion items
+    setTimeout(() => setIsFocused(false), 150);
+  };
 
   // Input field props
-  const inputProps = useMemo(
-    () => ({
-      id: inputId || makeId('suggest-input'),
-      suggestions: filterSuggestions,
-      value: inputValue,
-      onInputChange: setValue,
-      onSuggestionItemClick: setValue,
-      placeholder,
-      ref, // Forward the ref to Sub_SuggestTextField
-    }),
-    [inputId, filterSuggestions, inputValue, setValue, placeholder, ref]
-  );
+  // const inputProps = useMemo(
+  //   () => ({
+  //     inputId: inputId || uuidv4(),
+  //     value: inputValue,
+  //     onChange: handleInputChange,
+  //     placeholder,
+  //     onFocus: handleFocus,
+  //     onBlur: handleBlur,
+  //     className: styles.suggestInput,
+  //   }),
+  //   [inputId, inputValue, placeholder],
+  // );
 
   return (
     <div className={styles.suggestContainer} data-testid="suggest-container">
       {label && <label className={styles.label}>{label}</label>}
       <div className={styles.inputWrapper}>
-        <Sub_SuggestTextField {...inputProps} />
+        <div className={styles.inputContainer}>
+          <Main_TextField
+            inputId={inputId || uuidv4()}
+            value={inputValue}
+            onChange={handleInputChange}
+            placeholder={placeholder}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+            className={styles.suggestInput}
+          />
+          {isFocused && filterSuggestions.length > 0 && (
+            <ul className={styles.suggestionList}>
+              {filterSuggestions.map((suggestion, index) => (
+                <li
+                  key={index}
+                  className={styles.suggestionItem}
+                  onClick={() => handleSuggestionItemClick(suggestion)}
+                  tabIndex={0}
+                >
+                  {suggestion}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
     </div>
   );
-});
+};
 
 Main_Suggest.propTypes = {
-  // Controlled API
-  suggestions: PropTypes.array,
-  value: PropTypes.string,
-  updateSuggestions: PropTypes.func,
-
   // Events
-  onChange: PropTypes.func, // onChange({ value, suggestions })
+  onChange: PropTypes.func,
   // Uncontrolled defaults
   defaultSuggestions: PropTypes.array,
   defaultValue: PropTypes.string,
@@ -139,8 +135,5 @@ Main_Suggest.propTypes = {
   inputId: PropTypes.string,
   placeholder: PropTypes.string,
 };
-
-// Add displayName for better debugging
-Main_Suggest.displayName = 'Main_Suggest';
 
 export default Main_Suggest;

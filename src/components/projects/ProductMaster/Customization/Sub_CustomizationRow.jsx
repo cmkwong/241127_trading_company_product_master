@@ -1,32 +1,84 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import styles from './Sub_CustomizationRow.module.css';
 import Main_Suggest from '../../../common/InputOptions/Suggest/Main_Suggest';
 import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
 import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_FileUploads';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
 import { mockSuppliers } from '../../../../datas/Suppliers/mockSuppliers';
-
+import { useProductContext } from '../../../../store/ProductContext';
+import { v4 as uuidv4 } from 'uuid';
 const Sub_CustomizationRow = (props) => {
-  const { template_data, customizations, onChange, rowindex = 0 } = props;
+  const { customizations, rowindex } = props;
 
-  const customization = customizations[rowindex] || template_data;
+  const { pageData, upsertProductPageData } = useProductContext();
+  const [customization, setCustomization] = useState(customizations[rowindex]);
 
-  const handleNameChange = ({ value }) => {
-    onChange(rowindex, 'name', value);
+  useEffect(() => {
+    setCustomization(customizations[rowindex]);
+  }, [customizations, rowindex]);
+
+  const handleNameChange = (ov, nv) => {
+    upsertProductPageData('product_customizations', {
+      id: customization.id,
+      product_id: pageData.id,
+      name: nv,
+    });
   };
 
-  const handleCodeChange = ({ value }) => {
-    onChange(rowindex, 'code', value);
+  const handleCodeChange = (ov, nv) => {
+    upsertProductPageData('product_customizations', {
+      id: customization.id,
+      product_id: pageData.id,
+      code: nv,
+    });
   };
 
-  const handleRemarkChange = ({ value }) => {
-    onChange(rowindex, 'remark', value);
+  const handleRemarkChange = (ov, nv) => {
+    upsertProductPageData('product_customizations', {
+      id: customization.id,
+      product_id: pageData.id,
+      remark: nv,
+    });
   };
 
-  // --- FIXED: Removed destructuring ---
   // Main_FileUploads passes the array directly, not an object.
-  const handleImageChange = (updatedImages) => {
-    onChange(rowindex, 'images', updatedImages);
+  const handleImageChange = (ov, nv) => {
+    if (nv.length > ov.length) {
+      // Image(s) added
+      const addedImages = nv.filter(
+        (newImg) => !ov.some((oldImg) => oldImg.id === newImg.id),
+      );
+
+      // Handle each added image individually
+      addedImages.forEach((addedImage, index) => {
+        upsertProductPageData(
+          'product_customizations.product_customization_images',
+          {
+            id: addedImage.id,
+            customization_id: customization.id,
+            image_name: addedImage.name,
+            image_url: addedImage.url,
+            display_order: ov.length + index + 1,
+          },
+        );
+      });
+    } else if (nv.length < ov.length) {
+      // Image(s) removed
+      const removedImages = ov.filter(
+        (oldImg) => !nv.some((newImg) => newImg.id === oldImg.id),
+      );
+
+      // Handle each removed image individually
+      removedImages.forEach((removedImage) => {
+        upsertProductPageData(
+          'product_customizations.product_customization_images',
+          {
+            id: removedImage.id,
+            _delete: true,
+          },
+        );
+      });
+    }
   };
 
   // Handle image upload errors
@@ -39,20 +91,20 @@ const Sub_CustomizationRow = (props) => {
     <>
       <div className={styles.textInput}>
         <Main_TextField
-          placeholder={'What Customization?'}
+          placeholder={'Customization Title'}
           onChange={handleNameChange}
-          value={customization.name}
+          defaultValue={customization?.name}
         />
         <Main_Suggest
           defaultSuggestions={mockSuppliers.map((supplier) => supplier.code)}
           placeholder={'Suppliers'}
           onChange={handleCodeChange}
-          value={customization.code}
+          defaultValue={customization?.code}
         />
         <Main_TextArea
           onChange={handleRemarkChange}
           placeholder={'Customization remarks ... '}
-          value={customization.remark}
+          defaultValue={customization?.remark}
         />
       </div>
       <Main_FileUploads
@@ -61,7 +113,13 @@ const Sub_CustomizationRow = (props) => {
         onChange={handleImageChange}
         maxFiles={10}
         maxSizeInMB={5}
-        defaultImages={customization.images}
+        defaultImages={
+          customization?.product_customization_images?.map((img) => ({
+            id: img.id,
+            url: img.image_url,
+            name: img.image_name,
+          })) || []
+        }
       />
     </>
   );

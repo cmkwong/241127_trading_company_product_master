@@ -96,14 +96,43 @@ export const readFromTable = (data, tableName, condition = null) => {
   // Split path for nested navigation
   const pathParts = tableName.split('.');
 
-  // Navigate to the target array
-  let targetArray = data;
-  for (const part of pathParts) {
-    if (!targetArray || !Array.isArray(targetArray[part])) {
-      console.warn(`${part} is not an array in the data structure`);
+  // Helper function to navigate nested paths
+  const navigateToTarget = (currentData, parts, depth = 0) => {
+    const currentPart = parts[depth];
+
+    // Check if current part exists and is an array
+    if (!currentData || !Array.isArray(currentData[currentPart])) {
+      console.warn(`${currentPart} is not an array in the data structure`);
       return null;
     }
-    targetArray = targetArray[part];
+
+    const currentArray = currentData[currentPart];
+
+    // If this is the last part, return the array
+    if (depth === parts.length - 1) {
+      return currentArray;
+    }
+
+    // Otherwise, we need to go deeper into each item in the array
+    // Collect all nested arrays from all items
+    const nestedResults = currentArray
+      .map((item) => navigateToTarget(item, parts, depth + 1))
+      .filter((result) => result !== null);
+
+    if (nestedResults.length === 0) {
+      return null;
+    }
+
+    // Flatten the nested arrays into a single array
+    const flattenedResults = nestedResults.flat();
+    return flattenedResults;
+  };
+
+  // Navigate to the target array
+  const targetArray = navigateToTarget(data, pathParts);
+
+  if (!targetArray || targetArray.length === 0) {
+    return null;
   }
 
   // If no condition, return all items

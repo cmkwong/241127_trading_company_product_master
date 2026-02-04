@@ -13,3 +13,10 @@
   opacity: 0.95;
   background-color: #fff;
 }
+
+.notFound {
+  padding: 10px;
+  text-align: center;
+  color: #999;
+  font-style: italic;
+}

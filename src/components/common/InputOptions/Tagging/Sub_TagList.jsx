@@ -9,19 +9,23 @@ const Sub_TagList = (props) => {
       onMouseLeave={props.handleSelectionMouseOut}
       onClick={props.handleClickSelection}
     >
-      {props.filteredOptions.map((el) => {
-        return (
-          <Sub_TagListRow
-            key={el.id}
-            id={el.id}
-            name={el.name}
-            checked={
-              props.selectedOptions && props.selectedOptions.includes(el.id)
-            }
-            updateOptionData={props.updateOptionData}
-          />
-        );
-      })}
+      {props.filteredOptions.length === 0 ? (
+        <div className={styles.notFound}>Not Found</div>
+      ) : (
+        props.filteredOptions.map((el) => {
+          return (
+            <Sub_TagListRow
+              key={el.id}
+              id={el.id}
+              name={el.name}
+              checked={
+                props.selectedOptions && props.selectedOptions.includes(el.id)
+              }
+              updateOptionData={props.updateOptionData}
+            />
+          );
+        })
+      )}
     </div>
   );
 };

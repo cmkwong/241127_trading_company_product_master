@@ -20,8 +20,6 @@ const Main_Category = () => {
     );
   }, [pageData, pageData.product_categories]);
 
-  console.log('selectedCategoryIds: ', selectedCategoryIds);
-
   // Handle category changes and update the context
   const handleCategoryChange = (ov, nv) => {
     if (nv.length > ov.length) {
@@ -52,6 +50,7 @@ const Main_Category = () => {
         defaultOptions={category}
         defaultSelectedOptions={selectedCategoryIds}
         onChange={handleCategoryChange}
+        canAddNewOptions={false}
       />
     </Main_InputContainer>
   );

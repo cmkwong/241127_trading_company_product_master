@@ -12,6 +12,8 @@ const Main_TagInputField = (props) => {
     // Uncontrolled defaults
     defaultOptions = [],
     defaultSelectedOptions = [],
+    // Control options
+    canAddNewOptions = true,
   } = props;
 
   // Internal state
@@ -83,6 +85,10 @@ const Main_TagInputField = (props) => {
         dup.forEach((el) => updateOptionData(el.id, true));
         return;
       }
+
+      // Check if adding new options is allowed
+      if (!canAddNewOptions) return;
+
       // Add new option
       const newId = uuidv4();
       const newOption = { id: newId, name: trimmed };
@@ -96,7 +102,7 @@ const Main_TagInputField = (props) => {
       onChange?.(oldSelected, nextSelected);
       onAdd?.(newOption);
     },
-    [selectedOptions, onChange, updateOptionData, options],
+    [selectedOptions, onChange, updateOptionData, options, canAddNewOptions],
   );
 
   // add the value into option

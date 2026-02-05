@@ -5,9 +5,8 @@ import Sub_RemarkField from './Sub_TextArea';
 
 const Main_TextArea = (props) => {
   const {
-    // Controlled
-    value: controlledValue,
-    onChange = () => {}, // onChange({ value, length })
+    // Callbacks
+    onChange = () => {},
 
     // Uncontrolled
     defaultValue = '',
@@ -29,29 +28,26 @@ const Main_TextArea = (props) => {
 
   const makeId = (prefix = 'remark') =>
     `${prefix}-${Math.random().toString(36).slice(2, 8)}-${Date.now().toString(
-      36
+      36,
     )}`;
 
   const autoIdRef = useRef(textareaId || makeId('remark'));
   const resolvedId = textareaId || autoIdRef.current;
 
-  const isControlled = controlledValue !== undefined;
-  const [innerValue, setInnerValue] = useState(defaultValue);
-  const currentValue = isControlled ? controlledValue : innerValue;
+  // Simple uncontrolled state
+  const [value, setValue] = useState(defaultValue);
 
-  const handleChange = useCallback(
-    (nextValue) => {
-      if (!isControlled) setInnerValue(nextValue);
-      onChange({ value: nextValue, length: nextValue.length });
-    },
-    [isControlled, onChange]
-  );
+  const handleChange = (newValue) => {
+    const oldValue = value;
+    setValue(newValue);
+    onChange(oldValue, newValue);
+  };
 
   return (
     <div className={styles.container} data-testid="remark-textarea">
       <Sub_RemarkField
         id={resolvedId}
-        value={currentValue}
+        value={value}
         onValueChange={handleChange}
         placeholder={placeholder}
         rows={rows}

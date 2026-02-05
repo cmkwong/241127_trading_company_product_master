@@ -46,6 +46,7 @@ const Main_Suggest = (props) => {
 
   const handleInputChange = useCallback(
     (ov, nv) => {
+      console.log('Input changed:', nv);
       setInputValue(nv);
       onChange(ov, nv);
     },
@@ -56,6 +57,7 @@ const Main_Suggest = (props) => {
     (suggestion) => {
       const ov = inputValue;
       const nv = suggestion;
+      console.log('Suggestion clicked:', nv);
       setInputValue(nv);
       onChange(ov, nv);
       setIsFocused(false); // Close suggestion list after selection

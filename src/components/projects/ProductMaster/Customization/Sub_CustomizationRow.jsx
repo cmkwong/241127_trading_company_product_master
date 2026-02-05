@@ -30,6 +30,7 @@ const Sub_CustomizationRow = (props) => {
   };
 
   const handleCodeChange = (ov, nv) => {
+    console.log('Code changed:', nv);
     upsertProductPageData({
       product_customizations: [
         {

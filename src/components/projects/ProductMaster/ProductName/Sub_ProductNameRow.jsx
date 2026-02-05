@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Main_Suggest from '../../../common/InputOptions/Suggest/Main_Suggest';
 import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
 import styles from './Sub_ProductNameRow.module.css';
@@ -19,22 +19,26 @@ const defaultProductName = [
 // The Sub_ProductNameRow component that receives props including rowindex from ControlRowBtn
 const Sub_ProductNameRow = (props) => {
   // Extract the props we need and ignore the rest to prevent passing them to DOM elements
-  const {
-    product_names = [],
-    onChange,
-    rowindex = 0,
-    // setRowRef,
-    // rowRef,
-  } = props;
+  const { product_names = [], rowindex = 0 } = props;
   const inputRef = useRef(null);
 
   const { productNameType } = useMasterContext();
-  const { upsertProductPageData } = useProductContext();
+  const { pageData, upsertProductPageData } = useProductContext();
 
   // Get the current product name data for this row, or use default values
-  const currentProduct = product_names[rowindex] || { name: '', type: 1 };
+  const currentProduct = product_names[rowindex];
+
+  const [currentProductName, setCurrentProductName] = useState(
+    currentProduct?.name,
+  );
+
+  useEffect(() => {
+    setCurrentProductName(currentProduct?.name);
+  }, [currentProduct?.name]);
 
   const handleProductNameChange = (ov, nv) => {
+    console.log('currentProduct: ', currentProduct);
+    console.log('pageData: ', pageData);
     upsertProductPageData({
       product_names: [
         {
@@ -43,7 +47,7 @@ const Sub_ProductNameRow = (props) => {
         },
       ],
     });
-    // onChange(rowindex, 'name', value);
+    setCurrentProductName(nv);
   };
 
   const handleTypeChange = (ov, nv) => {
@@ -63,13 +67,13 @@ const Sub_ProductNameRow = (props) => {
         <Main_Suggest
           defaultSuggestions={defaultProductName}
           onChange={handleProductNameChange}
-          defaultValue={currentProduct.name}
+          defaultValue={currentProductName}
         />
       </div>
       <div className={styles.dropdownWrapper}>
         <Main_Dropdown
           defaultOptions={productNameType}
-          defaultSelectedOption={currentProduct.name_type_id}
+          defaultSelectedOption={currentProduct?.name_type_id}
           onChange={handleTypeChange}
         />
       </div>

@@ -38,14 +38,18 @@ const Sub_ProductImagesRow = (props) => {
           (img) => !oldImages.some((oldImg) => oldImg.id === img.id),
         );
         console.log('Uploaded images: ', addedImages);
-        upsertProductPageData('product_images', {
-          id: addedImages[0].id,
-          product_id: pageData.id,
-          image_type_id: imageTypeId,
-          image_name: addedImages[0].name,
-          image_url: addedImages[0].url,
-          size: addedImages[0].size,
-          display_order: newImages.length,
+        upsertProductPageData({
+          product_images: [
+            {
+              id: addedImages[0].id,
+              product_id: pageData.id,
+              image_type_id: imageTypeId,
+              image_name: addedImages[0].name,
+              image_url: addedImages[0].url,
+              size: addedImages[0].size,
+              display_order: newImages.length,
+            },
+          ],
         });
       } else if (newImages.length < oldImages.length) {
         // Image removed
@@ -53,9 +57,13 @@ const Sub_ProductImagesRow = (props) => {
           (img) => !newImages.some((newImg) => newImg.id === img.id),
         );
         console.log('Removed images: ', removedImages);
-        upsertProductPageData('product_images', {
-          id: removedImages[0].id,
-          _delete: true,
+        upsertProductPageData({
+          product_images: [
+            {
+              id: removedImages[0].id,
+              _delete: true,
+            },
+          ],
         });
       }
     },

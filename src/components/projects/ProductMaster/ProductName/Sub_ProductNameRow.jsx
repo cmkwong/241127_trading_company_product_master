@@ -35,17 +35,25 @@ const Sub_ProductNameRow = (props) => {
   const currentProduct = product_names[rowindex] || { name: '', type: 1 };
 
   const handleProductNameChange = (ov, nv) => {
-    upsertProductPageData('product_names', {
-      id: currentProduct.id,
-      name: nv,
+    upsertProductPageData({
+      product_names: [
+        {
+          id: currentProduct.id,
+          name: nv,
+        },
+      ],
     });
     // onChange(rowindex, 'name', value);
   };
 
   const handleTypeChange = (ov, nv) => {
-    upsertProductPageData('product_names', {
-      id: currentProduct.id,
-      name_type_id: nv,
+    upsertProductPageData({
+      product_names: [
+        {
+          id: currentProduct.id,
+          name_type_id: nv,
+        },
+      ],
     });
   };
 

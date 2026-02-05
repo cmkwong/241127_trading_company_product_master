@@ -20,6 +20,7 @@ import {
   updateTable,
   removeFromTable,
   readFromTable,
+  upsertNestedData,
 } from '../utils/crudObj';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -235,43 +236,37 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
 
   /**
    * Upsert (Update or Insert) data in a specific table
-   * If item with matching id exists, it updates; otherwise it adds a new item
-   * Supports nested paths using dot notation
-   * Automatically generates an ID using uuidv4() if not provided
-   * If dataObject contains _delete: true, removes the item instead
-   * @param {string} tableName - Name of the table/array to upsert to. Use dot notation for nested arrays.
-   * @param {object} dataObject - Object containing fields to add/update, or { id: 'xxx', _delete: true } to delete
+   * Supports nested data structures. If the data contains array fields,
+   * it will recursively upsert nested items.
+   *
+   * Example:
+   * upsertProductPageData({
+   *   product_customizations: [
+   *     {
+   *       id: "1234",
+   *       name: "testing changed",
+   *       product_customization_images: [
+   *         {
+   *           id: "8798s7987s8df",
+   *           _delete: true
+   *         }
+   *       ]
+   *     }
+   *   ]
+   * })
+   *
+   * @param {object} nestedData - Nested data object
    */
-  const upsertProductPageData = useCallback((tableName, dataObject) => {
+  const upsertProductPageData = useCallback((nestedData) => {
     setPageData((prevData) => {
-      // Check if this is a delete operation
-      if (dataObject._delete === true) {
-        if (!dataObject.id) {
-          console.error('Delete operation requires an id field');
-          return prevData;
-        }
-        return removeFromTable(prevData, tableName, { id: dataObject.id });
+      // Validate input is an object
+      if (typeof nestedData !== 'object' || nestedData === null) {
+        console.error('upsertProductPageData requires an object argument');
+        return prevData;
       }
 
-      // Auto-generate ID if not provided
-      const itemWithId = {
-        ...dataObject,
-        id: dataObject.id || uuidv4(),
-      };
-
-      // Try to find existing item with the same id
-      const existingItem = readFromTable(prevData, tableName, {
-        id: itemWithId.id,
-      });
-
-      // If item exists, update it; otherwise add it
-      if (existingItem) {
-        return updateTable(prevData, tableName, itemWithId, {
-          id: itemWithId.id,
-        });
-      } else {
-        return addToTable(prevData, tableName, itemWithId);
-      }
+      // Use nested data structure approach
+      return upsertNestedData(prevData, nestedData);
     });
   }, []);
 

@@ -29,17 +29,25 @@ const Main_Customization = () => {
     // Generate a new unique ID for the new row
     const newId = uuidv4();
     setRowIds((prevIds) => [...prevIds, newId]);
-    upsertProductPageData('product_customizations', {
-      id: newId,
-      product_customization_images: [],
+    upsertProductPageData({
+      product_customizations: [
+        {
+          id: newId,
+          product_customization_images: [],
+        },
+      ],
     });
   };
 
   const handleRowRemove = (idToRemove) => {
     setRowIds((prevIds) => prevIds.filter((id) => id !== idToRemove));
-    upsertProductPageData('product_customizations', {
-      id: idToRemove,
-      _delete: true,
+    upsertProductPageData({
+      product_customizations: [
+        {
+          id: idToRemove,
+          _delete: true,
+        },
+      ],
     });
   };
 

@@ -18,26 +18,38 @@ const Sub_CustomizationRow = (props) => {
   }, [customizations, rowindex]);
 
   const handleNameChange = (ov, nv) => {
-    upsertProductPageData('product_customizations', {
-      id: customization.id,
-      product_id: pageData.id,
-      name: nv,
+    upsertProductPageData({
+      product_customizations: [
+        {
+          id: customization.id,
+          product_id: pageData.id,
+          name: nv,
+        },
+      ],
     });
   };
 
   const handleCodeChange = (ov, nv) => {
-    upsertProductPageData('product_customizations', {
-      id: customization.id,
-      product_id: pageData.id,
-      code: nv,
+    upsertProductPageData({
+      product_customizations: [
+        {
+          id: customization.id,
+          product_id: pageData.id,
+          code: nv,
+        },
+      ],
     });
   };
 
   const handleRemarkChange = (ov, nv) => {
-    upsertProductPageData('product_customizations', {
-      id: customization.id,
-      product_id: pageData.id,
-      remark: nv,
+    upsertProductPageData({
+      product_customizations: [
+        {
+          id: customization.id,
+          product_id: pageData.id,
+          remark: nv,
+        },
+      ],
     });
   };
 
@@ -49,18 +61,23 @@ const Sub_CustomizationRow = (props) => {
         (newImg) => !ov.some((oldImg) => oldImg.id === newImg.id),
       );
 
-      // Handle each added image individually
-      addedImages.forEach((addedImage, index) => {
-        upsertProductPageData(
-          'product_customizations.product_customization_images',
+      // Create array of new images to add
+      const newImagesData = addedImages.map((addedImage, index) => ({
+        id: addedImage.id,
+        customization_id: customization.id,
+        image_name: addedImage.name,
+        image_url: addedImage.url,
+        display_order: ov.length + index + 1,
+      }));
+
+      // Use the new nested upsert structure
+      upsertProductPageData({
+        product_customizations: [
           {
-            id: addedImage.id,
-            customization_id: customization.id,
-            image_name: addedImage.name,
-            image_url: addedImage.url,
-            display_order: ov.length + index + 1,
+            id: customization.id,
+            product_customization_images: newImagesData,
           },
-        );
+        ],
       });
     } else if (nv.length < ov.length) {
       // Image(s) removed
@@ -68,15 +85,20 @@ const Sub_CustomizationRow = (props) => {
         (oldImg) => !nv.some((newImg) => newImg.id === oldImg.id),
       );
 
-      // Handle each removed image individually
-      removedImages.forEach((removedImage) => {
-        upsertProductPageData(
-          'product_customizations.product_customization_images',
+      // Handle removed images
+      const removedImagesData = removedImages.map((removedImage) => ({
+        id: removedImage.id,
+        _delete: true,
+      }));
+
+      // Use the new nested upsert structure
+      upsertProductPageData({
+        product_customizations: [
           {
-            id: removedImage.id,
-            _delete: true,
+            id: customization.id,
+            product_customization_images: removedImagesData,
           },
-        );
+        ],
       });
     }
   };

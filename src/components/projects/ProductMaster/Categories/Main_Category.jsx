@@ -26,18 +26,26 @@ const Main_Category = () => {
       // Category added
       const addedCategories = nv.filter((id) => !ov.includes(id));
       addedCategories.forEach((catId) => {
-        upsertProductPageData('product_categories', {
-          product_id: pageData.id,
-          category_id: catId,
+        upsertProductPageData({
+          product_categories: [
+            {
+              product_id: pageData.id,
+              category_id: catId,
+            },
+          ],
         });
       });
     } else if (nv.length < ov.length) {
       // Category removed
       const removedCategories = ov.filter((id) => !nv.includes(id));
       removedCategories.forEach((catId) => {
-        upsertProductPageData('product_categories', {
-          product_id: pageData.id,
-          category_id: catId,
+        upsertProductPageData({
+          product_categories: [
+            {
+              product_id: pageData.id,
+              category_id: catId,
+            },
+          ],
         });
       });
     }

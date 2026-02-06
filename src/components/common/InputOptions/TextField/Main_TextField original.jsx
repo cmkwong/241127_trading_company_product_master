@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import styles from './Main_TextField.module.css';
 import Sub_TextField from './Sub_TextField.jsx';
@@ -34,12 +34,7 @@ const Main_TextField = (props) => {
   } = props;
 
   // Internal state
-  // this useState will not run again when the value prop changes, so we need to use useEffect to update it when the value prop changes
   const [internalValue, setInternalValue] = useState(value);
-
-  useEffect(() => {
-    setInternalValue(value);
-  }, [value]);
 
   // Handle input change
   const handleInputChange = useCallback(

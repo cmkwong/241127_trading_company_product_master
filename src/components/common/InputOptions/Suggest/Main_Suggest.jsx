@@ -1,8 +1,10 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import styles from './Main_Suggest.module.css';
 import Main_TextField from '../TextField/Main_TextField';
 import { v4 as uuidv4 } from 'uuid';
+import { debugLog } from '../../../../utils/debug';
+
 /**
  * Main_Suggest Component
  * Provides an input field with a suggestion list based on user input.
@@ -44,8 +46,14 @@ const Main_Suggest = (props) => {
   // Internal state for suggestion UI
   const [isFocused, setIsFocused] = useState(false);
 
+  debugLog('Main_Suggest', 'Render', { inputValue, isFocused });
+
   const handleInputChange = useCallback(
     (ov, nv) => {
+      debugLog('Main_Suggest', 'handleInputChange triggered', {
+        oldValue: ov,
+        newValue: nv,
+      });
       console.log('Input changed:', nv);
       setInputValue(nv);
       onChange(ov, nv);
@@ -57,6 +65,10 @@ const Main_Suggest = (props) => {
     (suggestion) => {
       const ov = inputValue;
       const nv = suggestion;
+      debugLog('Main_Suggest', 'handleSuggestionItemClick triggered', {
+        suggestion,
+        currentInputValue: inputValue,
+      });
       console.log('Suggestion clicked:', nv);
       setInputValue(nv);
       onChange(ov, nv);
@@ -95,7 +107,7 @@ const Main_Suggest = (props) => {
         <div className={styles.inputContainer}>
           <Main_TextField
             inputId={inputId || uuidv4()}
-            defaultValue={inputValue}
+            value={inputValue}
             onChange={handleInputChange}
             placeholder={placeholder}
             onFocus={handleFocus}

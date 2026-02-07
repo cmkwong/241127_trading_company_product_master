@@ -6,7 +6,6 @@ import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_File
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
 import { mockSuppliers } from '../../../../datas/Suppliers/mockSuppliers';
 import { useProductContext } from '../../../../store/ProductContext';
-import { v4 as uuidv4 } from 'uuid';
 const Sub_CustomizationRow = (props) => {
   const { customizations, rowindex } = props;
 

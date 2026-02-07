@@ -15,7 +15,7 @@ const Main_TextField = (props) => {
     onBlur,
 
     // Uncontrolled defaults
-    value = '',
+    defaultValue = '',
 
     // UI
     label,
@@ -35,11 +35,11 @@ const Main_TextField = (props) => {
 
   // Internal state
   // this useState will not run again when the value prop changes, so we need to use useEffect to update it when the value prop changes
-  const [internalValue, setInternalValue] = useState(value);
+  const [internalValue, setInternalValue] = useState(defaultValue);
 
   useEffect(() => {
-    setInternalValue(value);
-  }, [value]);
+    setInternalValue(defaultValue);
+  }, [defaultValue]);
 
   // Handle input change
   const handleInputChange = useCallback(

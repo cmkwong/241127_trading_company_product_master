@@ -1,10 +1,4 @@
-import React, {
-  useMemo,
-  useState,
-  useRef,
-  useEffect,
-  useCallback,
-} from 'react';
+import { useMemo, useState, useRef, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import styles from './Sub_DateField.module.css';
 
@@ -12,7 +6,7 @@ const weekdays = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
 const Sub_DateField = ({
   id,
-  value,
+  defaultValue,
   displayValue,
   onSelect,
   placeholder,
@@ -23,13 +17,13 @@ const Sub_DateField = ({
 }) => {
   const [open, setOpen] = useState(false);
   const [viewDate, setViewDate] = useState(() =>
-    stripTime(value || new Date())
+    stripTime(defaultValue || new Date()),
   );
   const containerRef = useRef(null);
 
   useEffect(() => {
-    if (value) setViewDate(stripTime(value));
-  }, [value]);
+    if (defaultValue) setViewDate(stripTime(defaultValue));
+  }, [defaultValue]);
 
   useEffect(() => {
     const onDocClick = (e) => {
@@ -65,12 +59,12 @@ const Sub_DateField = ({
       if (disableDate && disableDate(day)) return true;
       return false;
     },
-    [minDate, maxDate, disableDate]
+    [minDate, maxDate, disableDate],
   );
 
   const { monthLabel, weeks } = useMemo(
     () => buildCalendar(viewDate),
-    [viewDate]
+    [viewDate],
   );
 
   return (
@@ -128,7 +122,7 @@ const Sub_DateField = ({
                     return <div key={ci} className={styles.dayCellEmpty} />;
                   const { date, isToday, isCurrentMonth } = cell;
                   const disabled = isDateDisabled(date);
-                  const selected = value && sameDay(value, date);
+                  const selected = defaultValue && sameDay(defaultValue, date);
 
                   const classNames = [
                     styles.dayCell,
@@ -170,7 +164,7 @@ const Sub_DateField = ({
 
 Sub_DateField.propTypes = {
   id: PropTypes.string.isRequired,
-  value: PropTypes.instanceOf(Date),
+  defaultValue: PropTypes.instanceOf(Date),
   displayValue: PropTypes.string,
   onSelect: PropTypes.func.isRequired,
   placeholder: PropTypes.string,

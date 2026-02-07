@@ -1,15 +1,12 @@
-import React, { useMemo, useRef, useState, useCallback } from 'react';
+import React, { useMemo, useRef, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import styles from './Main_DateSelector.module.css';
 import Sub_DateField from './Sub_DateField';
 
 const Main_DateSelector = ({
   // Controlled
-  value: controlledDate, // Date or ISO string
-  onChange = () => {}, // onChange({ date, isoString })
-
-  // Uncontrolled
   defaultValue, // Date or ISO string
+  onChange = () => {}, // onChange(oldValue, newValue)
 
   // UI
   label,
@@ -23,7 +20,7 @@ const Main_DateSelector = ({
 }) => {
   const makeId = (prefix = 'date-selector') =>
     `${prefix}-${Math.random().toString(36).slice(2, 8)}-${Date.now().toString(
-      36
+      36,
     )}`;
 
   const autoIdRef = useRef(dropdownId || makeId('date-selector'));
@@ -36,10 +33,7 @@ const Main_DateSelector = ({
     return isNaN(parsed.getTime()) ? undefined : parsed;
   }, []);
 
-  const isControlled = controlledDate !== undefined;
-  const [innerDate, setInnerDate] = useState(() => toDate(defaultValue));
-
-  const currentDate = isControlled ? toDate(controlledDate) : innerDate;
+  const currentDate = toDate(defaultValue);
 
   const stripTime = (d) => {
     const nd = new Date(d);
@@ -50,22 +44,16 @@ const Main_DateSelector = ({
   const emitChange = useCallback(
     (d) => {
       const valid = d && !isNaN(d.getTime()) ? stripTime(d) : undefined;
-      const isoString = valid ? valid.toISOString().slice(0, 10) : '';
-      onChange({ value: valid, isoString });
+      onChange(currentDate, valid);
     },
-    [onChange]
+    [onChange, currentDate],
   );
 
   const setDate = useCallback(
     (d) => {
-      if (isControlled) {
-        emitChange(d);
-      } else {
-        setInnerDate(d ? stripTime(d) : undefined);
-        emitChange(d);
-      }
+      emitChange(d);
     },
-    [isControlled, emitChange]
+    [emitChange],
   );
 
   const displayValue = useMemo(() => {
@@ -76,7 +64,7 @@ const Main_DateSelector = ({
   const fieldProps = useMemo(
     () => ({
       id: resolvedId,
-      value: currentDate,
+      defaultValue: currentDate,
       displayValue,
       onSelect: setDate,
       placeholder,
@@ -96,7 +84,7 @@ const Main_DateSelector = ({
       disableDate,
       toDate,
       label,
-    ]
+    ],
   );
 
   // Note: We do NOT wrap this in another label; you already provide label in the container.
@@ -108,12 +96,11 @@ const Main_DateSelector = ({
 };
 
 Main_DateSelector.propTypes = {
-  value: PropTypes.oneOfType([PropTypes.instanceOf(Date), PropTypes.string]),
-  onChange: PropTypes.func, // onChange({ date, isoString })
   defaultValue: PropTypes.oneOfType([
     PropTypes.instanceOf(Date),
     PropTypes.string,
   ]),
+  onChange: PropTypes.func, // onChange(oldValue, newValue)
   label: PropTypes.string,
   dropdownId: PropTypes.string,
   placeholder: PropTypes.string,

@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import styles from './Main_TextArea.module.css';
 import Sub_RemarkField from './Sub_TextArea';
@@ -36,6 +36,10 @@ const Main_TextArea = (props) => {
 
   // Simple uncontrolled state
   const [value, setValue] = useState(defaultValue);
+
+  useEffect(() => {
+    setValue(defaultValue);
+  }, [defaultValue]);
 
   const handleChange = (newValue) => {
     const oldValue = value;

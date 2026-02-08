@@ -285,6 +285,30 @@ export const mockProducts = {
             },
           ],
         },
+        {
+          id: '52ab8db5-f685-49a4-8cc8-80df3396b8f3',
+          product_id: '13649f12-f9b6-4abf-8a8c-b63fe2f11091',
+          certificate_type_id: '2o5p6q7r-8s9t-0u1v-2w3x-4y5z6a7b8c9d',
+          remark: 'Material Safety Compliance',
+          created_at: '2026-01-24T12:28:27.000Z',
+          updated_at: '2026-01-24T12:28:27.000Z',
+          product_certificate_files: [
+            {
+              id: 'd4df9c17-96ab-40e6-addb-f7f2cb53212f',
+              certificate_id: 'a6bb8db5-f685-49a4-8cc8-80df3396b8f4',
+              file_name: 'RoHS_Report22.pdf',
+              file_url:
+                '/public/13649f12-f9b6-4abf-8a8c-b63fe2f11091/certificates//pdf/06a173fd-598a-4065-adfb-786b9cdc621c.pdf',
+              display_order: 0,
+              file_type: 'pdf',
+              description: '2025 Lab Report',
+              created_at: '2026-01-24T12:28:27.000Z',
+              updated_at: '2026-01-24T12:28:27.000Z',
+              base64_file: 'data:application/pdf;base64,JVBERi0xLg==',
+              is_compressed: false,
+            },
+          ],
+        },
       ],
     },
     {

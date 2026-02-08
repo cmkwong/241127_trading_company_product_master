@@ -1,149 +1,166 @@
-import { useCallback, forwardRef, useMemo } from 'react';
-import PropTypes from 'prop-types';
+import { useCallback, useEffect, useState } from 'react';
 import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
 import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_FileUploads';
 import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
 import styles from './Main_CertificateData.module.css';
-import { mockCertType } from '../../../../datas/Options/ProductOptions';
+import { v4 as uuidv4 } from 'uuid';
+import { useProductContext } from '../../../../store/ProductContext';
+import { useMasterContext } from '../../../../store/MasterContext';
 
-const Sub_CertificateData = forwardRef(
-  ({ template_data, certificates, onChange, setRowRef, rowindex }, ref) => {
-    // Get the current row data or use template data if it doesn't exist
-    const certificate = certificates[rowindex] || { ...template_data };
+const processCertificateFiles = (files) => {
+  if (!files) return [];
+  return files.map((file, index) => ({
+    id: file.id || uuidv4(),
+    name: file.file_name || `file_${index}`,
+    size: file.file_size || 0,
+    type: file.file_type || 'application/octet-stream',
+    url: file.file_url || '',
+  }));
+};
 
-    // Process files to ensure each has a unique ID
-    const processedFiles = useMemo(() => {
-      // Check if files exist
-      if (
-        !certificate.files ||
-        !Array.isArray(certificate.files) ||
-        certificate.files.length === 0
-      ) {
-        return [];
-      }
+const Sub_CertificateData = ({ certificates, rowindex }) => {
+  // Get the current row data or use template data if it doesn't exist
+  const certificate = certificates[rowindex];
+  const { pageData, upsertProductPageData } = useProductContext();
+  const { certType } = useMasterContext();
 
-      return certificate.files.map((file, index) => {
-        // If file is already properly formatted with an ID, return it as is
-        if (
-          file &&
-          typeof file === 'object' &&
-          file.id &&
-          file.name &&
-          file.size
-        ) {
-          return file;
-        }
+  const [fileCertType, setFileCertType] = useState(
+    certificate?.certificate_type_id,
+  );
+  const [remark, setRemark] = useState(certificate?.remark || '');
+  const [files, setFiles] = useState(() =>
+    processCertificateFiles(certificate?.product_certificate_files),
+  );
 
-        // If file is a string (URL) or doesn't have required properties, create a proper file object
-        const fileName =
-          typeof file === 'string'
-            ? file.split('/').pop()
-            : (file && file.name) || 'unknown';
+  // Update local state when certificate data changes
+  useEffect(() => {
+    setFileCertType(certificate?.certificate_type_id);
+    setRemark(certificate?.remark || '');
+    setFiles(processCertificateFiles(certificate?.product_certificate_files));
+  }, [certificate]);
 
-        const fileSize = (file && file.size) || 100000; // Default size if unknown
-        const fileType = (file && file.type) || 'application/octet-stream'; // Default type if unknown
-        const fileUrl =
-          typeof file === 'string' ? file : (file && file.url) || '';
-
-        const processedFile = {
-          name: fileName,
-          size: fileSize,
-          type: fileType,
-          url: fileUrl,
-          id: `file-${Date.now()}-${Math.random()
-            .toString(36)
-            .substring(2, 9)}-${index}`,
-          originalFile: file,
-        };
-
-        return processedFile;
+  const handleTypeChange = useCallback(
+    (ov, nv) => {
+      upsertProductPageData({
+        product_certificates: [
+          {
+            id: certificate?.id,
+            product_id: pageData.id,
+            certificate_type_id: nv,
+          },
+        ],
       });
-    }, [certificate.files, rowindex]);
+    },
+    [certificate?.id, pageData.id, upsertProductPageData],
+  );
 
-    const handleTypeChange = useCallback(
-      ({ selected }) => {
-        onChange(rowindex, 'type', selected);
-      },
-      [onChange, rowindex]
-    );
+  const handleRemarkChange = useCallback(
+    (ov, nv) => {
+      upsertProductPageData({
+        product_certificates: [
+          {
+            id: certificate?.id,
+            product_id: pageData.id,
+            remark: nv,
+          },
+        ],
+      });
+    },
+    [certificate?.id, pageData.id, upsertProductPageData],
+  );
 
-    const handleRemarkChange = useCallback(
-      ({ value }) => {
-        onChange(rowindex, 'remark', value);
-      },
-      [onChange, rowindex]
-    );
+  const handleFileChange = useCallback(
+    (ov, nv) => {
+      if (ov.length > nv.length) {
+        // File removed
+        const removedFile = ov.find(
+          (file) => !nv.some((f) => f.id === file.id),
+        );
+        if (removedFile) {
+          upsertProductPageData({
+            product_certificates: [
+              {
+                id: certificate.id,
+                product_id: pageData.id,
+                product_certificate_files: [
+                  {
+                    id: removedFile.id,
+                    _delete: true,
+                  },
+                ],
+              },
+            ],
+          });
+        }
+      } else if (ov.length < nv.length) {
+        // File added
+        const addedFile = nv.find((file) => !ov.some((f) => f.id === file.id));
+        if (addedFile) {
+          upsertProductPageData({
+            product_certificates: [
+              {
+                id: certificate?.id,
+                product_id: pageData.id,
+                product_certificate_files: [
+                  {
+                    id: addedFile.id,
+                    file_name: addedFile.name,
+                    file_size: addedFile.size,
+                    file_type: addedFile.type,
+                    file_url: addedFile.url,
+                  },
+                ],
+              },
+            ],
+          });
+        }
+      }
+    },
+    [certificate?.id, pageData.id, upsertProductPageData],
+  );
 
-    const handleFileChange = useCallback(
-      (updatedFiles) => {
-        // Extract original files or URLs to maintain data structure
-        const processedUpdatedFiles = updatedFiles.map((file) => {
-          return file.originalFile || file.url || file;
-        });
+  const handleFileError = useCallback((errorMessage) => {
+    console.error(`File upload error: ${errorMessage}`);
+  }, []);
 
-        onChange(rowindex, 'files', processedUpdatedFiles);
-      },
-      [onChange, rowindex]
-    );
-
-    const handleFileError = useCallback((errorMessage) => {
-      console.error(`File upload error: ${errorMessage}`);
-    }, []);
-
-    return (
-      <div
-        className={styles.fileUploadContainer}
-        ref={(el) => setRowRef(rowindex, el)}
-      >
-        <Main_Dropdown
-          key={`dropdown-${rowindex}-${certificate.type || 1}`}
-          label="Type"
-          defaultOptions={mockCertType}
-          // Use controlled mode instead of defaultSelectedOption
-          options={mockCertType}
-          selectedOptions={certificate.type || 1}
-          onChange={handleTypeChange}
-        />
-        <Main_FileUploads
-          key={`file-upload-${rowindex}-${processedFiles.length}`}
-          label="Upload Certificates"
-          onChange={handleFileChange}
-          onError={handleFileError}
-          maxFiles={5}
-          maxSizeInMB={2}
-          acceptedTypes={[
-            // Document types
-            'application/pdf',
-            'application/msword',
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-            // Image types
-            'image/jpeg',
-            'image/jpg',
-            'image/png',
-            'image/gif',
-            'image/webp',
-            'image/svg+xml',
-            'image/bmp',
-            'image/tiff',
-          ]}
-          defaultFiles={processedFiles}
-        />
-        <Main_TextArea
-          label="Remark"
-          value={certificate.remark || ''}
-          onChange={handleRemarkChange}
-        />
-      </div>
-    );
-  }
-);
-
-Sub_CertificateData.propTypes = {
-  template_data: PropTypes.object.isRequired,
-  certificates: PropTypes.array.isRequired,
-  onChange: PropTypes.func.isRequired,
-  setRowRef: PropTypes.func.isRequired,
-  rowindex: PropTypes.number,
+  return (
+    <div className={styles.fileUploadContainer}>
+      <Main_Dropdown
+        label="Type"
+        defaultOptions={certType}
+        defaultSelectedOption={fileCertType || 1}
+        onChange={handleTypeChange}
+      />
+      <Main_FileUploads
+        label="Upload Certificates"
+        onChange={handleFileChange}
+        onError={handleFileError}
+        maxFiles={5}
+        maxSizeInMB={2}
+        acceptedTypes={[
+          // Document types
+          'application/pdf',
+          'application/msword',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          // Image types
+          'image/jpeg',
+          'image/jpg',
+          'image/png',
+          'image/gif',
+          'image/webp',
+          'image/svg+xml',
+          'image/bmp',
+          'image/tiff',
+        ]}
+        defaultFiles={files}
+      />
+      <Main_TextArea
+        label="Remark"
+        defaultValue={remark || ''}
+        onChange={handleRemarkChange}
+      />
+    </div>
+  );
 };
 
 Sub_CertificateData.displayName = 'Sub_CertificateData';

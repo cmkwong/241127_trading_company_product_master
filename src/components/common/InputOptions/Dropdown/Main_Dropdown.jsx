@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback, useMemo } from 'react';
+import { useRef, useState, useCallback, useMemo, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import styles from './Main_Dropdown.module.css';
 import Sub_SelectField from './Sub_SelectField';
@@ -41,6 +41,11 @@ const Main_Dropdown = (props) => {
   // Internal state
   const [options, setOptions] = useState(defaultOptions);
   const [selected, setSelectedValue] = useState(defaultSelectedOption);
+
+  // Sync internal state with defaultSelectedOption when it changes
+  useEffect(() => {
+    setSelectedValue(defaultSelectedOption);
+  }, [defaultSelectedOption]);
 
   // Handle selection change
   const setSelected = useCallback(

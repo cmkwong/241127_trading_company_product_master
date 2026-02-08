@@ -111,8 +111,21 @@ const Main_FileUploads = (props) => {
         }
         return currentImages;
       });
+    } else {
+      // For file mode, simply update if defaultFiles changes
+      // We perform a shallow comparison to avoid unnecessary updates if ref changed but content is same
+      setFileList((prev) => {
+        if (prev === defaultFiles) return prev;
+        if (
+          prev.length === defaultFiles.length &&
+          prev.every((f, i) => f.id === defaultFiles[i]?.id)
+        ) {
+          return prev;
+        }
+        return defaultFiles || [];
+      });
     }
-  }, [defaultImages, mode, processDefaultImages]);
+  }, [defaultImages, defaultFiles, mode, processDefaultImages]);
 
   // Handle file/image reordering (for image mode with drag-and-drop)
   const handleMoveItem = useCallback(

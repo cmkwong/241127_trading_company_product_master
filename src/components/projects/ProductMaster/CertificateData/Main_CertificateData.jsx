@@ -1,37 +1,54 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import ControlRowBtn from '../../../common/ControlRowBtn';
 import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
 import styles from './Main_CertificateData.module.css';
 import Sub_CertificateData from './Sub_CertificateData';
 import { useProductContext } from '../../../../store/ProductContext';
-import useRowData from '../../../../hooks/useRowData';
 
 const Main_CertificateData = () => {
-  const { pageData, updateProductPageData } = useProductContext();
+  const { pageData, upsertProductPageData } = useProductContext();
 
-  const template_data = {
-    type: 1,
-    files: [],
-    remark: '',
-  };
+  const [rowIds, setRowIds] = useState(
+    pageData.product_certificates?.map((item) => item.id) || [],
+  );
 
-  // Use the custom hook to manage certificate data
-  const {
-    rowDatas: certificates,
-    rowIds,
-    rowRef,
-    setRowRef,
-    handleRowIdsChange,
-    handleRowAdd,
-    handleRowRemove,
-    handleFieldChange: handleCertificateChange,
-  } = useRowData({
-    data: pageData.certificates,
-    updateProductPageData,
-    dataKey: 'certificates',
-    template: template_data,
-    idPrefix: 'certificate',
-  });
+  useMemo(() => {
+    if (pageData.product_certificates) {
+      setRowIds(pageData.product_certificates.map((item) => item.id));
+    } else {
+      setRowIds([]);
+    }
+  }, [pageData.product_certificates]);
+
+  const handleRowIdsChange = useCallback(() => {}, []);
+
+  const handleRowAdd = useCallback(
+    (newId) => {
+      upsertProductPageData({
+        product_certificates: [
+          {
+            id: newId,
+            product_certificate_files: [],
+          },
+        ],
+      });
+    },
+    [upsertProductPageData],
+  );
+
+  const handleRowRemove = useCallback(
+    (idToRemove) => {
+      upsertProductPageData({
+        product_certificates: [
+          {
+            id: idToRemove,
+            _delete: true,
+          },
+        ],
+      });
+    },
+    [upsertProductPageData],
+  );
 
   return (
     <Main_InputContainer label="Certificates">
@@ -42,10 +59,7 @@ const Main_CertificateData = () => {
         onRowRemove={handleRowRemove}
       >
         <Sub_CertificateData
-          template_data={template_data}
-          certificates={certificates}
-          onChange={handleCertificateChange}
-          setRowRef={setRowRef}
+          certificates={pageData.product_certificates || []}
         />
       </ControlRowBtn>
     </Main_InputContainer>

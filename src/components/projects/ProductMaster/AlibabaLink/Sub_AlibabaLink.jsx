@@ -1,62 +1,75 @@
-import { useCallback, forwardRef } from 'react';
-import PropTypes from 'prop-types';
+import { useState, useCallback, useEffect } from 'react';
 import styles from './Main_AlibabaLink.module.css';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
+import { useProductContext } from '../../../../store/ProductContext';
 
-const Sub_AlibabaLink = forwardRef(
-  (
-    { template_data, product_alibaba_ids, onChange, setRowRef, rowindex },
-    ref
-  ) => {
-    // Get the current row data or use template data if it doesn't exist
-    const alibabaLink = product_alibaba_ids[rowindex] || { ...template_data };
+const Sub_AlibabaLink = (props) => {
+  const { product_alibaba_ids, rowindex } = props;
 
-    const handleValueChange = useCallback(
-      ({ value }) => {
-        onChange(rowindex, 'value', value);
-      },
-      [onChange, rowindex]
-    );
+  const { upsertProductPageData, pageData } = useProductContext();
 
-    const handleLinkChange = useCallback(
-      ({ value }) => {
-        onChange(rowindex, 'link', value);
-      },
-      [onChange, rowindex]
-    );
+  // Get the current row data or use template data if it doesn't exist
+  const [alibabaLink, setAlibabaLink] = useState(
+    product_alibaba_ids[rowindex] || {},
+  );
+  const [alibabaId, setAlibabaId] = useState(alibabaLink?.value || '');
+  const [alibabaLinkValue, setAlibabaLinkValue] = useState(
+    alibabaLink?.link || '',
+  );
 
-    return (
-      <div
-        className={styles.inputContainer}
-        ref={(el) => setRowRef(rowindex, el)}
-      >
-        <div className={styles.idField}>
-          <Main_TextField
-            placeholder={'Enter Alibaba ID ...'}
-            value={alibabaLink.value || ''}
-            onChange={handleValueChange}
-          />
-        </div>
-        <div className={styles.linkField}>
-          <Main_TextField
-            placeholder={'Enter Link ...'}
-            value={alibabaLink.link || ''}
-            onChange={handleLinkChange}
-          />
-        </div>
+  useEffect(() => {
+    setAlibabaId(alibabaLink?.value || '');
+    setAlibabaLinkValue(alibabaLink?.link || '');
+  }, [alibabaLink]);
+
+  const handleAlibabaIdChange = useCallback(
+    (ov, nv) => {
+      upsertProductPageData({
+        product_alibaba_ids: [
+          {
+            id: alibabaLink.id,
+            product_id: pageData.id,
+            value: nv,
+          },
+        ],
+      });
+    },
+    [upsertProductPageData, alibabaLink.id, pageData.id],
+  );
+
+  const handleLinkChange = useCallback(
+    (ov, nv) => {
+      upsertProductPageData({
+        product_alibaba_ids: [
+          {
+            id: alibabaLink.id,
+            product_id: pageData.id,
+            link: nv,
+          },
+        ],
+      });
+    },
+    [upsertProductPageData, alibabaLink.id, pageData.id],
+  );
+
+  return (
+    <div className={styles.inputContainer}>
+      <div className={styles.idField}>
+        <Main_TextField
+          placeholder={'Enter Alibaba ID ...'}
+          defaultValue={alibabaId}
+          onChange={handleAlibabaIdChange}
+        />
       </div>
-    );
-  }
-);
-
-Sub_AlibabaLink.propTypes = {
-  template_data: PropTypes.object.isRequired,
-  product_alibaba_ids: PropTypes.array.isRequired,
-  onChange: PropTypes.func.isRequired,
-  setRowRef: PropTypes.func.isRequired,
-  rowindex: PropTypes.number,
+      <div className={styles.linkField}>
+        <Main_TextField
+          placeholder={'Enter Link ...'}
+          defaultValue={alibabaLinkValue}
+          onChange={handleLinkChange}
+        />
+      </div>
+    </div>
+  );
 };
-
-Sub_AlibabaLink.displayName = 'Sub_AlibabaLink';
 
 export default Sub_AlibabaLink;

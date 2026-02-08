@@ -5,29 +5,30 @@ import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_File
 import { useProductContext } from '../../../../store/ProductContext';
 
 const Sub_ProductImagesRow = (props) => {
-  const { data, rowindex, setRowRef } = props;
+  const { imageData, rowindex } = props;
 
   const [imageTypeId, setImageTypeId] = useState();
+  const [defaultImages, setDefaultImages] = useState([]);
 
   const { pageData, upsertProductPageData } = useProductContext();
   const { productImageType } = useMasterContext();
-  const [defaultImages, setDefaultImages] = useState([]);
 
-  // assign set default images when data changes
-  useEffect(() => {
-    if (data && data.length === 0) return;
-    if (!data[rowindex]) return;
+  // assign set default images when imageData changes
+  useMemo(() => {
+    if (imageData && imageData.length === 0) return;
+    if (!imageData[rowindex]) return;
 
-    setImageTypeId(data[rowindex].id);
+    setImageTypeId(imageData[rowindex].id);
+    console.log('image type id', imageData[rowindex].id);
     setDefaultImages(
-      data[rowindex].images.map((el) => ({
+      imageData[rowindex].images.map((el) => ({
         id: el.id,
         url: el.image_url,
         name: el.image_name,
         size: el.size,
       })),
     );
-  }, [data, rowindex]);
+  }, [imageData, rowindex]);
 
   // hande the image changed
   const handleImageChange = useCallback(
@@ -37,7 +38,6 @@ const Sub_ProductImagesRow = (props) => {
         const addedImages = newImages.filter(
           (img) => !oldImages.some((oldImg) => oldImg.id === img.id),
         );
-        console.log('Uploaded images: ', addedImages);
         upsertProductPageData({
           product_images: [
             {
@@ -56,7 +56,6 @@ const Sub_ProductImagesRow = (props) => {
         const removedImages = oldImages.filter(
           (img) => !newImages.some((newImg) => newImg.id === img.id),
         );
-        console.log('Removed images: ', removedImages);
         upsertProductPageData({
           product_images: [
             {
@@ -75,6 +74,29 @@ const Sub_ProductImagesRow = (props) => {
     console.error('Image upload error:', error);
   }, []);
 
+  // handle image type change
+  const handleImageTypeChange = useCallback(
+    (ov, nv) => {
+      setImageTypeId(nv);
+      // finding required image id
+      const ids = pageData.product_images
+        .filter((d) => d.image_type_id === ov)
+        .map((d) => d.id);
+      for (let i = 0; i < ids.length; i++) {
+        upsertProductPageData({
+          product_images: [
+            {
+              id: ids[i], // Assuming all images in the row have the same image_type_id, we can use the first image's id for the update
+              product_id: pageData.id,
+              image_type_id: nv,
+            },
+          ],
+        });
+      }
+    },
+    [pageData.product_images, upsertProductPageData, pageData.id],
+  );
+
   return (
     <>
       <Main_FileUploads
@@ -85,10 +107,9 @@ const Sub_ProductImagesRow = (props) => {
       />
       <Main_Dropdown
         defaultOptions={productImageType}
-        selectedOptions={imageTypeId}
+        defaultSelectedOption={imageTypeId}
         label="Image Type"
-        // defaultSelectedOption={packing.type || 1}
-        onChange={() => {}}
+        onChange={handleImageTypeChange}
       />
     </>
   );

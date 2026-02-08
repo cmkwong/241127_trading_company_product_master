@@ -33,7 +33,6 @@ const Sub_ProductNameRow = (props) => {
   );
 
   useEffect(() => {
-    console.log('currentProduct set: ', currentProduct?.name);
     setCurrentProductName(currentProduct?.name);
   }, [currentProduct?.name]);
 

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import ControlRowBtn from '../../../common/ControlRowBtn';
 import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
 import { useProductContext } from '../../../../store/ProductContext';
@@ -8,6 +8,7 @@ import Sub_ProductImagesRow from './Sub_ProductImagesRow';
 const Main_ProductImages = (props) => {
   const { pageData } = useProductContext();
 
+  // prepare the image data grouped by image_type_id
   const [processedImageData, rowIds] = useMemo(() => {
     let imageData = [];
     let distinctTypeIds;
@@ -20,6 +21,7 @@ const Main_ProductImages = (props) => {
       }
       for (let i = 0; i < distinctTypeIds.length; i++) {
         let row = {};
+        // let the image type id as the row id for now, can be changed to something else if needed
         row['id'] = distinctTypeIds[i];
         row['images'] = pageData.product_images.filter(
           (d) => d.image_type_id === distinctTypeIds[i],
@@ -52,7 +54,7 @@ const Main_ProductImages = (props) => {
         onRowAdd={handleRowAdd}
         onRowRemove={handleRowRemove}
       >
-        <Sub_ProductImagesRow data={processedImageData} />
+        <Sub_ProductImagesRow imageData={processedImageData} />
       </ControlRowBtn>
     </Main_InputContainer>
   );

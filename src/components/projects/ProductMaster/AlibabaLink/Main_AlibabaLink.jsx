@@ -1,36 +1,53 @@
-import { useCallback } from 'react';
-import styles from './Main_AlibabaLink.module.css';
+import { useCallback, useEffect, useState } from 'react';
 import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
 import ControlRowBtn from '../../../common/ControlRowBtn';
 import Sub_AlibabaLink from './Sub_AlibabaLink';
 import { useProductContext } from '../../../../store/ProductContext';
-import useRowData from '../../../../hooks/useRowData';
 
 const Main_AlibabaLink = () => {
-  const { pageData, updateProductPageData } = useProductContext();
+  const { pageData, upsertProductPageData } = useProductContext();
+  const [rowIds, setRowIds] = useState(
+    pageData.product_alibaba_ids?.map((item) => item.id) || [],
+  );
 
-  const template_data = {
-    value: '',
-    link: '',
-  };
+  useEffect(() => {
+    if (pageData.product_alibaba_ids) {
+      setRowIds(pageData.product_alibaba_ids.map((item) => item.id));
+    } else {
+      setRowIds([]);
+    }
+  }, [pageData.product_alibaba_ids]);
 
-  // Use the custom hook to manage alibaba IDs
-  const {
-    rowDatas: product_alibaba_ids,
-    rowIds,
-    rowRef,
-    setRowRef,
-    handleRowIdsChange,
-    handleRowAdd,
-    handleRowRemove,
-    handleFieldChange: handleAlibabaIdChange,
-  } = useRowData({
-    data: pageData.product_alibaba_ids,
-    updateProductPageData,
-    dataKey: 'product_alibaba_ids',
-    template: template_data,
-    idPrefix: 'alibaba-id',
-  });
+  const handleRowIdsChange = useCallback(() => {}, []);
+
+  // handle adding a new product alibaba id row
+  const handleRowAdd = useCallback(
+    (newId) => {
+      upsertProductPageData({
+        product_alibaba_ids: [
+          {
+            id: newId,
+          },
+        ],
+      });
+    },
+    [upsertProductPageData],
+  );
+
+  // Handle removing a product alibaba id row
+  const handleRowRemove = useCallback(
+    (rowId) => {
+      upsertProductPageData({
+        product_alibaba_ids: [
+          {
+            id: rowId,
+            _delete: true,
+          },
+        ],
+      });
+    },
+    [upsertProductPageData],
+  );
 
   return (
     <Main_InputContainer label={'Alibaba'}>
@@ -41,10 +58,7 @@ const Main_AlibabaLink = () => {
         onRowRemove={handleRowRemove}
       >
         <Sub_AlibabaLink
-          template_data={template_data}
-          product_alibaba_ids={product_alibaba_ids}
-          onChange={handleAlibabaIdChange}
-          setRowRef={setRowRef}
+          product_alibaba_ids={pageData.product_alibaba_ids || []}
         />
       </ControlRowBtn>
     </Main_InputContainer>

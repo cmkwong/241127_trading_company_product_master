@@ -15,8 +15,6 @@ const Main_Customization = () => {
     pageData.product_customizations || [],
   );
 
-  console.log('Customizations rendered:', rowIds, customizations);
-
   useEffect(() => {
     setRowIds(pageData.product_customizations?.map((el) => el.id) || []);
   }, [pageData, pageData.product_customizations]);

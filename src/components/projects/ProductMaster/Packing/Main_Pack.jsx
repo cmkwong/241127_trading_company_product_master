@@ -1,44 +1,41 @@
-import { useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import ControlRowBtn from '../../../common/ControlRowBtn';
 import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
 import Sub_PackRow from './Sub_PackRow';
 import { useProductContext } from '../../../../store/ProductContext';
-import useRowData from '../../../../hooks/useRowData';
 
 const Main_Pack = () => {
-  const { pageData, updateProductPageData } = useProductContext();
+  const { pageData, upsertProductPageData } = useProductContext();
 
-  const template_data = {
-    type: 1,
-    quantity: '',
-    unit: 1,
-    weight: '',
-    weightUnit: 1,
-    dimension: {
-      length: '',
-      width: '',
-      height: '',
-    },
-    dimensionUnit: 1,
-  };
+  const [rowIds, setRowIds] = useState(
+    pageData.product_packings?.map((item) => item.id) || [],
+  );
 
-  // Use the custom hook to manage pack data
-  const {
-    rowDatas: packings,
-    rowIds,
-    rowRef,
-    setRowRef,
-    handleRowIdsChange,
-    handleRowAdd,
-    handleRowRemove,
-    handleFieldChange: handlePackChange,
-  } = useRowData({
-    data: pageData.packings,
-    updateProductPageData,
-    dataKey: 'packings',
-    template: template_data,
-    idPrefix: 'pack',
-  });
+  const handleRowIdsChange = useCallback(() => {}, []);
+
+  //  handle adding a new product packing row
+  const handleRowAdd = useCallback((newId) => {
+    upsertProductPageData({
+      product_packings: [
+        {
+          id: newId,
+          product_id: pageData.id,
+        },
+      ],
+    });
+  }, []);
+
+  // Handle removing a product packing row
+  const handleRowRemove = useCallback((id) => {
+    upsertProductPageData({
+      product_packings: [
+        {
+          id: id,
+          _delete: true,
+        },
+      ],
+    });
+  }, []);
 
   return (
     <Main_InputContainer label="Packing Information">
@@ -48,12 +45,7 @@ const Main_Pack = () => {
         onRowAdd={handleRowAdd}
         onRowRemove={handleRowRemove}
       >
-        <Sub_PackRow
-          template_data={template_data}
-          packings={packings}
-          onChange={handlePackChange}
-          setRowRef={setRowRef}
-        />
+        <Sub_PackRow packings={pageData.product_packings || []} />
       </ControlRowBtn>
     </Main_InputContainer>
   );

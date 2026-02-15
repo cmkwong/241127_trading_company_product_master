@@ -189,8 +189,10 @@ export const upsertNestedData = (data, nestedStructure) => {
 
   // Process each top-level key in the nested structure
   for (const [tableName, items] of Object.entries(nestedStructure)) {
+    // If the value is not an array, treat it as a direct update
+    // This allows mixed updates of direct fields and nested arrays
     if (!Array.isArray(items)) {
-      console.warn(`${tableName} is not an array in nestedStructure`);
+      updatedData[tableName] = items;
       continue;
     }
 

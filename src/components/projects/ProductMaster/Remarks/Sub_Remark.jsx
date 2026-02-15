@@ -1,20 +1,20 @@
-import { useCallback, forwardRef } from 'react';
+import { useCallback } from 'react';
 import PropTypes from 'prop-types';
 import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
 
-const Sub_Remark = forwardRef(({ remark, onChange }, ref) => {
+const Sub_Remark = ({ remark, onChange }) => {
   const handleRemarkChange = useCallback(
-    ({ value }) => {
-      onChange('remark', value);
+    (ov, nv) => {
+      onChange('remark', nv);
     },
-    [onChange]
+    [onChange],
   );
 
   return (
-    <div ref={ref}>
+    <div>
       <Main_TextArea
         textareaId="product-remarks"
-        value={remark || ''}
+        defaultValue={remark || ''}
         onChange={handleRemarkChange}
         placeholder="Enter product remarks..."
         rows={5}
@@ -24,7 +24,7 @@ const Sub_Remark = forwardRef(({ remark, onChange }, ref) => {
       />
     </div>
   );
-});
+};
 
 Sub_Remark.propTypes = {
   remark: PropTypes.string,

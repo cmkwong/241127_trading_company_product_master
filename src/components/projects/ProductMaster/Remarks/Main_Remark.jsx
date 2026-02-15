@@ -1,24 +1,31 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
 import Sub_Remark from './Sub_Remark';
 import { useProductContext } from '../../../../store/ProductContext';
 
 const Main_Remark = () => {
-  const { pageData, updateProductPageData } = useProductContext();
+  const { pageData, upsertProductPageData } = useProductContext();
+
+  const [remark, setRemark] = useState(pageData.remark || '');
+  console.log('remark: ', remark);
+
+  useEffect(() => {
+    setRemark(pageData.remark || '');
+  }, [pageData]);
 
   const handleRemarkChange = useCallback(
-    (field, value) => {
-      updateProductPageData(field, value);
+    (ov, nv) => {
+      // Direct update of the remark field on the pageData object
+      upsertProductPageData({
+        remark: nv,
+      });
     },
-    [updateProductPageData]
+    [upsertProductPageData],
   );
 
   return (
     <Main_InputContainer label="Product Remarks">
-      <Sub_Remark
-        remark={pageData.remark || ''}
-        onChange={handleRemarkChange}
-      />
+      <Sub_Remark remark={remark || ''} onChange={handleRemarkChange} />
     </Main_InputContainer>
   );
 };

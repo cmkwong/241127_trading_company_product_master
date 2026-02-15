@@ -46,13 +46,9 @@ const Main_ProductIcon = ({ showMaxImagesNotice = false }) => {
       );
       for (let i = 0; i < addedImages.length; i++) {
         upsertProductPageData({
-          root: [
-            {
-              id: pageData.id,
-              icon_url: addedImages[i].url || '',
-              icon_name: addedImages[i].name || '',
-            },
-          ],
+          id: pageData.id,
+          icon_url: addedImages[i].url || '',
+          icon_name: addedImages[i].name || '',
         });
       }
     } else if (newImages.length < oldImages.length) {
@@ -62,13 +58,9 @@ const Main_ProductIcon = ({ showMaxImagesNotice = false }) => {
       );
       for (let i = 0; i < removedImages.length; i++) {
         upsertProductPageData({
-          root: [
-            {
-              id: pageData.id,
-              icon_url: '',
-              icon_name: '',
-            },
-          ],
+          id: pageData.id,
+          icon_url: '',
+          icon_name: '',
         });
       }
     }

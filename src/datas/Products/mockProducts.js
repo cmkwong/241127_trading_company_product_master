@@ -31,7 +31,7 @@ export const mockProducts = {
       icon_url:
         '/public/13649f12-f9b6-4abf-8a8c-b63fe2f11091/icon//9e9c3caf-97b4-440e-b7d1-528256d94cd1.png',
       hs_code: '39249000',
-      remark: 'Premium Non-Slip Dog Bowl - 2025 Model',
+      remark: 'Premium Non-Slip Dog Bowl - 2025-02-16 Model',
       created_at: '2026-01-24T12:28:27.000Z',
       updated_at: '2026-01-24T12:28:27.000Z',
       base64_image:

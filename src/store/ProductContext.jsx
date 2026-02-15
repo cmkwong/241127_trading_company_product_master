@@ -370,7 +370,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
       // Otherwise continue with creating a new product
     }
 
-    setPageData(mockProduct_template());
+    setPageData({ id: uuidv4() }); // Start with a new product with a generated ID
     return true;
   }, [pageData, isDataUnchanged]);
 

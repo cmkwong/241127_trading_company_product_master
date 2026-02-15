@@ -7,6 +7,13 @@ import { useProductContext } from '../../../../store/ProductContext';
 const Sub_ProductImagesRow = (props) => {
   const { imageData, rowindex } = props;
 
+  console.log(
+    'Rendering Sub_ProductImagesRow with imageData:',
+    imageData,
+    'and rowindex:',
+    rowindex,
+  );
+
   const [imageTypeId, setImageTypeId] = useState();
   const [defaultImages, setDefaultImages] = useState([]);
 
@@ -15,11 +22,12 @@ const Sub_ProductImagesRow = (props) => {
 
   // assign set default images when imageData changes
   useMemo(() => {
-    if (imageData && imageData.length === 0) return;
-    if (!imageData[rowindex]) return;
+    if ((imageData && imageData.length === 0) || !imageData[rowindex]) {
+      setDefaultImages([]);
+      return;
+    }
 
     setImageTypeId(imageData[rowindex].id);
-    console.log('image type id', imageData[rowindex].id);
     setDefaultImages(
       imageData[rowindex].images.map((el) => ({
         id: el.id,

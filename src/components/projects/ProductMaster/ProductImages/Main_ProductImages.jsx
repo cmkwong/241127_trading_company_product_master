@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import ControlRowBtn from '../../../common/ControlRowBtn';
 import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
 import { useProductContext } from '../../../../store/ProductContext';
@@ -8,8 +8,12 @@ import Sub_ProductImagesRow from './Sub_ProductImagesRow';
 const Main_ProductImages = (props) => {
   const { pageData } = useProductContext();
 
+  const [rowIds, setRowIds] = useState([]);
+
+  const [processedImageData, setProcessedImageData] = useState([]);
+
   // prepare the image data grouped by image_type_id
-  const [processedImageData, rowIds] = useMemo(() => {
+  useMemo(() => {
     let imageData = [];
     let distinctTypeIds;
     // getting distinct image type ids from pageData
@@ -19,6 +23,7 @@ const Main_ProductImages = (props) => {
           ...new Set(pageData.product_images.map((img) => img.image_type_id)),
         ];
       }
+      // group images by image_type_id and prepare the imageData for the component
       for (let i = 0; i < distinctTypeIds.length; i++) {
         let row = {};
         // let the image type id as the row id for now, can be changed to something else if needed
@@ -28,11 +33,16 @@ const Main_ProductImages = (props) => {
         );
         imageData.push(row);
       }
-      return [imageData, distinctTypeIds];
+      setProcessedImageData(imageData);
+      setRowIds(distinctTypeIds);
     } else {
-      return [[], []];
+      setProcessedImageData([]);
+      setRowIds([]);
     }
   }, [pageData]);
+
+  console.log('rowIds:', rowIds);
+  console.log('processedImageData:', processedImageData);
 
   const handleRowIdsChange = useCallback((newRowIds) => {
     // Handle any additional logic when row IDs change, if necessary

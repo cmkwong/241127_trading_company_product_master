@@ -19,14 +19,14 @@ const defaultProductName = [
 // The Sub_ProductNameRow component that receives props including rowindex from ControlRowBtn
 const Sub_ProductNameRow = (props) => {
   // Extract the props we need and ignore the rest to prevent passing them to DOM elements
-  const { product_names = [], rowindex = 0 } = props;
+  const { product_names = [], rowindex = 0, rowId } = props;
   const inputRef = useRef(null);
 
   const { productNameType } = useMasterContext();
   const { pageData, upsertProductPageData } = useProductContext();
 
   // Get the current product name data for this row, or use default values
-  const currentProduct = product_names[rowindex];
+  const currentProduct = product_names.find((d) => d.id === rowId);
 
   const [currentProductName, setCurrentProductName] = useState(
     currentProduct?.name,
@@ -42,7 +42,7 @@ const Sub_ProductNameRow = (props) => {
     upsertProductPageData({
       product_names: [
         {
-          id: currentProduct.id,
+          id: rowId,
           name: nv,
         },
       ],
@@ -54,7 +54,7 @@ const Sub_ProductNameRow = (props) => {
     upsertProductPageData({
       product_names: [
         {
-          id: currentProduct.id,
+          id: rowId,
           name_type_id: nv,
         },
       ],

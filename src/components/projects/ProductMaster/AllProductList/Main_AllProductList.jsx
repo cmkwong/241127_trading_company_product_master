@@ -6,19 +6,30 @@ import { useProductContext } from '../../../../store/ProductContext';
 
 const Main_AllProductList = ({ onSelectProduct }) => {
   const { getProductData, products, createNewProduct } = useProductContext();
-  const [filteredProducts, setFilteredProducts] = useState(products);
+
+  // Safely access the product list, handling both old (array) and new (object) structures
+  const productList = Array.isArray(products) 
+    ? products 
+    : (products?.products || []);
+
+  const [filteredProducts, setFilteredProducts] = useState(productList);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
 
   // Update filtered products when products from context or search term changes
   useEffect(() => {
+    // Re-derive productList inside effect to ensure we have latest version
+    const currentProductList = Array.isArray(products) 
+      ? products 
+      : (products?.products || []);
+
     if (!searchTerm.trim()) {
-      setFilteredProducts(products);
+      setFilteredProducts(currentProductList);
       return;
     }
 
     const lowerSearchTerm = searchTerm.toLowerCase();
-    const filtered = products.filter(
+    const filtered = currentProductList.filter(
       (product) =>
         (typeof product.product_names === 'string' &&
           product.product_names.toLowerCase().includes(lowerSearchTerm)) ||

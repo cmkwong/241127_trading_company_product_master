@@ -48,7 +48,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState(null);
-  const [products, setProducts] = useState(mockProducts['products']);
+  const [products, setProducts] = useState(mockProducts);
   const objectUrlRegistryRef = useRef([]);
 
   useEffect(() => {
@@ -60,14 +60,21 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
     releaseObjectUrls(objectUrlRegistryRef.current);
     const urlRegistry = [];
 
-    const processedProducts = mockProducts.products.map((product) =>
-      recursiveProcess_base64_to_objectUrl(
-        product,
-        'products',
-        mockProduct_base64_config,
-        urlRegistry,
-      ),
+    // Process the entire products object structure
+    let processedProducts = recursiveProcess_base64_to_objectUrl(
+      mockProducts,
+      'root',
+      mockProduct_base64_config,
+      urlRegistry,
     );
+
+    // Ensure we have a valid products structure, fallback to mockProducts if processing failed
+    if (!processedProducts || !processedProducts.products || !Array.isArray(processedProducts.products)) {
+      console.warn('Product processing failed or returned invalid structure, falling back to raw mock products');
+      processedProducts = mockProducts;
+    }
+
+    console.log('ProductContext initialized products:', processedProducts);
 
     setProducts(processedProducts);
     objectUrlRegistryRef.current = urlRegistry;
@@ -86,7 +93,8 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
     }
 
     // Find the corresponding product in the products array
-    const existingProduct = products.find((p) => p.id === pageData.id);
+    if (!products.products) return false;
+    const existingProduct = products.products.find((p) => p.id === pageData.id);
 
     // If product doesn't exist in the list, data is changed
     if (!existingProduct) {
@@ -194,7 +202,8 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
 
         // When loading into pageData, always search the products array
         // Filter products that match ALL conditions (AND logic)
-        const matchingProducts = products.filter((product) => {
+        if (!products.products) return false;
+        const matchingProducts = products.products.filter((product) => {
           return Object.keys(condition).every(
             (key) => product[key] === condition[key],
           );
@@ -287,14 +296,17 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
     }));
   }, []);
 
-  // Function to get all products
+  // Function to get all products - now returns the products array from state
   const getAllProducts = useCallback(() => {
-    return products;
+    return products.products || [];
   }, [products]);
 
-  // Function to update products list
-  const updateProducts = useCallback((newProducts) => {
-    setProducts(newProducts);
+  // Function to update products list - expects an array of products
+  const updateProducts = useCallback((newProductsList) => {
+    setProducts(prevState => ({
+      ...prevState,
+      products: newProductsList
+    }));
   }, []);
 
   // Function to handle save action with built-in product list update
@@ -311,26 +323,32 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
 
         // Always update the products list if the saved product has an ID
         if (pageData.id) {
-          setProducts((prevProducts) => {
-            const updatedProducts = [...prevProducts];
-            const existingIndex = updatedProducts.findIndex(
+          setProducts((prevProductsState) => {
+            // Check if products array exists in state, fallback to empty array if not
+            const currentProductsList = prevProductsState.products || [];
+            const updatedProductsList = [...currentProductsList];
+            
+            const existingIndex = updatedProductsList.findIndex(
               (p) => p.id === pageData.id,
             );
 
             if (existingIndex !== -1) {
               // Update existing product
-              updatedProducts[existingIndex] = {
-                ...updatedProducts[existingIndex],
+              updatedProductsList[existingIndex] = {
+                ...updatedProductsList[existingIndex],
                 ...pageData,
               };
             } else {
               // Add new product
-              updatedProducts.push({
+              updatedProductsList.push({
                 ...pageData,
               });
             }
 
-            return updatedProducts;
+            return {
+              ...prevProductsState,
+              products: updatedProductsList,
+            };
           });
         }
 

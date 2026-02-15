@@ -167,7 +167,20 @@ export const recursiveProcess_base64_to_objectUrl = (
         };
       }
 
-      if (value && typeof value === 'object') {
+      // Only process objects if they correspond to a key in our config or if we want deep traversal
+      // To prevent infinite recursion and processing unnecessary objects, we can check if the key is potentially relevant
+      // or strictly rely on the config structure.
+      // For now, let's just make sure we don't process nulls or non-objects (already checked above)
+      // AND importantly, don't re-process the key we just added (the URL key).
+      // But the URL key value is string, so it won't pass typeof === object.
+
+      // The real issue might be cyclic references or just deep structures.
+      // Let's add a check to only recurse if the value is an array or a plain object.
+      if (
+        value &&
+        typeof value === 'object' &&
+        value.constructor === Object
+      ) {
         return {
           ...accumulator,
           [childKey]: recursiveProcess_base64_to_objectUrl(

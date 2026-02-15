@@ -103,6 +103,7 @@ const Main_ProductIcon = ({ showMaxImagesNotice = false }) => {
           placeholder={'Product ID'}
           defaultValue={id}
           onChange={handleProductIdChange}
+          disabled={true} // Product ID is typically not editable, set to true to disable
         />
       </div>
     </Main_InputContainer>

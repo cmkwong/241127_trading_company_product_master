@@ -5,7 +5,6 @@ import Main_InputContainer from '../../../common/InputOptions/InputContainer/Mai
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
 import { useProductContext } from '../../../../store/ProductContext';
 import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_FileUploads';
-import { objectUrlToDataUri } from '../../../../utils/objectUrlUtils';
 
 /**
  * Main_ProductIcon Component
@@ -19,7 +18,7 @@ const Main_ProductIcon = ({ showMaxImagesNotice = false }) => {
   const [defaultImages, setDefaultImages] = useState([]);
 
   // Process the image URL from pageData
-  useMemo(() => {
+  useEffect(() => {
     setId(pageData.id || '');
 
     const hasIconUrl =
@@ -34,6 +33,8 @@ const Main_ProductIcon = ({ showMaxImagesNotice = false }) => {
           name: pageData?.icon_name || 'product-icon',
         },
       ]);
+    } else {
+      setDefaultImages([]);
     }
   }, [pageData.id, pageData.icon_url, pageData.icon_name]);
 
@@ -46,7 +47,6 @@ const Main_ProductIcon = ({ showMaxImagesNotice = false }) => {
       );
       for (let i = 0; i < addedImages.length; i++) {
         upsertProductPageData({
-          id: pageData.id,
           icon_url: addedImages[i].url || '',
           icon_name: addedImages[i].name || '',
         });
@@ -58,7 +58,6 @@ const Main_ProductIcon = ({ showMaxImagesNotice = false }) => {
       );
       for (let i = 0; i < removedImages.length; i++) {
         upsertProductPageData({
-          id: pageData.id,
           icon_url: '',
           icon_name: '',
         });

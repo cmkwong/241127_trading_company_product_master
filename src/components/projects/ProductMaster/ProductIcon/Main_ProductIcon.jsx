@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import styles from './Main_ProductIcon.module.css';
 import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
@@ -22,7 +22,7 @@ const Main_ProductIcon = ({
   const [defaultImages, setDefaultImages] = useState([]);
 
   // Process the image URL from pageData
-  useEffect(() => {
+  useMemo(() => {
     setId(pageData.id || '');
 
     const hasIconUrl =
@@ -38,12 +38,7 @@ const Main_ProductIcon = ({
         },
       ]);
     }
-  }, [
-    pageData.id,
-    pageData.icon_url,
-    pageData.base64_image,
-    pageData.icon_name,
-  ]);
+  }, [pageData.id, pageData.icon_url, pageData.icon_name]);
 
   // Handle image changes from the ImageUpload component
   const handleImageChange = async (_, updatedImages) => {
@@ -106,7 +101,7 @@ const Main_ProductIcon = ({
         </div>
         <Main_TextField
           placeholder={'Product ID'}
-          value={id}
+          defaultValue={id}
           onChange={handleProductIdChange}
         />
       </div>

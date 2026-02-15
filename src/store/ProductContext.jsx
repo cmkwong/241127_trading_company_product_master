@@ -7,7 +7,6 @@ import {
   useRef,
 } from 'react';
 import {
-  mockProduct_template,
   mockProducts,
   mockProduct_base64_config,
 } from '../datas/Products/mockProducts';

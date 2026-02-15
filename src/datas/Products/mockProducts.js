@@ -15,58 +15,6 @@ const getFormattedTimestamp = (secondNeed = true) => {
   }
 };
 
-export const mockProduct_template = () => {
-  const template = {
-    id: `${uuidv4()}`,
-    iconUrl: '',
-    product_names: [
-      { id: `product-name-${getFormattedTimestamp()}`, name: '', type: 1 },
-    ],
-    category: [],
-    customizations: [
-      {
-        id: `customization-${getFormattedTimestamp()}`,
-        code: '',
-        remark: '',
-        images: [],
-      },
-    ],
-    productLinks: [
-      {
-        id: `product-link-${getFormattedTimestamp()}`,
-        link: '',
-        images: [],
-        remark: '',
-        date: new Date().toISOString().split('T')[0],
-      },
-    ],
-    product_alibaba_ids: [
-      { id: `alibaba-ids-${getFormattedTimestamp()}`, value: '', link: '' },
-    ],
-    packings: [
-      {
-        id: `packings-${getFormattedTimestamp()}`,
-        L: 0,
-        W: 0,
-        H: 0,
-        qty: 1,
-        kg: 0,
-        type: 1,
-      },
-    ],
-    certificates: [
-      {
-        id: `certificates-${getFormattedTimestamp()}`,
-        type: 1,
-        files: [],
-        remark: '',
-      },
-    ],
-    remark: '',
-  };
-  return template;
-};
-
 export const mockProduct_base64_config = {
   products: { url: 'icon_url', base64: 'base64_image' },
   product_images: { url: 'image_url', base64: 'base64_image' },

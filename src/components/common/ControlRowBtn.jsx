@@ -33,15 +33,9 @@ const ControlRowBtn = (props) => {
       const newRows = rowIds.map((id) => ({ id }));
       setRows(newRows);
     } else {
-      setRows(
-        Array(initialRowCount)
-          .fill(null)
-          .map(() => ({
-            id: uuidv4(),
-          })),
-      );
+      setRows([]);
     }
-  }, [rowIds, initialRowCount]);
+  }, [rowIds]);
 
   const handleAddRow = () => {
     // Generate a new unique ID
@@ -65,7 +59,7 @@ const ControlRowBtn = (props) => {
   };
 
   const handleRemoveRow = (rowId) => {
-    if (rows.length <= 1) return; // Don't remove the last row
+    // if (rows.length <= 1) return; // Don't remove the last row
 
     const newRows = rows.filter((row) => row.id !== rowId);
     setRows(newRows);
@@ -83,43 +77,56 @@ const ControlRowBtn = (props) => {
 
   return (
     <div className={styles.controlRowWrapper}>
-      {rows.map((row, rowindex) => {
-        const isLastRow = rowindex === rows.length - 1;
-
-        return (
-          <div key={row.id} className={styles.controlRowContainer}>
-            <div className={styles.rowNumberContainer}>
-              <span className={styles.rowNumber}>{rowindex + 1}</span>
-            </div>
-            <div className={styles.buttonsContainer}>
-              <button
-                className={styles.removeButton}
-                onClick={() => handleRemoveRow(row.id)}
-              >
-                -
-              </button>
-              {/* Only show add button in the last row */}
-              {isLastRow && (
-                <button className={styles.addButton} onClick={handleAddRow}>
-                  +
-                </button>
-              )}
-            </div>
-            <div className={styles.childrenContainer}>
-              {Children.map(children, (child, index) => {
-                if (!child) return null;
-
-                // Pass both rowindex and rowId to child
-                return cloneElement(child, {
-                  key: `${row.id}-${index}`,
-                  rowindex: rowindex,
-                  rowId: row.id,
-                });
-              })}
-            </div>
+      {rows.length === 0 ? (
+        <div className={styles.controlRowContainer}>
+          <div className={styles.rowNumberContainer}>
+            <span className={styles.rowNumber}>0</span>
           </div>
-        );
-      })}
+          <div className={styles.buttonsContainer}>
+            <button className={styles.addButton} onClick={handleAddRow}>
+              +
+            </button>
+          </div>
+        </div>
+      ) : (
+        rows.map((row, rowindex) => {
+          const isLastRow = rowindex === rows.length - 1;
+
+          return (
+            <div key={row.id} className={styles.controlRowContainer}>
+              <div className={styles.rowNumberContainer}>
+                <span className={styles.rowNumber}>{rowindex + 1}</span>
+              </div>
+              <div className={styles.buttonsContainer}>
+                <button
+                  className={styles.removeButton}
+                  onClick={() => handleRemoveRow(row.id)}
+                >
+                  -
+                </button>
+                {/* Only show add button in the last row */}
+                {isLastRow && (
+                  <button className={styles.addButton} onClick={handleAddRow}>
+                    +
+                  </button>
+                )}
+              </div>
+              <div className={styles.childrenContainer}>
+                {Children.map(children, (child, index) => {
+                  if (!child) return null;
+
+                  // Pass both rowindex and rowId to child
+                  return cloneElement(child, {
+                    key: `${row.id}-${index}`,
+                    rowindex: rowindex,
+                    rowId: row.id,
+                  });
+                })}
+              </div>
+            </div>
+          );
+        })
+      )}
     </div>
   );
 };

@@ -7,10 +7,10 @@ import ProductIcon from './ProductIcon';
 import ProductInfo from './ProductInfo';
 
 const ProductItem = ({ product, isSelected, onClick }) => {
-  const productName = product.product_names[0].name; // assume the first name is the main one
+  const productName = product.product_names?.[0]?.name; // assume the first name is the main one
   const id = product.id;
   const categoryLabels = getLabelsFromLookup(
-    product.product_categories.map((c) => c.category_id),
+    product.product_categories?.map((c) => c.category_id) || [],
     mockCategory,
   );
 

@@ -27,7 +27,11 @@ const Sub_ProductImagesRow = (props) => {
       return;
     }
 
-    setImageTypeId(imageData[rowindex].id);
+    setImageTypeId(
+      imageData[rowindex].images?.length > 0
+        ? imageData[rowindex].images[0].image_type_id
+        : undefined,
+    );
     setDefaultImages(
       imageData[rowindex].images.map((el) => ({
         id: el.id,

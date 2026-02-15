@@ -11,11 +11,8 @@ import { objectUrlToDataUri } from '../../../../utils/objectUrlUtils';
  * Main_ProductIcon Component
  * Allows selection and display of a single product image
  */
-const Main_ProductIcon = ({
-  onChange = () => {},
-  showMaxImagesNotice = false,
-}) => {
-  const { pageData, updateProductPageData } = useProductContext();
+const Main_ProductIcon = ({ showMaxImagesNotice = false }) => {
+  const { pageData, upsertProductPageData } = useProductContext();
 
   // product ID state setup
   const [id, setId] = useState(pageData.id || '');
@@ -41,28 +38,40 @@ const Main_ProductIcon = ({
   }, [pageData.id, pageData.icon_url, pageData.icon_name]);
 
   // Handle image changes from the ImageUpload component
-  const handleImageChange = async (_, updatedImages) => {
-    // Get the first image if it exists
-    const newImage =
-      updatedImages && updatedImages.length > 0 ? updatedImages[0] : null;
-    console.log('New image selected: ', newImage);
-    // Update the context with the new image
-    if (!newImage) {
-      updateProductPageData('root', {
-        icon_url: '',
-        base64_image: '',
-        icon_name: '',
-      });
-      return;
+  const handleImageChange = async (oldImages, newImages) => {
+    if (newImages.length > oldImages.length) {
+      // New image added
+      const addedImages = newImages.filter(
+        (img) => !oldImages.some((oldImg) => oldImg.id === img.id),
+      );
+      for (let i = 0; i < addedImages.length; i++) {
+        upsertProductPageData({
+          root: [
+            {
+              id: pageData.id,
+              icon_url: addedImages[i].url || '',
+              icon_name: addedImages[i].name || '',
+            },
+          ],
+        });
+      }
+    } else if (newImages.length < oldImages.length) {
+      // Image removed, handle deletion in context
+      const removedImages = oldImages.filter(
+        (img) => !newImages.some((newImg) => newImg.id === img.id),
+      );
+      for (let i = 0; i < removedImages.length; i++) {
+        upsertProductPageData({
+          root: [
+            {
+              id: pageData.id,
+              icon_url: '',
+              icon_name: '',
+            },
+          ],
+        });
+      }
     }
-    updateProductPageData('root', {
-      icon_url: newImage.url || '',
-      base64_image: (await objectUrlToDataUri(newImage.file)) || '',
-      icon_name: newImage.name || '',
-    });
-
-    // Call the onChange prop
-    onChange(newImage);
   };
 
   // Handle errors from the ImageUpload component
@@ -74,7 +83,7 @@ const Main_ProductIcon = ({
   // Handle product ID changes
   const handleProductIdChange = (value) => {
     setId(value);
-    updateProductPageData('root', { id: value });
+    upsertProductPageData({ root: [{ id: value }] });
   };
 
   return (

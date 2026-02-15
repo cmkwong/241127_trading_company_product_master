@@ -24,20 +24,22 @@ const Main_ProductLink = () => {
   const handleRowIdsChange = useCallback(() => {}, []);
 
   // Handle adding a new product link row
-  const handleRowAdd = useCallback(() => {
-    const newId = uuidv4();
-    const newLink = {
-      id: newId,
-      product_id: pageData.id,
-      link: '',
-      remark: '',
-      product_link_images: [],
-    };
-    upsertProductPageData({
-      product_links: [newLink],
-    });
-    setRowIds((prevIds) => [...prevIds, newId]);
-  }, [pageData.id, upsertProductPageData]);
+  const handleRowAdd = useCallback(
+    (newId) => {
+      const newLink = {
+        id: newId,
+        product_id: pageData.id,
+        link: '',
+        remark: '',
+        product_link_images: [],
+      };
+      upsertProductPageData({
+        product_links: [newLink],
+      });
+      setRowIds((prevIds) => [...prevIds, newId]);
+    },
+    [pageData.id, upsertProductPageData],
+  );
 
   // Handle removing a product link row
   const handleRowRemove = useCallback(

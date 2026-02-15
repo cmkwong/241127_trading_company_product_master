@@ -11,7 +11,6 @@ import Main_ProductIcon from './ProductIcon/Main_ProductIcon';
 import Main_CertificateData from './CertificateData/Main_CertificateData';
 import SavePageWithProvider from './SavePage/Main_SavePage';
 import ProductSidebar from './AllProductList/ProductSidebar';
-import { mockProduct_template } from '../../../datas/Products/mockProducts';
 import Main_ProductImages from './ProductImages/Main_ProductImages';
 
 const Main_ProductMaster = () => {
@@ -46,7 +45,13 @@ const Main_ProductMaster = () => {
       onSave={onSaveProduct}
       saveButtonText="Save Product"
       successMessage="Product saved successfully!"
-      initialData={selectedProduct || mockProduct_template()}
+      initialData={
+        selectedProduct || {
+          id: null,
+          name: '',
+          icon_url: '',
+        }
+      }
     >
       <div className={styles.masterContainer}>
         <ProductSidebar

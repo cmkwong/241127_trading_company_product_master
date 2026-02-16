@@ -71,12 +71,6 @@ const Main_ProductIcon = ({ showMaxImagesNotice = false }) => {
     // You could show a toast notification or alert here
   };
 
-  // Handle product ID changes
-  const handleProductIdChange = (value) => {
-    setId(value);
-    upsertProductPageData({ root: [{ id: value }] });
-  };
-
   return (
     <Main_InputContainer label="Product Icon">
       <div className={styles.productIconContainer}>
@@ -96,13 +90,13 @@ const Main_ProductIcon = ({ showMaxImagesNotice = false }) => {
               'image/webp',
             ]}
             maxSizeInMB={5}
-            showMaxImagesNotice={showMaxImagesNotice}
+            showMaxItemsNotice={showMaxImagesNotice}
           />
         </div>
         <Main_TextField
           placeholder={'Product ID'}
           defaultValue={id}
-          onChange={handleProductIdChange}
+          onChange={() => {}}
           disabled={true} // Product ID is typically not editable, set to true to disable
         />
       </div>

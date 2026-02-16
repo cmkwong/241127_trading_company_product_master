@@ -98,6 +98,15 @@ const Sub_FileItem = ({
   if (dropPosition === 'left') shiftClass = styles.shiftRight;
   if (dropPosition === 'right') shiftClass = styles.shiftLeft;
 
+  const handlePreview = () => {
+    if (file.url) {
+      window.open(file.url, '_blank');
+    } else if (file.file) {
+      const url = URL.createObjectURL(file.file);
+      window.open(url, '_blank');
+    }
+  };
+
   // Render as image preview
   if (isImagePreview) {
     const name = file.name || 'Unknown file';
@@ -114,7 +123,9 @@ const Sub_FileItem = ({
         onDragLeave={handleDragLeave}
         onDragOver={handleDragOver}
         onDrop={handleDrop}
+        onClick={handlePreview}
         title={onMove ? 'Drag to reorder' : name}
+        style={{ cursor: 'pointer' }}
       >
         {dropPosition === 'left' && (
           <div className={styles.dropIndicatorLeft} />
@@ -162,6 +173,8 @@ const Sub_FileItem = ({
       onDragOver={handleDragOver}
       onDrop={handleDrop}
       title={onMove ? 'Drag to reorder' : file.name}
+      onClick={handlePreview}
+      style={{ cursor: 'pointer' }}
     >
       {dropPosition === 'left' && <div className={styles.dropIndicatorLeft} />}
       {dropPosition === 'right' && (
@@ -185,7 +198,10 @@ const Sub_FileItem = ({
       </div>
       <button
         className={styles.removeButton}
-        onClick={() => onRemove()}
+        onClick={(e) => {
+          e.stopPropagation();
+          onRemove();
+        }}
         disabled={disabled}
         aria-label={`Remove ${file.name}`}
       >

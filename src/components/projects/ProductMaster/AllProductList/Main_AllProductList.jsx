@@ -63,7 +63,7 @@ const Main_AllProductList = ({ onSelectProduct }) => {
         { id: product.id },
         true,
       );
-      console.log('getProductDataSuccess:', getProductDataSuccess);
+
       if (getProductDataSuccess) {
         setSelectedProduct(product);
         // Call the parent component's handler if provided

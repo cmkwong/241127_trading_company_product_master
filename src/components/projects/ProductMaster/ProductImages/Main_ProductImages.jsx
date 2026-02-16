@@ -14,9 +14,9 @@ const Main_ProductImages = (props) => {
   const [processedImageData, setProcessedImageData] = useState([]);
 
   // prepare the image data grouped by image_type_id
-  useMemo(() => {
+  useEffect(() => {
     let imageData = [];
-    let distinctTypeIds;
+    let distinctTypeIds = [];
     // getting distinct image type ids from pageData
     if (pageData && pageData.product_images) {
       if (pageData.product_images) {
@@ -26,18 +26,23 @@ const Main_ProductImages = (props) => {
       }
 
       // group images by image_type_id and prepare the imageData for the component
+      const validRowIds = [];
       for (let i = 0; i < distinctTypeIds.length; i++) {
         let row = {};
-        // if (!distinctTypeIds[i]) continue; // skip if image_type_id is null or undefined
-        // let the image type id as the row id for now, can be changed to something else if needed
-        row['id'] = uuidv4();
+        // Use a generated ID if type ID is missing, but ensure it's stable within this render cycle?
+        // Actually, we should probably filter out empty type IDs or handle them specifically.
+        // For now, let's just ensure we have valid string IDs.
+        const currentId = distinctTypeIds[i] || `temp-${uuidv4()}`; 
+        
+        row['id'] = currentId;
         row['images'] = pageData.product_images.filter(
           (d) => d.image_type_id === distinctTypeIds[i],
         );
         imageData.push(row);
+        validRowIds.push(currentId);
       }
       setProcessedImageData(imageData);
-      setRowIds(distinctTypeIds);
+      setRowIds(validRowIds);
     } else {
       setProcessedImageData([]);
       setRowIds([]);

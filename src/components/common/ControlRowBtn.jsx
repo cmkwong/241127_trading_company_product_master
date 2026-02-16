@@ -19,13 +19,14 @@ const ControlRowBtn = (props) => {
       return rowIds.map((id) => ({ id }));
     } else {
       // Create default rows with generated IDs
-      const id = uuidv4();
       return Array(initialRowCount)
         .fill(null)
-        .map(() => ({
-          key: id,
-          id: id,
-        }));
+        .map(() => {
+          const id = uuidv4();
+          return {
+            id: id,
+          };
+        });
     }
   });
 

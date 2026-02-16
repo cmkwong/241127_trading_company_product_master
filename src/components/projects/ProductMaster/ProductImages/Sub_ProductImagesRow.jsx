@@ -86,21 +86,38 @@ const Sub_ProductImagesRow = (props) => {
   // handle image type change
   const handleImageTypeChange = useCallback(
     (ov, nv) => {
-      setImageTypeId(nv);
       // finding required image id
       const ids = pageData.product_images
-        .filter((d) => d.image_type_id === ov)
+        .filter((d) => d.image_type_id === ov || (!ov && !d.image_type_id))
         .map((d) => d.id);
-      for (let i = 0; i < ids.length; i++) {
-        upsertProductPageData({
-          product_images: [
-            {
-              id: ids[i], // Assuming all images in the row have the same image_type_id, we can use the first image's id for the update
-              product_id: pageData.id,
-              image_type_id: nv,
-            },
-          ],
-        });
+
+      // check if nv is currently used by other images, if yes, we need to update those images to avoid duplicate image type id issue, if no, we can just update the current images with the new image type id
+      const isNvUsed = pageData.product_images.some(
+        (d) => d.image_type_id === nv,
+      );
+      let confirmSwitch = false;
+      if (isNvUsed) {
+        confirmSwitch = window.confirm(
+          'The selected image type is currently used by other images. Do you want to switch the image type? This will update all images using this image type to the new image type.',
+        );
+      }
+      if (isNvUsed && !confirmSwitch) {
+        // if user cancel the switch, we need to reset the image type id to the previous value
+        setImageTypeId(ov);
+        return;
+      } else {
+        setImageTypeId(nv);
+        for (let i = 0; i < ids.length; i++) {
+          upsertProductPageData({
+            product_images: [
+              {
+                id: ids[i], // Assuming all images in the row have the same image_type_id, we can use the first image's id for the update
+                product_id: pageData.id,
+                image_type_id: nv,
+              },
+            ],
+          });
+        }
       }
     },
     [pageData.product_images, upsertProductPageData, pageData.id],

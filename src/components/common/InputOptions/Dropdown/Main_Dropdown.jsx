@@ -55,7 +55,6 @@ const Main_Dropdown = (props) => {
   // Sync internal state with defaultSelectedOption when it changes
   useEffect(() => {
     setSelectedValue(defaultSelectedOption);
-    console.log('drop down props change: ', { defaultSelectedOption });
     // if (defaultSelectedOption !== selected) {
     //   console.log('re-set again: ', { defaultSelectedOption, selected });
     // }

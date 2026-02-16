@@ -4,6 +4,7 @@
   width: 100%;
   height: 100%;
   background-color: #f5f5f5;
+  overflow: hidden; /* Ensure container itself doesn't scroll */
 }
 
 /* New container for search bar and create button */
@@ -48,7 +49,8 @@
   flex: 1;
   overflow-y: auto;
   padding: 8px 0;
-  height: calc(100% - 60px); /* Adjust based on search container height */
+  /* height: calc(100% - 60px); Remove fixed height calc, rely on flex */
+  min-height: 0; /* Critical for nested flex scrolling */
 }
 
 /* Custom scrollbar for webkit browsers */

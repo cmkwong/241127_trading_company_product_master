@@ -103,15 +103,6 @@ const Sub_ProductImagesRow = (props) => {
       }
       if (isNvUsed && !confirmSwitch) {
         // if user cancel the switch, we need to reset the image type id to the previous value
-        const ovLabel =
-          productImageType.find((opt) => opt.id === ov)?.name || ov;
-        const nvLabel =
-          productImageType.find((opt) => opt.id === nv)?.name || nv;
-        console.log('User cancelled the image type switch: ', {
-          from: ovLabel,
-          to: nvLabel,
-        });
-
         // Force reset
         setImageTypeId(null);
         setTimeout(() => {

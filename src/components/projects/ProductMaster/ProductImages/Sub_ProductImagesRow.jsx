@@ -103,10 +103,24 @@ const Sub_ProductImagesRow = (props) => {
       }
       if (isNvUsed && !confirmSwitch) {
         // if user cancel the switch, we need to reset the image type id to the previous value
-        setImageTypeId(ov);
+        const ovLabel =
+          productImageType.find((opt) => opt.id === ov)?.name || ov;
+        const nvLabel =
+          productImageType.find((opt) => opt.id === nv)?.name || nv;
+        console.log('User cancelled the image type switch: ', {
+          from: ovLabel,
+          to: nvLabel,
+        });
+
+        // Force reset
+        setImageTypeId(null);
+        setTimeout(() => {
+          setImageTypeId(ov);
+        }, 0);
         return;
       } else {
         setImageTypeId(nv);
+        console.log('set nv as new image type id: ', nv);
         for (let i = 0; i < ids.length; i++) {
           upsertProductPageData({
             product_images: [
@@ -120,7 +134,12 @@ const Sub_ProductImagesRow = (props) => {
         }
       }
     },
-    [pageData.product_images, upsertProductPageData, pageData.id],
+    [
+      pageData.product_images,
+      upsertProductPageData,
+      pageData.id,
+      productImageType,
+    ],
   );
 
   return (
@@ -142,3 +161,23 @@ const Sub_ProductImagesRow = (props) => {
 };
 
 export default Sub_ProductImagesRow;
+
+/*
+Q: 
+But the old value is: 
+User cancelled the image type switch:  {from: 'Amazon', to: '1688'}
+
+Why did not update back to Amazon?
+
+A:
+The reason setImageTypeId(ov) (or Amazon) might not visually revert the dropdown back to "Amazon" is likely because the Main_Dropdown component's internal state mechanism isn't picking up the change.
+
+When you call setImageTypeId(ov), you are setting the state to what it already was ("Amazon").
+React's diffing algorithm sees:
+
+Current State: "Amazon"
+New State: "Amazon"
+Because the value is identical, React skips the re-render for Sub_ProductImagesRow. Consequently, Main_Dropdown receives the same props as the previous render cycle.
+
+The Main_Dropdown component relies on its useEffect hook to sync its internal state with the defaultSelectedOption prop.
+*/

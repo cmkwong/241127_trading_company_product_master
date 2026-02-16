@@ -42,11 +42,6 @@ const Main_Dropdown = (props) => {
   const [options, setOptions] = useState(defaultOptions);
   const [selected, setSelectedValue] = useState(defaultSelectedOption);
 
-  // Sync internal state with defaultSelectedOption when it changes
-  useEffect(() => {
-    setSelectedValue(defaultSelectedOption);
-  }, [defaultSelectedOption]);
-
   // Handle selection change
   const setSelected = useCallback(
     (newSelected) => {
@@ -56,6 +51,15 @@ const Main_Dropdown = (props) => {
     },
     [onChange, selected],
   );
+
+  // Sync internal state with defaultSelectedOption when it changes
+  useEffect(() => {
+    setSelectedValue(defaultSelectedOption);
+    console.log('drop down props change: ', { defaultSelectedOption });
+    // if (defaultSelectedOption !== selected) {
+    //   console.log('re-set again: ', { defaultSelectedOption, selected });
+    // }
+  }, [defaultSelectedOption]);
 
   // Dropdown props
   const dropdownProps = useMemo(

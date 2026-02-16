@@ -7,13 +7,6 @@ import { useProductContext } from '../../../../store/ProductContext';
 const Sub_ProductImagesRow = (props) => {
   const { imageData, rowindex } = props;
 
-  console.log(
-    'Rendering Sub_ProductImagesRow with imageData:',
-    imageData,
-    'and rowindex:',
-    rowindex,
-  );
-
   const [imageTypeId, setImageTypeId] = useState();
   const [defaultImages, setDefaultImages] = useState([]);
 

@@ -7,7 +7,6 @@ const Main_Remark = () => {
   const { pageData, upsertProductPageData } = useProductContext();
 
   const [remark, setRemark] = useState(pageData.remark || '');
-  console.log('remark: ', remark);
 
   useEffect(() => {
     setRemark(pageData.remark || '');

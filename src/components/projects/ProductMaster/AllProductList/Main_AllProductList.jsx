@@ -8,9 +8,9 @@ const Main_AllProductList = ({ onSelectProduct }) => {
   const { getProductData, products, createNewProduct } = useProductContext();
 
   // Safely access the product list, handling both old (array) and new (object) structures
-  const productList = Array.isArray(products) 
-    ? products 
-    : (products?.products || []);
+  const productList = Array.isArray(products)
+    ? products
+    : products?.products || [];
 
   const [filteredProducts, setFilteredProducts] = useState(productList);
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -19,9 +19,9 @@ const Main_AllProductList = ({ onSelectProduct }) => {
   // Update filtered products when products from context or search term changes
   useEffect(() => {
     // Re-derive productList inside effect to ensure we have latest version
-    const currentProductList = Array.isArray(products) 
-      ? products 
-      : (products?.products || []);
+    const currentProductList = Array.isArray(products)
+      ? products
+      : products?.products || [];
 
     if (!searchTerm.trim()) {
       setFilteredProducts(currentProductList);
@@ -57,14 +57,21 @@ const Main_AllProductList = ({ onSelectProduct }) => {
 
   const handleProductSelect = useCallback(
     (product) => {
-      setSelectedProduct(product);
-
       // Use the getProductData function to load all product data
-      getProductData('root', { id: product.id }, true);
-
-      // Call the parent component's handler if provided
-      if (onSelectProduct) {
-        onSelectProduct(product);
+      const getProductDataSuccess = getProductData(
+        'root',
+        { id: product.id },
+        true,
+      );
+      console.log('getProductDataSuccess:', getProductDataSuccess);
+      if (getProductDataSuccess) {
+        setSelectedProduct(product);
+        // Call the parent component's handler if provided
+        if (onSelectProduct) {
+          onSelectProduct(product);
+        }
+      } else {
+        setSelectedProduct((prev) => prev);
       }
     },
     [getProductData, onSelectProduct],

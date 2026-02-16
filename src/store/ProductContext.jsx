@@ -69,12 +69,16 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
     );
 
     // Ensure we have a valid products structure, fallback to mockProducts if processing failed
-    if (!processedProducts || !processedProducts.products || !Array.isArray(processedProducts.products)) {
-      console.warn('Product processing failed or returned invalid structure, falling back to raw mock products');
+    if (
+      !processedProducts ||
+      !processedProducts.products ||
+      !Array.isArray(processedProducts.products)
+    ) {
+      console.warn(
+        'Product processing failed or returned invalid structure, falling back to raw mock products',
+      );
       processedProducts = mockProducts;
     }
-
-    console.log('ProductContext initialized products:', processedProducts);
 
     setProducts(processedProducts);
     objectUrlRegistryRef.current = urlRegistry;
@@ -216,7 +220,6 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
 
         const requiredProduct = matchingProducts[0];
         setPageData(requiredProduct);
-        console.log('loaded product:', requiredProduct);
         return true;
       }
 
@@ -303,9 +306,9 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
 
   // Function to update products list - expects an array of products
   const updateProducts = useCallback((newProductsList) => {
-    setProducts(prevState => ({
+    setProducts((prevState) => ({
       ...prevState,
-      products: newProductsList
+      products: newProductsList,
     }));
   }, []);
 
@@ -327,7 +330,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
             // Check if products array exists in state, fallback to empty array if not
             const currentProductsList = prevProductsState.products || [];
             const updatedProductsList = [...currentProductsList];
-            
+
             const existingIndex = updatedProductsList.findIndex(
               (p) => p.id === pageData.id,
             );

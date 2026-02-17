@@ -21,6 +21,8 @@ import {
   readFromTable,
   upsertNestedData,
 } from '../utils/crudObj';
+import { apiGet } from '../utils/crud';
+import { useAuthContext } from './AuthContext';
 import { v4 as uuidv4 } from 'uuid';
 
 // Create context for data collection
@@ -44,50 +46,78 @@ const PRODUCT_COMPARISON_KEYS = [
 
 // Provider component for save page data
 export const ProductContext_Provider = ({ children, initialData = {} }) => {
+  const { token } = useAuthContext();
   const [pageData, setPageData] = useState(initialData);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState(null);
-  const [products, setProducts] = useState(mockProducts);
+  const [products, setProducts] = useState({ products: [] });
+  const [isProductsLoading, setIsProductsLoading] = useState(false);
   const objectUrlRegistryRef = useRef([]);
 
   useEffect(() => {
-    if (typeof window === 'undefined') {
-      return () => {};
+    // If no token, we can't fetch. Reset products or keep existing?
+    if (!token) {
+      setProducts({ products: [] });
+      return;
     }
 
-    // Clear any previously created object URLs before regenerating new ones.
-    releaseObjectUrls(objectUrlRegistryRef.current);
-    const urlRegistry = [];
+    const fetchProducts = async () => {
+      setIsProductsLoading(true);
+      try {
+        const response = await apiGet(
+          'http://localhost:3001/api/v1/products/data',
+          {
+            token,
+            params: {
+              includeBase64: '1',
+              // compress: '1',
+            },
+          },
+        );
 
-    // Process the entire products object structure
-    let processedProducts = recursiveProcess_base64_to_objectUrl(
-      mockProducts,
-      'root',
-      mockProduct_base64_config,
-      urlRegistry,
-    );
+        console.log('Fetched products data:', response);
 
-    // Ensure we have a valid products structure, fallback to mockProducts if processing failed
-    if (
-      !processedProducts ||
-      !processedProducts.products ||
-      !Array.isArray(processedProducts.products)
-    ) {
-      console.warn(
-        'Product processing failed or returned invalid structure, falling back to raw mock products',
-      );
-      processedProducts = mockProducts;
-    }
+        // Extract data based on expected API response structure
+        let rawData;
+        if (response?.structuredData?.data?.products) {
+          rawData = response.structuredData.data;
+        } else {
+          // Fallback for direct object or array response
+          rawData = Array.isArray(response) ? { products: response } : response;
+        }
 
-    setProducts(processedProducts);
-    objectUrlRegistryRef.current = urlRegistry;
+        // Clear any previously created object URLs before regenerating new ones.
+        releaseObjectUrls(objectUrlRegistryRef.current);
+        const urlRegistry = [];
+
+        console.log('Raw products data before processing:', rawData);
+        // Process images (base64 to objectUrl)
+        let processedProducts = recursiveProcess_base64_to_objectUrl(
+          rawData,
+          'root',
+          mockProduct_base64_config,
+          urlRegistry,
+        );
+        console.log('Processed products with object URLs:', processedProducts);
+        setProducts(processedProducts || { products: [] });
+        objectUrlRegistryRef.current = urlRegistry;
+      } catch (err) {
+        console.error('Failed to fetch products:', err);
+        // On error, keep empty or handle gracefully
+        setProducts({ products: [] });
+      } finally {
+        setIsProductsLoading(false);
+      }
+    };
+
+    fetchProducts();
 
     return () => {
       releaseObjectUrls(objectUrlRegistryRef.current);
       objectUrlRegistryRef.current = [];
     };
-  }, []);
+  }, [token]); // Re-run when token changes (login/logout)
 
   // Function to check if pageData is the same as the corresponding product in products
   const isDataUnchanged = useCallback(() => {

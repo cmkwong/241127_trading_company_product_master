@@ -12,15 +12,23 @@ const buildHeaders = (token, extraHeaders = {}) => {
   return headers;
 };
 
-export const apiGet = async (url, { token, headers, ...options } = {}) => {
-  const response = await fetch(url, {
+export const apiGet = async (url, { token, headers, params, ...options } = {}) => {
+  let requestUrl = url;
+
+  if (params) {
+    const queryParams = new URLSearchParams(params).toString();
+    const separator = requestUrl.includes('?') ? '&' : '?';
+    requestUrl = `${requestUrl}${separator}${queryParams}`;
+  }
+
+  const response = await fetch(requestUrl, {
     method: 'GET',
     headers: buildHeaders(token, headers),
     ...options,
   });
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`GET ${url} failed: ${response.status} ${errorText}`);
+    throw new Error(`GET ${requestUrl} failed: ${response.status} ${errorText}`);
   }
   return response.json();
 };

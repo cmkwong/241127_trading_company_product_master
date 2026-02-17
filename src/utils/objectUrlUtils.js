@@ -176,11 +176,7 @@ export const recursiveProcess_base64_to_objectUrl = (
 
       // The real issue might be cyclic references or just deep structures.
       // Let's add a check to only recurse if the value is an array or a plain object.
-      if (
-        value &&
-        typeof value === 'object' &&
-        value.constructor === Object
-      ) {
+      if (value && typeof value === 'object' && value.constructor === Object) {
         return {
           ...accumulator,
           [childKey]: recursiveProcess_base64_to_objectUrl(

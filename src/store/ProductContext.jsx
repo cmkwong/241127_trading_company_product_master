@@ -55,10 +55,12 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
   const [isProductsLoading, setIsProductsLoading] = useState(false);
   const objectUrlRegistryRef = useRef([]);
 
+  // Fetch products data on mount and when token changes
   useEffect(() => {
     // If no token, we can't fetch. Reset products or keep existing?
     if (!token) {
       setProducts({ products: [] });
+      setPageData({});
       return;
     }
 

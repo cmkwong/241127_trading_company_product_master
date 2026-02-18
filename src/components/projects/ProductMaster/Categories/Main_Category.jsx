@@ -38,12 +38,20 @@ const Main_Category = () => {
     } else if (nv.length < ov.length) {
       // Category removed
       const removedCategories = ov.filter((id) => !nv.includes(id));
-      removedCategories.forEach((catId) => {
+
+      // find the id of the product-category relationship to delete based on product_id and category_id
+      const categoryRelationsToDelete = pageData.product_categories.filter(
+        (rel) => removedCategories.includes(rel.category_id),
+      );
+
+      categoryRelationsToDelete.forEach((rel) => {
         upsertProductPageData({
           product_categories: [
             {
+              id: rel.id, // Assuming rel.id is the unique identifier for the product-category relationship
               product_id: pageData.id,
-              category_id: catId,
+              category_id: rel.category_id,
+              _delete: true, // Flag to indicate deletion for backend processing
             },
           ],
         });

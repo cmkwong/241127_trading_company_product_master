@@ -49,6 +49,7 @@ const Main_ProductIcon = ({ showMaxImagesNotice = false }) => {
         upsertProductPageData({
           icon_url: addedImages[i].url || '',
           icon_name: addedImages[i].name || '',
+          _base64_changed: true, // Flag to indicate this is a base64 change for backend processing
         });
       }
     } else if (newImages.length < oldImages.length) {

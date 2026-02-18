@@ -121,84 +121,173 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
     };
   }, [token]); // Re-run when token changes (login/logout)
 
-  // Function to check if pageData is the same as the corresponding product in products
-  const isDataUnchanged = useCallback(() => {
+  // Helper function to deep compare and return differences
+  const getChangedData = useCallback(() => {
     // If no ID, this is a new product that hasn't been saved yet
     if (!pageData.id) {
-      return false;
+      return { products: [pageData] }; // All data is new
     }
 
     // Find the corresponding product in the products array
-    if (!products.products) return false;
+    if (!products.products) return { products: [pageData] };
     const existingProduct = products.products.find((p) => p.id === pageData.id);
 
-    // If product doesn't exist in the list, data is changed
+    // If product doesn't exist in the list, data is changed (all new)
     if (!existingProduct) {
-      return false;
+      return { products: [pageData] };
     }
 
-    // Check each key for equality
-    for (const key of PRODUCT_COMPARISON_KEYS) {
-      // Handle arrays specially - need to check deep equality
-      if (Array.isArray(pageData[key]) && Array.isArray(existingProduct[key])) {
-        // If array lengths differ, data has changed
-        if (pageData[key].length !== existingProduct[key].length) {
-          return false;
-        }
+    // Helper to get diff between two objects
+    const getDiff = (
+      current,
+      original,
+      keysToCompare,
+      tableName = 'products',
+    ) => {
+      const diff = current.id ? { id: current.id } : {};
+      const deletions = current.id ? { id: current.id } : {};
+      
+      let hasChanges = false;
+      let hasDeletions = false;
 
-        // For simple arrays of primitives, we can use JSON.stringify for comparison
-        // For complex arrays with objects, we need to sort and then compare
-        const sortAndStringify = (arr) => {
-          try {
-            // Try to sort by 'id' if objects have it, otherwise sort by stringified version
-            const sortedArr = [...arr].sort((a, b) => {
-              if (
-                typeof a === 'object' &&
-                a !== null &&
-                typeof b === 'object' &&
-                b !== null
-              ) {
-                if (a.id && b.id) return a.id.localeCompare(b.id);
-                if (a.name && b.name) return a.name.localeCompare(b.name);
+      // Check for base64 changes instructions (Changes only)
+      if (current._base64_changed) {
+        const config = mockProduct_base64_config[tableName];
+        if (config && config.url) {
+          diff[config.url] = current[config.url];
+          hasChanges = true;
+        }
+      }
+
+      for (const key of keysToCompare) {
+        // Skip keys not in the object (unless tracking deletions)
+        if (current[key] === undefined && original[key] === undefined) continue;
+
+        // 1. Array handling (Nested tables)
+        if (Array.isArray(current[key])) {
+          const currentArr = current[key];
+          const originalArr = Array.isArray(original[key]) ? original[key] : [];
+
+          const arrayChanges = [];
+          const arrayDeletions = [];
+
+          // Check for directly deleted items (in original but not current)
+          originalArr.forEach((origItem) => {
+            if (
+              origItem.id &&
+              !currentArr.some((currItem) => currItem.id === origItem.id)
+            ) {
+              arrayDeletions.push({ id: origItem.id });
+              hasDeletions = true;
+            }
+          });
+
+          // Check for modifications / deep deletions in current items
+          currentArr.forEach((item) => {
+             // New item
+            if (!item.id) {
+               // New items considered "changes"
+               arrayChanges.push(item);
+               hasChanges = true;
+               return;
+            }
+
+            const originalItem = originalArr.find((i) => i.id === item.id);
+            if (!originalItem) {
+              // New item (by ID check fallback)
+              arrayChanges.push(item);
+              hasChanges = true;
+            } else {
+              // Existing item - recurse
+              const itemKeys = Object.keys(item);
+              const { diff: itemDiff, deletions: itemDel } = getDiff(item, originalItem, itemKeys, key); // Pass key as tableName
+
+              // If has changes, add to arrayChanges
+              // itemDiff always has ID, check keys > 1
+              if (Object.keys(itemDiff).length > 1) {
+                arrayChanges.push(itemDiff);
+                hasChanges = true;
               }
-              return JSON.stringify(a).localeCompare(JSON.stringify(b));
-            });
-            return JSON.stringify(sortedArr);
-          } catch (e) {
-            // Fallback to simple stringify if sorting fails
-            return JSON.stringify(arr);
-          }
-        };
 
-        if (
-          sortAndStringify(pageData[key]) !==
-          sortAndStringify(existingProduct[key])
+              // If has deletions, add to arrayDeletions
+              if (Object.keys(itemDel).length > 1) {
+                arrayDeletions.push(itemDel);
+                hasDeletions = true;
+              }
+            }
+          });
+
+          if (arrayChanges.length > 0) {
+            diff[key] = arrayChanges;
+          }
+           if (arrayDeletions.length > 0) {
+            deletions[key] = arrayDeletions;
+          }
+        }
+        // 2. Object handling
+        else if (
+          typeof current[key] === 'object' &&
+          current[key] !== null &&
+          key !== '_objUrl' 
         ) {
-          return false;
+          // If original is not object or null
+          if (typeof original[key] !== 'object' || original[key] === null) {
+            diff[key] = current[key];
+            hasChanges = true;
+          } else {
+            // Deep compare simple objects
+            if (
+              JSON.stringify(current[key]) !== JSON.stringify(original[key])
+            ) {
+              diff[key] = current[key];
+              hasChanges = true;
+            }
+          }
+        }
+        // 3. Primitive handling
+        else {
+          if (current[key] !== original[key]) {
+            diff[key] = current[key];
+            hasChanges = true;
+          }
         }
       }
-      // Handle objects (non-arrays)
-      else if (
-        typeof pageData[key] === 'object' &&
-        pageData[key] !== null &&
-        typeof existingProduct[key] === 'object' &&
-        existingProduct[key] !== null
-      ) {
-        if (
-          JSON.stringify(pageData[key]) !== JSON.stringify(existingProduct[key])
-        ) {
-          return false;
-        }
-      }
-      // Handle primitives
-      else if (pageData[key] !== existingProduct[key]) {
-        return false;
-      }
+
+      return { 
+          diff: hasChanges ? diff : (diff.id ? { id: diff.id } : {}), // Keep ID only if no changes
+          deletions: hasDeletions ? deletions : (deletions.id ? { id: deletions.id } : {}) // Keep ID only if no deletions
+      };
+    };
+
+    const { diff: rootDiff, deletions: rootDel } = getDiff(
+      pageData,
+      existingProduct,
+      PRODUCT_COMPARISON_KEYS,
+      'products',
+    );
+
+    const result = {};
+    let hasResult = false;
+
+    if (Object.keys(rootDiff).length > 1) {
+      result.changes = { products: [rootDiff] };
+      hasResult = true;
+    }
+    
+    if (Object.keys(rootDel).length > 1) {
+       result.deletions = { products: [rootDel] };
+       hasResult = true;
     }
 
-    // If we've checked all keys and found no differences, data is unchanged
-    return true;
+    return hasResult ? result : null;
   }, [pageData, products]);
+
+  // Function to check if pageData is the same as the corresponding product in products
+  const isDataUnchanged = useCallback(() => {
+    console.log('pageData:', pageData);
+    console.log('Checking if data is unchanged...:', getChangedData());
+    return getChangedData() === null;
+  }, [getChangedData]);
 
   /**
    * Add new data to a specific table (array)
@@ -452,6 +541,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
         saveSuccess,
         saveError,
         isDataUnchanged,
+        getChangedData,
       }}
     >
       {children}

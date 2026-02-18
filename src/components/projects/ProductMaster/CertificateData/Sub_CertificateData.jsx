@@ -153,6 +153,7 @@ const Sub_CertificateData = ({ certificates, rowindex }) => {
           'image/tiff',
         ]}
         defaultFiles={files}
+        mode="file"
       />
       <Main_TextArea
         label="Remark"

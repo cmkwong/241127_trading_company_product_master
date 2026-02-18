@@ -28,7 +28,6 @@ const Main_ProductName = () => {
 
   const handleRowAdd = useCallback(
     (newId) => {
-      console.log('added row with id: ', newId);
       upsertProductPageData({ product_names: [{ id: newId }] });
     },
     [upsertProductPageData],

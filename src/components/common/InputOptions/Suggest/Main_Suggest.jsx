@@ -59,7 +59,6 @@ const Main_Suggest = (props) => {
       const ov = inputValue;
       const nv = suggestion;
 
-      console.log('Suggestion clicked:', nv);
       setInputValue(nv);
       onChange(ov, nv);
       setIsFocused(false); // Close suggestion list after selection

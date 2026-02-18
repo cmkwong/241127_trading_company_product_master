@@ -192,10 +192,9 @@ const Main_FileUploads = (props) => {
           id: uuidv4(),
         };
 
-        // For images, create object URL for preview
-        if (mode === 'image') {
-          newFile.url = URL.createObjectURL(file);
-        }
+        // Create object URL for preview/download
+        newFile.url = URL.createObjectURL(file);
+
         newFiles.push(newFile);
       });
 

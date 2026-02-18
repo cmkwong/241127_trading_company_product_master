@@ -37,8 +37,6 @@ const Sub_ProductNameRow = (props) => {
   }, [currentProduct?.name]);
 
   const handleProductNameChange = (ov, nv) => {
-    console.log('currentProduct: ', currentProduct);
-    console.log('pageData: ', pageData);
     upsertProductPageData({
       product_names: [
         {

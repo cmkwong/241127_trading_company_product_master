@@ -277,6 +277,9 @@ const upsertNestedItem = (data, tableName, item) => {
       // Ensure nested array exists in the item
       if (!Array.isArray(mergedItem[nestedKey])) {
         mergedItem[nestedKey] = [];
+      } else {
+        // Clone array to prevent mutation of the original data in products
+        mergedItem[nestedKey] = [...mergedItem[nestedKey]];
       }
 
       // Process each nested item

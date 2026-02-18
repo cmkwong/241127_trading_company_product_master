@@ -198,3 +198,30 @@ export const recursiveProcess_base64_to_objectUrl = (
 
   return processedNode;
 };
+
+/**
+ * Get file size (and type) from a blob URL.
+ * Fetches the blob data from the URL to determine properties.
+ *
+ * @param {string} blobUrl - The object URL to inspect (e.g. blob:http://localhost...)
+ * @returns {Promise<{size: number, type: string}>} Promise resolving to object with size in bytes and MIME type.
+ *                                                  Returns {size: 0, type: ''} on error.
+ */
+export const getBlobInfoFromUrl = async (blobUrl) => {
+  if (!blobUrl) return { size: 0, type: '' };
+
+  try {
+    const response = await fetch(blobUrl);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch blob: ${response.statusText}`);
+    }
+    const blob = await response.blob();
+    return {
+      size: blob.size,
+      type: blob.type,
+    };
+  } catch (error) {
+    console.warn(`Error getting blob info for ${blobUrl}:`, error);
+    return { size: 0, type: '' };
+  }
+};

@@ -16,7 +16,7 @@ export const releaseObjectUrls = (urls) => {
  * Convert base64 data URI to blob object URL
  * @param {string} dataUri - Base64 data URI string
  * @param {string[]} urlRegistry - Array to track created URLs for cleanup
- * @returns {string|null} Object URL or null if conversion failed
+ * @returns {Object|null} Object containing url, size, type or null if conversion failed
  */
 export const dataUriToObjectUrl = (dataUri, urlRegistry = []) => {
   // Validate input: ensure it's a string and starts with 'data:' scheme
@@ -60,8 +60,12 @@ export const dataUriToObjectUrl = (dataUri, urlRegistry = []) => {
     // Track the created URL in the registry for later cleanup
     urlRegistry.push(objectUrl);
 
-    // Return the object URL (e.g., 'blob:https://example.com/uuid')
-    return objectUrl;
+    // Return the object URL and size
+    return {
+      url: objectUrl,
+      size: binaryLength,
+      type: mimeType,
+    };
   } catch (error) {
     // Log any errors during conversion and return null
     console.error('Failed to convert base64 payload', error);
@@ -108,7 +112,12 @@ const applyBase64Config = (node, configKey, config, urlRegistry) => {
     return node;
   }
 
-  const objectUrl = dataUriToObjectUrl(base64Value, urlRegistry);
+  const {
+    url: objectUrl,
+    size,
+    type,
+  } = dataUriToObjectUrl(base64Value, urlRegistry) || {};
+
   if (!objectUrl) {
     return node;
   }
@@ -116,6 +125,8 @@ const applyBase64Config = (node, configKey, config, urlRegistry) => {
   return {
     ...node,
     [configEntry.url]: objectUrl,
+    _file_size: size,
+    _file_type: type,
   };
 };
 

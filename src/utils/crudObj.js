@@ -198,9 +198,9 @@ export const upsertNestedData = (data, nestedStructure) => {
 
     // Ensure the table exists in data
     if (!Array.isArray(updatedData[tableName])) {
-      console.warn(
-        `${tableName} is not an array in data, initializing as empty array`,
-      );
+      // console.warn(
+      //   `${tableName} is not an array in data, initializing as empty array`,
+      // );
       updatedData[tableName] = [];
     }
 

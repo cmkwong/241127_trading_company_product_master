@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import ControlRowBtn from '../../../common/ControlRowBtn';
 import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
 import Sub_PackRow from './Sub_PackRow';
@@ -11,31 +11,45 @@ const Main_Pack = () => {
     pageData.product_packings?.map((item) => item.id) || [],
   );
 
+  useEffect(() => {
+    setRowIds(
+      pageData.product_packings
+        ? pageData.product_packings.map((item) => item.id)
+        : [],
+    );
+  }, [pageData.product_packings]);
+
   const handleRowIdsChange = useCallback(() => {}, []);
 
   //  handle adding a new product packing row
-  const handleRowAdd = useCallback((newId) => {
-    upsertProductPageData({
-      product_packings: [
-        {
-          id: newId,
-          product_id: pageData.id,
-        },
-      ],
-    });
-  }, []);
+  const handleRowAdd = useCallback(
+    (newId) => {
+      upsertProductPageData({
+        product_packings: [
+          {
+            id: newId,
+            product_id: pageData.id,
+          },
+        ],
+      });
+    },
+    [upsertProductPageData, pageData.id],
+  );
 
   // Handle removing a product packing row
-  const handleRowRemove = useCallback((id) => {
-    upsertProductPageData({
-      product_packings: [
-        {
-          id: id,
-          _delete: true,
-        },
-      ],
-    });
-  }, []);
+  const handleRowRemove = useCallback(
+    (id) => {
+      upsertProductPageData({
+        product_packings: [
+          {
+            id: id,
+            _delete: true,
+          },
+        ],
+      });
+    },
+    [upsertProductPageData],
+  );
 
   return (
     <Main_InputContainer label="Packing Information">

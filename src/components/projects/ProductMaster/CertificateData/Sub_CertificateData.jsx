@@ -12,8 +12,8 @@ const processCertificateFiles = (files) => {
   return files.map((file, index) => ({
     id: file.id || uuidv4(),
     name: file.file_name || `file_${index}`,
-    size: file.file_size || 0,
-    type: file.file_type || 'application/octet-stream',
+    size: file.file_size || file._file_size || 0,
+    type: file.file_type || file._file_type || 'application/octet-stream',
     url: file.file_url || '',
   }));
 };

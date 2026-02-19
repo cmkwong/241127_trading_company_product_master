@@ -29,8 +29,6 @@ const Main_ProductLink = () => {
       const newLink = {
         id: newId,
         product_id: pageData.id,
-        link: '',
-        remark: '',
         product_link_images: [],
       };
       upsertProductPageData({

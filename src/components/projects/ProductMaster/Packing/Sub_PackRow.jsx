@@ -8,6 +8,7 @@ import { useMasterContext } from '../../../../store/MasterContext.jsx';
 const Sub_PackRow = ({ packings, rowindex }) => {
   // Get the current row data or use template data if it doesn't exist
   const packing = packings[rowindex];
+  console.log('Rendering Sub_PackRow with packing data: ', packing);
 
   const { pageData, upsertProductPageData } = useProductContext();
   const { packType } = useMasterContext();
@@ -38,7 +39,7 @@ const Sub_PackRow = ({ packings, rowindex }) => {
           {
             id: packing.id,
             product_id: pageData.id,
-            type: nv,
+            packing_type_id: nv,
           },
         ],
       });

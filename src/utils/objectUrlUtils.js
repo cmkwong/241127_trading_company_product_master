@@ -236,3 +236,88 @@ export const getBlobInfoFromUrl = async (blobUrl) => {
     return { size: 0, type: '' };
   }
 };
+
+/**
+ * Recursively process changes object and convert blob URLs to base64 strings
+ * based on the provided configuration.
+ * @param {Object} data - The changes object or nested object
+ * @param {Object} config - Configuration mapping table names to url/base64 keys
+ * @returns {Promise<Object>} Processed object with base64 strings
+ */
+export const processChangesWithBase64 = async (data, config) => {
+  // If data is array, process each item
+  if (Array.isArray(data)) {
+    return Promise.all(
+      data.map((item) => processChangesWithBase64(item, config)),
+    );
+  }
+
+  // If data is primitive or null, return as is
+  if (!data || typeof data !== 'object') {
+    return data;
+  }
+
+  // Process object
+  const processed = { ...data };
+
+  // Iterate over all keys in the object
+  for (const key of Object.keys(processed)) {
+    const value = processed[key];
+
+    // If the key matches a configured table (e.g., 'products', 'product_images')
+    if (config[key]) {
+      // It must be an array of records for that table
+      if (Array.isArray(value)) {
+        const tableConfig = config[key];
+        processed[key] = await Promise.all(
+          value.map(async (item) => {
+            let itemProcessed = { ...item };
+
+            // 1. Check if this record has a field configured as a URL
+            if (
+              tableConfig.url &&
+              itemProcessed[tableConfig.url] &&
+              typeof itemProcessed[tableConfig.url] === 'string' &&
+              itemProcessed[tableConfig.url].startsWith('blob:')
+            ) {
+              try {
+                const blobUrl = itemProcessed[tableConfig.url];
+                const response = await fetch(blobUrl);
+                const blob = await response.blob();
+                const base64 = await objectUrlToDataUri(blob);
+                // Remove the data URL prefix (e.g. "data:image/png;base64,") if needed??
+                // No, usually "data:..." is kept.
+                // The user sample shows "data:image/png;base64,..." in base64_image.
+
+                itemProcessed[tableConfig.base64] = base64;
+                // Remove the URL field to avoid sending local blob URL to server
+                delete itemProcessed[tableConfig.url];
+
+                // Remove _file_size and _file_type unless explicitly requested to keep
+                delete itemProcessed._file_size;
+                delete itemProcessed._file_type;
+              } catch (error) {
+                console.error(
+                  `Failed to convert blob URL to base64 for ${key}:`,
+                  error,
+                );
+              }
+            }
+
+            // 2. Recursively process looking for nested tables
+            return processChangesWithBase64(itemProcessed, config);
+          }),
+        );
+      } else {
+        // If not an array but matches config key? Should be array usually.
+        // Recurse anyway just in case structure differs.
+        processed[key] = await processChangesWithBase64(value, config);
+      }
+    } else {
+      // Key is not a table name, so just recurse into value if it's an object/array
+      processed[key] = await processChangesWithBase64(value, config);
+    }
+  }
+
+  return processed;
+};

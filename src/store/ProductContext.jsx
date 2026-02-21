@@ -13,6 +13,7 @@ import {
 import {
   releaseObjectUrls,
   recursiveProcess_base64_to_objectUrl,
+  processChangesWithBase64,
 } from '../utils/objectUrlUtils';
 import {
   addToTable,
@@ -21,9 +22,10 @@ import {
   readFromTable,
   upsertNestedData,
 } from '../utils/crudObj';
-import { apiGet } from '../utils/crud';
+import { apiGet, apiPatch, apiDelete } from '../utils/crud';
 import { useAuthContext } from './AuthContext';
 import { v4 as uuidv4 } from 'uuid';
+import { debugLog } from '../utils/debug';
 
 // Create context for data collection
 export const ProductContext = createContext();
@@ -137,6 +139,23 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
       return { products: [pageData] };
     }
 
+    // Clean up internal flags from pageData to avoid false change detection
+    const cleanPageData = { ...pageData };
+    debugLog('getChangedData', 'Starting comparison', {
+      pageDataIds: Object.keys(pageData),
+      productsCount: products.products?.length,
+      currentId: cleanPageData.id,
+      base64Changed: cleanPageData._base64_changed,
+    });
+
+    // Check if _base64_changed exists BEFORE cleaning it
+    // Store original flag to pass to getDiff if needed, but getDiff checks `current`
+
+    // Don't delete _base64_changed here, getDiff handles skipping it during property iteration
+    // but needs it for the specific check at the start.
+    // delete cleanPageData._base64_changed;
+    delete cleanPageData._objUrl;
+
     // Helper to get diff between two objects
     const getDiff = (
       current,
@@ -144,14 +163,26 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
       keysToCompare,
       tableName = 'products',
     ) => {
+      // Debug logging to trace execution
+      debugLog('getDiff', `Comparing table: ${tableName}`, {
+        currentId: current.id,
+        originalId: original.id,
+        currentBase64Changed: current._base64_changed,
+        tableName,
+      });
+
       const diff = current.id ? { id: current.id } : {};
       const deletions = current.id ? { id: current.id } : {};
-      
+
       let hasChanges = false;
       let hasDeletions = false;
 
       // Check for base64 changes instructions (Changes only)
+      // FIX: Should check CURRENT object's flag, not global pageData
       if (current._base64_changed) {
+        debugLog('getDiff', `Base64 change detected in ${tableName}`, {
+          current,
+        });
         const config = mockProduct_base64_config[tableName];
         if (config && config.url) {
           diff[config.url] = current[config.url];
@@ -160,6 +191,9 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
       }
 
       for (const key of keysToCompare) {
+        // Skip _base64_changed flag and internal keys (not real data properties)
+        if (key === '_base64_changed' || key === '_objUrl') continue;
+
         // Skip keys not in the object (unless tracking deletions)
         if (current[key] === undefined && original[key] === undefined) continue;
 
@@ -184,12 +218,12 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
 
           // Check for modifications / deep deletions in current items
           currentArr.forEach((item) => {
-             // New item
+            // New item
             if (!item.id) {
-               // New items considered "changes"
-               arrayChanges.push(item);
-               hasChanges = true;
-               return;
+              // New items considered "changes"
+              arrayChanges.push(item);
+              hasChanges = true;
+              return;
             }
 
             const originalItem = originalArr.find((i) => i.id === item.id);
@@ -200,7 +234,12 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
             } else {
               // Existing item - recurse
               const itemKeys = Object.keys(item);
-              const { diff: itemDiff, deletions: itemDel } = getDiff(item, originalItem, itemKeys, key); // Pass key as tableName
+              const { diff: itemDiff, deletions: itemDel } = getDiff(
+                item,
+                originalItem,
+                itemKeys,
+                key,
+              ); // Pass key as tableName
 
               // If has changes, add to arrayChanges
               // itemDiff always has ID, check keys > 1
@@ -220,7 +259,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
           if (arrayChanges.length > 0) {
             diff[key] = arrayChanges;
           }
-           if (arrayDeletions.length > 0) {
+          if (arrayDeletions.length > 0) {
             deletions[key] = arrayDeletions;
           }
         }
@@ -228,7 +267,8 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
         else if (
           typeof current[key] === 'object' &&
           current[key] !== null &&
-          key !== '_objUrl' 
+          key !== '_objUrl' &&
+          key !== '_base64_changed'
         ) {
           // If original is not object or null
           if (typeof original[key] !== 'object' || original[key] === null) {
@@ -253,14 +293,18 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
         }
       }
 
-      return { 
-          diff: hasChanges ? diff : (diff.id ? { id: diff.id } : {}), // Keep ID only if no changes
-          deletions: hasDeletions ? deletions : (deletions.id ? { id: deletions.id } : {}) // Keep ID only if no deletions
+      return {
+        diff: hasChanges ? diff : diff.id ? { id: diff.id } : {}, // Keep ID only if no changes
+        deletions: hasDeletions
+          ? deletions
+          : deletions.id
+            ? { id: deletions.id }
+            : {}, // Keep ID only if no deletions
       };
     };
 
     const { diff: rootDiff, deletions: rootDel } = getDiff(
-      pageData,
+      cleanPageData,
       existingProduct,
       PRODUCT_COMPARISON_KEYS,
       'products',
@@ -273,10 +317,16 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
       result.changes = { products: [rootDiff] };
       hasResult = true;
     }
-    
+
     if (Object.keys(rootDel).length > 1) {
-       result.deletions = { products: [rootDel] };
-       hasResult = true;
+      result.deletions = { products: [rootDel] };
+      hasResult = true;
+    }
+
+    if (hasResult) {
+      debugLog('getChangedData', 'Changes detected:', result);
+    } else {
+      debugLog('getChangedData', 'No changes detected.');
     }
 
     return hasResult ? result : null;
@@ -440,6 +490,39 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
       setSaveError(null);
 
       try {
+        // --- Process Changes and Commit to Server ---
+        const changesResult = getChangedData();
+        console.log('Detected changes:', changesResult);
+
+        if (changesResult) {
+          const { changes, deletions } = changesResult;
+
+          // 1. Handle Updates & Creations (PATCH)
+          if (changes) {
+            console.log('Processing base64 conversions for changes...');
+            const processedChanges = await processChangesWithBase64(
+              changes,
+              mockProduct_base64_config,
+            );
+            console.log('Sending PATCH request:', processedChanges);
+
+            await apiPatch(
+              'http://localhost:3001/api/v1/products/data/ids',
+              { data: processedChanges },
+              { token },
+            );
+          }
+
+          // 2. Handle Deletions (DELETE)
+          if (deletions) {
+            console.log('Sending DELETE request:', deletions);
+            await apiDelete('http://localhost:3001/api/v1/products/data/ids', {
+              token,
+              body: { data: deletions },
+            });
+          }
+        }
+
         // If external save callback is provided (e.g., for API calls), call it with the current data
         if (typeof externalSaveCallback === 'function') {
           await externalSaveCallback(pageData);
@@ -447,26 +530,54 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
 
         // Always update the products list if the saved product has an ID
         if (pageData.id) {
+          // Recursive cleanup function
+          const cleanupFlags = (obj) => {
+            if (!obj || typeof obj !== 'object') return obj;
+
+            if (Array.isArray(obj)) {
+              return obj.map((item) => cleanupFlags(item));
+            }
+
+            const newObj = { ...obj };
+            delete newObj._base64_changed;
+
+            // Recurse for nested objects
+            Object.keys(newObj).forEach((key) => {
+              if (typeof newObj[key] === 'object' && newObj[key] !== null) {
+                newObj[key] = cleanupFlags(newObj[key]);
+              }
+            });
+
+            return newObj;
+          };
+
+          const cleanedPageData = cleanupFlags(pageData);
+
+          // Update pageData with the cleaned version
+          setPageData(cleanedPageData);
+
           setProducts((prevProductsState) => {
             // Check if products array exists in state, fallback to empty array if not
             const currentProductsList = prevProductsState.products || [];
             const updatedProductsList = [...currentProductsList];
 
+            // Find index of the product in the list
             const existingIndex = updatedProductsList.findIndex(
-              (p) => p.id === pageData.id,
+              (p) => p.id === cleanedPageData.id,
             );
 
+            // Create a deep copy of cleanedPageData to ensure all nested properties are synchronized
+            const savedProductData = JSON.parse(
+              JSON.stringify(cleanedPageData),
+            );
+
+            // If product exists, update it; otherwise, add it to the list
             if (existingIndex !== -1) {
-              // Update existing product
-              updatedProductsList[existingIndex] = {
-                ...updatedProductsList[existingIndex],
-                ...pageData,
-              };
+              // Update existing product with deep copy
+              updatedProductsList[existingIndex] = savedProductData;
             } else {
               // Add new product
-              updatedProductsList.push({
-                ...pageData,
-              });
+              updatedProductsList.push(savedProductData);
             }
 
             return {
@@ -486,13 +597,14 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
         return true; // Indicate successful save
       } catch (error) {
         console.error('Error saving data:', error);
+
         setSaveError(error.message || 'Failed to save data');
         return false; // Indicate failed save
       } finally {
         setIsSaving(false);
       }
     },
-    [pageData],
+    [pageData, getChangedData, token],
   );
 
   // Create a new product (clear page data)

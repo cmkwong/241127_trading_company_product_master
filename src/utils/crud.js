@@ -12,7 +12,10 @@ const buildHeaders = (token, extraHeaders = {}) => {
   return headers;
 };
 
-export const apiGet = async (url, { token, headers, params, ...options } = {}) => {
+export const apiGet = async (
+  url,
+  { token, headers, params, ...options } = {},
+) => {
   let requestUrl = url;
 
   if (params) {
@@ -28,7 +31,9 @@ export const apiGet = async (url, { token, headers, params, ...options } = {}) =
   });
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`GET ${requestUrl} failed: ${response.status} ${errorText}`);
+    throw new Error(
+      `GET ${requestUrl} failed: ${response.status} ${errorText}`,
+    );
   }
   return response.json();
 };
@@ -69,12 +74,39 @@ export const apiUpdate = async (
   return response.json();
 };
 
-export const apiDelete = async (url, { token, headers, ...options } = {}) => {
+export const apiPatch = async (
+  url,
+  body,
+  { token, headers, ...options } = {},
+) => {
   const response = await fetch(url, {
+    method: 'PATCH',
+    headers: buildHeaders(token, headers),
+    body: JSON.stringify(body),
+    ...options,
+  });
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`PATCH ${url} failed: ${response.status} ${errorText}`);
+  }
+  return response.json();
+};
+
+export const apiDelete = async (
+  url,
+  { token, headers, body, ...options } = {},
+) => {
+  const fetchOptions = {
     method: 'DELETE',
     headers: buildHeaders(token, headers),
     ...options,
-  });
+  };
+
+  if (body) {
+    fetchOptions.body = JSON.stringify(body);
+  }
+
+  const response = await fetch(url, fetchOptions);
   if (!response.ok) {
     const errorText = await response.text();
     throw new Error(`DELETE ${url} failed: ${response.status} ${errorText}`);

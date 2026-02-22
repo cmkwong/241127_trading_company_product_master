@@ -127,16 +127,16 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
   const getChangedData = useCallback(() => {
     // If no ID, this is a new product that hasn't been saved yet
     if (!pageData.id) {
-      return { products: [pageData] }; // All data is new
+      return { changes: { products: [pageData] } }; // All data is new
     }
 
     // Find the corresponding product in the products array
-    if (!products.products) return { products: [pageData] };
+    if (!products.products) return { changes: { products: [pageData] } };
     const existingProduct = products.products.find((p) => p.id === pageData.id);
 
     // If product doesn't exist in the list, data is changed (all new)
     if (!existingProduct) {
-      return { products: [pageData] };
+      return { changes: { products: [pageData] } };
     }
 
     // Clean up internal flags from pageData to avoid false change detection

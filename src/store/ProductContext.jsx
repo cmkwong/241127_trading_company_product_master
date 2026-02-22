@@ -334,21 +334,8 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
 
   // Function to check if pageData is the same as the corresponding product in products
   const isDataUnchanged = useCallback(() => {
-    console.log('pageData:', pageData);
-    console.log('Checking if data is unchanged...:', getChangedData());
     return getChangedData() === null;
   }, [getChangedData]);
-
-  /**
-   * Add new data to a specific table (array)
-   * Supports nested paths using dot notation (e.g., 'product_customizations.product_customization_images')
-   * Automatically generates an ID if not provided
-   * @param {string} tableName - Name of the table/array to add to. Use dot notation for nested arrays.
-   * @param {object} dataObject - Object containing fields to add
-   */
-  const addProductPageData = useCallback((tableName, dataObject) => {
-    setPageData((prevData) => addToTable(prevData, tableName, dataObject));
-  }, []);
 
   /**
    * Get product data from a specific table with optional conditions
@@ -401,22 +388,6 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
   );
 
   /**
-   * Update data in a specific table (array) with optional AND conditions
-   * Supports nested paths using dot notation (e.g., 'product_customizations.product_customization_images')
-   * @param {string} tableName - Name of the table/array to update, or 'root' for root fields. Use dot notation for nested arrays.
-   * @param {object} dataObject - Object containing fields to update
-   * @param {object} [condition] - Optional AND conditions to filter items (e.g., { id: 'xxx', type: 'abc' })
-   */
-  const updateProductPageData = useCallback(
-    (tableName, dataObject, condition = null) => {
-      setPageData((prevData) =>
-        updateTable(prevData, tableName, dataObject, condition),
-      );
-    },
-    [],
-  );
-
-  /**
    * Upsert (Update or Insert) data in a specific table
    * Supports nested data structures. If the data contains array fields,
    * it will recursively upsert nested items.
@@ -452,24 +423,6 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
     });
   }, []);
 
-  /**
-   * Remove items from a specific table (array) based on AND conditions
-   * Supports nested paths using dot notation (e.g., 'product_customizations.product_customization_images')
-   * @param {string} tableName - Name of the table/array to remove from. Use dot notation for nested arrays.
-   * @param {object} condition - AND conditions to filter items to remove (e.g., { id: 'xxx', type: 'abc' })
-   */
-  const removeProductPageData = useCallback((tableName, condition) => {
-    setPageData((prevData) => removeFromTable(prevData, tableName, condition));
-  }, []);
-
-  // Function to update multiple fields at once
-  const updateMultipleData = useCallback((dataObject) => {
-    setPageData((prevData) => ({
-      ...prevData,
-      ...dataObject,
-    }));
-  }, []);
-
   // Function to get all products - now returns the products array from state
   const getAllProducts = useCallback(() => {
     return products.products || [];
@@ -482,6 +435,27 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
       products: newProductsList,
     }));
   }, []);
+
+  // Recursive cleanup internal FLAG function
+  const _cleanupFlags = (obj) => {
+    if (!obj || typeof obj !== 'object') return obj;
+
+    if (Array.isArray(obj)) {
+      return obj.map((item) => _cleanupFlags(item));
+    }
+
+    const newObj = { ...obj };
+    delete newObj._base64_changed;
+
+    // Recurse for nested objects
+    Object.keys(newObj).forEach((key) => {
+      if (typeof newObj[key] === 'object' && newObj[key] !== null) {
+        newObj[key] = _cleanupFlags(newObj[key]);
+      }
+    });
+
+    return newObj;
+  };
 
   // Function to handle save action with built-in product list update
   const handleSave = useCallback(
@@ -500,6 +474,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
           // 1. Handle Updates & Creations (PATCH)
           if (changes) {
             console.log('Processing base64 conversions for changes...');
+            // Process base64 fields in changes before sending to server
             const processedChanges = await processChangesWithBase64(
               changes,
               mockProduct_base64_config,
@@ -530,28 +505,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
 
         // Always update the products list if the saved product has an ID
         if (pageData.id) {
-          // Recursive cleanup function
-          const cleanupFlags = (obj) => {
-            if (!obj || typeof obj !== 'object') return obj;
-
-            if (Array.isArray(obj)) {
-              return obj.map((item) => cleanupFlags(item));
-            }
-
-            const newObj = { ...obj };
-            delete newObj._base64_changed;
-
-            // Recurse for nested objects
-            Object.keys(newObj).forEach((key) => {
-              if (typeof newObj[key] === 'object' && newObj[key] !== null) {
-                newObj[key] = cleanupFlags(newObj[key]);
-              }
-            });
-
-            return newObj;
-          };
-
-          const cleanedPageData = cleanupFlags(pageData);
+          const cleanedPageData = _cleanupFlags(pageData);
 
           // Update pageData with the cleaned version
           setPageData(cleanedPageData);
@@ -637,12 +591,8 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
       value={{
         pageData,
         products,
-        addProductPageData,
         getProductData,
-        updateProductPageData,
         upsertProductPageData,
-        removeProductPageData,
-        updateMultipleData,
 
         getAllProducts,
         updateProducts,

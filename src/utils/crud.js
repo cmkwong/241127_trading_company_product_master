@@ -12,17 +12,19 @@ const buildHeaders = (token, extraHeaders = {}) => {
   return headers;
 };
 
+// Build a request URL including optional query params
+const buildRequestUrl = (url, params) => {
+  if (!params) return url;
+  const queryParams = new URLSearchParams(params).toString();
+  const separator = url.includes('?') ? '&' : '?';
+  return `${url}${separator}${queryParams}`;
+};
+
 export const apiGet = async (
   url,
   { token, headers, params, ...options } = {},
 ) => {
-  let requestUrl = url;
-
-  if (params) {
-    const queryParams = new URLSearchParams(params).toString();
-    const separator = requestUrl.includes('?') ? '&' : '?';
-    requestUrl = `${requestUrl}${separator}${queryParams}`;
-  }
+  const requestUrl = buildRequestUrl(url, params);
 
   const response = await fetch(requestUrl, {
     method: 'GET',
@@ -38,12 +40,14 @@ export const apiGet = async (
   return response.json();
 };
 
-export const apiCreate = async (
+export const apiPost = async (
   url,
   body,
-  { token, headers, ...options } = {},
+  { token, headers, params, ...options } = {},
 ) => {
-  const response = await fetch(url, {
+  const requestUrl = buildRequestUrl(url, params);
+
+  const response = await fetch(requestUrl, {
     method: 'POST',
     headers: buildHeaders(token, headers),
     body: JSON.stringify(body),

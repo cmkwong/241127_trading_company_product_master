@@ -6,23 +6,14 @@ import {
   useEffect,
   useRef,
 } from 'react';
-import {
-  mockProducts,
-  mockProduct_base64_config,
-} from '../datas/Products/mockProducts';
+import { mockProduct_base64_config } from '../datas/Products/mockProducts';
 import {
   releaseObjectUrls,
   recursiveProcess_base64_to_objectUrl,
   processChangesWithBase64,
 } from '../utils/objectUrlUtils';
-import {
-  addToTable,
-  updateTable,
-  removeFromTable,
-  readFromTable,
-  upsertNestedData,
-} from '../utils/crudObj';
-import { apiGet, apiPatch, apiDelete } from '../utils/crud';
+import { upsertNestedData } from '../utils/crudObj';
+import { apiGet, apiPatch, apiDelete, apiPost } from '../utils/crud';
 import { useAuthContext } from './AuthContext';
 import { v4 as uuidv4 } from 'uuid';
 import { debugLog } from '../utils/debug';
@@ -56,6 +47,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
   const [products, setProducts] = useState({ products: [] });
   const [isProductsLoading, setIsProductsLoading] = useState(false);
   const objectUrlRegistryRef = useRef([]);
+  const pageDataUrlRegistryRef = useRef([]);
 
   // Fetch products data on mount and when token changes
   useEffect(() => {
@@ -75,7 +67,8 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
             token,
             params: {
               includeBase64: '1',
-              // compress: '1',
+              iconOnly: '1',
+              compress: '1',
             },
           },
         );
@@ -120,6 +113,8 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
     return () => {
       releaseObjectUrls(objectUrlRegistryRef.current);
       objectUrlRegistryRef.current = [];
+      releaseObjectUrls(pageDataUrlRegistryRef.current);
+      pageDataUrlRegistryRef.current = [];
     };
   }, [token]); // Re-run when token changes (login/logout)
 
@@ -338,53 +333,94 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
   }, [getChangedData]);
 
   /**
-   * Get product data from a specific table with optional conditions
-   * Supports nested paths using dot notation
-   * @param {string} tableName - Name of the table/array to read from, or 'root' for root data. Use dot notation for nested arrays.
-   * @param {object} [condition] - Optional AND conditions to filter items
-   * @param {boolean} [setAsPageData] - If true, searches products array and loads into pageData with unsaved changes check
-   * @returns {boolean|Array|object|null} Returns true/false if setting pageData, otherwise returns matching data
+   * Load a product into pageData by ID
+   * @param {string} id - The ID of the product to load
+   * @returns {boolean} Returns true if loaded successfully, false if cancelled or not found
    */
   const getProductData = useCallback(
-    (tableName, condition = null, setAsPageData = false) => {
-      // If setAsPageData is true, load into pageData with unsaved changes check
-      if (setAsPageData) {
-        // Check if there are unsaved changes in the current product
-        if (pageData.id && !isDataUnchanged()) {
-          // Show confirmation dialog
-          const confirmSwitch = window.confirm(
-            'You have unsaved changes. Do you want to continue without saving?',
-          );
+    (id) => {
+      // Check if there are unsaved changes in the current product
+      if (pageData.id && !isDataUnchanged()) {
+        // Show confirmation dialog
+        const confirmSwitch = window.confirm(
+          'You have unsaved changes. Do you want to continue without saving?',
+        );
 
-          // If user cancels, stay on current product
-          if (!confirmSwitch) {
-            return false;
-          }
-        }
-
-        // When loading into pageData, always search the products array
-        // Filter products that match ALL conditions (AND logic)
-        if (!products.products) return false;
-        const matchingProducts = products.products.filter((product) => {
-          return Object.keys(condition).every(
-            (key) => product[key] === condition[key],
-          );
-        });
-
-        if (matchingProducts.length === 0) {
-          console.error(`Product not found for conditions:`, condition);
+        // If user cancels, stay on current product
+        if (!confirmSwitch) {
           return false;
         }
-
-        const requiredProduct = matchingProducts[0];
-        setPageData(requiredProduct);
-        return true;
       }
 
-      // Otherwise, just return the data without setting pageData
-      return readFromTable(pageData, tableName, condition);
+      // Start async fetch to retrieve full product data (including base64 images)
+      (async () => {
+        setIsProductsLoading(true);
+        try {
+          const requestBody = {
+            data: {
+              products: [
+                {
+                  id,
+                },
+              ],
+            },
+          };
+
+          const response = await apiPost(
+            'http://localhost:3001/api/v1/products/data/ids',
+            requestBody,
+            {
+              token,
+              params: {
+                includeBase64: '1',
+                compress: '1',
+              },
+            },
+          );
+
+          // Extract data similar to fetchProducts
+          let rawData;
+          if (response?.structuredData?.data?.products) {
+            rawData = response.structuredData.data;
+          } else {
+            rawData = Array.isArray(response)
+              ? { products: response }
+              : response;
+          }
+
+          // Clear previous pageData object URLs
+          releaseObjectUrls(pageDataUrlRegistryRef.current);
+          const urlRegistry = [];
+
+          // Process images (base64 -> objectUrl)
+          const processed = recursiveProcess_base64_to_objectUrl(
+            rawData,
+            'root',
+            mockProduct_base64_config,
+            urlRegistry,
+          );
+
+          console.log('processed product data for id', id, processed);
+
+          const product =
+            processed?.products?.[0] || rawData?.products?.[0] || null;
+          if (product) {
+            setPageData(product);
+            pageDataUrlRegistryRef.current = urlRegistry;
+          } else {
+            console.error('getProductData: no product returned for id', id);
+          }
+        } catch (err) {
+          console.error('Failed to fetch product by id:', err);
+        } finally {
+          setIsProductsLoading(false);
+        }
+      })();
+
+      // Return synchronously so callers can use immediate boolean result (e.g., cancelled by user)
+      return true;
     },
-    [pageData, products, isDataUnchanged],
+    [pageData, isDataUnchanged, token],
   );
 
   /**

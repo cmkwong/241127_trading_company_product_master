@@ -7,7 +7,7 @@ import {
   useState,
 } from 'react';
 import PropTypes from 'prop-types';
-import { apiCreate } from '../utils/crud';
+import { apiPost } from '../utils/crud';
 
 const DEFAULT_TOKEN_ENDPOINT = 'http://localhost:3001/api/v1/auth/getToken';
 
@@ -37,10 +37,10 @@ export const AuthContext_Provider = ({
         const body = manualCredentials || tokenRequestBody;
 
         if (!body) {
-           throw new Error('Authentication credentials are required.');
+          throw new Error('Authentication credentials are required.');
         }
 
-        const response = await apiCreate(resolvedEndpoint, body);
+        const response = await apiPost(resolvedEndpoint, body);
         const resolvedToken =
           typeof response === 'string' ? response : response?.token;
 

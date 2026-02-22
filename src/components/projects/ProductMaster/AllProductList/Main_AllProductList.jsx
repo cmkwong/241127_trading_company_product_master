@@ -58,11 +58,7 @@ const Main_AllProductList = ({ onSelectProduct }) => {
   const handleProductSelect = useCallback(
     (product) => {
       // Use the getProductData function to load all product data
-      const getProductDataSuccess = getProductData(
-        'root',
-        { id: product.id },
-        true,
-      );
+      const getProductDataSuccess = getProductData(product.id);
 
       if (getProductDataSuccess) {
         setSelectedProduct(product);

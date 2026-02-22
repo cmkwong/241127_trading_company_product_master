@@ -41,6 +41,7 @@ const PRODUCT_COMPARISON_KEYS = [
 export const ProductContext_Provider = ({ children, initialData = {} }) => {
   const { token } = useAuthContext();
   const [pageData, setPageData] = useState(initialData);
+  const [originalPageData, setOriginalPageData] = useState(initialData); // Store original data for change detection
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState(null);
@@ -125,12 +126,8 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
       return { changes: { products: [pageData] } }; // All data is new
     }
 
-    // Find the corresponding product in the products array
-    if (!products.products) return { changes: { products: [pageData] } };
-    const existingProduct = products.products.find((p) => p.id === pageData.id);
-
-    // If product doesn't exist in the list, data is changed (all new)
-    if (!existingProduct) {
+    // Compare against the fetched original page data baseline
+    if (!originalPageData || originalPageData.id !== pageData.id) {
       return { changes: { products: [pageData] } };
     }
 
@@ -138,8 +135,8 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
     const cleanPageData = { ...pageData };
     debugLog('getChangedData', 'Starting comparison', {
       pageDataIds: Object.keys(pageData),
-      productsCount: products.products?.length,
       currentId: cleanPageData.id,
+      originalId: originalPageData?.id,
       base64Changed: cleanPageData._base64_changed,
     });
 
@@ -300,7 +297,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
 
     const { diff: rootDiff, deletions: rootDel } = getDiff(
       cleanPageData,
-      existingProduct,
+      originalPageData,
       PRODUCT_COMPARISON_KEYS,
       'products',
     );
@@ -325,7 +322,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
     }
 
     return hasResult ? result : null;
-  }, [pageData, products]);
+  }, [pageData, originalPageData]);
 
   // Function to check if pageData is the same as the corresponding product in products
   const isDataUnchanged = useCallback(() => {
@@ -406,6 +403,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
             processed?.products?.[0] || rawData?.products?.[0] || null;
           if (product) {
             setPageData(product);
+            setOriginalPageData(JSON.parse(JSON.stringify(product)));
             pageDataUrlRegistryRef.current = urlRegistry;
           } else {
             console.error('getProductData: no product returned for id', id);
@@ -542,9 +540,12 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
         // Always update the products list if the saved product has an ID
         if (pageData.id) {
           const cleanedPageData = _cleanupFlags(pageData);
+          const savedProductData = JSON.parse(JSON.stringify(cleanedPageData));
 
           // Update pageData with the cleaned version
           setPageData(cleanedPageData);
+          // Refresh baseline for change detection after successful save
+          setOriginalPageData(savedProductData);
 
           setProducts((prevProductsState) => {
             // Check if products array exists in state, fallback to empty array if not
@@ -554,11 +555,6 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
             // Find index of the product in the list
             const existingIndex = updatedProductsList.findIndex(
               (p) => p.id === cleanedPageData.id,
-            );
-
-            // Create a deep copy of cleanedPageData to ensure all nested properties are synchronized
-            const savedProductData = JSON.parse(
-              JSON.stringify(cleanedPageData),
             );
 
             // If product exists, update it; otherwise, add it to the list

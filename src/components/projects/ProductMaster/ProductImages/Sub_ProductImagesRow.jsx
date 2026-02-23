@@ -127,6 +127,22 @@ const Sub_ProductImagesRow = (props) => {
   // handle image type change
   const handleImageTypeChange = useCallback(
     (ov, nv) => {
+      if (ov === nv) return;
+
+      const currentRowHasFiles =
+        (imageData?.[rowindex]?.images || []).length > 0;
+      if (currentRowHasFiles) {
+        window.alert(
+          'Main image type cannot be changed while this row has images/files. Remove all images/files in this row first.',
+        );
+        // Force reset dropdown UI back to previous value
+        setMainImageTypeId(null);
+        setTimeout(() => {
+          setMainImageTypeId(ov);
+        }, 0);
+        return;
+      }
+
       // finding required image id
       const ids = pageData.product_images
         .filter((d) => d.image_type_id === ov || (!ov && !d.image_type_id))
@@ -166,7 +182,13 @@ const Sub_ProductImagesRow = (props) => {
         }
       }
     },
-    [pageData.product_images, upsertProductPageData, pageData.id],
+    [
+      pageData.product_images,
+      upsertProductPageData,
+      pageData.id,
+      imageData,
+      rowindex,
+    ],
   );
 
   return (

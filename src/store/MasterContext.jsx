@@ -1,4 +1,10 @@
-import { useState, createContext, useContext, useCallback } from 'react';
+import {
+  useState,
+  createContext,
+  useContext,
+  useCallback,
+  useEffect,
+} from 'react';
 import {
   mockProductNameType,
   mockCategory,
@@ -7,28 +13,97 @@ import {
   mockCertType,
   mockProductImageType,
 } from '../datas/Options/ProductOptions';
+import { apiGet } from '../utils/crud';
+import { useAuthContext } from './AuthContext';
 
 export const MasterContext = createContext();
 
+const DEFAULT_MASTER_API_BASE = 'http://localhost:3001/api/v1/products/master';
+const DEFAULT_TABLE_NAMES = [
+  'master_categories',
+  'master_certificate_types',
+  'master_keywords',
+  'master_packing_types',
+  'master_product_image_types',
+  'master_product_name_types',
+  'master_supplier_types',
+];
+
 export const MasterContext_Provider = ({ children }) => {
-  const [productNameType, setProductNameType] = useState(mockProductNameType);
+  const { token } = useAuthContext();
   const [category, setCategory] = useState(mockCategory);
+  const [productKeywords, setProductKeywords] = useState([]);
+  const [certType, setCertType] = useState(mockCertType);
+  const [productNameType, setProductNameType] = useState(mockProductNameType);
   const [supplierType, setSupplierType] = useState(mockSupplierType);
   const [packType, setPackType] = useState(mockPackType);
-  const [certType, setCertType] = useState(mockCertType);
   const [productImageType, setProductImageType] =
     useState(mockProductImageType);
+
+  const fetchMasterData = useCallback(
+    async (tableName) => {
+      const endpoint = `${DEFAULT_MASTER_API_BASE}/${tableName}`;
+      const response = await apiGet(endpoint, {
+        ...(token ? { token } : {}),
+      });
+
+      const payload = response?.results ?? response?.data?.results ?? [];
+
+      const normalizedData = Array.isArray(payload) ? payload : [];
+
+      switch (tableName) {
+        case 'master_categories':
+          setCategory(normalizedData);
+          break;
+        case 'master_certificate_types':
+          setCertType(normalizedData);
+          break;
+        case 'master_keywords':
+          setProductKeywords(normalizedData);
+          break;
+        case 'master_packing_types':
+          setPackType(normalizedData);
+          break;
+        case 'master_product_image_types':
+          setProductImageType(normalizedData);
+          break;
+        case 'master_product_name_types':
+          setProductNameType(normalizedData);
+          break;
+        case 'master_supplier_types':
+          setSupplierType(normalizedData);
+          break;
+        default:
+          break;
+      }
+
+      return normalizedData;
+    },
+    [token],
+  );
+
+  useEffect(() => {
+    const fetchAllMasterData = async () => {
+      await Promise.all(
+        DEFAULT_TABLE_NAMES.map((tableName) => fetchMasterData(tableName)),
+      );
+    };
+
+    fetchAllMasterData();
+  }, [fetchMasterData]);
 
   // getting the id or label
   const getRequiredData = useCallback((id, label, masterData) => {
     // get label by id
     if (id && !label) {
       const foundItem = masterData.find((item) => item.id === id);
-      return foundItem ? foundItem.label : null;
+      return foundItem ? (foundItem.label ?? foundItem.name) : null;
     }
     // get id by label
     if (!id && label) {
-      const foundItem = masterData.find((item) => item.label === label);
+      const foundItem = masterData.find(
+        (item) => (item.label ?? item.name) === label,
+      );
       return foundItem ? foundItem.id : null;
     }
     // get all data
@@ -196,6 +271,8 @@ export const MasterContext_Provider = ({ children }) => {
     packType,
     certType,
     productImageType,
+    productKeywords,
+    fetchMasterData,
     // Product Name Type functions
     getProductNameTypes,
     updateProductNameTypes,

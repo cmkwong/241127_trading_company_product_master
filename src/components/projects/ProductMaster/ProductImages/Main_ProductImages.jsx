@@ -32,8 +32,8 @@ const Main_ProductImages = (props) => {
         // Use a generated ID if type ID is missing, but ensure it's stable within this render cycle?
         // Actually, we should probably filter out empty type IDs or handle them specifically.
         // For now, let's just ensure we have valid string IDs.
-        const currentId = distinctTypeIds[i] || `temp-${uuidv4()}`; 
-        
+        const currentId = distinctTypeIds[i] || `temp-${uuidv4()}`;
+
         row['id'] = currentId;
         row['images'] = pageData.product_images.filter(
           (d) => d.image_type_id === distinctTypeIds[i],

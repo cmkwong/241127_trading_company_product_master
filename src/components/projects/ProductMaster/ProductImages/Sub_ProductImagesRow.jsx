@@ -125,18 +125,28 @@ const Sub_ProductImagesRow = (props) => {
         }
       }
     },
-    [
-      pageData.product_images,
-      upsertProductPageData,
-      pageData.id,
-      productImageType,
-    ],
+    [pageData.product_images, upsertProductPageData, pageData.id],
   );
 
   return (
     <>
       <Main_FileUploads
         mode="image"
+        label="Description"
+        onError={handleImageError}
+        onChange={handleImageChange}
+        defaultImages={defaultImages}
+      />
+      <Main_FileUploads
+        mode="image"
+        label="Display"
+        onError={handleImageError}
+        onChange={handleImageChange}
+        defaultImages={defaultImages}
+      />
+      <Main_FileUploads
+        mode="file"
+        label="Video"
         onError={handleImageError}
         onChange={handleImageChange}
         defaultImages={defaultImages}

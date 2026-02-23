@@ -14,6 +14,8 @@ const Main_TagInputField = (props) => {
     defaultSelectedOptions = [],
     // Control options
     canAddNewOptions = true,
+    enableHierarchyViewToggle = false,
+    hierarchyToggleLabel = 'Show hierarchy',
   } = props;
 
   // Internal state
@@ -36,6 +38,7 @@ const Main_TagInputField = (props) => {
   const [inputValue, setInputValue] = useState('');
   const [showOption, setShowOption] = useState(false);
   const [selectionMouseIn, setSelectionMouseIn] = useState(false);
+  const [showHierarchy, setShowHierarchy] = useState(false);
 
   // Click outside handler
   useEffect(() => {
@@ -102,7 +105,14 @@ const Main_TagInputField = (props) => {
       onChange?.(oldSelected, nextSelected);
       onAdd?.(newOption);
     },
-    [selectedOptions, onChange, updateOptionData, options, canAddNewOptions],
+    [
+      selectedOptions,
+      onChange,
+      updateOptionData,
+      options,
+      canAddNewOptions,
+      onAdd,
+    ],
   );
 
   // add the value into option
@@ -118,22 +128,22 @@ const Main_TagInputField = (props) => {
   };
 
   // handle layout
-  const handleFocus = (event) => {
+  const handleFocus = () => {
     setShowOption(true);
   };
-  const handleFocusOut = (event) => {
+  const handleFocusOut = () => {
     if (!selectionMouseIn) {
       setShowOption(false);
     }
   };
 
-  const handleSelectionMouseEnter = (event) => {
+  const handleSelectionMouseEnter = () => {
     setSelectionMouseIn(true);
   };
-  const handleSelectionMouseOut = (event) => {
+  const handleSelectionMouseOut = () => {
     setSelectionMouseIn(false);
   };
-  const handleClickSelection = (event) => {
+  const handleClickSelection = () => {
     // inputReference.current.focus();
   };
 
@@ -145,9 +155,82 @@ const Main_TagInputField = (props) => {
     });
   }, [options, inputValue]);
 
+  const hierarchicalOptions = useMemo(() => {
+    const source = options || [];
+    if (!source.length) return [];
+
+    const byId = new Map(source.map((o) => [o.id, o]));
+    const childrenByParent = new Map();
+
+    source.forEach((item) => {
+      const parentKey = item?.parent_id ?? null;
+      if (!childrenByParent.has(parentKey)) {
+        childrenByParent.set(parentKey, []);
+      }
+      childrenByParent.get(parentKey).push(item);
+    });
+
+    // Treat items with missing parent references as roots.
+    const roots = source.filter((item) => {
+      const p = item?.parent_id;
+      return p == null || !byId.has(p);
+    });
+
+    const visited = new Set();
+    const result = [];
+
+    const walk = (node, level) => {
+      if (!node || visited.has(node.id)) return;
+      visited.add(node.id);
+      result.push({ ...node, level });
+
+      const children = childrenByParent.get(node.id) || [];
+      children.forEach((child) => walk(child, level + 1));
+    };
+
+    roots.forEach((root) => walk(root, 0));
+
+    // Append any disconnected/cyclic leftovers safely.
+    source.forEach((item) => {
+      if (!visited.has(item.id)) {
+        walk(item, 0);
+      }
+    });
+
+    return result;
+  }, [options]);
+
+  const displayOptions = useMemo(() => {
+    // If searching, keep match-focused flat list even in hierarchy mode.
+    if (inputValue) {
+      return filteredOptions.map((item) => ({ ...item, level: 0 }));
+    }
+    if (showHierarchy) {
+      return hierarchicalOptions;
+    }
+    return (options || []).map((item) => ({ ...item, level: 0 }));
+  }, [
+    inputValue,
+    filteredOptions,
+    showHierarchy,
+    hierarchicalOptions,
+    options,
+  ]);
+
   return (
     <>
       <div ref={containerRef} className={styles.inputOption}>
+        {enableHierarchyViewToggle && (
+          <label className={styles.hierarchyToggle}>
+            <input
+              type="checkbox"
+              checked={showHierarchy}
+              onChange={(e) => setShowHierarchy(e.target.checked)}
+            />
+            <span>{hierarchyToggleLabel}</span>
+          </label>
+        )}
+
         <Sub_TagTextField
           reference={inputReference}
           onClick={handleFocus}
@@ -168,7 +251,7 @@ const Main_TagInputField = (props) => {
             handleSelectionMouseEnter={handleSelectionMouseEnter}
             handleSelectionMouseOut={handleSelectionMouseOut}
             handleClickSelection={handleClickSelection}
-            filteredOptions={filteredOptions}
+            filteredOptions={displayOptions}
             selectedOptions={selectedOptions}
             updateOptionData={updateOptionData}
           />

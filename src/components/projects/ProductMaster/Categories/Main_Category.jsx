@@ -1,9 +1,8 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
 import Main_TagInputField from '../../../common/InputOptions/Tagging/Main_TagInputField';
 import { useProductContext } from '../../../../store/ProductContext';
 import { useMasterContext } from '../../../../store/MasterContext';
-import styles from './Main_Category.module.css';
 const Main_Category = () => {
   const { pageData, upsertProductPageData } = useProductContext();
   const { category } = useMasterContext();
@@ -67,6 +66,8 @@ const Main_Category = () => {
         defaultSelectedOptions={selectedCategoryIds}
         onChange={handleCategoryChange}
         canAddNewOptions={false}
+        enableHierarchyViewToggle={true}
+        hierarchyToggleLabel="Show Hierarchy"
       />
     </Main_InputContainer>
   );

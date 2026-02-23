@@ -18,6 +18,7 @@ const Sub_TagList = (props) => {
               key={el.id}
               id={el.id}
               name={el.name}
+              level={el.level || 0}
               checked={
                 props.selectedOptions && props.selectedOptions.includes(el.id)
               }

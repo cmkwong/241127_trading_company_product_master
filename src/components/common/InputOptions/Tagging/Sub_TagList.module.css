@@ -2,6 +2,7 @@
   position: absolute;
   width: 100%;
   min-height: 20px;
+  max-height: 320px;
   left: 0px;
   z-index: 100;
   border-radius: 5px;
@@ -9,7 +10,8 @@
   /* display the options */
   display: flex;
   flex-direction: column;
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
   opacity: 0.95;
   background-color: #fff;
 }

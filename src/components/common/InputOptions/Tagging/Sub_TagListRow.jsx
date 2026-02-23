@@ -2,7 +2,7 @@ import { useRef } from 'react';
 import styles from './Sub_TagListRow.module.css';
 
 const Sub_TagListRow = (props) => {
-  let { id, name, checked, updateOptionData } = props;
+  let { id, name, checked, updateOptionData, level = 0 } = props;
 
   const checkboxRef = useRef(null);
 
@@ -16,7 +16,12 @@ const Sub_TagListRow = (props) => {
   };
 
   return (
-    <div id={id} className={styles['container']} onClick={handleClick}>
+    <div
+      id={id}
+      className={styles['container']}
+      onClick={handleClick}
+      style={{ paddingLeft: `${8 + level * 18}px` }}
+    >
       <input
         className={styles['checkbox']}
         ref={checkboxRef}

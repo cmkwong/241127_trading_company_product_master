@@ -61,6 +61,10 @@ const Sub_ProductImagesRow = (props) => {
     [defaultImages],
   );
 
+  const getDefaultImagesByMainType = useCallback(() => {
+    return defaultImages.filter((img) => img.image_type_id === mainImageTypeId);
+  }, [defaultImages, mainImageTypeId]);
+
   const getDefaultFilesBySubType = useCallback(
     (subTypeId) => {
       return defaultImages
@@ -208,6 +212,24 @@ const Sub_ProductImagesRow = (props) => {
       </div>
 
       <div className={styles.uploadArea}>
+        {mainImageTypeId && (
+          <div className={styles.uploadCell} key={`main-${mainImageTypeId}`}>
+            <Main_FileUploads
+              mode="image"
+              label={`${
+                (productImageType || []).find(
+                  (type) => type.id === mainImageTypeId,
+                )?.name || 'Main Type'
+              } - main`}
+              onError={handleImageError}
+              onChange={(oldImages, newImages) =>
+                handleImageChange(mainImageTypeId, oldImages, newImages)
+              }
+              defaultImages={getDefaultImagesByMainType()}
+            />
+          </div>
+        )}
+
         {productImageSubType.map((subType) => {
           const isVideoType = /video/i.test(subType?.name || '');
 

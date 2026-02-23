@@ -1,55 +1,61 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import ControlRowBtn from '../../../common/ControlRowBtn';
 import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
 import { useProductContext } from '../../../../store/ProductContext';
 import { useMasterContext } from '../../../../store/MasterContext';
 import Sub_ProductImagesRow from './Sub_ProductImagesRow';
-import { v4 as uuidv4 } from 'uuid';
 
-const Main_ProductImages = (props) => {
+const Main_ProductImages = () => {
   const { pageData, upsertProductPageData } = useProductContext();
+  const { productImageType } = useMasterContext();
 
   const [rowIds, setRowIds] = useState([]);
 
   const [processedImageData, setProcessedImageData] = useState([]);
 
-  // prepare the image data grouped by image_type_id
+  // prepare the image data grouped by MAIN image_type_id
+  // e.g. Alibaba - description/display/video are grouped under Alibaba
   useEffect(() => {
-    let imageData = [];
-    let distinctTypeIds = [];
-    // getting distinct image type ids from pageData
-    if (pageData && pageData.product_images) {
-      if (pageData.product_images) {
-        distinctTypeIds = [
-          ...new Set(pageData.product_images.map((img) => img.image_type_id)),
-        ];
-      }
+    const images = pageData?.product_images || [];
 
-      // group images by image_type_id and prepare the imageData for the component
-      const validRowIds = [];
-      for (let i = 0; i < distinctTypeIds.length; i++) {
-        let row = {};
-        // Use a generated ID if type ID is missing, but ensure it's stable within this render cycle?
-        // Actually, we should probably filter out empty type IDs or handle them specifically.
-        // For now, let's just ensure we have valid string IDs.
-        const currentId = distinctTypeIds[i] || `temp-${uuidv4()}`;
-
-        row['id'] = currentId;
-        row['images'] = pageData.product_images.filter(
-          (d) => d.image_type_id === distinctTypeIds[i],
-        );
-        imageData.push(row);
-        validRowIds.push(currentId);
-      }
-      setProcessedImageData(imageData);
-      setRowIds(validRowIds);
-    } else {
+    if (!images.length) {
       setProcessedImageData([]);
       setRowIds([]);
+      return;
     }
-  }, [pageData]);
 
-  const handleRowIdsChange = useCallback((newRowIds) => {
+    const imageTypeById = new Map(
+      (productImageType || []).map((t) => [t.id, t]),
+    );
+
+    const resolveMainTypeId = (typeId) => {
+      if (!typeId) return '__unassigned__';
+      const type = imageTypeById.get(typeId);
+      if (!type) return typeId;
+      return type.parent_id || type.id;
+    };
+
+    const groupedByMainType = new Map();
+
+    images.forEach((img) => {
+      const mainTypeId = resolveMainTypeId(img.image_type_id);
+      if (!groupedByMainType.has(mainTypeId)) {
+        groupedByMainType.set(mainTypeId, {
+          id: mainTypeId,
+          images: [],
+        });
+      }
+      groupedByMainType.get(mainTypeId).images.push(img);
+    });
+
+    const imageData = Array.from(groupedByMainType.values());
+    const validRowIds = imageData.map((row) => row.id);
+
+    setProcessedImageData(imageData);
+    setRowIds(validRowIds);
+  }, [pageData?.product_images, productImageType]);
+
+  const handleRowIdsChange = useCallback(() => {
     // Handle any additional logic when row IDs change, if necessary
   }, []);
 

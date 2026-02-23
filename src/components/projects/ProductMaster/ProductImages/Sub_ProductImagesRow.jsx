@@ -1,43 +1,84 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useMasterContext } from '../../../../store/MasterContext';
 import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
 import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_FileUploads';
 import { useProductContext } from '../../../../store/ProductContext';
+import styles from './Sub_ProductImagesRow.module.css';
 
 const Sub_ProductImagesRow = (props) => {
   const { imageData, rowindex } = props;
 
-  const [imageTypeId, setImageTypeId] = useState();
-  const [defaultImages, setDefaultImages] = useState([]);
-
   const { pageData, upsertProductPageData } = useProductContext();
   const { productImageType } = useMasterContext();
+  const [productImageSubType, setProductImageSubType] = useState([]); // This is for the sub type dropdown, which is based on the selected main type
 
-  // assign set default images when imageData changes
-  useMemo(() => {
-    if ((imageData && imageData.length === 0) || !imageData[rowindex]) {
-      setDefaultImages([]);
-      return;
+  const [mainImageTypeId, setMainImageTypeId] = useState();
+  const [defaultImages, setDefaultImages] = useState([]);
+
+  // Update sub image type options when main image type changes
+  useEffect(() => {
+    // getting the sub image type ids based on the selected main image type id
+    if (mainImageTypeId) {
+      const subTypes = (productImageType || []).filter(
+        (type) => type.parent_id === mainImageTypeId,
+      );
+      setProductImageSubType(subTypes);
+    } else {
+      setProductImageSubType([]);
     }
+  }, [mainImageTypeId, productImageType]);
 
-    setImageTypeId(
-      imageData[rowindex].images?.length > 0
-        ? imageData[rowindex].images[0].image_type_id
-        : undefined,
+  // assign main image type from row + default images from pageData.product_images
+  useEffect(() => {
+    const rowImages = imageData?.[rowindex]?.images || [];
+    const firstImageTypeId =
+      rowImages.length > 0
+        ? rowImages[0].image_type_id
+        : imageData?.[rowindex]?.id;
+    const firstImageType = (productImageType || []).find(
+      (type) => type.id === firstImageTypeId,
     );
+    const resolvedMainTypeId = firstImageType?.parent_id || firstImageTypeId;
+
+    setMainImageTypeId(resolvedMainTypeId);
+
+    const pageImages = pageData?.product_images || [];
     setDefaultImages(
-      imageData[rowindex].images.map((el) => ({
+      pageImages.map((el) => ({
         id: el.id,
         url: el.image_url,
         name: el.image_name,
         size: el.size,
+        image_type_id: el.image_type_id,
       })),
     );
-  }, [imageData, rowindex]);
+  }, [imageData, rowindex, productImageType, pageData?.product_images]);
+
+  const getDefaultImagesBySubType = useCallback(
+    (subTypeId) => {
+      return defaultImages.filter((img) => img.image_type_id === subTypeId);
+    },
+    [defaultImages],
+  );
+
+  const getDefaultFilesBySubType = useCallback(
+    (subTypeId) => {
+      return defaultImages
+        .filter((img) => img.image_type_id === subTypeId)
+        .map((img) => ({
+          id: img.id,
+          name: img.name,
+          size: img.size || 0,
+          type: 'application/octet-stream',
+          url: img.url,
+        }));
+    },
+    [defaultImages],
+  );
 
   // hande the image changed
   const handleImageChange = useCallback(
-    (oldImages, newImages) => {
+    (subTypeId, oldImages, newImages) => {
       if (newImages.length > oldImages.length) {
         // New image added
         const addedImages = newImages.filter(
@@ -49,7 +90,7 @@ const Sub_ProductImagesRow = (props) => {
               {
                 id: addedImages[i].id,
                 product_id: pageData.id,
-                image_type_id: imageTypeId,
+                image_type_id: subTypeId,
                 image_name: addedImages[i].name,
                 image_url: addedImages[i].url,
                 size: addedImages[i].size,
@@ -75,7 +116,7 @@ const Sub_ProductImagesRow = (props) => {
         }
       }
     },
-    [upsertProductPageData, imageTypeId, pageData.id],
+    [upsertProductPageData, pageData.id],
   );
 
   // Handle image upload errors
@@ -104,13 +145,13 @@ const Sub_ProductImagesRow = (props) => {
       if (isNvUsed && !confirmSwitch) {
         // if user cancel the switch, we need to reset the image type id to the previous value
         // Force reset
-        setImageTypeId(null);
+        setMainImageTypeId(null);
         setTimeout(() => {
-          setImageTypeId(ov);
+          setMainImageTypeId(ov);
         }, 0);
         return;
       } else {
-        setImageTypeId(nv);
+        setMainImageTypeId(nv);
         console.log('set nv as new image type id: ', nv);
         for (let i = 0; i < ids.length; i++) {
           upsertProductPageData({
@@ -129,35 +170,48 @@ const Sub_ProductImagesRow = (props) => {
   );
 
   return (
-    <>
-      <Main_FileUploads
-        mode="image"
-        label="Description"
-        onError={handleImageError}
-        onChange={handleImageChange}
-        defaultImages={defaultImages}
-      />
-      <Main_FileUploads
-        mode="image"
-        label="Display"
-        onError={handleImageError}
-        onChange={handleImageChange}
-        defaultImages={defaultImages}
-      />
-      <Main_FileUploads
-        mode="file"
-        label="Video"
-        onError={handleImageError}
-        onChange={handleImageChange}
-        defaultImages={defaultImages}
-      />
-      <Main_Dropdown
-        defaultOptions={productImageType}
-        defaultSelectedOption={imageTypeId}
-        label="Image Type"
-        onChange={handleImageTypeChange}
-      />
-    </>
+    <div className={styles.container}>
+      <div className={styles.imageTypeRow}>
+        <Main_Dropdown
+          defaultOptions={(productImageType || [])
+            .filter((type) => type.parent_id === null)
+            .map((type) => ({
+              id: type.id,
+              name: type.name,
+            }))}
+          defaultSelectedOption={mainImageTypeId}
+          label="Image Type"
+          onChange={handleImageTypeChange}
+        />
+      </div>
+
+      <div className={styles.uploadArea}>
+        {productImageSubType.map((subType) => {
+          const isVideoType = /video/i.test(subType?.name || '');
+
+          return (
+            <div className={styles.uploadCell} key={subType.id}>
+              <Main_FileUploads
+                mode={isVideoType ? 'file' : 'image'}
+                label={subType.name}
+                onError={handleImageError}
+                onChange={(oldImages, newImages) =>
+                  handleImageChange(subType.id, oldImages, newImages)
+                }
+                defaultImages={
+                  isVideoType
+                    ? undefined
+                    : getDefaultImagesBySubType(subType.id)
+                }
+                defaultFiles={
+                  isVideoType ? getDefaultFilesBySubType(subType.id) : undefined
+                }
+              />
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 };
 
@@ -171,9 +225,9 @@ User cancelled the image type switch:  {from: 'Amazon', to: '1688'}
 Why did not update back to Amazon?
 
 A:
-The reason setImageTypeId(ov) (or Amazon) might not visually revert the dropdown back to "Amazon" is likely because the Main_Dropdown component's internal state mechanism isn't picking up the change.
+The reason setMainImageTypeId(ov) (or Amazon) might not visually revert the dropdown back to "Amazon" is likely because the Main_Dropdown component's internal state mechanism isn't picking up the change.
 
-When you call setImageTypeId(ov), you are setting the state to what it already was ("Amazon").
+When you call setMainImageTypeId(ov), you are setting the state to what it already was ("Amazon").
 React's diffing algorithm sees:
 
 Current State: "Amazon"

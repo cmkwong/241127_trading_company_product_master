@@ -99,6 +99,52 @@ const Sub_FileItem = ({
   if (dropPosition === 'right') shiftClass = styles.shiftLeft;
 
   const handlePreview = () => {
+    const ext = (file?.name || '').split('.').pop()?.toLowerCase();
+    const isVideo =
+      (file?.type || '').startsWith('video/') ||
+      ['mp4', 'webm', 'ogg', 'mov', 'm4v'].includes(ext);
+
+    if (isVideo) {
+      const videoUrl = file.url || (file.file ? URL.createObjectURL(file.file) : '');
+      if (!videoUrl) return;
+
+      const previewWindow = window.open('about:blank', '_blank');
+      if (!previewWindow) return;
+
+      const safeSrc = String(videoUrl).replace(/"/g, '&quot;');
+      const safeTitle = String(file?.name || 'Video Preview').replace(/</g, '&lt;');
+
+      previewWindow.document.write(`
+        <!doctype html>
+        <html>
+          <head>
+            <meta charset="utf-8" />
+            <title>${safeTitle}</title>
+            <style>
+              html, body {
+                margin: 0;
+                width: 100%;
+                height: 100%;
+                background: #000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              }
+              video {
+                max-width: 100%;
+                max-height: 100%;
+              }
+            </style>
+          </head>
+          <body>
+            <video controls autoplay playsinline src="${safeSrc}"></video>
+          </body>
+        </html>
+      `);
+      previewWindow.document.close();
+      return;
+    }
+
     if (file.url) {
       window.open(file.url, '_blank');
     } else if (file.file) {

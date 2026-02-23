@@ -109,8 +109,10 @@ const Main_DropZone = ({
         {showPreview && hasItems && children && (
           <div
             className={`${styles.previewContainer} ${
-              !showMaxItemsNotice ? styles.fullSizePreviewContainer : ''
-            }`}
+              itemType === 'files' ? styles.filePreviewContainer : ''
+            } ${
+              itemType === 'images' ? styles.imagePreviewContainer : ''
+            } ${!showMaxItemsNotice ? styles.fullSizePreviewContainer : ''}`}
           >
             {children}
           </div>

@@ -1,8 +1,8 @@
 .dropZone {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  align-items: stretch;
+  justify-content: flex-start;
   padding: 24px;
   border: 2px dashed #ccc;
   border-radius: 8px;
@@ -10,6 +10,7 @@
   transition: all 0.2s ease;
   min-height: 150px;
   width: 100%;
+  overflow-x: auto;
 }
 
 .dropZone:hover {
@@ -40,7 +41,10 @@
   display: flex;
   flex-direction: column;
   width: 100%;
+  height: 100%;
+  flex: 1;
   gap: 16px;
+  min-width: 0;
 }
 
 .uploadPrompt {
@@ -49,6 +53,7 @@
   align-items: center;
   justify-content: center;
   width: 100%;
+  margin-top: auto;
   cursor: pointer;
   padding: 20px;
   border-radius: 6px;
@@ -107,9 +112,31 @@
 
 .previewContainer {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 12px;
   width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 4px;
+}
+
+.imagePreviewContainer {
+  display: grid;
+  grid-template-rows: repeat(2, max-content);
+  grid-auto-flow: column;
+  grid-auto-columns: max-content;
+  align-content: start;
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: 220px;
+}
+
+.filePreviewContainer {
+  flex-direction: column;
+  overflow-x: hidden;
+  overflow-y: auto;
+  max-height: 250px;
+  padding-bottom: 0;
 }
 
 .fullSizeContainer {

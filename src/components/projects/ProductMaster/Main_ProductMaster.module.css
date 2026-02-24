@@ -8,8 +8,8 @@
 
 .container {
   flex: 1;
-  display: flex;
-  flex-direction: row;
+  display: block;
+  position: relative;
   height: 100%;
   overflow: hidden;
   transition: margin-left 0.3s ease;
@@ -22,7 +22,6 @@
 }
 
 .inputSide {
-  flex: 3;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -33,26 +32,66 @@
   padding-bottom: 20px; /* Reduced from 100px since footer is no longer fixed */
 }
 
-.icon {
-  flex: 1;
-  min-width: 200px;
-  max-width: 300px;
-  padding: 20px;
-  height: 100%;
+.withIconOverlay {
+  padding-right: 20px;
+}
+
+.iconOverlay {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 320px;
+  max-width: calc(100% - 40px);
+  z-index: 9999;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  max-height: calc(100% - 40px);
   overflow-y: auto;
-  border-left: 1px solid #e0e0e0;
+}
+
+.iconToggleBtn {
+  position: absolute;
+  top: 18px;
+  right: 0;
+  z-index: 100;
+  border: 1px solid #cfcfcf;
+  background: #fff;
+  color: #333;
+  border-radius: 2px;
+  width: 22px;
+  height: 34px;
+  padding: 0;
+  font-size: 14px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.iconToggleBtn:hover {
+  background: #f5f5f5;
 }
 
 /* Responsive adjustments */
 @media (max-width: 1024px) {
-  .container {
-    flex-direction: column;
+  .withIconOverlay {
+    padding-right: 20px;
   }
 
-  .icon {
-    max-width: 100%;
-    border-left: none;
-    border-top: 1px solid #e0e0e0;
+  .iconToggleBtn {
+    right: 0;
+  }
+
+  .iconOverlay {
+    position: absolute;
+    width: min(320px, calc(100% - 40px));
+    max-width: calc(100% - 40px);
+    max-height: calc(100% - 76px);
+    margin: 0;
   }
 }
 

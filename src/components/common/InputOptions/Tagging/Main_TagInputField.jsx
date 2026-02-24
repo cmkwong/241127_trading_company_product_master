@@ -5,13 +5,16 @@ import Sub_TagList from './Sub_TagList';
 import styles from './Main_TagInputField.module.css';
 import { v4 as uuidv4 } from 'uuid';
 
+const EMPTY_OPTIONS = [];
+const EMPTY_SELECTED_OPTIONS = [];
+
 const Main_TagInputField = (props) => {
   const {
     onChange = () => {},
-    onAdd = () => {},
+    onAddNewOption = () => {},
     // Uncontrolled defaults
-    defaultOptions = [],
-    defaultSelectedOptions = [],
+    defaultOptions = EMPTY_OPTIONS,
+    defaultSelectedOptions = EMPTY_SELECTED_OPTIONS,
     // Control options
     canAddNewOptions = true,
     enableHierarchyViewToggle = false,
@@ -103,7 +106,7 @@ const Main_TagInputField = (props) => {
       setOptions(nextOptions);
       setSelectedOptions(nextSelected);
       onChange?.(oldSelected, nextSelected);
-      onAdd?.(newOption);
+      onAddNewOption?.(newOption);
     },
     [
       selectedOptions,
@@ -111,7 +114,7 @@ const Main_TagInputField = (props) => {
       updateOptionData,
       options,
       canAddNewOptions,
-      onAdd,
+      onAddNewOption,
     ],
   );
 
@@ -217,6 +220,13 @@ const Main_TagInputField = (props) => {
     options,
   ]);
 
+  const shouldShowAddNewHint =
+    canAddNewOptions &&
+    (inputValue || '').trim().length > 0 &&
+    displayOptions.length === 0;
+
+  const addNewWord = (inputValue || '').trim();
+
   return (
     <>
       <div ref={containerRef} className={styles.inputOption}>
@@ -254,6 +264,9 @@ const Main_TagInputField = (props) => {
             filteredOptions={displayOptions}
             selectedOptions={selectedOptions}
             updateOptionData={updateOptionData}
+            showAddNewHint={shouldShowAddNewHint}
+            addNewWord={addNewWord}
+            onAddNewClick={() => handleEnterPress(addNewWord)}
           />
         )}
       </div>

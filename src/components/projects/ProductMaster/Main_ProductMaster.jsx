@@ -12,10 +12,12 @@ import Main_CertificateData from './CertificateData/Main_CertificateData';
 import SavePageWithProvider from './SavePage/Main_SavePage';
 import ProductSidebar from './AllProductList/ProductSidebar';
 import Main_ProductImages from './ProductImages/Main_ProductImages';
+import Main_Keywords from './Keywords/Main_Keywords';
 
 const Main_ProductMaster = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [showIconPanel, setShowIconPanel] = useState(true);
 
   // Function to handle saving product data
   const onSaveProduct = async () => {
@@ -65,10 +67,21 @@ const Main_ProductMaster = () => {
             sidebarCollapsed ? styles.fullWidth : ''
           }`}
         >
-          <div className={styles.inputSide}>
+          <button
+            type="button"
+            className={styles.iconToggleBtn}
+            onClick={() => setShowIconPanel((prev) => !prev)}
+            aria-label={showIconPanel ? 'Hide icon panel' : 'Show icon panel'}
+            title={showIconPanel ? 'Hide icon panel' : 'Show icon panel'}
+          >
+            {showIconPanel ? '‹' : '›'}
+          </button>
+
+          <div className={`${styles.inputSide} ${styles.withIconOverlay}`}>
             <Main_ProductName />
-            <Main_ProductImages />
             <Main_Category />
+            <Main_Keywords />
+            <Main_ProductImages />
             <Main_Supplier />
             <Main_ProductLink />
             <Main_AlibabaLink />
@@ -76,9 +89,12 @@ const Main_ProductMaster = () => {
             <Main_CertificateData />
             <Main_Remark />
           </div>
-          <div className={styles.icon}>
-            <Main_ProductIcon />
-          </div>
+
+          {showIconPanel && (
+            <div className={styles.iconOverlay}>
+              <Main_ProductIcon />
+            </div>
+          )}
         </div>
       </div>
     </SavePageWithProvider>

@@ -10,7 +10,18 @@ const Sub_TagList = (props) => {
       onClick={props.handleClickSelection}
     >
       {props.filteredOptions.length === 0 ? (
-        <div className={styles.notFound}>Not Found</div>
+        props.showAddNewHint ? (
+          <button
+            type="button"
+            className={styles.addNewHint}
+            onMouseDown={(event) => event.preventDefault()}
+            onClick={props.onAddNewClick}
+          >
+            Press Enter / Click Here to add new: {props.addNewWord}
+          </button>
+        ) : (
+          <div className={styles.notFound}>Not Found</div>
+        )
       ) : (
         props.filteredOptions.map((el) => {
           return (

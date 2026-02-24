@@ -95,6 +95,16 @@ const Main_ProductIcon = ({ showMaxImagesNotice = false }) => {
           />
         </div>
         <Main_TextField
+          placeholder={'HS Code'}
+          defaultValue={pageData.hs_code || ''}
+          onChange={(ov, nv) => {
+            upsertProductPageData({
+              hs_code: nv,
+            });
+          }}
+          disabled={false} // Set to false to allow editing of HS Code
+        />
+        <Main_TextField
           placeholder={'Product ID'}
           defaultValue={id}
           onChange={() => {}}

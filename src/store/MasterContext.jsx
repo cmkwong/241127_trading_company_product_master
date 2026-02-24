@@ -13,7 +13,7 @@ import {
   mockCertType,
   mockProductImageType,
 } from '../datas/Options/ProductOptions';
-import { apiGet } from '../utils/crud';
+import { apiGet, apiPatch } from '../utils/crud';
 import { useAuthContext } from './AuthContext';
 
 export const MasterContext = createContext();
@@ -80,6 +80,27 @@ export const MasterContext_Provider = ({ children }) => {
       return normalizedData;
     },
     [token],
+  );
+
+  const updateMasterTableData = useCallback(
+    async (tableName, data) => {
+      if (!tableName || typeof tableName !== 'string') {
+        throw new Error('updateMasterTableData requires a valid tableName');
+      }
+
+      const endpoint = `${DEFAULT_MASTER_API_BASE}/${tableName}`;
+      const response = await apiPatch(
+        endpoint,
+        { data },
+        {
+          ...(token ? { token } : {}),
+        },
+      );
+
+      await fetchMasterData(tableName);
+      return response;
+    },
+    [fetchMasterData, token],
   );
 
   useEffect(() => {
@@ -263,6 +284,33 @@ export const MasterContext_Provider = ({ children }) => {
     );
   }, []);
 
+  // Function to get product keywords
+  const getProductKeywords = useCallback(
+    (id, label) => {
+      return getRequiredData(id, label, productKeywords);
+    },
+    [productKeywords, getRequiredData],
+  );
+
+  // Function to update product keywords
+  const updateProductKeywords = useCallback((newKeywords) => {
+    setProductKeywords(newKeywords);
+  }, []);
+
+  // Function to add a new product keyword
+  const addProductKeyword = useCallback((newKeyword) => {
+    setProductKeywords((prev) => [...prev, newKeyword]);
+  }, []);
+
+  // Function to remove product keywords by matcher or exact item
+  const removeProductKeyword = useCallback((matcher) => {
+    setProductKeywords((prev) =>
+      prev.filter((item) =>
+        typeof matcher === 'function' ? !matcher(item) : item !== matcher,
+      ),
+    );
+  }, []);
+
   const contextValue = {
     // State
     productNameType,
@@ -273,6 +321,7 @@ export const MasterContext_Provider = ({ children }) => {
     productImageType,
     productKeywords,
     fetchMasterData,
+    updateMasterTableData,
     // Product Name Type functions
     getProductNameTypes,
     updateProductNameTypes,
@@ -303,6 +352,11 @@ export const MasterContext_Provider = ({ children }) => {
     updateProductImageTypes,
     addProductImageType,
     removeProductImageType,
+    // Product Keywords functions
+    getProductKeywords,
+    updateProductKeywords,
+    addProductKeyword,
+    removeProductKeyword,
   };
 
   return (

@@ -22,3 +22,18 @@
   color: #999;
   font-style: italic;
 }
+
+.addNewHint {
+  padding: 10px;
+  text-align: center;
+  color: #2e7d32;
+  background-color: #e8f5e9;
+  font-style: italic;
+  border: none;
+  width: 100%;
+  cursor: pointer;
+}
+
+.addNewHint:hover {
+  background-color: #dff1e2;
+}

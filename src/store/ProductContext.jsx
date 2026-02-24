@@ -35,6 +35,7 @@ const PRODUCT_COMPARISON_KEYS = [
   'product_alibaba_ids',
   'product_packings',
   'product_certificates',
+  'product_keywords',
 ];
 
 // Provider component for save page data

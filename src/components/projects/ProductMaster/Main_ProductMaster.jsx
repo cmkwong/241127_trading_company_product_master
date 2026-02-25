@@ -9,10 +9,10 @@ import Main_AlibabaLink from './AlibabaLink/Main_AlibabaLink';
 import Main_Remark from './Remarks/Main_Remark';
 import Main_ProductIcon from './ProductIcon/Main_ProductIcon';
 import Main_CertificateData from './CertificateData/Main_CertificateData';
-import SavePageWithProvider from './SavePage/Main_SavePage';
 import ProductSidebar from './AllProductList/ProductSidebar';
 import Main_ProductImages from './ProductImages/Main_ProductImages';
 import Main_Keywords from './Keywords/Main_Keywords';
+import ProductMasterSavePageContainer from './Container/ProductMasterSavePageContainer';
 
 const Main_ProductMaster = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -43,7 +43,7 @@ const Main_ProductMaster = () => {
   };
 
   return (
-    <SavePageWithProvider
+    <ProductMasterSavePageContainer
       onSave={onSaveProduct}
       saveButtonText="Save Product"
       successMessage="Product saved successfully!"
@@ -97,7 +97,7 @@ const Main_ProductMaster = () => {
           )}
         </div>
       </div>
-    </SavePageWithProvider>
+    </ProductMasterSavePageContainer>
   );
 };
 

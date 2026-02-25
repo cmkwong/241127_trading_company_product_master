@@ -493,7 +493,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
   };
 
   // Function to handle save action with built-in product list update
-  const handleSave = useCallback(
+  const handleProductSave = useCallback(
     async (externalSaveCallback = null) => {
       setIsSaving(true);
       setSaveError(null);
@@ -591,7 +591,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
         setIsSaving(false);
       }
     },
-    [pageData, getChangedData, token],
+    [pageData, getChangedData, token, _cleanupFlags],
   );
 
   // Create a new product (clear page data)
@@ -622,19 +622,29 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
   return (
     <ProductContext.Provider
       value={{
+        // Core product state
         pageData,
         products,
+
+        // Data loading and mutation actions
         getProductData,
         upsertProductPageData,
-
         getAllProducts,
         updateProducts,
-        handleSave,
+
+        // Save/create actions
+        handleProductSave,
         createNewProduct,
+
+        // Utility getters
         getAllData,
+
+        // Save status flags
         isSaving,
         saveSuccess,
         saveError,
+
+        // Change detection helpers
         isDataUnchanged,
         getChangedData,
       }}

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import PropTypes from 'prop-types';
-import { useAuthContext } from '../../store/AuthContext';
+import { useAuthContext } from '../../../store/AuthContext';
 import styles from './TopBar.module.css';
 
 const TopBar = ({ title, activeView, onViewChange }) => {

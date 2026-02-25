@@ -55,6 +55,7 @@ const Main_AllProductList = ({ onSelectProduct }) => {
     setFilteredProducts(filtered);
   }, [searchTerm, products]);
 
+  // Handle product selection and load full product data
   const handleProductSelect = useCallback(
     (product) => {
       // Use the getProductData function to load all product data

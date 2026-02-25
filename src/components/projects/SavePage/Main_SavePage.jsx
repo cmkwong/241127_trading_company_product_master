@@ -1,12 +1,4 @@
-import {
-  MasterContext,
-  MasterContext_Provider,
-} from '../../../../store/MasterContext';
-import {
-  ProductContext_Provider,
-  useProductContext,
-} from '../../../../store/ProductContext';
-import Button from '../../../common/Button';
+import Button from '../../common/Button';
 import styles from './Main_SavePage.module.css';
 
 const Main_SavePage = ({
@@ -16,15 +8,22 @@ const Main_SavePage = ({
   successMessage = 'Data saved successfully!',
   showSaveButton = true,
   customSaveAction = null,
+  saveAction = null,
+  isSaving = false,
+  saveSuccess = false,
+  saveError = null,
   className = '',
 }) => {
-  const { handleSave, isSaving, saveSuccess, saveError } = useProductContext();
-
+  // Handle save button click
   const handleSaveClick = () => {
     if (customSaveAction) {
       customSaveAction();
+    } else if (typeof saveAction === 'function') {
+      saveAction(onSave);
+    } else if (typeof onSave === 'function') {
+      onSave();
     } else {
-      handleSave(onSave);
+      console.warn('No save function provided to Main_SavePage');
     }
   };
 
@@ -53,33 +52,4 @@ const Main_SavePage = ({
   );
 };
 
-// Compound component that includes the provider
-const SavePageWithProvider = ({
-  children,
-  initialData = {},
-  onSave,
-  saveButtonText,
-  successMessage,
-  showSaveButton,
-  customSaveAction,
-  className,
-}) => {
-  return (
-    <MasterContext_Provider>
-      <ProductContext_Provider initialData={initialData}>
-        <Main_SavePage
-          onSave={onSave}
-          saveButtonText={saveButtonText}
-          successMessage={successMessage}
-          showSaveButton={showSaveButton}
-          customSaveAction={customSaveAction}
-          className={className}
-        >
-          {children}
-        </Main_SavePage>
-      </ProductContext_Provider>
-    </MasterContext_Provider>
-  );
-};
-
-export default SavePageWithProvider;
+export default Main_SavePage;

@@ -59,7 +59,7 @@ const Main_Category = () => {
   };
 
   return (
-    <Main_InputContainer label={'Category'}>
+    <Main_InputContainer label={'Product Category'}>
       <Main_TagInputField
         key={`category-input`}
         defaultOptions={category}

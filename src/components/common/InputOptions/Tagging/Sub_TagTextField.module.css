@@ -1,5 +1,8 @@
 .inputContainer {
   width: 100%;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
   /* height: 28px; */
   border-radius: 5px;
   /* overflow: hidden; */
@@ -13,7 +16,9 @@
 }
 
 .inputField {
-  width: 90%;
+  width: 100%;
+  flex: 1;
+  box-sizing: border-box;
   border: 0px;
   padding: 8px 12px;
   /* background-color: #fff8f8; */

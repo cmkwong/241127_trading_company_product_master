@@ -1,24 +1,21 @@
 import styles from './Sub_TagPlate.module.css';
 import close_icon from '../../../../assets/close.svg';
-import { useState } from 'react';
 
 const Sub_TagPlate = (props) => {
-  let { id, name, updateOptionData } = props;
-
-  const [hover, setHover] = useState(false);
+  const { id, name, updateOptionData } = props;
 
   return (
     <div className={styles.tagBlock}>
       <div key={id} className={styles.container}>
-        <p className={styles.label}>{name}</p>
-        <img
-          className={`${styles.cancel} ${hover ? styles.hover : ''}`}
+        <span className={styles.label}>{name}</span>
+        <button
+          type="button"
+          className={styles.cancelButton}
+          aria-label={`Remove ${name}`}
           onClick={() => updateOptionData(id, false)}
-          onMouseOver={() => setHover(true)}
-          onMouseLeave={() => setHover(false)}
-          src={close_icon}
-          alt="X"
-        />
+        >
+          <img className={styles.cancelIcon} src={close_icon} alt="" />
+        </button>
       </div>
     </div>
   );

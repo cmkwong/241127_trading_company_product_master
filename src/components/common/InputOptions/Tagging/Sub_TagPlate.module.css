@@ -3,27 +3,66 @@
 }
 
 .container {
-  /* layout */
-  /* height: 20px; */
-  padding: 0px 5px 0px 8px;
+  padding: 2px 6px 2px 10px;
   display: flex;
-  /* justify-content: space-between; */
+  gap: 6px;
   align-items: center;
-  /* style */
-  margin: 3px;
+  margin: 2px;
   border-radius: 20px;
-  /* background-color: #ffcaca; */
-  /* font-size: 12px; */
-  font-weight: 300;
+  border: 1px solid #b8d8ff;
+  background: linear-gradient(180deg, #f6fbff 0%, #ecf5ff 100%);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.container:hover {
+  border-color: #8ec5ff;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
+  transform: translateY(-1px);
+}
+
+.label {
+  margin: 0;
+  padding: 5px;
+  white-space: nowrap;
+}
+
+.cancelButton {
+  width: 18px;
+  height: 18px;
+  border: none;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
   cursor: pointer;
-  border: 1px solid #000;
+  padding: 0;
+  transition:
+    background-color 0.15s ease,
+    transform 0.15s ease;
 }
 
-.cancel {
-  padding-top: 4px;
-  padding-bottom: 4px;
+.cancelButton:hover {
+  background-color: rgba(239, 68, 68, 0.12);
+  transform: scale(1.06);
 }
 
-.hover {
-  transform: scale(1.2);
+.cancelButton:active {
+  transform: scale(0.96);
+}
+
+.cancelButton:focus-visible {
+  outline: 2px solid #60a5fa;
+  outline-offset: 1px;
+}
+
+.cancelIcon {
+  width: 12px;
+  height: 12px;
+  opacity: 0.72;
+  pointer-events: none;
 }

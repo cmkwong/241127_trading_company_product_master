@@ -18,8 +18,6 @@ const Main_Keywords = () => {
 
   const handleKeywordsChange = useCallback(
     (ov, nv) => {
-      console.log('Keywords changed from', ov, 'to', nv);
-
       if (nv.length > ov.length) {
         // Keyword added
         const addedKeywords = nv.filter((kwid) => !ov.includes(kwid));
@@ -40,7 +38,7 @@ const Main_Keywords = () => {
         const keywordRelationsToDelete = pageData.product_keywords.filter(
           (rel) => removedKeywords.includes(rel.keyword_id),
         );
-        console.log('Removing keyword relations', keywordRelationsToDelete);
+
         upsertProductPageData({
           product_keywords: keywordRelationsToDelete.map((rel) => ({
             id: rel.id,
@@ -54,13 +52,16 @@ const Main_Keywords = () => {
 
   const handleNewOptionAdd = useCallback(
     async (newOptionName) => {
-      await updateMasterTableData('master_keywords', newOptionName);
+      await updateMasterTableData('master_keywords', {
+        id: newOptionName.id,
+        name: newOptionName.name.toLowerCase(),
+      });
     },
     [updateMasterTableData],
   );
 
   return (
-    <Main_InputContainer label="Keywords">
+    <Main_InputContainer label={'Product Keywords'}>
       <Main_TagInputField
         placeholder="Enter keywords"
         defaultOptions={productKeywords}

@@ -19,6 +19,7 @@ const Main_TextField = (props) => {
 
     // UI
     label,
+    labelPosition = 'top',
     inputId,
     placeholder = 'Enter text...',
     type = 'text',
@@ -54,30 +55,38 @@ const Main_TextField = (props) => {
     <div
       className={`${styles.textFieldContainer} ${error ? styles.error : ''}`}
     >
-      {label && (
-        <label
-          htmlFor={inputId}
-          className={`${styles.label} ${required ? styles.required : ''}`}
-        >
-          {label}
-        </label>
-      )}
-      <Sub_TextField
-        id={inputId}
-        value={internalValue}
-        onInputChange={handleInputChange}
-        placeholder={placeholder}
-        type={type}
-        disabled={disabled}
-        required={required}
-        maxLength={maxLength}
-        minLength={minLength}
-        pattern={pattern}
-        autoFocus={autoFocus}
-        className={className}
-        onFocus={onFocus}
-        onBlur={onBlur}
-      />
+      <div
+        className={`${styles.fieldRow} ${
+          labelPosition === 'left' ? styles.labelLeft : styles.labelTop
+        }`}
+      >
+        {label && (
+          <label
+            htmlFor={inputId}
+            className={`${styles.label} ${required ? styles.required : ''}`}
+          >
+            {label}
+          </label>
+        )}
+        <div className={styles.inputWrapper}>
+          <Sub_TextField
+            id={inputId}
+            value={internalValue}
+            onInputChange={handleInputChange}
+            placeholder={placeholder}
+            type={type}
+            disabled={disabled}
+            required={required}
+            maxLength={maxLength}
+            minLength={minLength}
+            pattern={pattern}
+            autoFocus={autoFocus}
+            className={className}
+            onFocus={onFocus}
+            onBlur={onBlur}
+          />
+        </div>
+      </div>
       {helperText && (
         <div
           className={`${styles.helperText} ${error ? styles.errorText : ''}`}
@@ -100,6 +109,7 @@ Main_TextField.propTypes = {
 
   // UI
   label: PropTypes.string,
+  labelPosition: PropTypes.oneOf(['top', 'left']),
   inputId: PropTypes.string,
   placeholder: PropTypes.string,
   type: PropTypes.string,

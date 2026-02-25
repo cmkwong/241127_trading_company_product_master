@@ -5,11 +5,36 @@
   width: 100%;
 }
 
+.fieldRow {
+  display: flex;
+  width: 100%;
+}
+
+.inputWrapper {
+  flex: 1;
+  min-width: 0;
+}
+
+.labelTop {
+  flex-direction: column;
+}
+
+.labelLeft {
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+}
+
 .label {
   font-size: 14px;
   font-weight: 500;
-  margin-bottom: 6px;
+  margin-bottom: 3px;
   color: #333;
+}
+
+.labelLeft .label {
+  margin-bottom: 0;
+  min-width: 100px;
 }
 
 .required:after {

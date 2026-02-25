@@ -95,7 +95,7 @@ const Main_ProductIcon = ({ showMaxImagesNotice = false }) => {
           />
         </div>
         <Main_TextField
-          placeholder={'HS Code'}
+          label={'HS Code'}
           defaultValue={pageData.hs_code || ''}
           onChange={(ov, nv) => {
             upsertProductPageData({
@@ -105,7 +105,7 @@ const Main_ProductIcon = ({ showMaxImagesNotice = false }) => {
           disabled={false} // Set to false to allow editing of HS Code
         />
         <Main_TextField
-          placeholder={'Product ID'}
+          label={'Product ID'}
           defaultValue={id}
           onChange={() => {}}
           disabled={true} // Product ID is typically not editable, set to true to disable

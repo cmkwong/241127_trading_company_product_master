@@ -128,6 +128,7 @@ const Sub_PackRow = ({ packings, rowindex }) => {
         <div className={styles.dimensionColumn}>
           <Main_TextField
             label="L: "
+            labelPosition={'left'}
             className={styles.packingField}
             defaultValue={getStringValue(length)}
             onChange={(ov, nv) =>
@@ -143,6 +144,7 @@ const Sub_PackRow = ({ packings, rowindex }) => {
           />
           <Main_TextField
             label="W: "
+            labelPosition={'left'}
             className={styles.packingField}
             defaultValue={getStringValue(width)}
             onChange={(ov, nv) =>
@@ -158,6 +160,7 @@ const Sub_PackRow = ({ packings, rowindex }) => {
           />
           <Main_TextField
             label="H: "
+            labelPosition={'left'}
             className={styles.packingField}
             defaultValue={getStringValue(height)}
             onChange={(ov, nv) =>
@@ -173,6 +176,7 @@ const Sub_PackRow = ({ packings, rowindex }) => {
           />
           <Main_TextField
             label="Qty: "
+            labelPosition={'left'}
             className={styles.packingField}
             defaultValue={getStringValue(quantity)}
             onChange={(ov, nv) =>
@@ -188,6 +192,7 @@ const Sub_PackRow = ({ packings, rowindex }) => {
           />
           <Main_TextField
             label="kg: "
+            labelPosition={'left'}
             className={styles.packingField}
             defaultValue={getStringValue(weight)}
             onChange={(ov, nv) =>

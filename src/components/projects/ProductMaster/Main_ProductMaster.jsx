@@ -13,6 +13,7 @@ import ProductSidebar from './AllProductList/ProductSidebar';
 import Main_ProductImages from './ProductImages/Main_ProductImages';
 import Main_Keywords from './Keywords/Main_Keywords';
 import ProductMasterSavePageContainer from './Container/ProductMasterSavePageContainer';
+import Main_ProductCosts from './ProductCosts/Main_ProductCosts';
 
 const Main_ProductMaster = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -86,6 +87,7 @@ const Main_ProductMaster = () => {
             <Main_ProductLink />
             <Main_AlibabaLink />
             <Main_Pack />
+            <Main_ProductCosts />
             <Main_CertificateData />
             <Main_Remark />
           </div>

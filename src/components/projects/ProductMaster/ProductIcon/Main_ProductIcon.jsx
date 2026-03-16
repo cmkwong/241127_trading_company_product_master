@@ -1,98 +1,100 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import styles from './Main_ProductIcon.module.css';
 import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
 import { useProductContext } from '../../../../store/ProductContext';
-import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_FileUploads';
+import IconUpload from '../../../common/InputOptions/IconUpload/IconUpload';
 
 /**
  * Main_ProductIcon Component
  * Allows selection and display of a single product image
  */
+const ACCEPTED_IMAGE_TYPES = [
+  'image/jpeg',
+  'image/png',
+  'image/gif',
+  'image/webp',
+];
+
+const MAX_IMAGE_SIZE_MB = 5;
+
 const Main_ProductIcon = ({ showMaxImagesNotice = false }) => {
   const { pageData, upsertProductPageData } = useProductContext();
 
   // product ID state setup
   const [id, setId] = useState(pageData.id || '');
-  const [defaultImages, setDefaultImages] = useState([]);
 
   // Process the image URL from pageData
   useEffect(() => {
     setId(pageData.id || '');
+  }, [pageData.id]);
 
-    const hasIconUrl =
-      pageData?.icon_url &&
-      typeof pageData.icon_url === 'string' &&
-      pageData.icon_url.trim() !== '';
+  const handleIconSelectFile = (file) => {
+    if (!file) return;
 
-    if (hasIconUrl) {
-      setDefaultImages([
-        {
-          url: pageData.icon_url,
-          name: pageData?.icon_name || 'product-icon',
-        },
-      ]);
-    } else {
-      setDefaultImages([]);
-    }
-  }, [pageData.id, pageData.icon_url, pageData.icon_name]);
-
-  // Handle image changes from the ImageUpload component
-  const handleImageChange = async (oldImages, newImages) => {
-    if (newImages.length > oldImages.length) {
-      // New image added
-      const addedImages = newImages.filter(
-        (img) => !oldImages.some((oldImg) => oldImg.id === img.id),
+    if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+      console.error(
+        `Image upload error: unsupported image type (${file.type})`,
       );
-      for (let i = 0; i < addedImages.length; i++) {
-        upsertProductPageData({
-          icon_url: addedImages[i].url || '',
-          icon_name: addedImages[i].name || '',
-          _base64_changed: true, // Flag to indicate this is a base64 change for backend processing
-        });
-      }
-    } else if (newImages.length < oldImages.length) {
-      // Image removed, handle deletion in context
-      const removedImages = oldImages.filter(
-        (img) => !newImages.some((newImg) => newImg.id === img.id),
-      );
-      for (let i = 0; i < removedImages.length; i++) {
-        upsertProductPageData({
-          icon_url: '',
-          icon_name: '',
-        });
-      }
+      return;
     }
+
+    if (file.size > MAX_IMAGE_SIZE_MB * 1024 * 1024) {
+      console.error(
+        `Image upload error: file exceeds maximum size of ${MAX_IMAGE_SIZE_MB}MB`,
+      );
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(file);
+
+    upsertProductPageData({
+      icon_url: objectUrl,
+      icon_name: file.name || '',
+      _base64_changed: true,
+    });
   };
 
-  // Handle errors from the ImageUpload component
-  const handleImageError = (errorMessage) => {
-    console.error('Image upload error:', errorMessage);
-    // You could show a toast notification or alert here
+  const handleRemoveIcon = () => {
+    upsertProductPageData({
+      icon_url: '',
+      icon_name: '',
+      _base64_changed: true,
+    });
   };
 
   return (
     <Main_InputContainer label="Product Icon">
       <div className={styles.productIconContainer}>
         <div className={styles.iconUploadContainer}>
-          <Main_FileUploads
-            mode="image"
-            onChange={handleImageChange}
-            onError={handleImageError}
-            maxFiles={1}
-            multiple={false}
-            defaultImages={defaultImages}
-            showPreview={true}
-            acceptedTypes={[
-              'image/jpeg',
-              'image/png',
-              'image/gif',
-              'image/webp',
-            ]}
-            maxSizeInMB={5}
-            showMaxItemsNotice={showMaxImagesNotice}
-          />
+          <div className={styles.iconUploadRow}>
+            <IconUpload
+              inputId={`product-icon-${id || 'new'}`}
+              imageUrl={pageData.icon_url || ''}
+              imageName={pageData.icon_name || 'product-icon'}
+              onSelectFile={handleIconSelectFile}
+              accept={ACCEPTED_IMAGE_TYPES.join(',')}
+              size="XL"
+              title={
+                showMaxImagesNotice
+                  ? 'Select product icon (max 1)'
+                  : 'Select product icon'
+              }
+            />
+
+            {!!pageData.icon_url && (
+              <button
+                type="button"
+                className={styles.removeIconBtn}
+                onClick={handleRemoveIcon}
+                title="Remove icon"
+                aria-label="Remove icon"
+              >
+                X
+              </button>
+            )}
+          </div>
         </div>
         <Main_TextField
           label={'HS Code'}

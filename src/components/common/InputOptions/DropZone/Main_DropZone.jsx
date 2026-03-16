@@ -30,6 +30,8 @@ const Main_DropZone = ({
 
   // Styling/Labels
   itemType = 'files', // 'files' or 'images'
+  compact = false,
+  compactButtonText = '選取',
 }) => {
   const fileInputRef = useRef(null);
 
@@ -86,7 +88,7 @@ const Main_DropZone = ({
         disabled ? styles.disabled : ''
       } ${hasItems ? styles.hasItems : ''} ${
         !showMaxItemsNotice && hasItems ? styles.fullSizeContainer : ''
-      }`}
+      } ${compact ? styles.compact : ''}`}
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
       onDragOver={handleDragOver}
@@ -147,21 +149,25 @@ const Main_DropZone = ({
             {canAddMoreItems && (
               <>
                 <div className={styles.uploadText}>
-                  {isDragging
-                    ? `Drop ${itemType} here`
-                    : hasItems
-                      ? `Click or drop to add more ${itemType}`
-                      : `Click to upload or drag ${itemType} here`}
+                  {compact
+                    ? compactButtonText
+                    : isDragging
+                      ? `Drop ${itemType} here`
+                      : hasItems
+                        ? `Click or drop to add more ${itemType}`
+                        : `Click to upload or drag ${itemType} here`}
                 </div>
 
-                <div className={styles.uploadInfo}>
-                  {`${items.length}/${maxFiles} ${itemType}, up to ${maxSizeInMB}MB each`}
-                  {acceptedTypes.length > 0 && (
-                    <div className={styles.acceptedTypes}>
-                      Accepted types: {acceptedTypes.join(', ')}
-                    </div>
-                  )}
-                </div>
+                {!compact && (
+                  <div className={styles.uploadInfo}>
+                    {`${items.length}/${maxFiles} ${itemType}, up to ${maxSizeInMB}MB each`}
+                    {acceptedTypes.length > 0 && (
+                      <div className={styles.acceptedTypes}>
+                        Accepted types: {acceptedTypes.join(', ')}
+                      </div>
+                    )}
+                  </div>
+                )}
               </>
             )}
 
@@ -208,6 +214,8 @@ Main_DropZone.propTypes = {
 
   // Styling/Labels
   itemType: PropTypes.string, // 'files' or 'images'
+  compact: PropTypes.bool,
+  compactButtonText: PropTypes.string,
 };
 
 export default Main_DropZone;

@@ -36,6 +36,10 @@ const PRODUCT_COMPARISON_KEYS = [
   'product_packings',
   'product_certificates',
   'product_keywords',
+  'product_varient_colors',
+  'product_varient_sizes',
+  'product_varient_capacities',
+  'product_costs',
 ];
 
 // Provider component for save page data
@@ -472,7 +476,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
   }, []);
 
   // Recursive cleanup internal FLAG function
-  const _cleanupFlags = (obj) => {
+  const _cleanupFlags = useCallback((obj) => {
     if (!obj || typeof obj !== 'object') return obj;
 
     if (Array.isArray(obj)) {
@@ -490,7 +494,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
     });
 
     return newObj;
-  };
+  }, []);
 
   // Function to handle save action with built-in product list update
   const handleProductSave = useCallback(
@@ -646,6 +650,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
         isSaving,
         saveSuccess,
         saveError,
+        isProductsLoading,
 
         // Change detection helpers
         isDataUnchanged,

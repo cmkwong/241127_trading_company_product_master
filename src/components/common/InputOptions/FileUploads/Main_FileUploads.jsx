@@ -26,6 +26,8 @@ const Main_FileUploads = (props) => {
     disabled = false,
     showPreview = true,
     showMaxItemsNotice = true,
+    compact = false,
+    compactButtonText = '選取',
 
     // Initial state
     defaultFiles = [],
@@ -249,6 +251,8 @@ const Main_FileUploads = (props) => {
         showMaxItemsNotice={showMaxItemsNotice}
         itemType={itemType}
         testIdPrefix={testIdPrefix}
+        compact={compact}
+        compactButtonText={compactButtonText}
       >
         {fileList.map((file, index) => (
           <Sub_FileItem
@@ -283,6 +287,8 @@ Main_FileUploads.propTypes = {
   disabled: PropTypes.bool,
   showPreview: PropTypes.bool,
   showMaxItemsNotice: PropTypes.bool,
+  compact: PropTypes.bool,
+  compactButtonText: PropTypes.string,
 
   // Initial state
   defaultFiles: PropTypes.arrayOf(

@@ -1,0 +1,48 @@
+.tableWrap {
+  overflow: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+}
+
+.costTable {
+  width: 100%;
+  min-width: 780px;
+  border-collapse: collapse;
+  font-size: 12px;
+  background: #fff;
+}
+
+.costTable th,
+.costTable td {
+  border-bottom: 1px solid #f0f0f0;
+  padding: 8px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.costTable thead th {
+  background: #fafafa;
+  color: #555;
+  font-weight: 600;
+}
+
+.cellInput {
+  width: 100%;
+  min-width: 100px;
+  height: 30px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  padding: 0 8px;
+  font-size: 12px;
+}
+
+.cellInput:focus {
+  outline: none;
+  border-color: #4a90e2;
+}
+
+.emptyRow {
+  text-align: center !important;
+  color: #888;
+  padding: 20px 10px !important;
+}

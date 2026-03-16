@@ -17,6 +17,8 @@ const Main_Suggest = (props) => {
   const {
     // Callbacks
     onChange = () => {},
+    onFocus,
+    onBlur,
     // Uncontrolled defaults
     defaultSuggestions = [],
     defaultValue = '',
@@ -68,11 +70,13 @@ const Main_Suggest = (props) => {
 
   const handleFocus = useCallback(() => {
     setIsFocused(true);
-  }, []);
+    onFocus?.();
+  }, [onFocus]);
 
   const handleBlur = () => {
     // Delay to allow click on suggestion items
     setTimeout(() => setIsFocused(false), 150);
+    onBlur?.();
   };
 
   // Input field props
@@ -126,6 +130,8 @@ const Main_Suggest = (props) => {
 Main_Suggest.propTypes = {
   // Events
   onChange: PropTypes.func,
+  onFocus: PropTypes.func,
+  onBlur: PropTypes.func,
   // Uncontrolled defaults
   defaultSuggestions: PropTypes.array,
   defaultValue: PropTypes.string,

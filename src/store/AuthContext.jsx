@@ -9,7 +9,8 @@ import {
 import PropTypes from 'prop-types';
 import { apiPost } from '../utils/crud';
 
-const DEFAULT_TOKEN_ENDPOINT = 'http://localhost:3001/api/v1/auth/getToken';
+const DEFAULT_TOKEN_ENDPOINT =
+  'http://localhost:3001/api/v1/trade_business/auth/getToken';
 
 const AuthContext = createContext(null);
 

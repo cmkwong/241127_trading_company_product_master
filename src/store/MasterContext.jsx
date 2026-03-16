@@ -18,7 +18,8 @@ import { useAuthContext } from './AuthContext';
 
 export const MasterContext = createContext();
 
-const DEFAULT_MASTER_API_BASE = 'http://localhost:3001/api/v1/products/master';
+const DEFAULT_MASTER_API_BASE =
+  'http://localhost:3001/api/v1/trade_business/master';
 const DEFAULT_TABLE_NAMES = [
   'master_categories',
   'master_certificate_types',

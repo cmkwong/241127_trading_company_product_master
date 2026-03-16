@@ -64,7 +64,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
       setIsProductsLoading(true);
       try {
         const response = await apiGet(
-          'http://localhost:3001/api/v1/products/data',
+          'http://localhost:3001/api/v1/trade_business/products/data',
           {
             token,
             params: {
@@ -365,7 +365,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
           };
 
           const response = await apiPost(
-            'http://localhost:3001/api/v1/products/data/ids',
+            'http://localhost:3001/api/v1/trade_business/products/data/get/ids',
             requestBody,
             {
               token,
@@ -517,7 +517,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
             console.log('Sending PATCH request:', processedChanges);
 
             await apiPatch(
-              'http://localhost:3001/api/v1/products/data/ids',
+              'http://localhost:3001/api/v1/trade_business/products/data/ids',
               { data: processedChanges },
               { token },
             );
@@ -526,10 +526,13 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
           // 2. Handle Deletions (DELETE)
           if (deletions) {
             console.log('Sending DELETE request:', deletions);
-            await apiDelete('http://localhost:3001/api/v1/products/data/ids', {
-              token,
-              body: { data: deletions },
-            });
+            await apiDelete(
+              'http://localhost:3001/api/v1/trade_business/products/data/ids',
+              {
+                token,
+                body: { data: deletions },
+              },
+            );
           }
         }
 

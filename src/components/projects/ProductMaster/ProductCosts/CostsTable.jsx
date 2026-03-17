@@ -6,6 +6,7 @@ const CostsTable = ({
   colorTypeMap,
   capacityTypeMap,
   sizeTypeMap,
+  currencyOptions = [],
   onCostFieldChange,
 }) => {
   return (
@@ -47,14 +48,28 @@ const CostsTable = ({
                   />
                 </td>
                 <td>
-                  <input
+                  <select
                     className={styles.cellInput}
-                    value={row.currency_id}
+                    value={row.currency_id || ''}
                     onChange={(e) =>
                       onCostFieldChange(row, 'currency_id', e.target.value)
                     }
-                    placeholder="Enter value"
-                  />
+                  >
+                    <option value="">Select currency</option>
+                    {currencyOptions.map((currency) => {
+                      const displayLabel =
+                        currency?.code ||
+                        currency?.name ||
+                        currency?.label ||
+                        currency?.id;
+
+                      return (
+                        <option key={currency.id} value={currency.id}>
+                          {displayLabel}
+                        </option>
+                      );
+                    })}
+                  </select>
                 </td>
                 <td>
                   <input

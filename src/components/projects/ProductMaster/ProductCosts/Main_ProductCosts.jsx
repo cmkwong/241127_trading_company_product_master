@@ -17,7 +17,8 @@ import styles from './Main_ProductCosts.module.css';
 
 const Main_ProductCosts = () => {
   const { pageData, upsertProductPageData } = useProductContext();
-  const { fetchMasterData, updateMasterTableData } = useMasterContext();
+  const { fetchMasterData, updateMasterTableData, currencies } =
+    useMasterContext();
 
   const [masterColors, setMasterColors] = useState([]);
   const [masterSizes, setMasterSizes] = useState([]);
@@ -634,6 +635,7 @@ const Main_ProductCosts = () => {
           colorTypeMap={colorTypeMap}
           capacityTypeMap={capacityTypeMap}
           sizeTypeMap={sizeTypeMap}
+          currencyOptions={currencies}
           onCostFieldChange={handleCostFieldChange}
         />
       </div>

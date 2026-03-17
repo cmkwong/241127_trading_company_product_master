@@ -27,7 +27,11 @@ const Sub_PackRow = ({ packings, rowindex }) => {
     packing?.packing_reliability_type_id || '',
   );
   const [defaultImages, setDefaultImages] = useState(
-    packing?.product_packing_images?.map((img) => img.image_url) || [],
+    packing?.product_packing_images?.map((img) => ({
+      id: img.id,
+      url: img.image_url,
+      name: img.image_name,
+    })) || [],
   );
   useEffect(() => {
     setLength(packing?.length || '');
@@ -38,7 +42,11 @@ const Sub_PackRow = ({ packings, rowindex }) => {
     setPackingTypeId(packing?.packing_type_id || '');
     setPackingReliabilityTypeId(packing?.packing_reliability_type_id || '');
     setDefaultImages(
-      packing?.product_packing_images?.map((img) => img.image_url) || [],
+      packing?.product_packing_images?.map((img) => ({
+        id: img.id,
+        url: img.image_url,
+        name: img.image_name,
+      })) || [],
     );
   }, [packing]);
 

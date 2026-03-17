@@ -540,7 +540,19 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
         if (changesResult) {
           const { changes, deletions } = changesResult;
 
-          // 1. Handle Updates & Creations (PATCH)
+          // 1. Handle Deletions (DELETE)
+          if (deletions) {
+            console.log('Sending DELETE request:', deletions);
+            await apiDelete(
+              'http://localhost:3001/api/v1/trade_business/products/data/ids',
+              {
+                token,
+                body: { data: deletions },
+              },
+            );
+          }
+
+          // 2. Handle Updates & Creations (PATCH)
           if (changes) {
             console.log('Processing base64 conversions for changes...');
             // Process base64 fields in changes before sending to server
@@ -554,18 +566,6 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
               'http://localhost:3001/api/v1/trade_business/products/data/ids',
               { data: processedChanges },
               { token },
-            );
-          }
-
-          // 2. Handle Deletions (DELETE)
-          if (deletions) {
-            console.log('Sending DELETE request:', deletions);
-            await apiDelete(
-              'http://localhost:3001/api/v1/trade_business/products/data/ids',
-              {
-                token,
-                body: { data: deletions },
-              },
             );
           }
         }

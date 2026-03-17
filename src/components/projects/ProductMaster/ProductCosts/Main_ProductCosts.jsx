@@ -136,6 +136,26 @@ const Main_ProductCosts = () => {
     [colorTypeMap],
   );
 
+  const getColorImageRecord = useCallback((variantRow) => {
+    const images = variantRow?.product_varient_color_images;
+    if (!Array.isArray(images) || images.length === 0) {
+      return null;
+    }
+
+    const available = images.filter((item) => !item?._delete);
+    if (available.length === 0) {
+      return null;
+    }
+
+    return (
+      [...available].sort(
+        (a, b) =>
+          (Number(a?.display_order) || Number.MAX_SAFE_INTEGER) -
+          (Number(b?.display_order) || Number.MAX_SAFE_INTEGER),
+      )[0] || null
+    );
+  }, []);
+
   useEffect(() => {
     setColorDraftByVariantId((prev) => {
       const next = {};
@@ -238,17 +258,26 @@ const Main_ProductCosts = () => {
       if (!variantRow?.id || !file) return;
 
       const objectUrl = URL.createObjectURL(file);
+      const existingImage = getColorImageRecord(variantRow);
+
       upsertProductPageData({
         product_varient_colors: [
           {
             id: variantRow.id,
-            image_url: objectUrl,
-            image_name: file.name,
+            product_varient_color_images: [
+              {
+                id: existingImage?.id || uuidv4(),
+                product_varient_color_id: variantRow.id,
+                image_url: objectUrl,
+                image_name: file.name,
+                display_order: existingImage?.display_order ?? 1,
+              },
+            ],
           },
         ],
       });
     },
-    [upsertProductPageData],
+    [upsertProductPageData, getColorImageRecord],
   );
 
   const handleToggleSize = useCallback(
@@ -353,7 +382,7 @@ const Main_ProductCosts = () => {
       value,
       unit,
       description: `${input.trim()} capacity`,
-      default_display_cb: true,
+      default_display_cb: false,
     });
     await refreshMasters();
 
@@ -608,6 +637,7 @@ const Main_ProductCosts = () => {
       <div className={styles.container}>
         <ColorRowsSection
           variantColors={variantColors}
+          getColorImageRecord={getColorImageRecord}
           colorSuggestionNames={colorSuggestionNames}
           colorDraftByVariantId={colorDraftByVariantId}
           getColorDisplayName={getColorDisplayName}

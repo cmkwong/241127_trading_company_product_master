@@ -19,6 +19,7 @@ export const mockProduct_base64_config = {
   products: { url: 'icon_url', base64: 'base64_image' },
   product_images: { url: 'image_url', base64: 'base64_image' },
   product_customization_images: { url: 'image_url', base64: 'base64_image' },
+  product_varient_color_images: { url: 'image_url', base64: 'base64_image' },
   product_certificate_files: { url: 'file_url', base64: 'base64_file' },
   product_link_images: { url: 'image_url', base64: 'base64_image' },
   product_packing_images: { url: 'image_url', base64: 'base64_image' },

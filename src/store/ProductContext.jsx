@@ -431,7 +431,37 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
    * Supports nested data structures. If the data contains array fields,
    * it will recursively upsert nested items.
    *
-   * Example:
+   * Examples:
+   *
+   * 1) Update root product fields
+   * upsertProductPageData({
+   *   id: "product-1",
+   *   remark: "Updated remark",
+   *   hs_code: "1234.56"
+   * })
+   *
+   * 2) Add or update a nested row by id (product_names)
+   * upsertProductPageData({
+   *   product_names: [
+   *     {
+   *       id: "name-row-1",
+   *       name: "New Product Name",
+   *       product_name_type_id: "master-name-type-1"
+   *     }
+   *   ]
+   * })
+   *
+   * 3) Soft delete a nested row using _delete
+   * upsertProductPageData({
+   *   product_keywords: [
+   *     {
+   *       id: "keyword-row-1",
+   *       _delete: true
+   *     }
+   *   ]
+   * })
+   *
+   * 4) Deep nested update (parent + child table)
    * upsertProductPageData({
    *   product_customizations: [
    *     {

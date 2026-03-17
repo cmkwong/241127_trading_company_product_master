@@ -491,6 +491,7 @@ const Main_ProductCosts = () => {
               : null,
             sizeTypeId: sizeVar ? getVariantTypeId(sizeVar, 'size') : null,
             unit_cost: found?.unit_cost ?? '',
+            stock_qty: found?.stock_qty ?? 0,
             min_order_qty: found?.min_order_qty ?? 1,
             currency_id: found?.currency_id ?? '',
           });
@@ -530,6 +531,7 @@ const Main_ProductCosts = () => {
         product_varient_color_id: row.product_varient_color_id || null,
         product_varient_capacity_id: row.product_varient_capacity_id || null,
         unit_cost: '',
+        stock_qty: 0,
         currency_id: '',
         min_order_qty: 1,
       }));
@@ -582,6 +584,10 @@ const Main_ProductCosts = () => {
               field === 'unit_cost'
                 ? value
                 : (existing?.unit_cost ?? row.unit_cost),
+            stock_qty:
+              field === 'stock_qty'
+                ? Number(value) || 0
+                : Number(existing?.stock_qty ?? row.stock_qty) || 0,
             min_order_qty:
               field === 'min_order_qty'
                 ? Number(value) || 0

@@ -19,13 +19,14 @@ const CostsTable = ({
             <th>Size</th>
             <th>Unit Cost</th>
             <th>Currency ID</th>
+            <th>Stock Qty</th>
             <th>MOQ</th>
           </tr>
         </thead>
         <tbody>
           {gridRows.length === 0 ? (
             <tr>
-              <td colSpan={6} className={styles.emptyRow}>
+              <td colSpan={7} className={styles.emptyRow}>
                 Select at least one attribute (Color / Capacity / Size).
               </td>
             </tr>
@@ -70,6 +71,16 @@ const CostsTable = ({
                       );
                     })}
                   </select>
+                </td>
+                <td>
+                  <input
+                    className={styles.cellInput}
+                    value={row.stock_qty}
+                    onChange={(e) =>
+                      onCostFieldChange(row, 'stock_qty', e.target.value)
+                    }
+                    placeholder="Enter value"
+                  />
                 </td>
                 <td>
                   <input

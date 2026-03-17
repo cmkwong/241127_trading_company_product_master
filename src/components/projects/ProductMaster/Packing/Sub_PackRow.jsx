@@ -5,13 +5,15 @@ import styles from './Sub_PackRow.module.css';
 import { useProductContext } from '../../../../store/ProductContext.jsx';
 import { useMasterContext } from '../../../../store/MasterContext.jsx';
 import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_FileUploads.jsx';
+import SplitLayout from '../../../common/Layouts/SplitLayout.jsx';
+import VerticalLayout from '../../../common/Layouts/VerticalLayout.jsx';
 
 const Sub_PackRow = ({ packings, rowindex }) => {
   // Get the current row data or use template data if it doesn't exist
   const packing = packings[rowindex];
 
   const { pageData, upsertProductPageData } = useProductContext();
-  const { packType } = useMasterContext();
+  const { packType, packingReliabilityType } = useMasterContext();
 
   const [length, setLength] = useState(packing?.length || '');
   const [width, setWidth] = useState(packing?.width || '');
@@ -20,6 +22,9 @@ const Sub_PackRow = ({ packings, rowindex }) => {
   const [weight, setWeight] = useState(packing?.weight || '');
   const [packingTypeId, setPackingTypeId] = useState(
     packing?.packing_type_id || '',
+  );
+  const [packingReliabilityTypeId, setPackingReliabilityTypeId] = useState(
+    packing?.packing_reliability_type_id || '',
   );
   const [defaultImages, setDefaultImages] = useState(
     packing?.product_packing_images?.map((img) => img.image_url) || [],
@@ -31,6 +36,7 @@ const Sub_PackRow = ({ packings, rowindex }) => {
     setQuantity(packing?.quantity || '');
     setWeight(packing?.weight || '');
     setPackingTypeId(packing?.packing_type_id || '');
+    setPackingReliabilityTypeId(packing?.packing_reliability_type_id || '');
     setDefaultImages(
       packing?.product_packing_images?.map((img) => img.image_url) || [],
     );
@@ -46,6 +52,23 @@ const Sub_PackRow = ({ packings, rowindex }) => {
             id: packing.id,
             product_id: pageData.id,
             packing_type_id: nv,
+          },
+        ],
+      });
+    },
+    [packing, pageData.id, upsertProductPageData],
+  );
+
+  // handle packing reliability type change
+  const handleReliabilityTypeChange = useCallback(
+    (ov, nv) => {
+      setPackingReliabilityTypeId(nv);
+      upsertProductPageData({
+        product_packings: [
+          {
+            id: packing.id,
+            product_id: pageData.id,
+            packing_reliability_type_id: nv,
           },
         ],
       });
@@ -113,115 +136,126 @@ const Sub_PackRow = ({ packings, rowindex }) => {
 
   return (
     <div className={styles.inputsContainer}>
-      <div className={styles.topRow}>
-        <div className={styles.packageTypeField}>
-          <Main_Dropdown
-            defaultOptions={packType}
-            label="Package Type"
-            defaultSelectedOption={packingTypeId || 1}
-            onChange={handleTypeChange}
-          />
-        </div>
-      </div>
+      <SplitLayout>
+        <VerticalLayout>
+          <div className={styles.topRow}>
+            <div className={styles.packageTypeField}>
+              <Main_Dropdown
+                defaultOptions={packType}
+                label="Package Type"
+                defaultSelectedOption={packingTypeId || 1}
+                onChange={handleTypeChange}
+              />
+            </div>
+            <div className={styles.packageTypeField}>
+              <Main_Dropdown
+                defaultOptions={packingReliabilityType}
+                label="Pack Reliability"
+                defaultSelectedOption={packingReliabilityTypeId || ''}
+                onChange={handleReliabilityTypeChange}
+              />
+            </div>
+          </div>
+          <VerticalLayout>
+            <Main_TextField
+              label="L: "
+              labelPosition={'left'}
+              className={styles.packingField}
+              defaultValue={getStringValue(length)}
+              onChange={(ov, nv) =>
+                upsertProductPageData({
+                  product_packings: [
+                    {
+                      id: packing?.id,
+                      length: parseFloat(nv) || 0,
+                    },
+                  ],
+                })
+              }
+            />
+            <Main_TextField
+              label="W: "
+              labelPosition={'left'}
+              className={styles.packingField}
+              defaultValue={getStringValue(width)}
+              onChange={(ov, nv) =>
+                upsertProductPageData({
+                  product_packings: [
+                    {
+                      id: packing?.id,
+                      width: parseFloat(nv) || 0,
+                    },
+                  ],
+                })
+              }
+            />
+            <Main_TextField
+              label="H: "
+              labelPosition={'left'}
+              className={styles.packingField}
+              defaultValue={getStringValue(height)}
+              onChange={(ov, nv) =>
+                upsertProductPageData({
+                  product_packings: [
+                    {
+                      id: packing?.id,
+                      height: parseFloat(nv) || 0,
+                    },
+                  ],
+                })
+              }
+            />
+            <Main_TextField
+              label="Qty: "
+              labelPosition={'left'}
+              className={styles.packingField}
+              defaultValue={getStringValue(quantity)}
+              onChange={(ov, nv) =>
+                upsertProductPageData({
+                  product_packings: [
+                    {
+                      id: packing?.id,
+                      quantity: parseFloat(nv) || 0,
+                    },
+                  ],
+                })
+              }
+            />
+            <Main_TextField
+              label="kg: "
+              labelPosition={'left'}
+              className={styles.packingField}
+              defaultValue={getStringValue(weight)}
+              onChange={(ov, nv) =>
+                upsertProductPageData({
+                  product_packings: [
+                    {
+                      id: packing?.id,
+                      weight: parseFloat(nv) || 0,
+                    },
+                  ],
+                })
+              }
+            />
+          </VerticalLayout>
+        </VerticalLayout>
 
-      <div className={styles.bodyRow}>
-        <div className={styles.dimensionColumn}>
-          <Main_TextField
-            label="L: "
-            labelPosition={'left'}
-            className={styles.packingField}
-            defaultValue={getStringValue(length)}
-            onChange={(ov, nv) =>
-              upsertProductPageData({
-                product_packings: [
-                  {
-                    id: packing?.id,
-                    length: parseFloat(nv) || 0,
-                  },
-                ],
-              })
-            }
-          />
-          <Main_TextField
-            label="W: "
-            labelPosition={'left'}
-            className={styles.packingField}
-            defaultValue={getStringValue(width)}
-            onChange={(ov, nv) =>
-              upsertProductPageData({
-                product_packings: [
-                  {
-                    id: packing?.id,
-                    width: parseFloat(nv) || 0,
-                  },
-                ],
-              })
-            }
-          />
-          <Main_TextField
-            label="H: "
-            labelPosition={'left'}
-            className={styles.packingField}
-            defaultValue={getStringValue(height)}
-            onChange={(ov, nv) =>
-              upsertProductPageData({
-                product_packings: [
-                  {
-                    id: packing?.id,
-                    height: parseFloat(nv) || 0,
-                  },
-                ],
-              })
-            }
-          />
-          <Main_TextField
-            label="Qty: "
-            labelPosition={'left'}
-            className={styles.packingField}
-            defaultValue={getStringValue(quantity)}
-            onChange={(ov, nv) =>
-              upsertProductPageData({
-                product_packings: [
-                  {
-                    id: packing?.id,
-                    quantity: parseFloat(nv) || 0,
-                  },
-                ],
-              })
-            }
-          />
-          <Main_TextField
-            label="kg: "
-            labelPosition={'left'}
-            className={styles.packingField}
-            defaultValue={getStringValue(weight)}
-            onChange={(ov, nv) =>
-              upsertProductPageData({
-                product_packings: [
-                  {
-                    id: packing?.id,
-                    weight: parseFloat(nv) || 0,
-                  },
-                ],
-              })
-            }
-          />
+        <div>
+          <div className={styles.uploadColumn}>
+            <Main_FileUploads
+              mode="image"
+              label="Images"
+              onChange={handleImageChange}
+              onError={() => {
+                console.error('Error uploading packing image');
+              }}
+              maxFiles={10}
+              multiple={false}
+              defaultImages={defaultImages}
+            />
+          </div>
         </div>
-
-        <div className={styles.uploadColumn}>
-          <Main_FileUploads
-            mode="image"
-            label="Images"
-            onChange={handleImageChange}
-            onError={() => {
-              console.error('Error uploading packing image');
-            }}
-            maxFiles={10}
-            multiple={false}
-            defaultImages={defaultImages}
-          />
-        </div>
-      </div>
+      </SplitLayout>
     </div>
   );
 };

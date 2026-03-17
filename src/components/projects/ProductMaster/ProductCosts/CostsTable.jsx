@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { getCapacityLabel } from './productCostsUtils';
 import styles from './CostsTable.module.css';
 
@@ -24,6 +24,8 @@ const CostsTable = ({
     key: null,
     direction: 'asc',
   });
+  const [fillDrag, setFillDrag] = useState(null);
+  const [fillHoverIndex, setFillHoverIndex] = useState(null);
 
   const currencyLabelMap = useMemo(
     () =>
@@ -104,6 +106,85 @@ const CostsTable = ({
     return sortConfig.direction === 'asc' ? '↑' : '↓';
   };
 
+  const applyFill = useCallback(() => {
+    if (!fillDrag || fillHoverIndex === null || fillHoverIndex === undefined) {
+      return;
+    }
+
+    const { field, sourceIndex, value } = fillDrag;
+    if (sourceIndex === fillHoverIndex) {
+      return;
+    }
+
+    const start = Math.min(sourceIndex, fillHoverIndex);
+    const end = Math.max(sourceIndex, fillHoverIndex);
+
+    for (let index = start; index <= end; index += 1) {
+      if (index === sourceIndex) continue;
+      onCostFieldChange(sortedRows[index], field, value);
+    }
+  }, [fillDrag, fillHoverIndex, onCostFieldChange, sortedRows]);
+
+  useEffect(() => {
+    const handleMouseUp = () => {
+      applyFill();
+      setFillDrag(null);
+      setFillHoverIndex(null);
+    };
+
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [applyFill]);
+
+  const startFillDrag = (field, sourceIndex, value, event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setFillDrag({ field, sourceIndex, value });
+    setFillHoverIndex(sourceIndex);
+  };
+
+  const handleCellMouseEnter = (field, rowIndex) => {
+    if (!fillDrag || fillDrag.field !== field) return;
+    setFillHoverIndex(rowIndex);
+  };
+
+  const getFillCellClassName = (field, rowIndex) => {
+    if (
+      !fillDrag ||
+      fillHoverIndex === null ||
+      fillHoverIndex === undefined ||
+      fillDrag.field !== field
+    ) {
+      return '';
+    }
+
+    const start = Math.min(fillDrag.sourceIndex, fillHoverIndex);
+    const end = Math.max(fillDrag.sourceIndex, fillHoverIndex);
+    const inRange = rowIndex >= start && rowIndex <= end;
+
+    if (!inRange) {
+      return '';
+    }
+
+    if (rowIndex === fillDrag.sourceIndex) {
+      return `${styles.fillPreviewCell} ${styles.fillPreviewSource}`;
+    }
+
+    return styles.fillPreviewCell;
+  };
+
+  const renderFillHandle = (rowIndex, field, value) => (
+    <button
+      type="button"
+      className={styles.fillHandle}
+      onMouseDown={(event) => startFillDrag(field, rowIndex, value, event)}
+      title="Drag to fill"
+      aria-label="Drag to fill"
+    />
+  );
+
   return (
     <div className={styles.tableWrap}>
       <table className={styles.costTable}>
@@ -133,66 +214,106 @@ const CostsTable = ({
               </td>
             </tr>
           ) : (
-            sortedRows.map((row) => (
+            sortedRows.map((row, rowIndex) => (
               <tr key={row.id}>
                 <td>{colorTypeMap[row.colorTypeId]?.name || '-'}</td>
                 <td>
                   {getCapacityLabel(capacityTypeMap[row.capacityTypeId]) || '-'}
                 </td>
                 <td>{sizeTypeMap[row.sizeTypeId]?.name || '-'}</td>
-                <td>
-                  <input
-                    className={styles.cellInput}
-                    value={row.unit_cost}
-                    onChange={(e) =>
-                      onCostFieldChange(row, 'unit_cost', e.target.value)
-                    }
-                    placeholder="Enter value"
-                  />
+                <td
+                  className={getFillCellClassName('unit_cost', rowIndex)}
+                  onMouseEnter={() =>
+                    handleCellMouseEnter('unit_cost', rowIndex)
+                  }
+                >
+                  <div className={styles.cellControlWrap}>
+                    <input
+                      className={styles.cellInput}
+                      value={row.unit_cost}
+                      onChange={(e) =>
+                        onCostFieldChange(row, 'unit_cost', e.target.value)
+                      }
+                      placeholder="Enter value"
+                    />
+                    {renderFillHandle(rowIndex, 'unit_cost', row.unit_cost)}
+                  </div>
                 </td>
-                <td>
-                  <select
-                    className={styles.cellInput}
-                    value={row.currency_id || ''}
-                    onChange={(e) =>
-                      onCostFieldChange(row, 'currency_id', e.target.value)
-                    }
-                  >
-                    <option value="">Select currency</option>
-                    {currencyOptions.map((currency) => {
-                      const displayLabel =
-                        currency?.code ||
-                        currency?.name ||
-                        currency?.label ||
-                        currency?.id;
+                <td
+                  className={getFillCellClassName('currency_id', rowIndex)}
+                  onMouseEnter={() =>
+                    handleCellMouseEnter('currency_id', rowIndex)
+                  }
+                >
+                  <div className={styles.cellControlWrap}>
+                    <select
+                      className={styles.cellInput}
+                      value={row.currency_id || ''}
+                      onChange={(e) =>
+                        onCostFieldChange(row, 'currency_id', e.target.value)
+                      }
+                    >
+                      <option value="">Select currency</option>
+                      {currencyOptions.map((currency) => {
+                        const displayLabel =
+                          currency?.code ||
+                          currency?.name ||
+                          currency?.label ||
+                          currency?.id;
 
-                      return (
-                        <option key={currency.id} value={currency.id}>
-                          {displayLabel}
-                        </option>
-                      );
-                    })}
-                  </select>
+                        return (
+                          <option key={currency.id} value={currency.id}>
+                            {displayLabel}
+                          </option>
+                        );
+                      })}
+                    </select>
+                    {renderFillHandle(
+                      rowIndex,
+                      'currency_id',
+                      row.currency_id || '',
+                    )}
+                  </div>
                 </td>
-                <td>
-                  <input
-                    className={styles.cellInput}
-                    value={row.stock_qty}
-                    onChange={(e) =>
-                      onCostFieldChange(row, 'stock_qty', e.target.value)
-                    }
-                    placeholder="Enter value"
-                  />
+                <td
+                  className={getFillCellClassName('stock_qty', rowIndex)}
+                  onMouseEnter={() =>
+                    handleCellMouseEnter('stock_qty', rowIndex)
+                  }
+                >
+                  <div className={styles.cellControlWrap}>
+                    <input
+                      className={styles.cellInput}
+                      value={row.stock_qty}
+                      onChange={(e) =>
+                        onCostFieldChange(row, 'stock_qty', e.target.value)
+                      }
+                      placeholder="Enter value"
+                    />
+                    {renderFillHandle(rowIndex, 'stock_qty', row.stock_qty)}
+                  </div>
                 </td>
-                <td>
-                  <input
-                    className={styles.cellInput}
-                    value={row.min_order_qty}
-                    onChange={(e) =>
-                      onCostFieldChange(row, 'min_order_qty', e.target.value)
-                    }
-                    placeholder="Enter value"
-                  />
+                <td
+                  className={getFillCellClassName('min_order_qty', rowIndex)}
+                  onMouseEnter={() =>
+                    handleCellMouseEnter('min_order_qty', rowIndex)
+                  }
+                >
+                  <div className={styles.cellControlWrap}>
+                    <input
+                      className={styles.cellInput}
+                      value={row.min_order_qty}
+                      onChange={(e) =>
+                        onCostFieldChange(row, 'min_order_qty', e.target.value)
+                      }
+                      placeholder="Enter value"
+                    />
+                    {renderFillHandle(
+                      rowIndex,
+                      'min_order_qty',
+                      row.min_order_qty,
+                    )}
+                  </div>
                 </td>
               </tr>
             ))

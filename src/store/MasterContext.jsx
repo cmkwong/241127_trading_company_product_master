@@ -4,6 +4,7 @@ import {
   useContext,
   useCallback,
   useEffect,
+  useMemo,
 } from 'react';
 import {
   mockProductNameType,
@@ -21,25 +22,242 @@ export const MasterContext = createContext();
 const DEFAULT_MASTER_API_BASE =
   'http://localhost:3001/api/v1/trade_business/master';
 const DEFAULT_TABLE_NAMES = [
+  'master_address_types',
+  'master_capacity_types',
   'master_categories',
   'master_certificate_types',
+  'master_color_types',
+  'master_contact_types',
   'master_keywords',
   'master_packing_types',
+  'master_packing_reliability_types',
   'master_product_image_types',
   'master_product_name_types',
+  'master_service_images',
+  'master_services',
+  'master_size_types',
+  'master_supplier_link_types',
   'master_supplier_types',
+  'master_customer_image_types',
+  'master_customer_name_types',
+  'master_currencies',
+];
+
+const TABLE_INITIAL_DATA = {
+  master_address_types: [],
+  master_capacity_types: [],
+  master_categories: mockCategory,
+  master_certificate_types: mockCertType,
+  master_color_types: [],
+  master_contact_types: [],
+  master_keywords: [],
+  master_packing_types: mockPackType,
+  master_packing_reliability_types: [],
+  master_product_image_types: mockProductImageType,
+  master_product_name_types: mockProductNameType,
+  master_service_images: [],
+  master_services: [],
+  master_size_types: [],
+  master_supplier_link_types: [],
+  master_supplier_types: mockSupplierType,
+  master_customer_image_types: [],
+  master_customer_name_types: [],
+  master_currencies: [],
+};
+
+const LEGACY_TABLE_BINDINGS = [
+  {
+    tableName: 'master_address_types',
+    getName: 'getAddressTypes',
+    updateName: 'updateAddressTypes',
+    addName: 'addAddressType',
+    removeName: 'removeAddressType',
+  },
+  {
+    tableName: 'master_capacity_types',
+    getName: 'getCapacityTypes',
+    updateName: 'updateCapacityTypes',
+    addName: 'addCapacityType',
+    removeName: 'removeCapacityType',
+  },
+  {
+    tableName: 'master_product_name_types',
+    getName: 'getProductNameTypes',
+    updateName: 'updateProductNameTypes',
+    addName: 'addProductNameType',
+    removeName: 'removeProductNameType',
+  },
+  {
+    tableName: 'master_categories',
+    getName: 'getCategories',
+    updateName: 'updateCategories',
+    addName: 'addCategory',
+    removeName: 'removeCategory',
+  },
+  {
+    tableName: 'master_supplier_types',
+    getName: 'getSupplierTypes',
+    updateName: 'updateSupplierTypes',
+    addName: 'addSupplierType',
+    removeName: 'removeSupplierType',
+  },
+  {
+    tableName: 'master_packing_types',
+    getName: 'getPackTypes',
+    updateName: 'updatePackTypes',
+    addName: 'addPackType',
+    removeName: 'removePackType',
+  },
+  {
+    tableName: 'master_certificate_types',
+    getName: 'getCertTypes',
+    updateName: 'updateCertTypes',
+    addName: 'addCertType',
+    removeName: 'removeCertType',
+  },
+  {
+    tableName: 'master_color_types',
+    getName: 'getColorTypes',
+    updateName: 'updateColorTypes',
+    addName: 'addColorType',
+    removeName: 'removeColorType',
+  },
+  {
+    tableName: 'master_contact_types',
+    getName: 'getContactTypes',
+    updateName: 'updateContactTypes',
+    addName: 'addContactType',
+    removeName: 'removeContactType',
+  },
+  {
+    tableName: 'master_customer_image_types',
+    getName: 'getCustomerImageTypes',
+    updateName: 'updateCustomerImageTypes',
+    addName: 'addCustomerImageType',
+    removeName: 'removeCustomerImageType',
+  },
+  {
+    tableName: 'master_customer_name_types',
+    getName: 'getCustomerNameTypes',
+    updateName: 'updateCustomerNameTypes',
+    addName: 'addCustomerNameType',
+    removeName: 'removeCustomerNameType',
+  },
+  {
+    tableName: 'master_product_image_types',
+    getName: 'getProductImageTypes',
+    updateName: 'updateProductImageTypes',
+    addName: 'addProductImageType',
+    removeName: 'removeProductImageType',
+  },
+  {
+    tableName: 'master_packing_reliability_types',
+    getName: 'getPackingReliabilityTypes',
+    updateName: 'updatePackingReliabilityTypes',
+    addName: 'addPackingReliabilityType',
+    removeName: 'removePackingReliabilityType',
+  },
+  {
+    tableName: 'master_service_images',
+    getName: 'getServiceImages',
+    updateName: 'updateServiceImages',
+    addName: 'addServiceImage',
+    removeName: 'removeServiceImage',
+  },
+  {
+    tableName: 'master_services',
+    getName: 'getServices',
+    updateName: 'updateServices',
+    addName: 'addService',
+    removeName: 'removeService',
+  },
+  {
+    tableName: 'master_size_types',
+    getName: 'getSizeTypes',
+    updateName: 'updateSizeTypes',
+    addName: 'addSizeType',
+    removeName: 'removeSizeType',
+  },
+  {
+    tableName: 'master_supplier_link_types',
+    getName: 'getSupplierLinkTypes',
+    updateName: 'updateSupplierLinkTypes',
+    addName: 'addSupplierLinkType',
+    removeName: 'removeSupplierLinkType',
+  },
+  {
+    tableName: 'master_keywords',
+    getName: 'getProductKeywords',
+    updateName: 'updateProductKeywords',
+    addName: 'addProductKeyword',
+    removeName: 'removeProductKeyword',
+  },
+  {
+    tableName: 'master_currencies',
+    getName: 'getCurrencies',
+    updateName: 'updateCurrencies',
+    addName: 'addCurrency',
+    removeName: 'removeCurrency',
+  },
 ];
 
 export const MasterContext_Provider = ({ children }) => {
   const { token } = useAuthContext();
-  const [category, setCategory] = useState(mockCategory);
-  const [productKeywords, setProductKeywords] = useState([]);
-  const [certType, setCertType] = useState(mockCertType);
-  const [productNameType, setProductNameType] = useState(mockProductNameType);
-  const [supplierType, setSupplierType] = useState(mockSupplierType);
-  const [packType, setPackType] = useState(mockPackType);
-  const [productImageType, setProductImageType] =
-    useState(mockProductImageType);
+  const [masterDataMap, setMasterDataMap] = useState(TABLE_INITIAL_DATA);
+
+  const category = masterDataMap.master_categories || [];
+  const productKeywords = masterDataMap.master_keywords || [];
+  const certType = masterDataMap.master_certificate_types || [];
+  const colorType = masterDataMap.master_color_types || [];
+  const addressType = masterDataMap.master_address_types || [];
+  const capacityType = masterDataMap.master_capacity_types || [];
+  const contactType = masterDataMap.master_contact_types || [];
+  const customerImageType = masterDataMap.master_customer_image_types || [];
+  const customerNameType = masterDataMap.master_customer_name_types || [];
+  const packingReliabilityType =
+    masterDataMap.master_packing_reliability_types || [];
+  const productNameType = masterDataMap.master_product_name_types || [];
+  const serviceImages = masterDataMap.master_service_images || [];
+  const services = masterDataMap.master_services || [];
+  const sizeType = masterDataMap.master_size_types || [];
+  const supplierLinkType = masterDataMap.master_supplier_link_types || [];
+  const supplierType = masterDataMap.master_supplier_types || [];
+  const packType = masterDataMap.master_packing_types || [];
+  const currencies = masterDataMap.master_currencies || [];
+  const productImageType = masterDataMap.master_product_image_types || [];
+
+  const getMasterTableData = useCallback(
+    (tableName) => {
+      if (!tableName || typeof tableName !== 'string') {
+        return [];
+      }
+      return masterDataMap[tableName] || [];
+    },
+    [masterDataMap],
+  );
+
+  const updateLocalMasterTableData = useCallback((tableName, items) => {
+    setMasterDataMap((prev) => ({
+      ...prev,
+      [tableName]: Array.isArray(items) ? items : [],
+    }));
+  }, []);
+
+  const addLocalMasterTableData = useCallback((tableName, item) => {
+    setMasterDataMap((prev) => ({
+      ...prev,
+      [tableName]: [...(prev[tableName] || []), item],
+    }));
+  }, []);
+
+  const removeLocalMasterTableData = useCallback((tableName, matcher) => {
+    setMasterDataMap((prev) => ({
+      ...prev,
+      [tableName]: (prev[tableName] || []).filter((item) =>
+        typeof matcher === 'function' ? !matcher(item) : item !== matcher,
+      ),
+    }));
+  }, []);
 
   const fetchMasterData = useCallback(
     async (tableName) => {
@@ -52,35 +270,11 @@ export const MasterContext_Provider = ({ children }) => {
 
       const normalizedData = Array.isArray(payload) ? payload : [];
 
-      switch (tableName) {
-        case 'master_categories':
-          setCategory(normalizedData);
-          break;
-        case 'master_certificate_types':
-          setCertType(normalizedData);
-          break;
-        case 'master_keywords':
-          setProductKeywords(normalizedData);
-          break;
-        case 'master_packing_types':
-          setPackType(normalizedData);
-          break;
-        case 'master_product_image_types':
-          setProductImageType(normalizedData);
-          break;
-        case 'master_product_name_types':
-          setProductNameType(normalizedData);
-          break;
-        case 'master_supplier_types':
-          setSupplierType(normalizedData);
-          break;
-        default:
-          break;
-      }
+      updateLocalMasterTableData(tableName, normalizedData);
 
       return normalizedData;
     },
-    [token],
+    [token, updateLocalMasterTableData],
   );
 
   const updateMasterTableData = useCallback(
@@ -132,232 +326,64 @@ export const MasterContext_Provider = ({ children }) => {
     return masterData;
   }, []);
 
-  // Function to get product name types
-  const getProductNameTypes = useCallback(
-    (id, label) => {
-      return getRequiredData(id, label, productNameType);
-    },
-    [productNameType, getRequiredData],
+  const legacyMethods = useMemo(
+    () =>
+      LEGACY_TABLE_BINDINGS.reduce((acc, binding) => {
+        const { tableName, getName, updateName, addName, removeName } = binding;
+
+        acc[getName] = (id, label) => {
+          return getRequiredData(id, label, getMasterTableData(tableName));
+        };
+
+        acc[updateName] = (items) => {
+          updateLocalMasterTableData(tableName, items);
+        };
+
+        acc[addName] = (item) => {
+          addLocalMasterTableData(tableName, item);
+        };
+
+        acc[removeName] = (matcher) => {
+          removeLocalMasterTableData(tableName, matcher);
+        };
+
+        return acc;
+      }, {}),
+    [
+      getRequiredData,
+      getMasterTableData,
+      updateLocalMasterTableData,
+      addLocalMasterTableData,
+      removeLocalMasterTableData,
+    ],
   );
-
-  // Function to update product name types
-  const updateProductNameTypes = useCallback((newTypes) => {
-    setProductNameType(newTypes);
-  }, []);
-
-  // Function to add a new product name type
-  const addProductNameType = useCallback((newType) => {
-    setProductNameType((prev) => [...prev, newType]);
-  }, []);
-
-  const removeProductNameType = useCallback((matcher) => {
-    setProductNameType((prev) =>
-      prev.filter((item) =>
-        typeof matcher === 'function' ? !matcher(item) : item !== matcher,
-      ),
-    );
-  }, []);
-
-  // Function to get categories
-  const getCategories = useCallback(
-    (id, label) => {
-      return getRequiredData(id, label, category);
-    },
-    [category, getRequiredData],
-  );
-
-  // Function to update categories
-  const updateCategories = useCallback((newCategories) => {
-    setCategory(newCategories);
-  }, []);
-
-  // Function to add a new category
-  const addCategory = useCallback((newCategory) => {
-    setCategory((prev) => [...prev, newCategory]);
-  }, []);
-
-  const removeCategory = useCallback((matcher) => {
-    setCategory((prev) =>
-      prev.filter((item) =>
-        typeof matcher === 'function' ? !matcher(item) : item !== matcher,
-      ),
-    );
-  }, []);
-
-  // Function to get supplier types
-  const getSupplierTypes = useCallback(
-    (id, label) => {
-      return getRequiredData(id, label, supplierType);
-    },
-    [supplierType, getRequiredData],
-  );
-
-  // Function to update supplier types
-  const updateSupplierTypes = useCallback((newTypes) => {
-    setSupplierType(newTypes);
-  }, []);
-
-  // Function to add a new supplier type
-  const addSupplierType = useCallback((newType) => {
-    setSupplierType((prev) => [...prev, newType]);
-  }, []);
-
-  const removeSupplierType = useCallback((matcher) => {
-    setSupplierType((prev) =>
-      prev.filter((item) =>
-        typeof matcher === 'function' ? !matcher(item) : item !== matcher,
-      ),
-    );
-  }, []);
-
-  // Function to get pack types
-  const getPackTypes = useCallback(
-    (id, label) => {
-      return getRequiredData(id, label, packType);
-    },
-    [packType, getRequiredData],
-  );
-
-  // Function to update pack types
-  const updatePackTypes = useCallback((newTypes) => {
-    setPackType(newTypes);
-  }, []);
-
-  // Function to add a new pack type
-  const addPackType = useCallback((newType) => {
-    setPackType((prev) => [...prev, newType]);
-  }, []);
-
-  const removePackType = useCallback((matcher) => {
-    setPackType((prev) =>
-      prev.filter((item) =>
-        typeof matcher === 'function' ? !matcher(item) : item !== matcher,
-      ),
-    );
-  }, []);
-
-  // Function to get certificate types
-  const getCertTypes = useCallback(
-    (id, label) => {
-      return getRequiredData(id, label, certType);
-    },
-    [certType, getRequiredData],
-  );
-
-  // Function to update certificate types
-  const updateCertTypes = useCallback((newTypes) => {
-    setCertType(newTypes);
-  }, []);
-
-  // Function to add a new certificate type
-  const addCertType = useCallback((newType) => {
-    setCertType((prev) => [...prev, newType]);
-  }, []);
-
-  const removeCertType = useCallback((matcher) => {
-    setCertType((prev) =>
-      prev.filter((item) =>
-        typeof matcher === 'function' ? !matcher(item) : item !== matcher,
-      ),
-    );
-  }, []);
-
-  const getProductImageTypes = useCallback(
-    (id, label) => {
-      return getRequiredData(id, label, productImageType);
-    },
-    [productImageType, getRequiredData],
-  );
-
-  const updateProductImageTypes = useCallback((newTypes) => {
-    setProductImageType(newTypes);
-  }, []);
-
-  const addProductImageType = useCallback((newType) => {
-    setProductImageType((prev) => [...prev, newType]);
-  }, []);
-
-  const removeProductImageType = useCallback((matcher) => {
-    setProductImageType((prev) =>
-      prev.filter((item) =>
-        typeof matcher === 'function' ? !matcher(item) : item !== matcher,
-      ),
-    );
-  }, []);
-
-  // Function to get product keywords
-  const getProductKeywords = useCallback(
-    (id, label) => {
-      return getRequiredData(id, label, productKeywords);
-    },
-    [productKeywords, getRequiredData],
-  );
-
-  // Function to update product keywords
-  const updateProductKeywords = useCallback((newKeywords) => {
-    setProductKeywords(newKeywords);
-  }, []);
-
-  // Function to add a new product keyword
-  const addProductKeyword = useCallback((newKeyword) => {
-    setProductKeywords((prev) => [...prev, newKeyword]);
-  }, []);
-
-  // Function to remove product keywords by matcher or exact item
-  const removeProductKeyword = useCallback((matcher) => {
-    setProductKeywords((prev) =>
-      prev.filter((item) =>
-        typeof matcher === 'function' ? !matcher(item) : item !== matcher,
-      ),
-    );
-  }, []);
 
   const contextValue = {
     // State
     productNameType,
     category,
     supplierType,
+    supplierLinkType,
     packType,
+    packingReliabilityType,
     certType,
+    colorType,
+    addressType,
+    capacityType,
+    contactType,
+    customerImageType,
+    customerNameType,
     productImageType,
     productKeywords,
+    serviceImages,
+    services,
+    sizeType,
+    currencies,
+    masterDataMap,
     fetchMasterData,
+    getMasterTableData,
     updateMasterTableData,
-    // Product Name Type functions
-    getProductNameTypes,
-    updateProductNameTypes,
-    addProductNameType,
-    removeProductNameType,
-    // Category functions
-    getCategories,
-    updateCategories,
-    addCategory,
-    removeCategory,
-    // Supplier Type functions
-    getSupplierTypes,
-    updateSupplierTypes,
-    addSupplierType,
-    removeSupplierType,
-    // Pack Type functions
-    getPackTypes,
-    updatePackTypes,
-    addPackType,
-    removePackType,
-    // Cert Type functions
-    getCertTypes,
-    updateCertTypes,
-    addCertType,
-    removeCertType,
-    // Product Image Type functions
-    getProductImageTypes,
-    updateProductImageTypes,
-    addProductImageType,
-    removeProductImageType,
-    // Product Keywords functions
-    getProductKeywords,
-    updateProductKeywords,
-    addProductKeyword,
-    removeProductKeyword,
+    ...legacyMethods,
   };
 
   return (

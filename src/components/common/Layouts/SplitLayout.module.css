@@ -1,15 +1,51 @@
 .root {
+  position: relative;
   width: 100%;
   display: grid;
-  grid-template-columns: minmax(180px, 260px) minmax(0, 1fr);
   gap: 0;
   align-items: stretch;
+}
+
+.root::after {
+  content: '';
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  left: var(--split-line-position, 50%);
+  width: 2px;
+  transform: translateX(-50%);
+  background: linear-gradient(
+    180deg,
+    rgba(148, 163, 184, 0.18) 0%,
+    rgba(148, 163, 184, 0.85) 18%,
+    rgba(148, 163, 184, 0.85) 82%,
+    rgba(148, 163, 184, 0.18) 100%
+  );
+  border-radius: 999px;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.5),
+    0 0 8px rgba(148, 163, 184, 0.22);
+  pointer-events: none;
+}
+
+.positionL {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 3fr);
+  --split-line-position: 25%;
+}
+
+.positionM {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  --split-line-position: 50%;
+}
+
+.positionR {
+  grid-template-columns: minmax(0, 3fr) minmax(0, 1fr);
+  --split-line-position: 75%;
 }
 
 .root > :first-child {
   min-width: 0;
   padding-right: 16px;
-  border-right: 1px solid #c8c8c8;
 }
 
 .root > :last-child {
@@ -23,9 +59,12 @@
     gap: 12px;
   }
 
+  .root::after {
+    display: none;
+  }
+
   .root > :first-child {
     padding-right: 0;
-    border-right: 0;
   }
 
   .root > :last-child {

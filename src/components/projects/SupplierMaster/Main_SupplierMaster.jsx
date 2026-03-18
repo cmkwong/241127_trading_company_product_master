@@ -61,6 +61,7 @@ const Main_SupplierMaster = () => {
           name: '',
           company_name: '',
           supplier_type_id: '',
+          supplier_types: [],
           remark: '',
           supplier_addresses: [],
           supplier_contacts: [],

@@ -31,10 +31,10 @@ const mockSupplier_base64_config = {
 
 const SUPPLIER_COMPARISON_KEYS = [
   'id',
-  'code',
+  'supplier_code',
   'name',
   'company_name',
-  'supplier_type_id',
+  'supplier_types',
   'remark',
   'supplier_addresses',
   'supplier_contacts',
@@ -312,6 +312,7 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
 
     setPageData({
       id: uuidv4(),
+      supplier_types: [],
       supplier_addresses: [],
       supplier_contacts: [],
       supplier_links: [],

@@ -1,88 +1,31 @@
-/* eslint-disable react-refresh/only-export-components */
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import ControlRowBtn from '../../../common/ControlRowBtn';
 import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
-import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
-import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
+import EditableDataTable from '../../../common/Table/EditableDataTable';
 import { useSupplierContext } from '../../../../store/SupplierContext';
 import { useMasterContext } from '../../../../store/MasterContext';
-import sharedStyles from '../SupplierMasterShared.module.css';
-
-const AddressRowFields = ({ rowindex, addresses, addressType, onUpsert }) => {
-  const row = addresses[rowindex] || {};
-
-  const addressTypeOptions = (addressType || []).map((item) => ({
-    id: item.id,
-    name: item.label ?? item.name ?? '',
-  }));
-
-  return (
-    <div className={sharedStyles.rowGridTwo}>
-      <Main_Dropdown
-        defaultOptions={addressTypeOptions}
-        defaultSelectedOption={row.address_type_id || ''}
-        onChange={(ov, nv) => {
-          onUpsert(row.id, {
-            address_type_id: nv,
-          });
-        }}
-      />
-      <Main_TextArea
-        defaultValue={row.address || row.value || ''}
-        onChange={(ov, nv) => {
-          onUpsert(row.id, {
-            address: nv,
-          });
-        }}
-        placeholder="Address"
-      />
-    </div>
-  );
-};
+import styles from './Main_SupplierAddresses.module.css';
 
 const Main_SupplierAddresses = () => {
   const { pageData, upsertSupplierPageData } = useSupplierContext();
   const { addressType } = useMasterContext();
-  const [rowIds, setRowIds] = useState(
-    pageData.supplier_addresses?.map((row) => row.id) || [],
+  const addressRows = pageData.supplier_addresses || [];
+
+  const addressTypeOptions = useMemo(
+    () =>
+      (addressType || []).map((item) => ({
+        id: item.id,
+        label: item.label ?? item.name ?? '',
+      })),
+    [addressType],
   );
 
-  useEffect(() => {
-    setRowIds(pageData.supplier_addresses?.map((row) => row.id) || []);
-  }, [pageData.supplier_addresses]);
-
-  const handleRowAdd = useCallback(
-    (newId) => {
+  const upsertAddressRow = useCallback(
+    (row, patch) => {
       upsertSupplierPageData({
         supplier_addresses: [
           {
-            id: newId,
-            supplier_id: pageData.id,
-          },
-        ],
-      });
-      setRowIds((prev) => [...prev, newId]);
-    },
-    [pageData.id, upsertSupplierPageData],
-  );
-
-  const handleRowRemove = useCallback(
-    (id) => {
-      upsertSupplierPageData({
-        supplier_addresses: [{ id, _delete: true }],
-      });
-      setRowIds((prev) => prev.filter((rowId) => rowId !== id));
-    },
-    [upsertSupplierPageData],
-  );
-
-  const handleUpsertRow = useCallback(
-    (rowId, patch) => {
-      upsertSupplierPageData({
-        supplier_addresses: [
-          {
-            id: rowId || uuidv4(),
+            id: row?.id || uuidv4(),
             supplier_id: pageData.id,
             ...patch,
           },
@@ -92,19 +35,213 @@ const Main_SupplierAddresses = () => {
     [upsertSupplierPageData, pageData.id],
   );
 
+  const handleAddAddressRow = useCallback(() => {
+    upsertSupplierPageData({
+      supplier_addresses: [
+        {
+          id: uuidv4(),
+          supplier_id: pageData.id,
+          address_type_id: '',
+          address_line1: '',
+          address_line2: '',
+          address_line3: '',
+          city: '',
+          state: '',
+          zip_code: '',
+          country: '',
+          remark: '',
+        },
+      ],
+    });
+  }, [upsertSupplierPageData, pageData.id]);
+
+  const handleDeleteAddressRow = useCallback(
+    (row) => {
+      if (!row?.id) return;
+      upsertSupplierPageData({
+        supplier_addresses: [{ id: row.id, _delete: true }],
+      });
+    },
+    [upsertSupplierPageData],
+  );
+
+  const columns = useMemo(
+    () => [
+      {
+        key: 'address_type_id',
+        label: 'Address Type',
+        sortType: 'string',
+        getSortValue: (row) =>
+          addressTypeOptions.find((item) => item.id === row.address_type_id)
+            ?.label || '',
+        renderCell: (row) => (
+          <select
+            className={styles.cellInput}
+            value={row.address_type_id || ''}
+            onChange={(event) =>
+              upsertAddressRow(row, { address_type_id: event.target.value })
+            }
+          >
+            <option value="">Select type</option>
+            {addressTypeOptions.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.label}
+              </option>
+            ))}
+          </select>
+        ),
+      },
+      {
+        key: 'address_line1',
+        label: 'Address Line 1',
+        sortType: 'string',
+        getSortValue: (row) => row.address_line1 || row.address || '',
+        renderCell: (row) => (
+          <input
+            className={styles.cellInput}
+            value={row.address_line1 || row.address || ''}
+            onChange={(event) =>
+              upsertAddressRow(row, { address_line1: event.target.value })
+            }
+          />
+        ),
+      },
+      {
+        key: 'address_line2',
+        label: 'Address Line 2',
+        sortType: 'string',
+        renderCell: (row) => (
+          <input
+            className={styles.cellInput}
+            value={row.address_line2 || ''}
+            onChange={(event) =>
+              upsertAddressRow(row, { address_line2: event.target.value })
+            }
+          />
+        ),
+      },
+      {
+        key: 'address_line3',
+        label: 'Address Line 3',
+        sortType: 'string',
+        renderCell: (row) => (
+          <input
+            className={styles.cellInput}
+            value={row.address_line3 || ''}
+            onChange={(event) =>
+              upsertAddressRow(row, { address_line3: event.target.value })
+            }
+          />
+        ),
+      },
+      {
+        key: 'city',
+        label: 'City',
+        sortType: 'string',
+        renderCell: (row) => (
+          <input
+            className={styles.cellInput}
+            value={row.city || ''}
+            onChange={(event) =>
+              upsertAddressRow(row, { city: event.target.value })
+            }
+          />
+        ),
+      },
+      {
+        key: 'state',
+        label: 'State',
+        sortType: 'string',
+        renderCell: (row) => (
+          <input
+            className={styles.cellInput}
+            value={row.state || ''}
+            onChange={(event) =>
+              upsertAddressRow(row, { state: event.target.value })
+            }
+          />
+        ),
+      },
+      {
+        key: 'zip_code',
+        label: 'ZIP',
+        sortType: 'string',
+        renderCell: (row) => (
+          <input
+            className={styles.cellInput}
+            value={row.zip_code || ''}
+            onChange={(event) =>
+              upsertAddressRow(row, { zip_code: event.target.value })
+            }
+          />
+        ),
+      },
+      {
+        key: 'country',
+        label: 'Country',
+        sortType: 'string',
+        renderCell: (row) => (
+          <input
+            className={styles.cellInput}
+            value={row.country || ''}
+            onChange={(event) =>
+              upsertAddressRow(row, { country: event.target.value })
+            }
+          />
+        ),
+      },
+      {
+        key: 'remark',
+        label: 'Remark',
+        sortType: 'string',
+        renderCell: (row) => (
+          <input
+            className={styles.cellInput}
+            value={row.remark || ''}
+            onChange={(event) =>
+              upsertAddressRow(row, { remark: event.target.value })
+            }
+          />
+        ),
+      },
+      {
+        key: 'actions',
+        label: 'Actions',
+        sortable: false,
+        renderCell: (row) => (
+          <button
+            type="button"
+            className={styles.deleteBtn}
+            onClick={() => handleDeleteAddressRow(row)}
+          >
+            Delete
+          </button>
+        ),
+      },
+    ],
+    [addressTypeOptions, upsertAddressRow, handleDeleteAddressRow],
+  );
+
   return (
     <Main_InputContainer label="Supplier Addresses">
-      <ControlRowBtn
-        rowIds={rowIds}
-        onRowAdd={handleRowAdd}
-        onRowRemove={handleRowRemove}
-      >
-        <AddressRowFields
-          addresses={pageData.supplier_addresses || []}
-          addressType={addressType}
-          onUpsert={handleUpsertRow}
+      <div className={styles.tableSection}>
+        <div className={styles.actionsBar}>
+          <button
+            type="button"
+            className={styles.addBtn}
+            onClick={handleAddAddressRow}
+          >
+            + Add Address
+          </button>
+        </div>
+
+        <EditableDataTable
+          rows={addressRows}
+          columns={columns}
+          rowKey="id"
+          emptyMessage="No addresses yet. Click + Add Address."
         />
-      </ControlRowBtn>
+      </div>
     </Main_InputContainer>
   );
 };

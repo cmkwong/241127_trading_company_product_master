@@ -80,16 +80,32 @@ const SupplierSidebar = ({
 
   const getSupplierRows = useCallback(
     (supplier) => {
-      const supplierTypeLabel =
-        supplierType.find((item) => item.id === supplier?.supplier_type_id)
-          ?.label ||
-        supplierType.find((item) => item.id === supplier?.supplier_type_id)
-          ?.name ||
-        '';
+      const relationTypeIds =
+        supplier?.supplier_types?.map((item) => item.supplier_type_id) || [];
+
+      const selectedTypeIds =
+        relationTypeIds.length > 0
+          ? relationTypeIds
+          : supplier?.supplier_type_id
+            ? [supplier.supplier_type_id]
+            : [];
+
+      const supplierTypeLabel = selectedTypeIds
+        .map(
+          (id) =>
+            supplierType.find((item) => item.id === id)?.label ||
+            supplierType.find((item) => item.id === id)?.name ||
+            '',
+        )
+        .filter(Boolean)
+        .join(', ');
 
       return [
         { label: 'ID:', value: supplier?.id || '' },
-        { label: 'Code:', value: supplier?.code || '' },
+        {
+          label: 'Code:',
+          value: supplier?.code || supplier?.supplier_code || '',
+        },
         { label: 'Type:', value: supplierTypeLabel },
       ];
     },

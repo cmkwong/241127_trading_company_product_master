@@ -47,9 +47,28 @@
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   padding: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 1px 4px 12px rgba(0, 0, 0, 0.08);
   max-height: calc(100% - 40px);
   overflow-y: auto;
+  transform-origin: top right;
+  transition:
+    opacity 0.2s ease,
+    transform 0.24s ease,
+    visibility 0.2s ease;
+}
+
+.iconOverlayOpen {
+  opacity: 1;
+  transform: translateX(0) scale(1);
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.iconOverlayClosed {
+  opacity: 0;
+  transform: translateX(14px) scale(0.95);
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .iconToggleBtn {
@@ -62,7 +81,7 @@
   color: #333;
   border-radius: 2px;
   width: 22px;
-  height: 34px;
+  height: 64px;
   padding: 0;
   font-size: 14px;
   line-height: 1;

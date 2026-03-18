@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Main_Pack from './Packing/Main_Pack';
 import styles from './Main_ProductMaster.module.css';
 import Main_ProductName from './ProductName/Main_ProductName';
@@ -20,7 +20,30 @@ import SplitLayout from '../../common/Layouts/SplitLayout';
 const Main_ProductMaster = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [showIconPanel, setShowIconPanel] = useState(true);
+  const [showIconPanel, setShowIconPanel] = useState(false);
+  const iconOverlayRef = useRef(null);
+  const iconToggleBtnRef = useRef(null);
+
+  useEffect(() => {
+    if (!showIconPanel) return;
+
+    const handleOutsideClick = (event) => {
+      const target = event.target;
+
+      if (iconOverlayRef.current?.contains(target)) return;
+      if (iconToggleBtnRef.current?.contains(target)) return;
+
+      setShowIconPanel(false);
+    };
+
+    document.addEventListener('mousedown', handleOutsideClick);
+    document.addEventListener('touchstart', handleOutsideClick);
+
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+      document.removeEventListener('touchstart', handleOutsideClick);
+    };
+  }, [showIconPanel]);
 
   // Function to handle saving product data
   const onSaveProduct = async () => {
@@ -71,6 +94,7 @@ const Main_ProductMaster = () => {
           }`}
         >
           <button
+            ref={iconToggleBtnRef}
             type="button"
             className={styles.iconToggleBtn}
             onClick={() => setShowIconPanel((prev) => !prev)}
@@ -104,11 +128,15 @@ const Main_ProductMaster = () => {
             <Main_Remark />
           </div>
 
-          {showIconPanel && (
-            <div className={styles.iconOverlay}>
-              <Main_ProductIcon />
-            </div>
-          )}
+          <div
+            ref={iconOverlayRef}
+            className={`${styles.iconOverlay} ${
+              showIconPanel ? styles.iconOverlayOpen : styles.iconOverlayClosed
+            }`}
+            aria-hidden={!showIconPanel}
+          >
+            <Main_ProductIcon />
+          </div>
         </div>
       </div>
     </ProductMasterSavePageContainer>

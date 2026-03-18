@@ -1,24 +1,108 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import styles from './ProductSidebar.module.css';
-import Main_AllProductList from './Main_AllProductList';
+import SearchSideBarList from '../../../common/SearchSideBarList/SearchSideBarList';
+import {
+  getLabelsFromLookup,
+  mockCategory,
+} from '../../../../datas/Options/ProductOptions';
+import { useProductContext } from '../../../../store/ProductContext';
 
 const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
+  const { getProductData, products, createNewProduct } = useProductContext();
   const [windowWidth, setWindowWidth] = useState(
     typeof window !== 'undefined' ? window.innerWidth : 1024,
   );
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+
+  useEffect(() => {
+    const currentProductList = Array.isArray(products)
+      ? products
+      : products?.products || [];
+
+    if (!searchTerm.trim()) {
+      setFilteredProducts(currentProductList);
+      return;
+    }
+
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    const filtered = currentProductList.filter(
+      (product) =>
+        (typeof product.product_names === 'string' &&
+          product.product_names.toLowerCase().includes(lowerSearchTerm)) ||
+        (Array.isArray(product.product_names) &&
+          product.product_names.some((name) =>
+            name.name.toLowerCase().includes(lowerSearchTerm),
+          )) ||
+        product.id.toLowerCase().includes(lowerSearchTerm) ||
+        (Array.isArray(product.product_alibaba_ids) &&
+          product.product_alibaba_ids.some((id) =>
+            typeof id === 'string'
+              ? id.toLowerCase().includes(lowerSearchTerm)
+              : id.value && id.value.toLowerCase().includes(lowerSearchTerm),
+          )) ||
+        (Array.isArray(product.product_categories) &&
+          product.product_categories.some((cat) =>
+            typeof cat === 'string' || typeof cat === 'number'
+              ? String(cat).toLowerCase().includes(lowerSearchTerm)
+              : false,
+          )),
+    );
+
+    setFilteredProducts(filtered);
+  }, [searchTerm, products]);
 
   // Handle product selection
-  const handleProductSelect = (product) => {
-    // On mobile, collapse the sidebar after selection
-    if (windowWidth <= 768) {
-      onToggleCollapse(true);
-    }
+  const handleProductSelect = useCallback(
+    (product) => {
+      const getProductDataSuccess = getProductData(product.id);
+      if (!getProductDataSuccess) return;
 
-    // Pass the selected product to the parent component
-    if (onSelectProduct) {
-      onSelectProduct(product);
-    }
+      setSelectedProduct(product);
+
+      // On mobile, collapse the sidebar after selection
+      if (windowWidth <= 768) {
+        onToggleCollapse(true);
+      }
+
+      // Pass the selected product to the parent component
+      if (onSelectProduct) {
+        onSelectProduct(product);
+      }
+    },
+    [getProductData, windowWidth, onToggleCollapse, onSelectProduct],
+  );
+
+  const handleSearchChange = (value) => {
+    setSearchTerm(value);
   };
+
+  const handleCreateProduct = () => {
+    createNewProduct();
+  };
+
+  const getProductName = useCallback(
+    (product) => product?.product_names?.[0]?.name || '',
+    [],
+  );
+
+  const getProductRows = useCallback((product) => {
+    const categoryLabels = getLabelsFromLookup(
+      product?.product_categories?.map((c) => c.category_id) || [],
+      mockCategory,
+    );
+
+    const alibabaIdValues =
+      product?.product_alibaba_ids?.map((item) => item.value).filter(Boolean) ||
+      [];
+
+    return [
+      { label: 'ID:', value: product?.id || '' },
+      { label: 'Categories:', value: categoryLabels.join(', ') },
+      { label: 'Alibaba:', value: alibabaIdValues.join(', ') },
+    ];
+  }, []);
 
   // Track window resize for responsive behavior
   useEffect(() => {
@@ -39,7 +123,23 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
       <div
         className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ''}`}
       >
-        <Main_AllProductList onSelectProduct={handleProductSelect} />
+        <SearchSideBarList
+          items={filteredProducts}
+          selectedItemId={selectedProduct?.id}
+          onSelectItem={handleProductSelect}
+          searchValue={searchTerm}
+          onSearchChange={handleSearchChange}
+          searchPlaceholder="Search products..."
+          onCreate={handleCreateProduct}
+          createButtonTitle="Create New Product"
+          createButtonAriaLabel="Create New Product"
+          noResultsMessage="No products found"
+          getItemId={(product) => product.id}
+          getItemTitle={getProductName}
+          getItemRows={getProductRows}
+          getItemIconUrl={(product) => product.icon_url}
+          getItemIconAlt={getProductName}
+        />
       </div>
 
       {/* Toggle button for sidebar */}

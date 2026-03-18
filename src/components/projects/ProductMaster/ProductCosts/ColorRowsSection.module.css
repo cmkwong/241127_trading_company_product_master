@@ -4,6 +4,8 @@
   padding: 12px;
   background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
   box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .groupHeader {
@@ -41,8 +43,8 @@
 }
 
 .addNewBtn {
-  border: 1px solid #bfdbfe;
-  background: linear-gradient(180deg, #ffffff 0%, #eef4ff 100%);
+  border: none;
+  background: #eef4ff;
   color: #1d4ed8;
   border-radius: 10px;
   height: 32px;
@@ -62,11 +64,10 @@
 }
 
 .addNewBtn:hover {
-  background: linear-gradient(180deg, #ffffff 0%, #dbeafe 100%);
-  border-color: #93c5fd;
+  background: #dbeafe;
   color: #1e40af;
   transform: translateY(-1px);
-  box-shadow: 0 6px 14px rgba(59, 130, 246, 0.18);
+  box-shadow: 0 4px 10px rgba(59, 130, 246, 0.14);
 }
 
 .addNewBtn:active {
@@ -85,7 +86,7 @@
 
 .colorRowsWrap {
   display: grid;
-  grid-template-columns: repeat(3, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 12px;
 }
 
@@ -94,22 +95,20 @@
   align-items: center;
   gap: 10px;
   min-height: 46px;
-  padding: 8px 10px;
-  border: 1px solid #dbe5f5;
-  border-radius: 12px;
-  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
-  box-shadow: 0 1px 5px rgba(15, 23, 42, 0.05);
+  padding: 6px 2px;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
   transition:
-    border-color 0.16s ease,
     box-shadow 0.16s ease,
     transform 0.16s ease;
   min-width: 0;
 }
 
 .colorRow:hover {
-  border-color: #bfdbfe;
-  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.12);
-  transform: translateY(-1px);
+  box-shadow: none;
+  transform: none;
 }
 
 .colorRow > * {
@@ -136,14 +135,14 @@
   align-items: center;
   gap: 8px;
   min-height: 46px;
-  padding: 2px;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  background: #fff;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
 }
 
 .deleteIconBtn {
-  border: 1px solid #fbcfe8;
+  border: none;
   background: #fff1f2;
   color: #dc2626;
   border-radius: 8px;
@@ -162,9 +161,8 @@
 
 .deleteIconBtn:hover {
   background: #ffe4e6;
-  border-color: #fda4af;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 10px rgba(220, 38, 38, 0.16);
+  transform: none;
+  box-shadow: none;
 }
 
 .deleteIconBtn:focus-visible {
@@ -181,14 +179,14 @@
   grid-column: 1 / -1;
   font-size: 12px;
   color: #64748b;
-  border: 1px dashed #cbd5e1;
+  border: none;
   border-radius: 10px;
   padding: 12px;
-  background: #f8fafc;
+  background: #f1f5f9;
 }
 
 @media (max-width: 1100px) {
   .colorRowsWrap {
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   }
 }

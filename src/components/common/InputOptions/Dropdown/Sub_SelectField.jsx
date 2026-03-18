@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import PropTypes from 'prop-types';
+import { createPortal } from 'react-dom';
 import styles from './Sub_SelectField.module.css';
 import dropdownLogo from '../../../../assets/dropdown.svg';
 
@@ -24,7 +25,10 @@ const Sub_SelectField = ({
 }) => {
   const [open, setOpen] = useState(false);
   const containerRef = useRef(null);
+  const listRef = useRef(null);
+  const buttonRef = useRef(null);
   const firstItemRef = useRef(null);
+  const [listStyle, setListStyle] = useState(null);
 
   const combinedButtonClasses = useMemo(
     () => `${styles.dropdown_btn} ${buttonClassName}`.trim(),
@@ -66,7 +70,9 @@ const Sub_SelectField = ({
     const onPointerDown = (e) => {
       // Capture phase pointerdown to track outside interactions reliably
       if (!containerRef.current) return;
-      if (!containerRef.current.contains(e.target)) {
+      const clickedInsideContainer = containerRef.current.contains(e.target);
+      const clickedInsideList = listRef.current?.contains(e.target);
+      if (!clickedInsideContainer && !clickedInsideList) {
         setOpen(false);
       }
     };
@@ -76,6 +82,48 @@ const Sub_SelectField = ({
     return () => {
       document.removeEventListener('mousedown', onPointerDown, true);
       document.removeEventListener('touchstart', onPointerDown, true);
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) {
+      setListStyle(null);
+      return;
+    }
+
+    const updateListPosition = () => {
+      const button = buttonRef.current;
+      if (!button) return;
+
+      const rect = button.getBoundingClientRect();
+      const viewportHeight =
+        window.innerHeight || document.documentElement.clientHeight;
+      const estimatedListHeight = 240;
+      const spaceBelow = viewportHeight - rect.bottom;
+      const openUpward =
+        spaceBelow < estimatedListHeight && rect.top > spaceBelow;
+
+      const top = openUpward
+        ? Math.max(8, rect.top - estimatedListHeight - 4)
+        : rect.bottom + 4;
+
+      setListStyle({
+        position: 'fixed',
+        left: rect.left,
+        top,
+        width: rect.width,
+        zIndex: 9999,
+      });
+    };
+
+    updateListPosition();
+
+    window.addEventListener('resize', updateListPosition);
+    window.addEventListener('scroll', updateListPosition, true);
+
+    return () => {
+      window.removeEventListener('resize', updateListPosition);
+      window.removeEventListener('scroll', updateListPosition, true);
     };
   }, [open]);
 
@@ -114,6 +162,7 @@ const Sub_SelectField = ({
     <div className={styles.dropdown_container} ref={containerRef}>
       <button
         id={id}
+        ref={buttonRef}
         className={combinedButtonClasses}
         onClick={toggleDropdown}
         onKeyDown={onButtonKeyDown}
@@ -130,46 +179,50 @@ const Sub_SelectField = ({
         />
       </button>
 
-      {open && (
-        <div
-          id={`${id}-list`}
-          className={combinedListClasses}
-          role="listbox"
-          aria-labelledby={id}
-        >
-          {options.map((option, index) => {
-            const value = getIdFromOption(option);
-            const name = getNameFromOption(option);
-            const isSelected = value === selectedValue;
-            const ref = index === 0 ? firstItemRef : undefined;
+      {open &&
+        createPortal(
+          <div
+            id={`${id}-list`}
+            ref={listRef}
+            className={combinedListClasses}
+            style={listStyle || undefined}
+            role="listbox"
+            aria-labelledby={id}
+          >
+            {options.map((option, index) => {
+              const value = getIdFromOption(option);
+              const name = getNameFromOption(option);
+              const isSelected = value === selectedValue;
+              const ref = index === 0 ? firstItemRef : undefined;
 
-            return (
-              <div
-                key={String(value)}
-                ref={ref}
-                className={`${styles.list_item} ${
-                  isSelected ? styles.selected : ''
-                }`}
-                role="option"
-                aria-selected={isSelected}
-                tabIndex={0}
-                onClick={() => handleSelect(option)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    handleSelect(option);
-                  } else if (e.key === 'Escape') {
-                    e.preventDefault();
-                    closeDropdown();
-                  }
-                }}
-              >
-                {name}
-              </div>
-            );
-          })}
-        </div>
-      )}
+              return (
+                <div
+                  key={String(value)}
+                  ref={ref}
+                  className={`${styles.list_item} ${
+                    isSelected ? styles.selected : ''
+                  }`}
+                  role="option"
+                  aria-selected={isSelected}
+                  tabIndex={0}
+                  onClick={() => handleSelect(option)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleSelect(option);
+                    } else if (e.key === 'Escape') {
+                      e.preventDefault();
+                      closeDropdown();
+                    }
+                  }}
+                >
+                  {name}
+                </div>
+              );
+            })}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 };

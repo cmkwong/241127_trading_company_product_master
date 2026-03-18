@@ -9,6 +9,7 @@ import { useSupplierContext } from '../../../../store/SupplierContext';
 import { useMasterContext } from '../../../../store/MasterContext';
 import styles from './Main_SupplierLinks.module.css';
 import AddNewBtn from '../../../common/Buttons/AddNewBtn';
+import DeleteBtn from '../../../common/Buttons/DeleteBtn';
 
 const Main_SupplierLinks = () => {
   const { pageData, upsertSupplierPageData } = useSupplierContext();
@@ -122,7 +123,7 @@ const Main_SupplierLinks = () => {
         label: 'Actions',
         sortable: false,
         renderCell: (row) => (
-          <Button text="Delete" onClick={() => handleDeleteLinkRow(row)} />
+          <DeleteBtn onClick={() => handleDeleteLinkRow(row)} />
         ),
       },
     ],

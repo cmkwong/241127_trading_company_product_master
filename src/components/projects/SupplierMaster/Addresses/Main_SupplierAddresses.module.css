@@ -9,20 +9,6 @@
   justify-content: flex-end;
 }
 
-.addBtn {
-  border: 1px solid #cfd8e3;
-  border-radius: 6px;
-  background: #ffffff;
-  color: #1f2937;
-  padding: 0.4rem 0.7rem;
-  font-size: 0.85rem;
-  cursor: pointer;
-}
-
-.addBtn:hover {
-  background: #f6f9ff;
-}
-
 .cellInput {
   width: 100%;
   min-width: 120px;
@@ -31,18 +17,4 @@
   padding: 0.35rem 0.45rem;
   font-size: 0.85rem;
   box-sizing: border-box;
-}
-
-.deleteBtn {
-  border: 1px solid #f3b0b0;
-  border-radius: 6px;
-  background: #fff7f7;
-  color: #b42318;
-  padding: 0.3rem 0.55rem;
-  font-size: 0.8rem;
-  cursor: pointer;
-}
-
-.deleteBtn:hover {
-  background: #ffecec;
 }

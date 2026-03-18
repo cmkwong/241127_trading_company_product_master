@@ -1,7 +1,11 @@
 import { useCallback, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
+import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
+import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
+import AddNewBtn from '../../../common/Buttons/AddNewBtn';
 import EditableDataTable from '../../../common/Table/EditableDataTable';
+import DeleteBtn from '../../../common/Buttons/DeleteBtn';
 import { useSupplierContext } from '../../../../store/SupplierContext';
 import { useMasterContext } from '../../../../store/MasterContext';
 import styles from './Main_SupplierAddresses.module.css';
@@ -75,20 +79,16 @@ const Main_SupplierAddresses = () => {
           addressTypeOptions.find((item) => item.id === row.address_type_id)
             ?.label || '',
         renderCell: (row) => (
-          <select
-            className={styles.cellInput}
-            value={row.address_type_id || ''}
-            onChange={(event) =>
-              upsertAddressRow(row, { address_type_id: event.target.value })
-            }
-          >
-            <option value="">Select type</option>
-            {addressTypeOptions.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.label}
-              </option>
-            ))}
-          </select>
+          <Main_Dropdown
+            defaultOptions={addressTypeOptions.map((item) => ({
+              id: item.id,
+              name: item.label,
+            }))}
+            defaultSelectedOption={row.address_type_id || ''}
+            onChange={(ov, nv) => {
+              upsertAddressRow(row, { address_type_id: nv });
+            }}
+          />
         ),
       },
       {
@@ -97,11 +97,12 @@ const Main_SupplierAddresses = () => {
         sortType: 'string',
         getSortValue: (row) => row.address_line1 || row.address || '',
         renderCell: (row) => (
-          <input
+          <Main_TextField
             className={styles.cellInput}
-            value={row.address_line1 || row.address || ''}
-            onChange={(event) =>
-              upsertAddressRow(row, { address_line1: event.target.value })
+            defaultValue={row.address_line1 || row.address || ''}
+            placeholder="Address Line 1"
+            onChange={(ov, nv) =>
+              upsertAddressRow(row, { address_line1: nv, address: nv })
             }
           />
         ),
@@ -111,12 +112,11 @@ const Main_SupplierAddresses = () => {
         label: 'Address Line 2',
         sortType: 'string',
         renderCell: (row) => (
-          <input
+          <Main_TextField
             className={styles.cellInput}
-            value={row.address_line2 || ''}
-            onChange={(event) =>
-              upsertAddressRow(row, { address_line2: event.target.value })
-            }
+            defaultValue={row.address_line2 || ''}
+            placeholder="Address Line 2"
+            onChange={(ov, nv) => upsertAddressRow(row, { address_line2: nv })}
           />
         ),
       },
@@ -125,12 +125,11 @@ const Main_SupplierAddresses = () => {
         label: 'Address Line 3',
         sortType: 'string',
         renderCell: (row) => (
-          <input
+          <Main_TextField
             className={styles.cellInput}
-            value={row.address_line3 || ''}
-            onChange={(event) =>
-              upsertAddressRow(row, { address_line3: event.target.value })
-            }
+            defaultValue={row.address_line3 || ''}
+            placeholder="Address Line 3"
+            onChange={(ov, nv) => upsertAddressRow(row, { address_line3: nv })}
           />
         ),
       },
@@ -139,12 +138,11 @@ const Main_SupplierAddresses = () => {
         label: 'City',
         sortType: 'string',
         renderCell: (row) => (
-          <input
+          <Main_TextField
             className={styles.cellInput}
-            value={row.city || ''}
-            onChange={(event) =>
-              upsertAddressRow(row, { city: event.target.value })
-            }
+            defaultValue={row.city || ''}
+            placeholder="City"
+            onChange={(ov, nv) => upsertAddressRow(row, { city: nv })}
           />
         ),
       },
@@ -153,12 +151,11 @@ const Main_SupplierAddresses = () => {
         label: 'State',
         sortType: 'string',
         renderCell: (row) => (
-          <input
+          <Main_TextField
             className={styles.cellInput}
-            value={row.state || ''}
-            onChange={(event) =>
-              upsertAddressRow(row, { state: event.target.value })
-            }
+            defaultValue={row.state || ''}
+            placeholder="State"
+            onChange={(ov, nv) => upsertAddressRow(row, { state: nv })}
           />
         ),
       },
@@ -167,12 +164,11 @@ const Main_SupplierAddresses = () => {
         label: 'ZIP',
         sortType: 'string',
         renderCell: (row) => (
-          <input
+          <Main_TextField
             className={styles.cellInput}
-            value={row.zip_code || ''}
-            onChange={(event) =>
-              upsertAddressRow(row, { zip_code: event.target.value })
-            }
+            defaultValue={row.zip_code || ''}
+            placeholder="ZIP"
+            onChange={(ov, nv) => upsertAddressRow(row, { zip_code: nv })}
           />
         ),
       },
@@ -181,12 +177,11 @@ const Main_SupplierAddresses = () => {
         label: 'Country',
         sortType: 'string',
         renderCell: (row) => (
-          <input
+          <Main_TextField
             className={styles.cellInput}
-            value={row.country || ''}
-            onChange={(event) =>
-              upsertAddressRow(row, { country: event.target.value })
-            }
+            defaultValue={row.country || ''}
+            placeholder="Country"
+            onChange={(ov, nv) => upsertAddressRow(row, { country: nv })}
           />
         ),
       },
@@ -195,12 +190,11 @@ const Main_SupplierAddresses = () => {
         label: 'Remark',
         sortType: 'string',
         renderCell: (row) => (
-          <input
+          <Main_TextField
             className={styles.cellInput}
-            value={row.remark || ''}
-            onChange={(event) =>
-              upsertAddressRow(row, { remark: event.target.value })
-            }
+            defaultValue={row.remark || ''}
+            placeholder="Remark"
+            onChange={(ov, nv) => upsertAddressRow(row, { remark: nv })}
           />
         ),
       },
@@ -209,13 +203,7 @@ const Main_SupplierAddresses = () => {
         label: 'Actions',
         sortable: false,
         renderCell: (row) => (
-          <button
-            type="button"
-            className={styles.deleteBtn}
-            onClick={() => handleDeleteAddressRow(row)}
-          >
-            Delete
-          </button>
+          <DeleteBtn onClick={() => handleDeleteAddressRow(row)} />
         ),
       },
     ],
@@ -226,13 +214,12 @@ const Main_SupplierAddresses = () => {
     <Main_InputContainer label="Supplier Addresses">
       <div className={styles.tableSection}>
         <div className={styles.actionsBar}>
-          <button
-            type="button"
-            className={styles.addBtn}
+          <AddNewBtn
             onClick={handleAddAddressRow}
-          >
-            + Add Address
-          </button>
+            text="Add Address"
+            ariaLabel="Add new address"
+            title="Add Address"
+          />
         </div>
 
         <EditableDataTable

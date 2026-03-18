@@ -1,0 +1,39 @@
+.sectionStack {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.rowGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.rowGridTwo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.fullWidth {
+  grid-column: 1 / -1;
+}
+
+.serviceCard {
+  border: 1px solid #d8e2f0;
+  border-radius: 10px;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  background: #f9fbff;
+}
+
+@media (max-width: 960px) {
+  .rowGridTwo {
+    grid-template-columns: 1fr;
+  }
+}

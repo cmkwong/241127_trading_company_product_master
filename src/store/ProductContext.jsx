@@ -12,11 +12,16 @@ import {
   recursiveProcess_base64_to_objectUrl,
   processChangesWithBase64,
 } from '../utils/objectUrlUtils';
+import {
+  normalizeStructuredTableResponse,
+  buildNestedChangedData,
+  cleanupNestedInternalFlags,
+  canProceedWithRecordSwitch,
+} from '../utils/contextDataUtils';
 import { upsertNestedData } from '../utils/crudObj';
 import { apiGet, apiPatch, apiDelete, apiPost } from '../utils/crud';
 import { useAuthContext } from './AuthContext';
 import { v4 as uuidv4 } from 'uuid';
-import { debugLog } from '../utils/debug';
 
 // Create context for data collection
 export const ProductContext = createContext();
@@ -82,13 +87,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
         console.log('Fetched products data:', response);
 
         // Extract data based on expected API response structure
-        let rawData;
-        if (response?.structuredData?.data?.products) {
-          rawData = response.structuredData.data;
-        } else {
-          // Fallback for direct object or array response
-          rawData = Array.isArray(response) ? { products: response } : response;
-        }
+        const rawData = normalizeStructuredTableResponse(response, 'products');
 
         // Clear any previously created object URLs before regenerating new ones.
         releaseObjectUrls(objectUrlRegistryRef.current);
@@ -126,207 +125,13 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
 
   // Helper function to deep compare and return differences
   const getChangedData = useCallback(() => {
-    // If no ID, this is a new product that hasn't been saved yet
-    if (!pageData.id) {
-      return { changes: { products: [pageData] } }; // All data is new
-    }
-
-    // Compare against the fetched original page data baseline
-    if (!originalPageData || originalPageData.id !== pageData.id) {
-      return { changes: { products: [pageData] } };
-    }
-
-    // Clean up internal flags from pageData to avoid false change detection
-    const cleanPageData = { ...pageData };
-    debugLog('getChangedData', 'Starting comparison', {
-      pageDataIds: Object.keys(pageData),
-      currentId: cleanPageData.id,
-      originalId: originalPageData?.id,
-      base64Changed: cleanPageData._base64_changed,
-    });
-
-    // Check if _base64_changed exists BEFORE cleaning it
-    // Store original flag to pass to getDiff if needed, but getDiff checks `current`
-
-    // Don't delete _base64_changed here, getDiff handles skipping it during property iteration
-    // but needs it for the specific check at the start.
-    // delete cleanPageData._base64_changed;
-    delete cleanPageData._objUrl;
-
-    // Helper to get diff between two objects
-    const getDiff = (
-      current,
-      original,
-      keysToCompare,
-      tableName = 'products',
-    ) => {
-      // Debug logging to trace execution
-      debugLog('getDiff', `Comparing table: ${tableName}`, {
-        currentId: current.id,
-        originalId: original.id,
-        currentBase64Changed: current._base64_changed,
-        tableName,
-      });
-
-      const diff = current.id ? { id: current.id } : {};
-      const deletions = current.id ? { id: current.id } : {};
-
-      let hasChanges = false;
-      let hasDeletions = false;
-
-      // Check for base64 changes instructions (Changes only)
-      // FIX: Should check CURRENT object's flag, not global pageData
-      if (current._base64_changed) {
-        debugLog('getDiff', `Base64 change detected in ${tableName}`, {
-          current,
-        });
-        const config = mockProduct_base64_config[tableName];
-        if (config && config.url) {
-          diff[config.url] = current[config.url];
-          hasChanges = true;
-        }
-      }
-
-      for (const key of keysToCompare) {
-        // Skip _base64_changed flag and internal keys (not real data properties)
-        if (key === '_base64_changed' || key === '_objUrl') continue;
-
-        // Skip keys not in the object (unless tracking deletions)
-        if (current[key] === undefined && original[key] === undefined) continue;
-
-        // 1. Array handling (Nested tables)
-        if (Array.isArray(current[key])) {
-          const currentArr = current[key];
-          const originalArr = Array.isArray(original[key]) ? original[key] : [];
-
-          const arrayChanges = [];
-          const arrayDeletions = [];
-
-          // Check for directly deleted items (in original but not current)
-          originalArr.forEach((origItem) => {
-            if (
-              origItem.id &&
-              !currentArr.some((currItem) => currItem.id === origItem.id)
-            ) {
-              arrayDeletions.push({ id: origItem.id });
-              hasDeletions = true;
-            }
-          });
-
-          // Check for modifications / deep deletions in current items
-          currentArr.forEach((item) => {
-            // New item
-            if (!item.id) {
-              // New items considered "changes"
-              arrayChanges.push(item);
-              hasChanges = true;
-              return;
-            }
-
-            const originalItem = originalArr.find((i) => i.id === item.id);
-            if (!originalItem) {
-              // New item (by ID check fallback)
-              arrayChanges.push(item);
-              hasChanges = true;
-            } else {
-              // Existing item - recurse
-              const itemKeys = Object.keys(item);
-              const { diff: itemDiff, deletions: itemDel } = getDiff(
-                item,
-                originalItem,
-                itemKeys,
-                key,
-              ); // Pass key as tableName
-
-              // If has changes, add to arrayChanges
-              // itemDiff always has ID, check keys > 1
-              if (Object.keys(itemDiff).length > 1) {
-                arrayChanges.push(itemDiff);
-                hasChanges = true;
-              }
-
-              // If has deletions, add to arrayDeletions
-              if (Object.keys(itemDel).length > 1) {
-                arrayDeletions.push(itemDel);
-                hasDeletions = true;
-              }
-            }
-          });
-
-          if (arrayChanges.length > 0) {
-            diff[key] = arrayChanges;
-          }
-          if (arrayDeletions.length > 0) {
-            deletions[key] = arrayDeletions;
-          }
-        }
-        // 2. Object handling
-        else if (
-          typeof current[key] === 'object' &&
-          current[key] !== null &&
-          key !== '_objUrl' &&
-          key !== '_base64_changed'
-        ) {
-          // If original is not object or null
-          if (typeof original[key] !== 'object' || original[key] === null) {
-            diff[key] = current[key];
-            hasChanges = true;
-          } else {
-            // Deep compare simple objects
-            if (
-              JSON.stringify(current[key]) !== JSON.stringify(original[key])
-            ) {
-              diff[key] = current[key];
-              hasChanges = true;
-            }
-          }
-        }
-        // 3. Primitive handling
-        else {
-          if (current[key] !== original[key]) {
-            diff[key] = current[key];
-            hasChanges = true;
-          }
-        }
-      }
-
-      return {
-        diff: hasChanges ? diff : diff.id ? { id: diff.id } : {}, // Keep ID only if no changes
-        deletions: hasDeletions
-          ? deletions
-          : deletions.id
-            ? { id: deletions.id }
-            : {}, // Keep ID only if no deletions
-      };
-    };
-
-    const { diff: rootDiff, deletions: rootDel } = getDiff(
-      cleanPageData,
+    return buildNestedChangedData({
+      pageData,
       originalPageData,
-      PRODUCT_COMPARISON_KEYS,
-      'products',
-    );
-
-    const result = {};
-    let hasResult = false;
-
-    if (Object.keys(rootDiff).length > 1) {
-      result.changes = { products: [rootDiff] };
-      hasResult = true;
-    }
-
-    if (Object.keys(rootDel).length > 1) {
-      result.deletions = { products: [rootDel] };
-      hasResult = true;
-    }
-
-    if (hasResult) {
-      debugLog('getChangedData', 'Changes detected:', result);
-    } else {
-      debugLog('getChangedData', 'No changes detected.');
-    }
-
-    return hasResult ? result : null;
+      comparisonKeys: PRODUCT_COMPARISON_KEYS,
+      rootTableName: 'products',
+      base64Config: mockProduct_base64_config,
+    });
   }, [pageData, originalPageData]);
 
   // Function to check if pageData is the same as the corresponding product in products
@@ -342,16 +147,13 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
   const getProductData = useCallback(
     (id) => {
       // Check if there are unsaved changes in the current product
-      if (pageData.id && !isDataUnchanged()) {
-        // Show confirmation dialog
-        const confirmSwitch = window.confirm(
-          'You have unsaved changes. Do you want to continue without saving?',
-        );
-
-        // If user cancels, stay on current product
-        if (!confirmSwitch) {
-          return false;
-        }
+      if (
+        !canProceedWithRecordSwitch({
+          hasRecordId: !!pageData.id,
+          isDataUnchanged: isDataUnchanged(),
+        })
+      ) {
+        return false;
       }
 
       // Start async fetch to retrieve full product data (including base64 images)
@@ -381,14 +183,10 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
           );
 
           // Extract data similar to fetchProducts
-          let rawData;
-          if (response?.structuredData?.data?.products) {
-            rawData = response.structuredData.data;
-          } else {
-            rawData = Array.isArray(response)
-              ? { products: response }
-              : response;
-          }
+          const rawData = normalizeStructuredTableResponse(
+            response,
+            'products',
+          );
 
           // Clear previous pageData object URLs
           releaseObjectUrls(pageDataUrlRegistryRef.current);
@@ -507,23 +305,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
 
   // Recursive cleanup internal FLAG function
   const _cleanupFlags = useCallback((obj) => {
-    if (!obj || typeof obj !== 'object') return obj;
-
-    if (Array.isArray(obj)) {
-      return obj.map((item) => _cleanupFlags(item));
-    }
-
-    const newObj = { ...obj };
-    delete newObj._base64_changed;
-
-    // Recurse for nested objects
-    Object.keys(newObj).forEach((key) => {
-      if (typeof newObj[key] === 'object' && newObj[key] !== null) {
-        newObj[key] = _cleanupFlags(newObj[key]);
-      }
-    });
-
-    return newObj;
+    return cleanupNestedInternalFlags(obj);
   }, []);
 
   // Function to handle save action with built-in product list update
@@ -634,17 +416,13 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
   // Create a new product (clear page data)
   const createNewProduct = useCallback(() => {
     // Check if there are unsaved changes in the current product
-    if (pageData.id && !isDataUnchanged()) {
-      // Show confirmation dialog
-      const confirmSwitch = window.confirm(
-        'You have unsaved changes. Do you want to continue without saving?',
-      );
-
-      // If user cancels, stay on current product
-      if (!confirmSwitch) {
-        return false;
-      }
-      // Otherwise continue with creating a new product
+    if (
+      !canProceedWithRecordSwitch({
+        hasRecordId: !!pageData.id,
+        isDataUnchanged: isDataUnchanged(),
+      })
+    ) {
+      return false;
     }
 
     setPageData({ id: uuidv4() }); // Start with a new product with a generated ID

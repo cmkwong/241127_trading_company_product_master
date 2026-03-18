@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, forwardRef } from 'react';
+import { useRef, useEffect, forwardRef } from 'react';
 import PropTypes from 'prop-types';
 import styles from './Sub_TextField.module.css';
 /**
@@ -22,6 +22,8 @@ const Sub_TextField = forwardRef((props, externalRef) => {
     onFocus,
     onBlur,
   } = props;
+
+  const isLinkType = type === 'link';
 
   const internalRef = useRef(null);
   const cursorPositionRef = useRef(null);
@@ -61,12 +63,32 @@ const Sub_TextField = forwardRef((props, externalRef) => {
     }
   }, [value, inputRef]);
 
-  return (
+  const normalizeLink = (rawValue) => {
+    if (!rawValue || typeof rawValue !== 'string') return '';
+    const trimmed = rawValue.trim();
+    if (!trimmed) return '';
+    if (/^https?:\/\//i.test(trimmed)) return trimmed;
+    return `https://${trimmed}`;
+  };
+
+  const handleOpenLink = () => {
+    const url = normalizeLink(value);
+    if (!url) return;
+
+    try {
+      const parsed = new URL(url);
+      window.open(parsed.toString(), '_blank', 'noopener,noreferrer');
+    } catch {
+      // Ignore invalid URL input
+    }
+  };
+
+  const inputElement = (
     <input
       ref={inputRef}
       id={id}
       className={`${styles.textField} ${className}`}
-      type={type}
+      type={isLinkType ? 'text' : type}
       value={value}
       onChange={handleChange}
       placeholder={placeholder}
@@ -80,6 +102,46 @@ const Sub_TextField = forwardRef((props, externalRef) => {
       onBlur={onBlur}
       data-testid="sub-text-field"
     />
+  );
+
+  if (!isLinkType) {
+    return inputElement;
+  }
+
+  return (
+    <div className={styles.linkInputContainer}>
+      {inputElement}
+      <button
+        type="button"
+        className={styles.openLinkButton}
+        onClick={handleOpenLink}
+        disabled={disabled || !value?.trim()}
+        title="Open link"
+        aria-label="Open link"
+      >
+        <svg
+          className={styles.openLinkIcon}
+          viewBox="0 0 20 20"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path
+            d="M7 13L13 7M9 7H13V11"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M6.5 9.5V13.5H10.5"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </button>
+    </div>
   );
 });
 Sub_TextField.propTypes = {

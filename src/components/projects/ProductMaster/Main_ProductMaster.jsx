@@ -14,6 +14,8 @@ import Main_ProductImages from './ProductImages/Main_ProductImages';
 import Main_Keywords from './Keywords/Main_Keywords';
 import ProductMasterSavePageContainer from './Container/ProductMasterSavePageContainer';
 import Main_ProductCosts from './ProductCosts/Main_ProductCosts';
+import VerticalLayout from '../../common/Layouts/VerticalLayout';
+import SplitLayout from '../../common/Layouts/SplitLayout';
 
 const Main_ProductMaster = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -79,16 +81,26 @@ const Main_ProductMaster = () => {
           </button>
 
           <div className={`${styles.inputSide} ${styles.withIconOverlay}`}>
-            <Main_ProductName />
-            <Main_Category />
-            <Main_Keywords />
+            <SplitLayout>
+              <VerticalLayout>
+                <Main_ProductName />
+                <Main_Category />
+                <Main_Keywords />
+              </VerticalLayout>
+              <VerticalLayout>
+                <Main_AlibabaLink />
+                <Main_ProductLink />
+              </VerticalLayout>
+            </SplitLayout>
+
             <Main_ProductImages />
             <Main_Supplier />
-            <Main_ProductLink />
-            <Main_AlibabaLink />
-            <Main_Pack />
+
+            <SplitLayout>
+              <Main_Pack />
+              <Main_CertificateData />
+            </SplitLayout>
             <Main_ProductCosts />
-            <Main_CertificateData />
             <Main_Remark />
           </div>
 

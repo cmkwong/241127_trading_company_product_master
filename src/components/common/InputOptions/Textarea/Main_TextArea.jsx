@@ -16,6 +16,7 @@ const Main_TextArea = (props) => {
     placeholder = 'Enter remarks...',
     rows = 4,
     maxLength,
+    fullHeight = false,
     disabled = false,
     readOnly = false,
     resize = 'vertical',
@@ -48,7 +49,10 @@ const Main_TextArea = (props) => {
   };
 
   return (
-    <div className={styles.container} data-testid="remark-textarea">
+    <div
+      className={`${styles.container} ${fullHeight ? styles.fullHeight : ''}`}
+      data-testid="remark-textarea"
+    >
       <Sub_RemarkField
         id={resolvedId}
         value={value}
@@ -56,6 +60,7 @@ const Main_TextArea = (props) => {
         placeholder={placeholder}
         rows={rows}
         maxLength={maxLength}
+        fullHeight={fullHeight}
         disabled={disabled}
         readOnly={readOnly}
         resize={resize}
@@ -75,6 +80,7 @@ Main_TextArea.propTypes = {
   placeholder: PropTypes.string,
   rows: PropTypes.number,
   maxLength: PropTypes.number,
+  fullHeight: PropTypes.bool,
   disabled: PropTypes.bool,
   readOnly: PropTypes.bool,
   resize: PropTypes.oneOf(['none', 'vertical', 'horizontal', 'both']),

@@ -9,6 +9,7 @@ const Sub_TextArea = ({
   placeholder,
   rows,
   maxLength,
+  fullHeight = false,
   disabled,
   readOnly,
   resize = 'vertical',
@@ -23,19 +24,24 @@ const Sub_TextArea = ({
       horizontal: 'horizontal',
       both: 'both',
     };
-    return { resize: map[resize] || 'vertical' };
-  }, [resize]);
+    return {
+      resize: fullHeight ? 'none' : map[resize] || 'vertical',
+      ...(fullHeight ? { height: '100%' } : {}),
+    };
+  }, [resize, fullHeight]);
 
   const handleChange = useCallback(
     (e) => onValueChange(e.target.value),
-    [onValueChange]
+    [onValueChange],
   );
 
   return (
-    <div className={styles.fieldContainer}>
+    <div
+      className={`${styles.fieldContainer} ${fullHeight ? styles.fullHeight : ''}`}
+    >
       <textarea
         id={id}
-        className={styles.textarea}
+        className={`${styles.textarea} ${fullHeight ? styles.textareaFullHeight : ''}`}
         value={value}
         onChange={handleChange}
         placeholder={placeholder}
@@ -64,6 +70,7 @@ Sub_TextArea.propTypes = {
   placeholder: PropTypes.string,
   rows: PropTypes.number,
   maxLength: PropTypes.number,
+  fullHeight: PropTypes.bool,
   disabled: PropTypes.bool,
   readOnly: PropTypes.bool,
   resize: PropTypes.oneOf(['none', 'vertical', 'horizontal', 'both']),

@@ -24,12 +24,16 @@ const IconUpload = ({
   accept = 'image/*',
   title = 'Select image',
   size = 'M',
+  sizePx,
 }) => {
   const selectedSize = normalizeSize(size);
 
   const buttonSize = useMemo(
-    () => SIZE_PRESETS[selectedSize] || SIZE_PRESETS.M,
-    [selectedSize],
+    () =>
+      Number(sizePx) > 0
+        ? Number(sizePx)
+        : (SIZE_PRESETS[selectedSize] || SIZE_PRESETS.M),
+    [selectedSize, sizePx],
   );
 
   return (

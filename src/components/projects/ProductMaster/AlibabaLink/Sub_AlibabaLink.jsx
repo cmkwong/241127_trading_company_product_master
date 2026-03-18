@@ -9,9 +9,7 @@ const Sub_AlibabaLink = (props) => {
   const { upsertProductPageData, pageData } = useProductContext();
 
   // Get the current row data or use template data if it doesn't exist
-  const [alibabaLink, setAlibabaLink] = useState(
-    product_alibaba_ids[rowindex] || {},
-  );
+  const [alibabaLink] = useState(product_alibaba_ids[rowindex] || {});
   const [alibabaId, setAlibabaId] = useState(alibabaLink?.value || '');
   const [alibabaLinkValue, setAlibabaLinkValue] = useState(
     alibabaLink?.link || '',
@@ -65,6 +63,7 @@ const Sub_AlibabaLink = (props) => {
         <Main_TextField
           placeholder={'Enter Link ...'}
           defaultValue={alibabaLinkValue}
+          type="link"
           onChange={handleLinkChange}
         />
       </div>

@@ -144,7 +144,7 @@ const Sub_PackRow = ({ packings, rowindex }) => {
 
   return (
     <div className={styles.inputsContainer}>
-      <SplitLayout position="L">
+      <SplitLayout position="M">
         <VerticalLayout>
           <div className={styles.topRow}>
             <div className={styles.packageTypeField}>

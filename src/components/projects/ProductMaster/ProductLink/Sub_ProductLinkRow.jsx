@@ -137,6 +137,7 @@ const Sub_ProductLinkRow = (props) => {
         placeholder={'Link'}
         defaultValue={link || ''}
         onChange={handleLinkChange}
+        type={'link'}
       />
       <div className={styles.contentRow}>
         <div className={styles.inputsColumn}>

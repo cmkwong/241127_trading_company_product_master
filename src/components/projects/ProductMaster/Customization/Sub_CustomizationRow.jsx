@@ -6,6 +6,8 @@ import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_File
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
 import { mockSuppliers } from '../../../../datas/Suppliers/mockSuppliers';
 import { useProductContext } from '../../../../store/ProductContext';
+import VerticalLayout from '../../../common/Layouts/VerticalLayout';
+import SplitLayout from '../../../common/Layouts/SplitLayout';
 const Sub_CustomizationRow = (props) => {
   const { customizations, rowindex } = props;
 
@@ -111,38 +113,41 @@ const Sub_CustomizationRow = (props) => {
 
   return (
     <>
-      <div className={styles.textInput}>
-        <Main_TextField
-          placeholder={'Customization Title'}
-          onChange={handleNameChange}
-          defaultValue={customization?.name}
+      <SplitLayout position="L">
+        <VerticalLayout>
+          <Main_TextField
+            placeholder={'Customization Title'}
+            onChange={handleNameChange}
+            defaultValue={customization?.name}
+          />
+          <Main_Suggest
+            defaultSuggestions={mockSuppliers.map((supplier) => supplier.code)}
+            placeholder={'Suppliers'}
+            onChange={handleCodeChange}
+            defaultValue={customization?.code}
+          />
+          <Main_TextArea
+            onChange={handleRemarkChange}
+            placeholder={'Customization remarks ... '}
+            defaultValue={customization?.remark}
+          />
+        </VerticalLayout>
+
+        <Main_FileUploads
+          mode="image"
+          onError={handleImageError}
+          onChange={handleImageChange}
+          maxFiles={10}
+          maxSizeInMB={5}
+          defaultImages={
+            customization?.product_customization_images?.map((img) => ({
+              id: img.id,
+              url: img.image_url,
+              name: img.image_name,
+            })) || []
+          }
         />
-        <Main_Suggest
-          defaultSuggestions={mockSuppliers.map((supplier) => supplier.code)}
-          placeholder={'Suppliers'}
-          onChange={handleCodeChange}
-          defaultValue={customization?.code}
-        />
-        <Main_TextArea
-          onChange={handleRemarkChange}
-          placeholder={'Customization remarks ... '}
-          defaultValue={customization?.remark}
-        />
-      </div>
-      <Main_FileUploads
-        mode="image"
-        onError={handleImageError}
-        onChange={handleImageChange}
-        maxFiles={10}
-        maxSizeInMB={5}
-        defaultImages={
-          customization?.product_customization_images?.map((img) => ({
-            id: img.id,
-            url: img.image_url,
-            name: img.image_name,
-          })) || []
-        }
-      />
+      </SplitLayout>
     </>
   );
 };

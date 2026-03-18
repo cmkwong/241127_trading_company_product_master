@@ -2,7 +2,8 @@
   position: relative;
   width: 100%;
   display: grid;
-  gap: 0;
+  column-gap: 18px;
+  row-gap: 0;
   align-items: stretch;
 }
 
@@ -45,12 +46,10 @@
 
 .root > :first-child {
   min-width: 0;
-  padding-right: 16px;
 }
 
 .root > :last-child {
   min-width: 0;
-  padding-left: 16px;
 }
 
 @media (max-width: 900px) {

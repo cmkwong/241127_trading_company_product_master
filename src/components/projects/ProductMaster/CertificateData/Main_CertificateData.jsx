@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import ControlRowBtn from '../../../common/ControlRowBtn';
+import ControlRowBtn from '../../../common/Buttons/ControlRowBtn';
 import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
 import styles from './Main_CertificateData.module.css';
 import Sub_CertificateData from './Sub_CertificateData';

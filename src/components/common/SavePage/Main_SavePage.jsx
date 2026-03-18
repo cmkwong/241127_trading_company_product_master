@@ -1,4 +1,4 @@
-import Button from '../Button';
+import Button from '../Buttons/Button';
 import styles from './Main_SavePage.module.css';
 
 const Main_SavePage = ({

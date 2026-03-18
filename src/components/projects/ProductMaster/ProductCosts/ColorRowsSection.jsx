@@ -1,5 +1,6 @@
 import Main_Suggest from '../../../common/InputOptions/Suggest/Main_Suggest';
 import IconUpload from '../../../common/InputOptions/IconUpload/IconUpload';
+import AddNewBtn from '../../../common/Buttons/AddNewBtn';
 import styles from './ColorRowsSection.module.css';
 
 const ColorRowsSection = ({
@@ -22,28 +23,11 @@ const ColorRowsSection = ({
           <div className={styles.countBadge}>{variantColors.length}</div>
         </div>
 
-        <button
-          type="button"
-          className={styles.addNewBtn}
+        <AddNewBtn
           onClick={handleAddColorRow}
-          aria-label="Add new color"
+          ariaLabel="Add new color"
           title="Add New"
-        >
-          <svg
-            className={styles.addNewIcon}
-            viewBox="0 0 20 20"
-            fill="none"
-            aria-hidden="true"
-          >
-            <path
-              d="M10 4.5V15.5M4.5 10H15.5"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-            />
-          </svg>
-          Add New
-        </button>
+        />
       </div>
 
       <div className={styles.colorRowsWrap}>

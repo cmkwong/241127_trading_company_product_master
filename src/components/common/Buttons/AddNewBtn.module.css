@@ -1,0 +1,42 @@
+.addNewBtn {
+  border: 1px solid #bfdbfe;
+  background: linear-gradient(180deg, #ffffff 0%, #eef4ff 100%);
+  color: #1d4ed8;
+  border-radius: 10px;
+  height: 32px;
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease,
+    color 0.16s ease,
+    box-shadow 0.16s ease,
+    transform 0.16s ease;
+}
+
+.addNewBtn:hover {
+  background: linear-gradient(180deg, #ffffff 0%, #dbeafe 100%);
+  border-color: #93c5fd;
+  color: #1e40af;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(59, 130, 246, 0.18);
+}
+
+.addNewBtn:active {
+  transform: translateY(0);
+}
+
+.addNewBtn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+}
+
+.addNewIcon {
+  width: 14px;
+  height: 14px;
+}

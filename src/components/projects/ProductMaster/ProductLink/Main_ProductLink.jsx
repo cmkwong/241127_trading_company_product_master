@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import styles from './Main_ProductLink.module.css';
-import ControlRowBtn from '../../../common/ControlRowBtn';
+import ControlRowBtn from '../../../common/Buttons/ControlRowBtn';
 import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
 import Sub_ProductLinkRow from './Sub_ProductLinkRow';
 import { useProductContext } from '../../../../store/ProductContext';

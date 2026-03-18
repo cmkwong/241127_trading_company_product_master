@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import ControlRowBtn from '../../../common/ControlRowBtn';
+import ControlRowBtn from '../../../common/Buttons/ControlRowBtn';
 import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
 import { useProductContext } from '../../../../store/ProductContext';
 import { useMasterContext } from '../../../../store/MasterContext';

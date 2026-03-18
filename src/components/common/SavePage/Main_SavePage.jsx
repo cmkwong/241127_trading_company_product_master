@@ -1,4 +1,4 @@
-import Button from '../../common/Button';
+import Button from '../Button';
 import styles from './Main_SavePage.module.css';
 
 const Main_SavePage = ({
@@ -14,7 +14,6 @@ const Main_SavePage = ({
   saveError = null,
   className = '',
 }) => {
-  // Handle save button click
   const handleSaveClick = () => {
     if (customSaveAction) {
       customSaveAction();

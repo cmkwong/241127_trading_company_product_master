@@ -25,6 +25,51 @@
   border-bottom: none;
 }
 
+.compactFileItem {
+  width: 220px;
+  min-width: 220px;
+  max-width: 220px;
+  flex: 0 0 220px;
+  border: 1px solid #dbe3f2;
+  border-radius: 8px;
+  padding: 6px 8px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+}
+
+.compactFileItem:hover {
+  background-color: #f8fbff;
+}
+
+.compactFileItem .fileInfo {
+  gap: 8px;
+}
+
+.compactFileItem .fileIcon {
+  width: 16px;
+  height: 16px;
+}
+
+.compactFileItem .fileName {
+  font-size: 12px;
+  margin-bottom: 0;
+}
+
+.compactFileItem .fileSize {
+  font-size: 10px;
+}
+
+.compactFileItem .removeButton {
+  width: 16px;
+  height: 16px;
+  margin-left: 6px;
+}
+
+.compactFileItem .removeButton svg {
+  width: 12px;
+  height: 12px;
+}
+
 .fileInfo {
   display: flex;
   align-items: center;

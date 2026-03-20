@@ -119,11 +119,8 @@ const Main_ProductMaster = () => {
 
             <Main_ProductImages />
             <Main_Supplier />
-
-            <SplitLayout>
-              <Main_Pack />
-              <Main_CertificateData />
-            </SplitLayout>
+            <Main_Pack />
+            <Main_CertificateData />
             <Main_ProductCosts />
             <Main_Remark />
           </div>

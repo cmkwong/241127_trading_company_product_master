@@ -17,6 +17,7 @@ const Sub_FileItem = ({
   showAsImage = false,
   fullSizePreview = false,
   compactImage = false,
+  compactFile = false,
   hoverPreview = false,
 }) => {
   const [dropPosition, setDropPosition] = useState(null);
@@ -298,7 +299,7 @@ const Sub_FileItem = ({
   // Render as file list item
   return (
     <li
-      className={`${styles.fileItem} ${shiftClass}`}
+      className={`${styles.fileItem} ${compactFile ? styles.compactFileItem : ''} ${shiftClass}`}
       draggable={!disabled && !!onMove}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
@@ -366,6 +367,7 @@ Sub_FileItem.propTypes = {
   showAsImage: PropTypes.bool,
   fullSizePreview: PropTypes.bool,
   compactImage: PropTypes.bool,
+  compactFile: PropTypes.bool,
   hoverPreview: PropTypes.bool,
 };
 

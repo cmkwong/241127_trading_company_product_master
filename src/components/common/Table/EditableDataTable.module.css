@@ -17,7 +17,15 @@
   border-bottom: 1px solid #f0f0f0;
   padding: 8px;
   text-align: left;
+  vertical-align: top;
+}
+
+.dataTable th {
   white-space: nowrap;
+}
+
+.dataTable td {
+  white-space: normal;
 }
 
 .dataTable thead th {

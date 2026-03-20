@@ -272,6 +272,7 @@ const Main_FileUploads = (props) => {
             showAsImage={mode === 'image'}
             fullSizePreview={!showMaxItemsNotice}
             compactImage={tableCell}
+            compactFile={tableCell && mode === 'file'}
             hoverPreview={hoverPreview}
           />
         ))}

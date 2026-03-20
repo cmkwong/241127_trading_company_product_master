@@ -79,6 +79,18 @@
   flex: 1;
 }
 
+.tableCell .filePreviewContainer {
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-height: none;
+  min-height: 40px;
+  flex: 1;
+}
+
 .tableCellPreviewRail {
   min-width: 0;
   flex: 1;

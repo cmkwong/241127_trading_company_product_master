@@ -10,3 +10,28 @@
   margin-bottom: 8px;
 }
 
+.tableSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.actionsBar {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.cellInput {
+  width: 100%;
+  min-width: 110px;
+  border: 1px solid #d3dbe7;
+  border-radius: 6px;
+  padding: 0.35rem 0.45rem;
+  font-size: 0.85rem;
+  box-sizing: border-box;
+}
+
+.uploadsCell {
+  min-width: 260px;
+  max-width: 360px;
+}

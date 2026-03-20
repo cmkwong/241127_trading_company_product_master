@@ -1,14 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import styles from './ProductSidebar.module.css';
 import SearchSideBarList from '../../../common/SearchSideBarList/SearchSideBarList';
-import {
-  getLabelsFromLookup,
-  mockCategory,
-} from '../../../../datas/Options/ProductOptions';
 import { useProductContext } from '../../../../store/ProductContext';
+import { useMasterContext } from '../../../../store/MasterContext';
 
 const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
   const { getProductData, products, createNewProduct } = useProductContext();
+  const { category } = useMasterContext();
   const [windowWidth, setWindowWidth] = useState(
     typeof window !== 'undefined' ? window.innerWidth : 1024,
   );
@@ -87,22 +85,31 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
     [],
   );
 
-  const getProductRows = useCallback((product) => {
-    const categoryLabels = getLabelsFromLookup(
-      product?.product_categories?.map((c) => c.category_id) || [],
-      mockCategory,
-    );
+  const getProductRows = useCallback(
+    (product) => {
+      const categoryLabels =
+        product?.product_categories
+          ?.map((c) => c.category_id)
+          .map((categoryId) => {
+            const item = category.find(
+              (lookupItem) => lookupItem.id === categoryId,
+            );
+            return item?.label || item?.name || `Unknown (${categoryId})`;
+          }) || [];
 
-    const alibabaIdValues =
-      product?.product_alibaba_ids?.map((item) => item.value).filter(Boolean) ||
-      [];
+      const alibabaIdValues =
+        product?.product_alibaba_ids
+          ?.map((item) => item.value)
+          .filter(Boolean) || [];
 
-    return [
-      { label: 'ID:', value: product?.id || '' },
-      { label: 'Categories:', value: categoryLabels.join(', ') },
-      { label: 'Alibaba:', value: alibabaIdValues.join(', ') },
-    ];
-  }, []);
+      return [
+        { label: 'ID:', value: product?.id || '' },
+        { label: 'Categories:', value: categoryLabels.join(', ') },
+        { label: 'Alibaba:', value: alibabaIdValues.join(', ') },
+      ];
+    },
+    [category],
+  );
 
   // Track window resize for responsive behavior
   useEffect(() => {

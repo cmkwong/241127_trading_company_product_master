@@ -6,14 +6,6 @@ import {
   useEffect,
   useMemo,
 } from 'react';
-import {
-  mockProductNameType,
-  mockCategory,
-  mockSupplierType,
-  mockPackType,
-  mockCertType,
-  mockProductImageType,
-} from '../datas/Options/ProductOptions';
 import { apiGet, apiPatch } from '../utils/crud';
 import { useAuthContext } from './AuthContext';
 
@@ -46,20 +38,20 @@ const DEFAULT_TABLE_NAMES = [
 const TABLE_INITIAL_DATA = {
   master_address_types: [],
   master_capacity_types: [],
-  master_categories: mockCategory,
-  master_certificate_types: mockCertType,
+  master_categories: [],
+  master_certificate_types: [],
   master_color_types: [],
   master_contact_types: [],
   master_keywords: [],
-  master_packing_types: mockPackType,
+  master_packing_types: [],
   master_packing_reliability_types: [],
-  master_product_image_types: mockProductImageType,
-  master_product_name_types: mockProductNameType,
+  master_product_image_types: [],
+  master_product_name_types: [],
   master_service_images: [],
   master_services: [],
   master_size_types: [],
   master_supplier_link_types: [],
-  master_supplier_types: mockSupplierType,
+  master_supplier_types: [],
   master_customer_image_types: [],
   master_customer_name_types: [],
   master_currencies: [],

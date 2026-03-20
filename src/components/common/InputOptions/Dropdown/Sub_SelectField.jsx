@@ -20,6 +20,7 @@ const Sub_SelectField = ({
   selectedValue,
   onOptionClick = () => {},
   buttonClassName = '',
+  buttonStyle,
   listClassName = '',
   placeholder = 'Select an option',
 }) => {
@@ -164,6 +165,7 @@ const Sub_SelectField = ({
         id={id}
         ref={buttonRef}
         className={combinedButtonClasses}
+        style={buttonStyle}
         onClick={toggleDropdown}
         onKeyDown={onButtonKeyDown}
         type="button"
@@ -243,6 +245,7 @@ Sub_SelectField.propTypes = {
   selectedValue: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   onOptionClick: PropTypes.func,
   buttonClassName: PropTypes.string,
+  buttonStyle: PropTypes.object,
   listClassName: PropTypes.string,
   placeholder: PropTypes.string,
 };

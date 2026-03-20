@@ -26,7 +26,27 @@ const Main_Dropdown = (props) => {
     // UI
     label,
     dropdownId,
+    size = 'M',
   } = props;
+
+  const normalizedSize = useMemo(() => {
+    const candidate = String(size || 'M').toUpperCase();
+    return ['S', 'M', 'L', 'XL'].includes(candidate) ? candidate : 'M';
+  }, [size]);
+
+  const sizeClassName = useMemo(() => {
+    if (normalizedSize === 'S') return styles.sizeS;
+    if (normalizedSize === 'L') return styles.sizeL;
+    if (normalizedSize === 'XL') return styles.sizeXL;
+    return styles.sizeM;
+  }, [normalizedSize]);
+
+  const sizeWidth = useMemo(() => {
+    if (normalizedSize === 'S') return 140;
+    if (normalizedSize === 'L') return 260;
+    if (normalizedSize === 'XL') return 320;
+    return 200;
+  }, [normalizedSize]);
 
   // Simple helper keeps ids unique per render without relying on external state
   const makeId = (prefix = 'input-list') =>
@@ -39,7 +59,7 @@ const Main_Dropdown = (props) => {
   const resolvedId = dropdownId || autoIdRef.current;
 
   // Internal state
-  const [options, setOptions] = useState(defaultOptions);
+  const [options] = useState(defaultOptions);
   const [selected, setSelectedValue] = useState(defaultSelectedOption);
 
   // Handle selection change
@@ -69,8 +89,10 @@ const Main_Dropdown = (props) => {
       onOptionClick: setSelected,
       buttonAltText: 'Select an option',
       placeholder: 'Select an option',
+      buttonClassName: sizeClassName,
+      buttonStyle: { width: `${sizeWidth}px` },
     }),
-    [resolvedId, options, selected, setSelected],
+    [resolvedId, options, selected, setSelected, sizeClassName, sizeWidth],
   );
 
   return (
@@ -99,6 +121,7 @@ Main_Dropdown.propTypes = {
   // UI
   label: PropTypes.string,
   dropdownId: PropTypes.string,
+  size: PropTypes.oneOf(['S', 'M', 'L', 'XL', 's', 'm', 'l', 'xl']),
 };
 
 export default Main_Dropdown;

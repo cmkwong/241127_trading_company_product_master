@@ -1,3 +1,24 @@
-.input-list-container {
-  width: 100%;
+.inputList {
+  width: fit-content;
+}
+
+.label {
+  display: inline-block;
+  margin-bottom: 4px;
+}
+
+.sizeS {
+  width: 140px;
+}
+
+.sizeM {
+  width: 200px;
+}
+
+.sizeL {
+  width: 260px;
+}
+
+.sizeXL {
+  width: 320px;
 }

@@ -13,6 +13,9 @@ const SearchSideBarListItem = ({
   renderIcon,
   renderInfo,
 }) => {
+  const hasIconUrl =
+    typeof iconUrl === 'string' ? iconUrl.trim().length > 0 : !!iconUrl;
+
   return (
     <div
       className={`${styles.listItem} ${isSelected ? styles.selected : ''}`}
@@ -20,9 +23,9 @@ const SearchSideBarListItem = ({
     >
       {renderIcon ? (
         renderIcon(item)
-      ) : (
+      ) : hasIconUrl ? (
         <SearchSideBarListIcon url={iconUrl} alt={iconAlt} />
-      )}
+      ) : null}
 
       {renderInfo ? (
         renderInfo(item)

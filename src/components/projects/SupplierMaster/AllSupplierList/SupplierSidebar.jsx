@@ -144,7 +144,6 @@ const SupplierSidebar = ({
           getItemId={(supplier) => supplier.id}
           getItemTitle={getSupplierName}
           getItemRows={getSupplierRows}
-          getItemIconUrl={(supplier) => supplier.icon_url}
           getItemIconAlt={getSupplierName}
         />
       </div>

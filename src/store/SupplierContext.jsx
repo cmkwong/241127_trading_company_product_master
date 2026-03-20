@@ -4,6 +4,7 @@ import {
   useContext,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
 } from 'react';
 import {
@@ -20,30 +21,14 @@ import {
 import { upsertNestedData } from '../utils/crudObj';
 import { apiGet, apiPatch, apiDelete, apiPost } from '../utils/crud';
 import { useAuthContext } from './AuthContext';
+import { useGeneralContext } from './GeneralContext';
 import { v4 as uuidv4 } from 'uuid';
 
 export const SupplierContext = createContext();
 
-const mockSupplier_base64_config = {
-  suppliers: { url: 'icon_url', base64: 'base64_image' },
-  supplier_service_images: { url: 'image_url', base64: 'base64_image' },
-};
-
-const SUPPLIER_COMPARISON_KEYS = [
-  'id',
-  'supplier_code',
-  'name',
-  'company_name',
-  'supplier_types',
-  'remark',
-  'supplier_addresses',
-  'supplier_contacts',
-  'supplier_links',
-  'supplier_services',
-];
-
 export const SupplierContext_Provider = ({ children, initialData = {} }) => {
   const { token } = useAuthContext();
+  const { fileMappings, isFileMappingsLoading } = useGeneralContext();
   const [pageData, setPageData] = useState(initialData);
   const [originalPageData, setOriginalPageData] = useState(initialData);
   const [isSaving, setIsSaving] = useState(false);
@@ -51,10 +36,20 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
   const [saveError, setSaveError] = useState(null);
   const [suppliers, setSuppliers] = useState({ suppliers: [] });
   const [isSuppliersLoading, setIsSuppliersLoading] = useState(false);
+  const [comparisonKeys, setComparisonKeys] = useState([]);
   const objectUrlRegistryRef = useRef([]);
   const pageDataUrlRegistryRef = useRef([]);
 
+  const supplierBase64Config = useMemo(
+    () => fileMappings || {},
+    [fileMappings],
+  );
+
   useEffect(() => {
+    if (isFileMappingsLoading) {
+      return;
+    }
+
     if (!token) {
       setSuppliers({ suppliers: [] });
       setPageData({});
@@ -83,7 +78,7 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
         const processedSuppliers = recursiveProcess_base64_to_objectUrl(
           rawData,
           'root',
-          mockSupplier_base64_config,
+          supplierBase64Config,
           urlRegistry,
         );
 
@@ -97,7 +92,23 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
       }
     };
 
+    const fetchSupplierComparisonKeys = async () => {
+      try {
+        const response = await apiGet(
+          'http://localhost:3001/api/v1/trade_business/suppliers/data/comparison-keys',
+          { token },
+        );
+
+        const keys = response?.data?.firstLevelKeys;
+        setComparisonKeys(Array.isArray(keys) ? keys : []);
+      } catch (error) {
+        console.error('Failed to fetch supplier comparison keys:', error);
+        setComparisonKeys([]);
+      }
+    };
+
     fetchSuppliers();
+    fetchSupplierComparisonKeys();
 
     return () => {
       releaseObjectUrls(objectUrlRegistryRef.current);
@@ -105,17 +116,32 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
       releaseObjectUrls(pageDataUrlRegistryRef.current);
       pageDataUrlRegistryRef.current = [];
     };
-  }, [token]);
+  }, [token, isFileMappingsLoading, supplierBase64Config]);
+
+  const effectiveComparisonKeys = useCallback(() => {
+    if (comparisonKeys.length > 0) {
+      return comparisonKeys;
+    }
+
+    return Object.keys(pageData || {}).filter(
+      (key) => key !== '_objUrl' && key !== '_base64_changed',
+    );
+  }, [comparisonKeys, pageData]);
 
   const getChangedData = useCallback(() => {
     return buildNestedChangedData({
       pageData,
       originalPageData,
-      comparisonKeys: SUPPLIER_COMPARISON_KEYS,
+      comparisonKeys: effectiveComparisonKeys(),
       rootTableName: 'suppliers',
-      base64Config: mockSupplier_base64_config,
+      base64Config: supplierBase64Config,
     });
-  }, [pageData, originalPageData]);
+  }, [
+    pageData,
+    originalPageData,
+    effectiveComparisonKeys,
+    supplierBase64Config,
+  ]);
 
   const isDataUnchanged = useCallback(() => {
     return getChangedData() === null;
@@ -168,7 +194,7 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
           const processed = recursiveProcess_base64_to_objectUrl(
             rawData,
             'root',
-            mockSupplier_base64_config,
+            supplierBase64Config,
             urlRegistry,
           );
 
@@ -188,7 +214,7 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
 
       return true;
     },
-    [pageData, isDataUnchanged, token],
+    [pageData, isDataUnchanged, token, supplierBase64Config],
   );
 
   const upsertSupplierPageData = useCallback((nestedData) => {
@@ -240,7 +266,7 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
           if (changes) {
             const processedChanges = await processChangesWithBase64(
               changes,
-              mockSupplier_base64_config,
+              supplierBase64Config,
             );
 
             await apiPatch(
@@ -297,7 +323,7 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
         setIsSaving(false);
       }
     },
-    [pageData, getChangedData, token, _cleanupFlags],
+    [pageData, getChangedData, token, _cleanupFlags, supplierBase64Config],
   );
 
   const createNewSupplier = useCallback(() => {

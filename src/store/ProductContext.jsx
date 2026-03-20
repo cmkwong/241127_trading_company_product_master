@@ -4,9 +4,9 @@ import {
   useContext,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
 } from 'react';
-import { mockProduct_base64_config } from '../datas/Products/mockProducts';
 import {
   releaseObjectUrls,
   recursiveProcess_base64_to_objectUrl,
@@ -21,36 +21,16 @@ import {
 import { upsertNestedData } from '../utils/crudObj';
 import { apiGet, apiPatch, apiDelete, apiPost } from '../utils/crud';
 import { useAuthContext } from './AuthContext';
+import { useGeneralContext } from './GeneralContext';
 import { v4 as uuidv4 } from 'uuid';
 
 // Create context for data collection
 export const ProductContext = createContext();
 
-// Define keys to compare for detecting changes (single source of truth)
-const PRODUCT_COMPARISON_KEYS = [
-  'id',
-  'hs_code',
-  'product_index',
-  'remark',
-  'icon_name',
-  'product_images',
-  'product_names',
-  'product_categories',
-  'product_customizations',
-  'product_links',
-  'product_alibaba_ids',
-  'product_packings',
-  'product_certificates',
-  'product_keywords',
-  'product_varient_colors',
-  'product_varient_sizes',
-  'product_varient_capacities',
-  'product_costs',
-];
-
 // Provider component for save page data
 export const ProductContext_Provider = ({ children, initialData = {} }) => {
   const { token } = useAuthContext();
+  const { fileMappings, isFileMappingsLoading } = useGeneralContext();
   const [pageData, setPageData] = useState(initialData);
   const [originalPageData, setOriginalPageData] = useState(initialData); // Store original data for change detection
   const [isSaving, setIsSaving] = useState(false);
@@ -58,11 +38,18 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
   const [saveError, setSaveError] = useState(null);
   const [products, setProducts] = useState({ products: [] });
   const [isProductsLoading, setIsProductsLoading] = useState(false);
+  const [comparisonKeys, setComparisonKeys] = useState([]);
   const objectUrlRegistryRef = useRef([]);
   const pageDataUrlRegistryRef = useRef([]);
 
+  const productBase64Config = useMemo(() => fileMappings || {}, [fileMappings]);
+
   // Fetch products data on mount and when token changes
   useEffect(() => {
+    if (isFileMappingsLoading) {
+      return;
+    }
+
     // If no token, we can't fetch. Reset products or keep existing?
     if (!token) {
       setProducts({ products: [] });
@@ -99,7 +86,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
         let processedProducts = recursiveProcess_base64_to_objectUrl(
           rawData,
           'root',
-          mockProduct_base64_config,
+          productBase64Config,
           urlRegistry,
         );
         console.log('Processed products with object URLs:', processedProducts);
@@ -114,7 +101,23 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
       }
     };
 
+    const fetchProductComparisonKeys = async () => {
+      try {
+        const response = await apiGet(
+          'http://localhost:3001/api/v1/trade_business/products/data/comparison-keys',
+          { token },
+        );
+
+        const keys = response?.data?.firstLevelKeys;
+        setComparisonKeys(Array.isArray(keys) ? keys : []);
+      } catch (err) {
+        console.error('Failed to fetch product comparison keys:', err);
+        setComparisonKeys([]);
+      }
+    };
+
     fetchProducts();
+    fetchProductComparisonKeys();
 
     return () => {
       releaseObjectUrls(objectUrlRegistryRef.current);
@@ -122,18 +125,33 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
       releaseObjectUrls(pageDataUrlRegistryRef.current);
       pageDataUrlRegistryRef.current = [];
     };
-  }, [token]); // Re-run when token changes (login/logout)
+  }, [token, isFileMappingsLoading, productBase64Config]); // Re-run when token/mappings change
+
+  const effectiveComparisonKeys = useCallback(() => {
+    if (comparisonKeys.length > 0) {
+      return comparisonKeys;
+    }
+
+    return Object.keys(pageData || {}).filter(
+      (key) => key !== '_objUrl' && key !== '_base64_changed',
+    );
+  }, [comparisonKeys, pageData]);
 
   // Helper function to deep compare and return differences
   const getChangedData = useCallback(() => {
     return buildNestedChangedData({
       pageData,
       originalPageData,
-      comparisonKeys: PRODUCT_COMPARISON_KEYS,
+      comparisonKeys: effectiveComparisonKeys(),
       rootTableName: 'products',
-      base64Config: mockProduct_base64_config,
+      base64Config: productBase64Config,
     });
-  }, [pageData, originalPageData]);
+  }, [
+    pageData,
+    originalPageData,
+    effectiveComparisonKeys,
+    productBase64Config,
+  ]);
 
   // Function to check if pageData is the same as the corresponding product in products
   const isDataUnchanged = useCallback(() => {
@@ -197,7 +215,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
           const processed = recursiveProcess_base64_to_objectUrl(
             rawData,
             'root',
-            mockProduct_base64_config,
+            productBase64Config,
             urlRegistry,
           );
 
@@ -222,7 +240,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
       // Return synchronously so callers can use immediate boolean result (e.g., cancelled by user)
       return true;
     },
-    [pageData, isDataUnchanged, token],
+    [pageData, isDataUnchanged, token, productBase64Config],
   );
 
   /**
@@ -341,7 +359,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
             // Process base64 fields in changes before sending to server
             const processedChanges = await processChangesWithBase64(
               changes,
-              mockProduct_base64_config,
+              productBase64Config,
             );
             console.log('Sending PATCH request:', processedChanges);
 
@@ -411,7 +429,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
         setIsSaving(false);
       }
     },
-    [pageData, getChangedData, token, _cleanupFlags],
+    [pageData, getChangedData, token, _cleanupFlags, productBase64Config],
   );
 
   // Create a new product (clear page data)

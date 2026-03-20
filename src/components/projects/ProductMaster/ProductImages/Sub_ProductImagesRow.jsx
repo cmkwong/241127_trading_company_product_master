@@ -133,6 +133,8 @@ const Sub_ProductImagesRow = (props) => {
     (ov, nv) => {
       if (ov === nv) return;
 
+      const productImages = pageData?.product_images || [];
+
       const currentRowHasFiles =
         (imageData?.[rowindex]?.images || []).length > 0;
       if (currentRowHasFiles) {
@@ -148,14 +150,12 @@ const Sub_ProductImagesRow = (props) => {
       }
 
       // finding required image id
-      const ids = pageData.product_images
+      const ids = productImages
         .filter((d) => d.image_type_id === ov || (!ov && !d.image_type_id))
         .map((d) => d.id);
 
       // check if nv is currently used by other images, if yes, we need to update those images to avoid duplicate image type id issue, if no, we can just update the current images with the new image type id
-      const isNvUsed = pageData.product_images.some(
-        (d) => d.image_type_id === nv,
-      );
+      const isNvUsed = productImages.some((d) => d.image_type_id === nv);
       let confirmSwitch = false;
       if (isNvUsed) {
         confirmSwitch = window.confirm(
@@ -187,7 +187,7 @@ const Sub_ProductImagesRow = (props) => {
       }
     },
     [
-      pageData.product_images,
+      pageData?.product_images,
       upsertProductPageData,
       pageData.id,
       imageData,

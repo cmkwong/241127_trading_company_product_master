@@ -154,7 +154,15 @@ const EditableDataTable = ({
         <thead>
           <tr>
             {columns.map((column) => (
-              <th key={column.key}>
+              <th
+                key={column.key}
+                className={column.headerClassName || column.columnClassName}
+                style={{
+                  width: column.width,
+                  minWidth: column.minWidth,
+                  maxWidth: column.maxWidth,
+                }}
+              >
                 <button
                   type="button"
                   className={styles.sortButton}
@@ -201,7 +209,17 @@ const EditableDataTable = ({
                   return (
                     <td
                       key={column.key}
-                      className={tdClassName}
+                      className={[
+                        tdClassName,
+                        column.cellClassName || column.columnClassName,
+                      ]
+                        .filter(Boolean)
+                        .join(' ')}
+                      style={{
+                        width: column.width,
+                        minWidth: column.minWidth,
+                        maxWidth: column.maxWidth,
+                      }}
                       onMouseEnter={
                         fillField
                           ? () => handleCellMouseEnter(fillField, rowIndex)

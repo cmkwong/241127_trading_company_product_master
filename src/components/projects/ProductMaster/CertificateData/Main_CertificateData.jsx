@@ -110,6 +110,8 @@ const Main_CertificateData = () => {
         key: 'certificate_type_id',
         label: 'Type',
         sortType: 'string',
+        width: '220px',
+        minWidth: '220px',
         getSortValue: (row) =>
           certTypeOptions.find((item) => item.id === row.certificate_type_id)
             ?.label || '',
@@ -130,6 +132,8 @@ const Main_CertificateData = () => {
         key: 'product_certificate_files',
         label: 'Certificate Files',
         sortable: false,
+        width: '440px',
+        minWidth: '360px',
         renderCell: (row) => {
           const defaultFiles = (row.product_certificate_files || []).map(
             (file, index) => ({
@@ -179,6 +183,7 @@ const Main_CertificateData = () => {
         key: 'remark',
         label: 'Remark',
         sortType: 'string',
+        minWidth: '320px',
         renderCell: (row) => (
           <Main_TextField
             className={styles.cellInput}
@@ -192,6 +197,8 @@ const Main_CertificateData = () => {
         key: 'actions',
         label: 'Actions',
         sortable: false,
+        width: '90px',
+        minWidth: '90px',
         renderCell: (row) => (
           <DeleteBtn onClick={() => handleDeleteCertificateRow(row)} />
         ),

@@ -32,6 +32,7 @@ const Main_DropZone = ({
   itemType = 'files', // 'files' or 'images'
   compact = false,
   compactButtonText = '選取',
+  tableCell = false,
 }) => {
   const fileInputRef = useRef(null);
 
@@ -88,7 +89,7 @@ const Main_DropZone = ({
         disabled ? styles.disabled : ''
       } ${hasItems ? styles.hasItems : ''} ${
         !showMaxItemsNotice && hasItems ? styles.fullSizeContainer : ''
-      } ${compact ? styles.compact : ''}`}
+      } ${compact ? styles.compact : ''} ${tableCell ? styles.tableCell : ''}`}
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
       onDragOver={handleDragOver}
@@ -108,13 +109,15 @@ const Main_DropZone = ({
 
       <div className={styles.dropZoneContent}>
         {/* Show preview/list if we have items and children */}
-        {showPreview && hasItems && children && (
+        {showPreview && (hasItems || tableCell) && children && (
           <div
             className={`${styles.previewContainer} ${
               itemType === 'files' ? styles.filePreviewContainer : ''
             } ${
               itemType === 'images' ? styles.imagePreviewContainer : ''
-            } ${!showMaxItemsNotice ? styles.fullSizePreviewContainer : ''}`}
+            } ${!showMaxItemsNotice ? styles.fullSizePreviewContainer : ''} ${
+              tableCell ? styles.tableCellPreviewRail : ''
+            }`}
           >
             {children}
           </div>
@@ -125,7 +128,7 @@ const Main_DropZone = ({
           <div
             className={`${styles.uploadPrompt} ${
               hasItems ? styles.uploadPromptWithItems : ''
-            }`}
+            } ${tableCell ? styles.tableCellUploadButton : ''}`}
             onClick={canAddMoreItems ? handleUploadClick : undefined}
           >
             {canAddMoreItems && (
@@ -216,6 +219,7 @@ Main_DropZone.propTypes = {
   itemType: PropTypes.string, // 'files' or 'images'
   compact: PropTypes.bool,
   compactButtonText: PropTypes.string,
+  tableCell: PropTypes.bool,
 };
 
 export default Main_DropZone;

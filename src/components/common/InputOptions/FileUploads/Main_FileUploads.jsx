@@ -28,6 +28,8 @@ const Main_FileUploads = (props) => {
     showMaxItemsNotice = true,
     compact = false,
     compactButtonText = '選取',
+    tableCell = false,
+    hoverPreview = false,
 
     // Initial state
     defaultFiles = [],
@@ -234,7 +236,11 @@ const Main_FileUploads = (props) => {
   const testIdPrefix = mode === 'image' ? 'image' : 'file';
 
   return (
-    <div className={styles.fileUploadContainer}>
+    <div
+      className={`${styles.fileUploadContainer} ${
+        tableCell ? styles.tableCellContainer : ''
+      }`}
+    >
       {label && <label className={styles.label}>{label}</label>}
 
       <Main_DropZone
@@ -253,6 +259,7 @@ const Main_FileUploads = (props) => {
         testIdPrefix={testIdPrefix}
         compact={compact}
         compactButtonText={compactButtonText}
+        tableCell={tableCell}
       >
         {fileList.map((file, index) => (
           <Sub_FileItem
@@ -264,6 +271,8 @@ const Main_FileUploads = (props) => {
             disabled={disabled}
             showAsImage={mode === 'image'}
             fullSizePreview={!showMaxItemsNotice}
+            compactImage={tableCell}
+            hoverPreview={hoverPreview}
           />
         ))}
       </Main_DropZone>
@@ -289,6 +298,8 @@ Main_FileUploads.propTypes = {
   showMaxItemsNotice: PropTypes.bool,
   compact: PropTypes.bool,
   compactButtonText: PropTypes.string,
+  tableCell: PropTypes.bool,
+  hoverPreview: PropTypes.bool,
 
   // Initial state
   defaultFiles: PropTypes.arrayOf(

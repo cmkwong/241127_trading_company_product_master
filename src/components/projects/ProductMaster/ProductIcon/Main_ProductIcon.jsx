@@ -107,6 +107,16 @@ const Main_ProductIcon = ({ showMaxImagesNotice = false }) => {
           disabled={false} // Set to false to allow editing of HS Code
         />
         <Main_TextField
+          label={'Product Index'}
+          defaultValue={pageData.product_index || ''}
+          onChange={(ov, nv) => {
+            upsertProductPageData({
+              product_index: nv,
+            });
+          }}
+          disabled={false} // Set to false to allow editing of Product Index
+        />
+        <Main_TextField
           label={'Product ID'}
           defaultValue={id}
           onChange={() => {}}

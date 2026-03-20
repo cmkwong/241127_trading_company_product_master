@@ -30,6 +30,7 @@ export const ProductContext = createContext();
 const PRODUCT_COMPARISON_KEYS = [
   'id',
   'hs_code',
+  'product_index',
   'remark',
   'icon_name',
   'product_images',

@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
+import { createPortal } from 'react-dom';
 import styles from './Sub_FileItem.module.css';
 
 /**
@@ -15,8 +16,12 @@ const Sub_FileItem = ({
   disabled,
   showAsImage = false,
   fullSizePreview = false,
+  compactImage = false,
+  hoverPreview = false,
 }) => {
   const [dropPosition, setDropPosition] = useState(null);
+  const [showHoverPreview, setShowHoverPreview] = useState(false);
+  const [hoverPreviewStyle, setHoverPreviewStyle] = useState(null);
 
   // Format file size for display
   const formatFileSize = (bytes) => {
@@ -27,6 +32,27 @@ const Sub_FileItem = ({
 
   // If showing as image preview (and url exists)
   const isImagePreview = showAsImage && file.url;
+
+  const shouldCreateHoverObjectUrl = !file?.url && !!file?.file;
+
+  const hoverImageUrl = useMemo(() => {
+    if (!file) return '';
+    if (file.url) return file.url;
+    if (shouldCreateHoverObjectUrl) return URL.createObjectURL(file.file);
+    return '';
+  }, [file, shouldCreateHoverObjectUrl]);
+
+  useEffect(() => {
+    return () => {
+      if (
+        shouldCreateHoverObjectUrl &&
+        hoverImageUrl &&
+        hoverImageUrl.startsWith('blob:')
+      ) {
+        URL.revokeObjectURL(hoverImageUrl);
+      }
+    };
+  }, [hoverImageUrl, shouldCreateHoverObjectUrl]);
 
   // Drag and drop handlers (for image reordering)
   const handleDragStart = (e) => {
@@ -105,14 +131,18 @@ const Sub_FileItem = ({
       ['mp4', 'webm', 'ogg', 'mov', 'm4v'].includes(ext);
 
     if (isVideo) {
-      const videoUrl = file.url || (file.file ? URL.createObjectURL(file.file) : '');
+      const videoUrl =
+        file.url || (file.file ? URL.createObjectURL(file.file) : '');
       if (!videoUrl) return;
 
       const previewWindow = window.open('about:blank', '_blank');
       if (!previewWindow) return;
 
       const safeSrc = String(videoUrl).replace(/"/g, '&quot;');
-      const safeTitle = String(file?.name || 'Video Preview').replace(/</g, '&lt;');
+      const safeTitle = String(file?.name || 'Video Preview').replace(
+        /</g,
+        '&lt;',
+      );
 
       previewWindow.document.write(`
         <!doctype html>
@@ -153,6 +183,43 @@ const Sub_FileItem = ({
     }
   };
 
+  const hideHoverPreview = () => {
+    setShowHoverPreview(false);
+  };
+
+  const showHoverImagePreview = (event) => {
+    if (!hoverPreview || !isImagePreview || !hoverImageUrl) return;
+
+    const rect = event.currentTarget.getBoundingClientRect();
+    const popupWidth = 260;
+    const popupHeight = 220;
+    const gap = 12;
+    const viewportWidth =
+      window.innerWidth || document.documentElement.clientWidth;
+    const viewportHeight =
+      window.innerHeight || document.documentElement.clientHeight;
+
+    const placeRight = rect.right + gap + popupWidth < viewportWidth - 8;
+    const left = placeRight
+      ? rect.right + gap
+      : Math.max(8, rect.left - popupWidth - gap);
+
+    const idealTop = rect.top + rect.height / 2 - popupHeight / 2;
+    const top = Math.min(
+      Math.max(8, idealTop),
+      Math.max(8, viewportHeight - popupHeight - 8),
+    );
+
+    setHoverPreviewStyle({
+      position: 'fixed',
+      left,
+      top,
+      width: popupWidth,
+      zIndex: 10000,
+    });
+    setShowHoverPreview(true);
+  };
+
   // Render as image preview
   if (isImagePreview) {
     const name = file.name || 'Unknown file';
@@ -161,7 +228,7 @@ const Sub_FileItem = ({
       <div
         className={`${styles.imagePreview} ${
           fullSizePreview ? styles.fullSizePreview : ''
-        } ${shiftClass}`}
+        } ${compactImage ? styles.compactImagePreview : ''} ${shiftClass}`}
         draggable={!disabled && !!onMove}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
@@ -170,6 +237,8 @@ const Sub_FileItem = ({
         onDragOver={handleDragOver}
         onDrop={handleDrop}
         onClick={handlePreview}
+        onMouseEnter={showHoverImagePreview}
+        onMouseLeave={hideHoverPreview}
         title={onMove ? 'Drag to reorder' : name}
         style={{ cursor: 'pointer' }}
       >
@@ -203,6 +272,25 @@ const Sub_FileItem = ({
             ×
           </button>
         )}
+
+        {showHoverPreview &&
+          hoverPreview &&
+          hoverImageUrl &&
+          createPortal(
+            <div className={styles.hoverPreviewPopup} style={hoverPreviewStyle}>
+              <div className={styles.hoverPreviewCard}>
+                <img
+                  src={hoverImageUrl}
+                  alt={name}
+                  className={styles.hoverPreviewImage}
+                />
+                <div className={styles.hoverPreviewName} title={name}>
+                  {name}
+                </div>
+              </div>
+            </div>,
+            document.body,
+          )}
       </div>
     );
   }
@@ -277,6 +365,8 @@ Sub_FileItem.propTypes = {
   disabled: PropTypes.bool,
   showAsImage: PropTypes.bool,
   fullSizePreview: PropTypes.bool,
+  compactImage: PropTypes.bool,
+  hoverPreview: PropTypes.bool,
 };
 
 export default Sub_FileItem;

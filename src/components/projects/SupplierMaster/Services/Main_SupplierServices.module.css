@@ -20,5 +20,6 @@
 }
 
 .uploadsCell {
-  min-width: 240px;
+  min-width: 280px;
+  max-width: 380px;
 }

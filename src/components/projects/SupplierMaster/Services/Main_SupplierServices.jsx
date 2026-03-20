@@ -170,6 +170,8 @@ const Main_SupplierServices = () => {
                 label=""
                 compact
                 compactButtonText="Upload"
+                tableCell
+                hoverPreview
                 defaultImages={imageDefaults}
                 onChange={(ov, nv) =>
                   handleServiceImagesChange(row.id, ov, nv, serviceImages)

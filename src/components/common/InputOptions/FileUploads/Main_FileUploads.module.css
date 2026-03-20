@@ -11,6 +11,15 @@
   flex: 1;
 }
 
+.tableCellContainer {
+  gap: 6px;
+}
+
+.tableCellContainer .label {
+  margin-bottom: 0;
+  font-size: 12px;
+}
+
 .label {
   font-weight: 500;
   margin-bottom: 4px;

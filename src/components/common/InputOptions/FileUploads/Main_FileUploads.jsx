@@ -103,16 +103,34 @@ const Main_FileUploads = (props) => {
           return newProcessedImages;
         }
 
-        const isDifferent = newProcessedImages.some((img, index) => {
-          const current = currentImages[index];
+        // Compare by id (not by index) so drag-reordered local state is not
+        // unintentionally reset by parent arrays that contain same images.
+        const currentById = new Map(currentImages.map((img) => [img.id, img]));
+        const incomingById = new Map(
+          newProcessedImages.map((img) => [img.id, img]),
+        );
+
+        const hasMembershipDiff =
+          currentById.size !== incomingById.size ||
+          [...currentById.keys()].some((id) => !incomingById.has(id));
+
+        if (hasMembershipDiff) {
+          return newProcessedImages;
+        }
+
+        const hasContentDiff = newProcessedImages.some((img) => {
+          const current = currentById.get(img.id);
+          if (!current) return true;
           return (
-            img.url !== current.url || (img.file && img.file !== current.file)
+            img.url !== current.url ||
+            (img.file && current.file && img.file !== current.file)
           );
         });
 
-        if (isDifferent) {
+        if (hasContentDiff) {
           return newProcessedImages;
         }
+
         return currentImages;
       });
     } else {

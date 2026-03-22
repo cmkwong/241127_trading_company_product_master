@@ -251,6 +251,7 @@ const Sub_FileItem = ({
         )}
 
         <img src={file.url} alt={name} className={styles.previewImg} />
+        <div className={styles.imageIndexBadge}>{index + 1}</div>
         <div className={styles.imageInfo}>
           <div className={styles.imageName} title={name}>
             {name.length > 15 ? name.substring(0, 12) + '...' : name}

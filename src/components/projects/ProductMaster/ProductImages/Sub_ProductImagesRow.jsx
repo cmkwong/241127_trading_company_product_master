@@ -3,6 +3,7 @@ import { useMasterContext } from '../../../../store/MasterContext';
 import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
 import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_FileUploads';
 import { useProductContext } from '../../../../store/ProductContext';
+import { sortByDisplayOrder } from '../../../../utils/arr';
 import styles from './Sub_ProductImagesRow.module.css';
 
 const Sub_ProductImagesRow = (props) => {
@@ -50,74 +51,89 @@ const Sub_ProductImagesRow = (props) => {
         name: el.image_name,
         size: el.size,
         image_type_id: el.image_type_id,
+        display_order: el.display_order,
       })),
     );
   }, [imageData, rowindex, productImageType, pageData?.product_images]);
 
   const getDefaultImagesBySubType = useCallback(
     (subTypeId) => {
-      return defaultImages.filter((img) => img.image_type_id === subTypeId);
+      return sortByDisplayOrder(
+        defaultImages.filter((img) => img.image_type_id === subTypeId),
+      );
     },
     [defaultImages],
   );
 
   const getDefaultImagesByMainType = useCallback(() => {
-    return defaultImages.filter((img) => img.image_type_id === mainImageTypeId);
+    return sortByDisplayOrder(
+      defaultImages.filter((img) => img.image_type_id === mainImageTypeId),
+    );
   }, [defaultImages, mainImageTypeId]);
 
   const getDefaultFilesBySubType = useCallback(
     (subTypeId) => {
-      return defaultImages
-        .filter((img) => img.image_type_id === subTypeId)
-        .map((img) => ({
-          id: img.id,
-          name: img.name,
-          size: img.size || 0,
-          type: 'application/octet-stream',
-          url: img.url,
-        }));
+      return sortByDisplayOrder(
+        defaultImages.filter((img) => img.image_type_id === subTypeId),
+      ).map((img) => ({
+        id: img.id,
+        name: img.name,
+        size: img.size || 0,
+        type: 'application/octet-stream',
+        url: img.url,
+      }));
     },
     [defaultImages],
   );
 
   // hande the image changed
   const handleImageChange = useCallback(
-    (subTypeId, oldImages, newImages) => {
-      if (newImages.length > oldImages.length) {
-        // New image added
-        const addedImages = newImages.filter(
-          (img) => !oldImages.some((oldImg) => oldImg.id === img.id),
-        );
-        for (let i = 0; i < addedImages.length; i++) {
-          upsertProductPageData({
-            product_images: [
-              {
-                id: addedImages[i].id,
-                product_id: pageData.id,
-                image_type_id: subTypeId,
-                image_name: addedImages[i].name,
-                image_url: addedImages[i].url,
-                size: addedImages[i].size,
-                display_order: newImages.length,
-              },
-            ],
-          });
-        }
-      } else if (newImages.length < oldImages.length) {
-        // Image removed
-        const removedImages = oldImages.filter(
-          (img) => !newImages.some((newImg) => newImg.id === img.id),
-        );
-        for (let i = 0; i < removedImages.length; i++) {
-          upsertProductPageData({
-            product_images: [
-              {
-                id: removedImages[i].id,
-                _delete: true,
-              },
-            ],
-          });
-        }
+    (subTypeId, oldImages = [], newImages = []) => {
+      const oldList = Array.isArray(oldImages) ? oldImages : [];
+      const newList = Array.isArray(newImages) ? newImages : [];
+
+      const addedImages = newList.filter(
+        (img) => !oldList.some((oldImg) => oldImg.id === img.id),
+      );
+      const removedImages = oldList.filter(
+        (img) => !newList.some((newImg) => newImg.id === img.id),
+      );
+
+      const sameLength = oldList.length === newList.length;
+      const sameOrder =
+        sameLength && oldList.every((img, i) => img.id === newList[i]?.id);
+
+      if (addedImages.length === 0 && removedImages.length === 0 && sameOrder) {
+        return;
+      }
+
+      if (removedImages.length > 0) {
+        upsertProductPageData({
+          product_images: removedImages.map((img) => ({
+            id: img.id,
+            _delete: true,
+          })),
+        });
+      }
+
+      if (newList.length > 0) {
+        const addedImageIds = new Set(addedImages.map((img) => img.id));
+
+        upsertProductPageData({
+          product_images: newList.map((img, index) => ({
+            id: img.id,
+            product_id: pageData.id,
+            image_type_id: subTypeId,
+            display_order: index + 1,
+            ...(addedImageIds.has(img.id)
+              ? {
+                  image_name: img.name,
+                  image_url: img.url,
+                  size: img.size,
+                }
+              : {}),
+          })),
+        });
       }
     },
     [upsertProductPageData, pageData.id],

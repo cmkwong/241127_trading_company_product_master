@@ -13,6 +13,7 @@ import {
   normalizeLower,
   getCostComboKey,
 } from './productCostsUtils';
+import { sortByDisplayOrder } from '../../../../utils/arr';
 import styles from './Main_ProductCosts.module.css';
 
 const Main_ProductCosts = () => {
@@ -147,13 +148,7 @@ const Main_ProductCosts = () => {
       return null;
     }
 
-    return (
-      [...available].sort(
-        (a, b) =>
-          (Number(a?.display_order) || Number.MAX_SAFE_INTEGER) -
-          (Number(b?.display_order) || Number.MAX_SAFE_INTEGER),
-      )[0] || null
-    );
+    return sortByDisplayOrder(available)[0] || null;
   }, []);
 
   useEffect(() => {

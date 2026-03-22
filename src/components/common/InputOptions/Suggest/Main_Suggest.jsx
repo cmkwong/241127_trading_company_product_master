@@ -1,5 +1,6 @@
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
+import { createPortal } from 'react-dom';
 import styles from './Main_Suggest.module.css';
 import Main_TextField from '../TextField/Main_TextField';
 import { v4 as uuidv4 } from 'uuid';
@@ -46,6 +47,8 @@ const Main_Suggest = (props) => {
 
   // Internal state for suggestion UI
   const [isFocused, setIsFocused] = useState(false);
+  const inputContainerRef = useRef(null);
+  const [listStyle, setListStyle] = useState(null);
 
   const handleInputChange = useCallback(
     (ov, nv) => {
@@ -79,6 +82,47 @@ const Main_Suggest = (props) => {
     onBlur?.();
   };
 
+  useEffect(() => {
+    if (!isFocused || filterSuggestions.length === 0) {
+      setListStyle(null);
+      return;
+    }
+
+    const updateListPosition = () => {
+      const container = inputContainerRef.current;
+      if (!container) return;
+
+      const rect = container.getBoundingClientRect();
+      const viewportHeight =
+        window.innerHeight || document.documentElement.clientHeight;
+      const estimatedListHeight = 220;
+      const spaceBelow = viewportHeight - rect.bottom;
+      const openUpward =
+        spaceBelow < estimatedListHeight && rect.top > spaceBelow;
+
+      const top = openUpward
+        ? Math.max(8, rect.top - estimatedListHeight - 4)
+        : rect.bottom + 2;
+
+      setListStyle({
+        position: 'fixed',
+        left: rect.left,
+        top,
+        width: rect.width,
+        zIndex: 10020,
+      });
+    };
+
+    updateListPosition();
+    window.addEventListener('resize', updateListPosition);
+    window.addEventListener('scroll', updateListPosition, true);
+
+    return () => {
+      window.removeEventListener('resize', updateListPosition);
+      window.removeEventListener('scroll', updateListPosition, true);
+    };
+  }, [isFocused, filterSuggestions.length]);
+
   // Input field props
   // const inputProps = useMemo(
   //   () => ({
@@ -97,7 +141,7 @@ const Main_Suggest = (props) => {
     <div className={styles.suggestContainer} data-testid="suggest-container">
       {label && <label className={styles.label}>{label}</label>}
       <div className={styles.inputWrapper}>
-        <div className={styles.inputContainer}>
+        <div className={styles.inputContainer} ref={inputContainerRef}>
           <Main_TextField
             inputId={inputId || uuidv4()}
             defaultValue={inputValue}
@@ -107,20 +151,24 @@ const Main_Suggest = (props) => {
             onBlur={handleBlur}
             className={styles.suggestInput}
           />
-          {isFocused && filterSuggestions.length > 0 && (
-            <ul className={styles.suggestionList}>
-              {filterSuggestions.map((suggestion, index) => (
-                <li
-                  key={index}
-                  className={styles.suggestionItem}
-                  onClick={() => handleSuggestionItemClick(suggestion)}
-                  tabIndex={0}
-                >
-                  {suggestion}
-                </li>
-              ))}
-            </ul>
-          )}
+          {isFocused &&
+            filterSuggestions.length > 0 &&
+            listStyle &&
+            createPortal(
+              <ul className={styles.suggestionList} style={listStyle}>
+                {filterSuggestions.map((suggestion, index) => (
+                  <li
+                    key={index}
+                    className={styles.suggestionItem}
+                    onClick={() => handleSuggestionItemClick(suggestion)}
+                    tabIndex={0}
+                  >
+                    {suggestion}
+                  </li>
+                ))}
+              </ul>,
+              document.body,
+            )}
         </div>
       </div>
     </div>

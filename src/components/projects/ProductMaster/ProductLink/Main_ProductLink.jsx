@@ -1,70 +1,232 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import styles from './Main_ProductLink.module.css';
-import ControlRowBtn from '../../../common/Buttons/ControlRowBtn';
 import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
-import Sub_ProductLinkRow from './Sub_ProductLinkRow';
+import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
+import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
+import Main_DateSelector from '../../../common/InputOptions/Date/Main_DateSelector';
+import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_FileUploads';
+import AddNewBtn from '../../../common/Buttons/AddNewBtn';
+import DeleteBtn from '../../../common/Buttons/DeleteBtn';
+import EditableDataTable from '../../../common/Table/EditableDataTable';
 import { useProductContext } from '../../../../store/ProductContext';
 import { v4 as uuidv4 } from 'uuid';
+import { sortByDisplayOrder } from '../../../../utils/arr';
 
 const Main_ProductLink = () => {
   const { pageData, upsertProductPageData } = useProductContext();
+  const productLinks = pageData?.product_links || [];
 
-  const [rowIds, setRowIds] = useState(
-    pageData.product_links?.map((link) => link.id) || [],
-  );
-
-  useEffect(() => {
-    if (pageData.product_links) {
-      setRowIds(pageData.product_links.map((link) => link.id));
-    } else {
-      setRowIds([]);
-    }
-  }, [pageData.product_links]);
-
-  const handleRowIdsChange = useCallback(() => {}, []);
-
-  // Handle adding a new product link row
-  const handleRowAdd = useCallback(
-    (newId) => {
-      const newLink = {
-        id: newId,
-        product_id: pageData.id,
-        product_link_images: [],
-      };
-      upsertProductPageData({
-        product_links: [newLink],
-      });
-      setRowIds((prevIds) => [...prevIds, newId]);
-    },
-    [pageData.id, upsertProductPageData],
-  );
-
-  // Handle removing a product link row
-  const handleRowRemove = useCallback(
-    (id) => {
+  const upsertLinkRow = useCallback(
+    (row, patch) => {
       upsertProductPageData({
         product_links: [
           {
-            id: id,
+            id: row?.id || uuidv4(),
+            product_id: pageData.id,
+            ...patch,
+          },
+        ],
+      });
+    },
+    [upsertProductPageData, pageData.id],
+  );
+
+  const handleAddLinkRow = useCallback(() => {
+    upsertProductPageData({
+      product_links: [
+        {
+          id: uuidv4(),
+          product_id: pageData.id,
+          link: '',
+          remark: '',
+          updated_at: '',
+          product_link_images: [],
+        },
+      ],
+    });
+  }, [upsertProductPageData, pageData.id]);
+
+  const handleDeleteLinkRow = useCallback(
+    (row) => {
+      if (!row?.id) return;
+
+      upsertProductPageData({
+        product_links: [
+          {
+            id: row.id,
             _delete: true,
           },
         ],
       });
-      setRowIds((prevIds) => prevIds.filter((prevId) => prevId !== id));
     },
     [upsertProductPageData],
   );
 
+  const handleLinkImagesChange = useCallback(
+    (row, oldImages = [], newImages = []) => {
+      const oldList = Array.isArray(oldImages) ? oldImages : [];
+      const newList = Array.isArray(newImages) ? newImages : [];
+
+      const removedImages = oldList.filter(
+        (o) => !newList.some((n) => n.id === o.id),
+      );
+      const addedImages = newList.filter(
+        (n) => !oldList.some((o) => o.id === n.id),
+      );
+
+      const sameLength = oldList.length === newList.length;
+      const sameOrder =
+        sameLength && oldList.every((img, i) => img.id === newList[i]?.id);
+
+      if (removedImages.length === 0 && addedImages.length === 0 && sameOrder) {
+        return;
+      }
+
+      if (removedImages.length > 0) {
+        upsertLinkRow(row, {
+          product_link_images: removedImages.map((img) => ({
+            id: img.id,
+            _delete: true,
+          })),
+        });
+      }
+
+      if (newList.length > 0) {
+        const addedImageIds = new Set(addedImages.map((img) => img.id));
+
+        upsertLinkRow(row, {
+          product_link_images: newList.map((img, index) => ({
+            id: img.id,
+            display_order: index + 1,
+            ...(addedImageIds.has(img.id)
+              ? {
+                  image_url: img.url,
+                  image_name: img.name,
+                }
+              : {}),
+          })),
+        });
+      }
+    },
+    [upsertLinkRow],
+  );
+
+  const columns = useMemo(
+    () => [
+      {
+        key: 'link',
+        label: 'Link',
+        sortType: 'string',
+        minWidth: '280px',
+        renderCell: (row) => (
+          <Main_TextField
+            className={styles.cellInput}
+            defaultValue={row.link || ''}
+            placeholder="Product link"
+            type="link"
+            onChange={(ov, nv) => upsertLinkRow(row, { link: nv })}
+          />
+        ),
+      },
+      {
+        key: 'product_link_images',
+        label: 'Images',
+        sortable: false,
+        minWidth: '320px',
+        renderCell: (row) => {
+          const defaultImages = sortByDisplayOrder(
+            row.product_link_images || [],
+          ).map((img) => ({
+            id: img.id,
+            url: img.image_url,
+            name: img.image_name,
+            display_order: img.display_order,
+          }));
+
+          return (
+            <div className={styles.uploadsCell}>
+              <Main_FileUploads
+                mode="image"
+                label=""
+                compact
+                tableCell
+                hoverPreview
+                compactButtonText="Upload"
+                defaultImages={defaultImages}
+                onError={(error) => {
+                  console.error('Link image upload error:', error);
+                }}
+                onChange={(ov, nv) => handleLinkImagesChange(row, ov, nv)}
+              />
+            </div>
+          );
+        },
+      },
+      {
+        key: 'remark',
+        label: 'Remark',
+        sortable: false,
+        minWidth: '260px',
+        renderCell: (row) => (
+          <div className={styles.remarkCell}>
+            <Main_TextArea
+              defaultValue={row.remark || ''}
+              placeholder="Remark"
+              rows={2}
+              resize="none"
+              onChange={(ov, nv) => upsertLinkRow(row, { remark: nv })}
+            />
+          </div>
+        ),
+      },
+      {
+        key: 'updated_at',
+        label: 'Updated Date',
+        sortable: false,
+        width: '160px',
+        minWidth: '160px',
+        renderCell: (row) => (
+          <div className={styles.dateCell}>
+            <Main_DateSelector
+              defaultValue={row.updated_at || ''}
+              onChange={(ov, nv) => upsertLinkRow(row, { updated_at: nv })}
+            />
+          </div>
+        ),
+      },
+      {
+        key: 'actions',
+        label: 'Actions',
+        sortable: false,
+        width: '90px',
+        minWidth: '90px',
+        renderCell: (row) => (
+          <DeleteBtn onClick={() => handleDeleteLinkRow(row)} />
+        ),
+      },
+    ],
+    [upsertLinkRow, handleLinkImagesChange, handleDeleteLinkRow],
+  );
+
   return (
     <Main_InputContainer label="Product Links">
-      <ControlRowBtn
-        rowIds={rowIds}
-        onRowIdsChange={handleRowIdsChange}
-        onRowAdd={handleRowAdd}
-        onRowRemove={handleRowRemove}
-      >
-        <Sub_ProductLinkRow product_links={pageData.product_links || []} />
-      </ControlRowBtn>
+      <div className={styles.tableSection}>
+        <div className={styles.actionsBar}>
+          <AddNewBtn
+            onClick={handleAddLinkRow}
+            text="Add Product Link"
+            ariaLabel="Add new product link"
+            title="Add Product Link"
+          />
+        </div>
+
+        <EditableDataTable
+          rows={productLinks}
+          columns={columns}
+          rowKey="id"
+          emptyMessage="No product links yet. Click + Add Product Link."
+        />
+      </div>
     </Main_InputContainer>
   );
 };

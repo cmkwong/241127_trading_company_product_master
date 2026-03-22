@@ -113,9 +113,9 @@ const Main_ProductMaster = () => {
               </VerticalLayout>
               <VerticalLayout>
                 <Main_AlibabaLink />
-                <Main_ProductLink />
               </VerticalLayout>
             </SplitLayout>
+            <Main_ProductLink />
 
             <Main_ProductImages />
             <Main_Supplier />

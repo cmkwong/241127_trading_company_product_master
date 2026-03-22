@@ -5,6 +5,7 @@ import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
 import styles from './Sub_ProductLinkRow.module.css';
 import { useProductContext } from '../../../../store/ProductContext';
+import { sortByDisplayOrder } from '../../../../utils/arr';
 
 const Sub_ProductLinkRow = (props) => {
   const { product_links, rowindex } = props; // Destructure any additional props if needed
@@ -25,11 +26,12 @@ const Sub_ProductLinkRow = (props) => {
     // set the image also
     if (productLink && productLink.product_link_images) {
       setImages(
-        productLink.product_link_images.map((img) => {
+        sortByDisplayOrder(productLink.product_link_images).map((img) => {
           return {
             id: img.id,
             url: img.image_url,
             name: img.image_name,
+            display_order: img.display_order,
           };
         }),
       );
@@ -87,10 +89,26 @@ const Sub_ProductLinkRow = (props) => {
 
   // handle image changes
   const handleImageChange = useCallback(
-    (ov, nv) => {
-      if (ov.length > nv.length) {
-        // Image removed
-        const removedImages = ov.filter((o) => !nv.some((n) => n.id === o.id));
+    (ov = [], nv = []) => {
+      const oldList = Array.isArray(ov) ? ov : [];
+      const newList = Array.isArray(nv) ? nv : [];
+
+      const removedImages = oldList.filter(
+        (o) => !newList.some((n) => n.id === o.id),
+      );
+      const addedImages = newList.filter(
+        (n) => !oldList.some((o) => o.id === n.id),
+      );
+
+      const sameLength = oldList.length === newList.length;
+      const sameOrder =
+        sameLength && oldList.every((img, i) => img.id === newList[i]?.id);
+
+      if (removedImages.length === 0 && addedImages.length === 0 && sameOrder) {
+        return;
+      }
+
+      if (removedImages.length > 0) {
         upsertProductPageData({
           product_links: [
             {
@@ -104,19 +122,24 @@ const Sub_ProductLinkRow = (props) => {
           ],
         });
       }
-      if (ov.length < nv.length) {
-        // added image
-        const addedImages = nv.filter((n) => !ov.some((o) => o.id === n.id));
-        // Image added or changed
+
+      if (newList.length > 0) {
+        const addedImageIds = new Set(addedImages.map((img) => img.id));
+
         upsertProductPageData({
           product_links: [
             {
               id: productLink?.id,
               product_id: pageData.id,
-              product_link_images: addedImages.map((img) => ({
+              product_link_images: newList.map((img, index) => ({
                 id: img.id,
-                image_url: img.url,
-                image_name: img.name,
+                display_order: index + 1,
+                ...(addedImageIds.has(img.id)
+                  ? {
+                      image_url: img.url,
+                      image_name: img.name,
+                    }
+                  : {}),
               })),
             },
           ],

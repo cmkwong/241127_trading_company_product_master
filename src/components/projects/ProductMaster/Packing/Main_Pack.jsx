@@ -10,6 +10,7 @@ import DeleteBtn from '../../../common/Buttons/DeleteBtn';
 import EditableDataTable from '../../../common/Table/EditableDataTable';
 import { useProductContext } from '../../../../store/ProductContext';
 import { useMasterContext } from '../../../../store/MasterContext';
+import { sortByDisplayOrder } from '../../../../utils/arr';
 import styles from './Main_Pack.module.css';
 
 const Main_Pack = () => {
@@ -87,14 +88,25 @@ const Main_Pack = () => {
   );
 
   const handlePackImagesChange = useCallback(
-    (row, oldImages, newImages) => {
-      const removedImages = oldImages.filter(
-        (img) => !newImages.some((newImg) => newImg.id === img.id),
+    (row, oldImages = [], newImages = []) => {
+      const oldList = Array.isArray(oldImages) ? oldImages : [];
+      const newList = Array.isArray(newImages) ? newImages : [];
+
+      const removedImages = oldList.filter(
+        (img) => !newList.some((newImg) => newImg.id === img.id),
       );
 
-      const addedImages = newImages.filter(
-        (img) => !oldImages.some((oldImg) => oldImg.id === img.id),
+      const addedImages = newList.filter(
+        (img) => !oldList.some((oldImg) => oldImg.id === img.id),
       );
+
+      const sameLength = oldList.length === newList.length;
+      const sameOrder =
+        sameLength && oldList.every((img, i) => img.id === newList[i]?.id);
+
+      if (removedImages.length === 0 && addedImages.length === 0 && sameOrder) {
+        return;
+      }
 
       if (removedImages.length > 0) {
         upsertPackRow(row, {
@@ -105,12 +117,19 @@ const Main_Pack = () => {
         });
       }
 
-      if (addedImages.length > 0) {
+      if (newList.length > 0) {
+        const addedImageIds = new Set(addedImages.map((img) => img.id));
+
         upsertPackRow(row, {
-          product_packing_images: addedImages.map((img) => ({
+          product_packing_images: newList.map((img, index) => ({
             id: img.id,
-            image_name: img.name,
-            image_url: img.url,
+            display_order: index + 1,
+            ...(addedImageIds.has(img.id)
+              ? {
+                  image_name: img.name,
+                  image_url: img.url,
+                }
+              : {}),
           })),
         });
       }
@@ -244,13 +263,14 @@ const Main_Pack = () => {
         label: 'Images',
         sortable: false,
         renderCell: (row) => {
-          const imageDefaults = (row.product_packing_images || []).map(
-            (image) => ({
-              id: image.id,
-              url: image.image_url,
-              name: image.image_name,
-            }),
-          );
+          const imageDefaults = sortByDisplayOrder(
+            row.product_packing_images || [],
+          ).map((image) => ({
+            id: image.id,
+            url: image.image_url,
+            name: image.image_name,
+            display_order: image.display_order,
+          }));
 
           return (
             <div className={styles.uploadsCell}>

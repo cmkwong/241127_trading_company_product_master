@@ -10,6 +10,7 @@ import EditableDataTable from '../../../common/Table/EditableDataTable';
 import styles from './Main_CertificateData.module.css';
 import { useProductContext } from '../../../../store/ProductContext';
 import { useMasterContext } from '../../../../store/MasterContext';
+import { sortByDisplayOrder } from '../../../../utils/arr';
 
 const Main_CertificateData = () => {
   const { pageData, upsertProductPageData } = useProductContext();
@@ -71,14 +72,25 @@ const Main_CertificateData = () => {
   );
 
   const handleCertificateFilesChange = useCallback(
-    (row, oldFiles, newFiles) => {
-      const removedFiles = oldFiles.filter(
-        (oldFile) => !newFiles.some((newFile) => newFile.id === oldFile.id),
+    (row, oldFiles = [], newFiles = []) => {
+      const oldList = Array.isArray(oldFiles) ? oldFiles : [];
+      const newList = Array.isArray(newFiles) ? newFiles : [];
+
+      const removedFiles = oldList.filter(
+        (oldFile) => !newList.some((newFile) => newFile.id === oldFile.id),
       );
 
-      const addedFiles = newFiles.filter(
-        (newFile) => !oldFiles.some((oldFile) => oldFile.id === newFile.id),
+      const addedFiles = newList.filter(
+        (newFile) => !oldList.some((oldFile) => oldFile.id === newFile.id),
       );
+
+      const sameLength = oldList.length === newList.length;
+      const sameOrder =
+        sameLength && oldList.every((file, i) => file.id === newList[i]?.id);
+
+      if (removedFiles.length === 0 && addedFiles.length === 0 && sameOrder) {
+        return;
+      }
 
       if (removedFiles.length > 0) {
         upsertCertificateRow(row, {
@@ -89,14 +101,21 @@ const Main_CertificateData = () => {
         });
       }
 
-      if (addedFiles.length > 0) {
+      if (newList.length > 0) {
+        const addedFileIds = new Set(addedFiles.map((file) => file.id));
+
         upsertCertificateRow(row, {
-          product_certificate_files: addedFiles.map((file) => ({
+          product_certificate_files: newList.map((file, index) => ({
             id: file.id,
-            file_name: file.name,
-            file_size: file.size,
-            file_type: file.type,
-            file_url: file.url,
+            display_order: index + 1,
+            ...(addedFileIds.has(file.id)
+              ? {
+                  file_name: file.name,
+                  file_size: file.size,
+                  file_type: file.type,
+                  file_url: file.url,
+                }
+              : {}),
           })),
         });
       }
@@ -135,16 +154,17 @@ const Main_CertificateData = () => {
         width: '440px',
         minWidth: '360px',
         renderCell: (row) => {
-          const defaultFiles = (row.product_certificate_files || []).map(
-            (file, index) => ({
-              id: file.id || uuidv4(),
-              name: file.file_name || `file_${index + 1}`,
-              size: file.file_size || file._file_size || 0,
-              type:
-                file.file_type || file._file_type || 'application/octet-stream',
-              url: file.file_url || '',
-            }),
-          );
+          const defaultFiles = sortByDisplayOrder(
+            row.product_certificate_files || [],
+          ).map((file, index) => ({
+            id: file.id || uuidv4(),
+            name: file.file_name || `file_${index + 1}`,
+            size: file.file_size || file._file_size || 0,
+            type:
+              file.file_type || file._file_type || 'application/octet-stream',
+            url: file.file_url || '',
+            display_order: file.display_order,
+          }));
 
           return (
             <div className={styles.uploadsCell}>

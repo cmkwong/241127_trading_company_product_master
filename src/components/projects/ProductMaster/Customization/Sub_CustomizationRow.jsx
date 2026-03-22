@@ -8,6 +8,7 @@ import { mockSuppliers } from '../../../../datas/Suppliers/mockSuppliers';
 import { useProductContext } from '../../../../store/ProductContext';
 import VerticalLayout from '../../../common/Layouts/VerticalLayout';
 import SplitLayout from '../../../common/Layouts/SplitLayout';
+import { sortByDisplayOrder } from '../../../../utils/arr';
 const Sub_CustomizationRow = (props) => {
   const { customizations, rowindex } = props;
 
@@ -56,49 +57,57 @@ const Sub_CustomizationRow = (props) => {
   };
 
   // Main_FileUploads passes the array directly, not an object.
-  const handleImageChange = (ov, nv) => {
-    if (nv.length > ov.length) {
-      // Image(s) added
-      const addedImages = nv.filter(
-        (newImg) => !ov.some((oldImg) => oldImg.id === newImg.id),
-      );
+  const handleImageChange = (ov = [], nv = []) => {
+    const oldList = Array.isArray(ov) ? ov : [];
+    const newList = Array.isArray(nv) ? nv : [];
 
-      // Create array of new images to add
-      const newImagesData = addedImages.map((addedImage, index) => ({
-        id: addedImage.id,
-        customization_id: customization.id,
-        image_name: addedImage.name,
-        image_url: addedImage.url,
-        display_order: ov.length + index + 1,
-      }));
+    const removedImages = oldList.filter(
+      (oldImg) => !newList.some((newImg) => newImg.id === oldImg.id),
+    );
+    const addedImages = newList.filter(
+      (newImg) => !oldList.some((oldImg) => oldImg.id === newImg.id),
+    );
 
-      // Use the new nested upsert structure
+    const sameLength = oldList.length === newList.length;
+    const sameOrder =
+      sameLength && oldList.every((img, i) => img.id === newList[i]?.id);
+
+    if (removedImages.length === 0 && addedImages.length === 0 && sameOrder) {
+      return;
+    }
+
+    if (removedImages.length > 0) {
       upsertProductPageData({
         product_customizations: [
           {
             id: customization.id,
-            product_customization_images: newImagesData,
+            product_customization_images: removedImages.map((removedImage) => ({
+              id: removedImage.id,
+              _delete: true,
+            })),
           },
         ],
       });
-    } else if (nv.length < ov.length) {
-      // Image(s) removed
-      const removedImages = ov.filter(
-        (oldImg) => !nv.some((newImg) => newImg.id === oldImg.id),
-      );
+    }
 
-      // Handle removed images
-      const removedImagesData = removedImages.map((removedImage) => ({
-        id: removedImage.id,
-        _delete: true,
-      }));
+    if (newList.length > 0) {
+      const addedImageIds = new Set(addedImages.map((img) => img.id));
 
-      // Use the new nested upsert structure
       upsertProductPageData({
         product_customizations: [
           {
             id: customization.id,
-            product_customization_images: removedImagesData,
+            product_customization_images: newList.map((img, index) => ({
+              id: img.id,
+              customization_id: customization.id,
+              display_order: index + 1,
+              ...(addedImageIds.has(img.id)
+                ? {
+                    image_name: img.name,
+                    image_url: img.url,
+                  }
+                : {}),
+            })),
           },
         ],
       });
@@ -139,13 +148,14 @@ const Sub_CustomizationRow = (props) => {
           onChange={handleImageChange}
           maxFiles={10}
           maxSizeInMB={5}
-          defaultImages={
-            customization?.product_customization_images?.map((img) => ({
-              id: img.id,
-              url: img.image_url,
-              name: img.image_name,
-            })) || []
-          }
+          defaultImages={sortByDisplayOrder(
+            customization?.product_customization_images || [],
+          ).map((img) => ({
+            id: img.id,
+            url: img.image_url,
+            name: img.image_name,
+            display_order: img.display_order,
+          }))}
         />
       </SplitLayout>
     </>

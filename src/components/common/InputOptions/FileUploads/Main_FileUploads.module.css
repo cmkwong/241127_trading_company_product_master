@@ -26,6 +26,145 @@
   color: #333;
 }
 
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.dropZoneEditorWrap {
+  position: relative;
+}
+
+.sequenceEditorIconBtn {
+  border: 1px solid #cfd8e3;
+  background: #fff;
+  color: #1d4ed8;
+  border-radius: 6px;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+
+.sequenceEditorIconBtn:hover {
+  background: #f4f8ff;
+}
+
+.sequenceEditorIconBtn svg {
+  width: 15px;
+  height: 15px;
+}
+
+.inlineSequenceEditorBtn {
+  position: absolute;
+  top: 50%;
+  right: 52px;
+  transform: translateY(-50%);
+  z-index: 12;
+  border: 1px solid #cfd8e3;
+  background: #fff;
+  color: #1d4ed8;
+  border-radius: 6px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.15);
+}
+
+.inlineSequenceEditorBtn:hover {
+  background: #f4f8ff;
+}
+
+.inlineSequenceEditorBtn svg {
+  width: 13px;
+  height: 13px;
+}
+
+.sequenceEditorOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  z-index: 10030;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.sequenceEditorModal {
+  width: min(1100px, 100%);
+  min-height: 400px;
+  max-height: calc(100vh - 32px);
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 24px 64px rgba(15, 23, 42, 0.3);
+  border: 1px solid #dbe3f2;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  overflow: hidden;
+}
+
+.sequenceEditorHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sequenceEditorTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.sequenceEditorCloseBtn {
+  border: 1px solid #d1d5db;
+  background: #fff;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.sequenceEditorCloseBtn:hover {
+  background: #f9fafb;
+}
+
+.sequenceEditorHint {
+  font-size: 12px;
+  color: #475569;
+}
+
+.sequenceGridCompact,
+.sequenceGridEditor {
+  display: grid;
+  grid-auto-flow: row;
+  align-content: start;
+  justify-content: start;
+  gap: 6px;
+  width: max-content;
+}
+
+.sequenceGridCompact {
+  grid-template-columns: repeat(5, max-content);
+}
+
+.sequenceGridEditor {
+  grid-template-columns: repeat(5, max-content);
+}
+
 .noFiles {
   color: #666;
   font-style: italic;

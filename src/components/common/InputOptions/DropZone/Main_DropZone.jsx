@@ -33,6 +33,7 @@ const Main_DropZone = ({
   compact = false,
   compactButtonText = '選取',
   tableCell = false,
+  expandedPreview = false,
 }) => {
   const fileInputRef = useRef(null);
 
@@ -117,7 +118,7 @@ const Main_DropZone = ({
               itemType === 'images' ? styles.imagePreviewContainer : ''
             } ${!showMaxItemsNotice ? styles.fullSizePreviewContainer : ''} ${
               tableCell ? styles.tableCellPreviewRail : ''
-            }`}
+            } ${expandedPreview ? styles.expandedPreview : ''}`}
           >
             {children}
           </div>
@@ -220,6 +221,7 @@ Main_DropZone.propTypes = {
   compact: PropTypes.bool,
   compactButtonText: PropTypes.string,
   tableCell: PropTypes.bool,
+  expandedPreview: PropTypes.bool,
 };
 
 export default Main_DropZone;

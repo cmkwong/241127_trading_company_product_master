@@ -280,6 +280,16 @@
   padding-bottom: 0;
 }
 
+.expandedPreview.imagePreviewContainer {
+  min-height: 800px;
+  max-height: 800px;
+}
+
+.expandedPreview.filePreviewContainer {
+  min-height: 800px;
+  max-height: 800px;
+}
+
 .fullSizeContainer {
   padding: 12px;
 }

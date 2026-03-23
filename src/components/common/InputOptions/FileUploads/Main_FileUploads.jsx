@@ -4,6 +4,12 @@ import styles from './Main_FileUploads.module.css';
 import Main_DropZone from '../DropZone/Main_DropZone';
 import Sub_FileItem from './Sub_FileItem';
 import { v4 as uuidv4 } from 'uuid';
+import Sub_FileUploadsHeader from './Sub_FileUploadsHeader';
+import Sub_SequenceEditorModal from './Sub_SequenceEditorModal';
+import {
+  processDefaultImages,
+  shouldReplaceImageList,
+} from './fileUploadsUtils';
 
 /**
  * Main_FileUploads Component
@@ -16,7 +22,7 @@ const Main_FileUploads = (props) => {
     onError = () => {},
 
     // Configuration
-    maxFiles = 10,
+    maxFiles = 100,
     maxSizeInMB = 10,
     acceptedTypes = [], // Empty array means accept all file types
 
@@ -27,9 +33,10 @@ const Main_FileUploads = (props) => {
     showPreview = true,
     showMaxItemsNotice = true,
     compact = false,
-    compactButtonText = '選取',
+    compactButtonText = 'Select Files',
     tableCell = false,
     hoverPreview = false,
+    enableSequenceEditor = true,
 
     // Initial state
     defaultFiles = [],
@@ -38,48 +45,6 @@ const Main_FileUploads = (props) => {
     // Mode control
     mode = 'file', // 'file' or 'image'
   } = props;
-
-  // Helper to process images and ensure they have IDs
-  const processDefaultImages = useCallback((imgs) => {
-    if (!Array.isArray(imgs)) return [];
-
-    return imgs.map((image, index) => {
-      if (typeof image === 'string') {
-        const url = image;
-        const nameFromUrl = url.split('/').pop();
-
-        return {
-          id: uuidv4(),
-          url,
-          name: nameFromUrl || `image-${index + 1}`,
-          size: 0,
-          type: 'image/*',
-        };
-      }
-
-      if (image && typeof image === 'object') {
-        const name =
-          image.name || (image.url ? image.url.split('/').pop() : null);
-
-        return {
-          id: image.id || uuidv4(),
-          url: image.url || '',
-          name: name || `image-${index + 1}`,
-          size: typeof image.size === 'number' ? image.size : 0,
-          type: image.type || 'image/*',
-          file: image.file,
-        };
-      }
-
-      return {
-        id: uuidv4(),
-        url: '',
-        name: `image-${index + 1}`,
-        size: 0,
-        type: 'image/*',
-      };
-    });
-  }, []);
 
   // Determine initial state based on mode
   const getInitialState = () => {
@@ -92,6 +57,7 @@ const Main_FileUploads = (props) => {
   // State to store uploaded files/images
   const [fileList, setFileList] = useState(getInitialState);
   const [isDragging, setIsDragging] = useState(false);
+  const [isSequenceEditorOpen, setIsSequenceEditorOpen] = useState(false);
 
   // Update state when defaultImages changes (for image mode)
   useEffect(() => {
@@ -99,35 +65,7 @@ const Main_FileUploads = (props) => {
       const newProcessedImages = processDefaultImages(defaultImages);
 
       setFileList((currentImages) => {
-        if (newProcessedImages.length !== currentImages.length) {
-          return newProcessedImages;
-        }
-
-        // Compare by id (not by index) so drag-reordered local state is not
-        // unintentionally reset by parent arrays that contain same images.
-        const currentById = new Map(currentImages.map((img) => [img.id, img]));
-        const incomingById = new Map(
-          newProcessedImages.map((img) => [img.id, img]),
-        );
-
-        const hasMembershipDiff =
-          currentById.size !== incomingById.size ||
-          [...currentById.keys()].some((id) => !incomingById.has(id));
-
-        if (hasMembershipDiff) {
-          return newProcessedImages;
-        }
-
-        const hasContentDiff = newProcessedImages.some((img) => {
-          const current = currentById.get(img.id);
-          if (!current) return true;
-          return (
-            img.url !== current.url ||
-            (img.file && current.file && img.file !== current.file)
-          );
-        });
-
-        if (hasContentDiff) {
+        if (shouldReplaceImageList(currentImages, newProcessedImages)) {
           return newProcessedImages;
         }
 
@@ -147,7 +85,7 @@ const Main_FileUploads = (props) => {
         return defaultFiles || [];
       });
     }
-  }, [defaultImages, defaultFiles, mode, processDefaultImages]);
+  }, [defaultImages, defaultFiles, mode]);
 
   // Handle file/image reordering (for image mode with drag-and-drop)
   const handleMoveItem = useCallback(
@@ -252,6 +190,62 @@ const Main_FileUploads = (props) => {
   // Determine item type label for DropZone
   const itemType = mode === 'image' ? 'images' : 'files';
   const testIdPrefix = mode === 'image' ? 'image' : 'file';
+  const canOpenSequenceEditor = enableSequenceEditor && mode === 'image';
+  const showHeaderEditorButton = canOpenSequenceEditor && !tableCell;
+  const showInlineEditorButton = canOpenSequenceEditor && tableCell;
+
+  const renderFileItems = (forModal = false) => {
+    return fileList.map((file, index) => (
+      <Sub_FileItem
+        key={file.id}
+        file={file}
+        index={index}
+        onRemove={() => handleRemoveFile(index)}
+        onMove={handleMoveItem}
+        disabled={disabled}
+        showAsImage={mode === 'image'}
+        fullSizePreview={forModal || !showMaxItemsNotice}
+        editMode={forModal}
+        compactImage={forModal ? false : tableCell}
+        compactFile={!forModal && tableCell && mode === 'file'}
+        hoverPreview={forModal ? true : hoverPreview}
+      />
+    ));
+  };
+
+  const renderPreviewContent = (forModal = false) => {
+    const items = renderFileItems(forModal);
+
+    if (mode !== 'image') {
+      return items;
+    }
+
+    return (
+      <div
+        className={
+          forModal ? styles.sequenceGridEditor : styles.sequenceGridCompact
+        }
+      >
+        {items}
+      </div>
+    );
+  };
+
+  const baseDropZoneProps = {
+    onFileSelect: handleFileSelection,
+    isDragging,
+    setIsDragging,
+    disabled,
+    maxFiles,
+    maxSizeInMB,
+    acceptedTypes,
+    multiple,
+    items: fileList,
+    showPreview,
+    showMaxItemsNotice,
+    itemType,
+    compactButtonText,
+  };
 
   return (
     <div
@@ -259,42 +253,56 @@ const Main_FileUploads = (props) => {
         tableCell ? styles.tableCellContainer : ''
       }`}
     >
-      {label && <label className={styles.label}>{label}</label>}
+      <Sub_FileUploadsHeader
+        label={label}
+        canOpenSequenceEditor={showHeaderEditorButton}
+        onOpenSequenceEditor={() => setIsSequenceEditorOpen(true)}
+      />
 
-      <Main_DropZone
-        onFileSelect={handleFileSelection}
-        isDragging={isDragging}
-        setIsDragging={setIsDragging}
-        disabled={disabled}
-        maxFiles={maxFiles}
-        maxSizeInMB={maxSizeInMB}
-        acceptedTypes={acceptedTypes}
-        multiple={multiple}
-        items={fileList}
-        showPreview={showPreview}
-        showMaxItemsNotice={showMaxItemsNotice}
-        itemType={itemType}
-        testIdPrefix={testIdPrefix}
-        compact={compact}
-        compactButtonText={compactButtonText}
-        tableCell={tableCell}
-      >
-        {fileList.map((file, index) => (
-          <Sub_FileItem
-            key={file.id}
-            file={file}
-            index={index}
-            onRemove={() => handleRemoveFile(index)}
-            onMove={handleMoveItem}
-            disabled={disabled}
-            showAsImage={mode === 'image'}
-            fullSizePreview={!showMaxItemsNotice}
-            compactImage={tableCell}
-            compactFile={tableCell && mode === 'file'}
-            hoverPreview={hoverPreview}
-          />
-        ))}
-      </Main_DropZone>
+      <div className={styles.dropZoneEditorWrap}>
+        {showInlineEditorButton && (
+          <button
+            type="button"
+            className={styles.inlineSequenceEditorBtn}
+            onClick={() => setIsSequenceEditorOpen(true)}
+            title="Open sequence editor"
+            aria-label="Open sequence editor"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zm2.92 2.33H5v-.92l8.06-8.06.92.92L5.92 19.58zM20.71 7.04a1.003 1.003 0 000-1.42L18.37 3.29a1.003 1.003 0 00-1.42 0l-1.83 1.83 3.75 3.75 1.84-1.83z" />
+            </svg>
+          </button>
+        )}
+
+        <Main_DropZone
+          {...baseDropZoneProps}
+          testIdPrefix={testIdPrefix}
+          compact={compact}
+          tableCell={tableCell}
+        >
+          {renderPreviewContent(false)}
+        </Main_DropZone>
+      </div>
+
+      {canOpenSequenceEditor && (
+        <Sub_SequenceEditorModal
+          isOpen={isSequenceEditorOpen}
+          onClose={() => setIsSequenceEditorOpen(false)}
+          dropZoneProps={{
+            ...baseDropZoneProps,
+            testIdPrefix: `${testIdPrefix}-sequence-editor`,
+            compact: false,
+            tableCell: false,
+          }}
+        >
+          {renderPreviewContent(true)}
+        </Sub_SequenceEditorModal>
+      )}
     </div>
   );
 };
@@ -319,6 +327,7 @@ Main_FileUploads.propTypes = {
   compactButtonText: PropTypes.string,
   tableCell: PropTypes.bool,
   hoverPreview: PropTypes.bool,
+  enableSequenceEditor: PropTypes.bool,
 
   // Initial state
   defaultFiles: PropTypes.arrayOf(

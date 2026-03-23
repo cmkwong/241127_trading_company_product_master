@@ -16,6 +16,7 @@ const Sub_FileItem = ({
   disabled,
   showAsImage = false,
   fullSizePreview = false,
+  editMode = false,
   compactImage = false,
   compactFile = false,
   hoverPreview = false,
@@ -192,8 +193,8 @@ const Sub_FileItem = ({
     if (!hoverPreview || !isImagePreview || !hoverImageUrl) return;
 
     const rect = event.currentTarget.getBoundingClientRect();
-    const popupWidth = 260;
-    const popupHeight = 220;
+    const popupWidth = editMode ? 420 : 320;
+    const popupHeight = editMode ? 420 : 240;
     const gap = 12;
     const viewportWidth =
       window.innerWidth || document.documentElement.clientWidth;
@@ -216,7 +217,7 @@ const Sub_FileItem = ({
       left,
       top,
       width: popupWidth,
-      zIndex: 10000,
+      zIndex: 10100,
     });
     setShowHoverPreview(true);
   };
@@ -229,7 +230,7 @@ const Sub_FileItem = ({
       <div
         className={`${styles.imagePreview} ${
           fullSizePreview ? styles.fullSizePreview : ''
-        } ${compactImage ? styles.compactImagePreview : ''} ${shiftClass}`}
+        } ${editMode ? styles.editorModePreview : ''} ${compactImage ? styles.compactImagePreview : ''} ${shiftClass}`}
         draggable={!disabled && !!onMove}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
@@ -280,7 +281,11 @@ const Sub_FileItem = ({
           hoverImageUrl &&
           createPortal(
             <div className={styles.hoverPreviewPopup} style={hoverPreviewStyle}>
-              <div className={styles.hoverPreviewCard}>
+              <div
+                className={`${styles.hoverPreviewCard} ${
+                  editMode ? styles.hoverPreviewCardEditMode : ''
+                }`}
+              >
                 <img
                   src={hoverImageUrl}
                   alt={name}
@@ -367,6 +372,7 @@ Sub_FileItem.propTypes = {
   disabled: PropTypes.bool,
   showAsImage: PropTypes.bool,
   fullSizePreview: PropTypes.bool,
+  editMode: PropTypes.bool,
   compactImage: PropTypes.bool,
   compactFile: PropTypes.bool,
   hoverPreview: PropTypes.bool,

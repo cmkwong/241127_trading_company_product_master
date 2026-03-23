@@ -9,6 +9,7 @@ import DeleteBtn from '../../../common/Buttons/DeleteBtn';
 import EditableDataTable from '../../../common/Table/EditableDataTable';
 import { useSupplierContext } from '../../../../store/SupplierContext';
 import { useMasterContext } from '../../../../store/MasterContext';
+import { sortByDisplayOrder } from '../../../../utils/arr';
 import styles from './Main_SupplierServices.module.css';
 
 const Main_SupplierServices = () => {
@@ -70,51 +71,61 @@ const Main_SupplierServices = () => {
   );
 
   const handleServiceImagesChange = useCallback(
-    (serviceId, oldFiles, newFiles, serviceImageMasterOptions) => {
-      const removedImages = oldFiles.filter(
-        (oldImage) => !newFiles.some((newImage) => newImage.id === oldImage.id),
+    (row, oldFiles = [], newFiles = [], serviceImageMasterOptions) => {
+      const oldList = Array.isArray(oldFiles) ? oldFiles : [];
+      const newList = Array.isArray(newFiles) ? newFiles : [];
+
+      const removedImages = oldList.filter(
+        (oldImage) => !newList.some((newImage) => newImage.id === oldImage.id),
       );
 
-      const addedImages = newFiles.filter(
-        (newImage) => !oldFiles.some((oldImage) => oldImage.id === newImage.id),
+      const addedImages = newList.filter(
+        (newImage) => !oldList.some((oldImage) => oldImage.id === newImage.id),
       );
+
+      const sameLength = oldList.length === newList.length;
+      const sameOrder =
+        sameLength && oldList.every((img, i) => img.id === newList[i]?.id);
+
+      if (removedImages.length === 0 && addedImages.length === 0 && sameOrder) {
+        return;
+      }
 
       const masterImageTypeId = serviceImageMasterOptions?.[0]?.id || null;
 
       if (removedImages.length > 0) {
-        upsertSupplierPageData({
-          supplier_services: [
-            {
-              id: serviceId,
-              supplier_id: pageData.id,
-              supplier_service_images: removedImages.map((img) => ({
-                id: img.id,
-                _delete: true,
-              })),
-            },
-          ],
+        handleUpsertRow(row, {
+          supplier_service_images: removedImages
+            .filter((img) => !!img?.id)
+            .map((img) => ({
+              id: img.id,
+              _delete: true,
+            })),
         });
       }
 
-      if (addedImages.length > 0) {
-        upsertSupplierPageData({
-          supplier_services: [
-            {
-              id: serviceId,
-              supplier_id: pageData.id,
-              supplier_service_images: addedImages.map((img) => ({
-                id: img.id,
-                supplier_service_id: serviceId,
-                image_url: img.url,
-                image_name: img.name,
-                service_image_type_id: masterImageTypeId,
-              })),
-            },
-          ],
+      if (newList.length > 0) {
+        const addedImageIds = new Set(addedImages.map((img) => img.id));
+
+        handleUpsertRow(row, {
+          supplier_service_images: newList
+            .filter((img) => !!img?.id)
+            .map((img, index) => ({
+              id: img.id,
+              supplier_service_id: row.id,
+              display_order: index + 1,
+              ...(addedImageIds.has(img.id)
+                ? {
+                    image_url: img.url,
+                    image_name: img.name,
+                    service_image_type_id: masterImageTypeId,
+                  }
+                : {}),
+            })),
         });
       }
     },
-    [upsertSupplierPageData, pageData.id],
+    [handleUpsertRow],
   );
 
   const columns = useMemo(
@@ -155,13 +166,14 @@ const Main_SupplierServices = () => {
         label: 'Service Images',
         sortable: false,
         renderCell: (row) => {
-          const imageDefaults = (row.supplier_service_images || []).map(
-            (image) => ({
-              id: image.id,
-              url: image.image_url,
-              name: image.image_name,
-            }),
-          );
+          const imageDefaults = sortByDisplayOrder(
+            row.supplier_service_images || [],
+          ).map((image) => ({
+            id: image.id,
+            url: image.image_url,
+            name: image.image_name,
+            display_order: image.display_order,
+          }));
 
           return (
             <div className={styles.uploadsCell}>
@@ -174,7 +186,7 @@ const Main_SupplierServices = () => {
                 hoverPreview
                 defaultImages={imageDefaults}
                 onChange={(ov, nv) =>
-                  handleServiceImagesChange(row.id, ov, nv, serviceImages)
+                  handleServiceImagesChange(row, ov, nv, serviceImages)
                 }
                 onError={(error) => {
                   console.error('Service image upload error:', error);

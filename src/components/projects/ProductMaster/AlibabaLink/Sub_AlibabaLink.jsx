@@ -4,35 +4,37 @@ import Main_TextField from '../../../common/InputOptions/TextField/Main_TextFiel
 import { useProductContext } from '../../../../store/ProductContext';
 
 const Sub_AlibabaLink = (props) => {
-  const { product_alibaba_ids, rowindex } = props;
+  const { product_alibaba_ids, rowId } = props;
 
   const { upsertProductPageData, pageData } = useProductContext();
 
-  // Get the current row data or use template data if it doesn't exist
-  const [alibabaLink] = useState(product_alibaba_ids[rowindex] || {});
-  const [alibabaId, setAlibabaId] = useState(alibabaLink?.value || '');
+  // Resolve current row by stable rowId (important for drag reorder)
+  const currentAlibabaLink =
+    product_alibaba_ids.find((item) => item.id === rowId) || {};
+
+  const [alibabaId, setAlibabaId] = useState(currentAlibabaLink?.value || '');
   const [alibabaLinkValue, setAlibabaLinkValue] = useState(
-    alibabaLink?.link || '',
+    currentAlibabaLink?.link || '',
   );
 
   useEffect(() => {
-    setAlibabaId(alibabaLink?.value || '');
-    setAlibabaLinkValue(alibabaLink?.link || '');
-  }, [alibabaLink]);
+    setAlibabaId(currentAlibabaLink?.value || '');
+    setAlibabaLinkValue(currentAlibabaLink?.link || '');
+  }, [currentAlibabaLink?.value, currentAlibabaLink?.link]);
 
   const handleAlibabaIdChange = useCallback(
     (ov, nv) => {
       upsertProductPageData({
         product_alibaba_ids: [
           {
-            id: alibabaLink.id,
+            id: rowId,
             product_id: pageData.id,
             value: nv,
           },
         ],
       });
     },
-    [upsertProductPageData, alibabaLink.id, pageData.id],
+    [upsertProductPageData, rowId, pageData.id],
   );
 
   const handleLinkChange = useCallback(
@@ -40,14 +42,14 @@ const Sub_AlibabaLink = (props) => {
       upsertProductPageData({
         product_alibaba_ids: [
           {
-            id: alibabaLink.id,
+            id: rowId,
             product_id: pageData.id,
             link: nv,
           },
         ],
       });
     },
-    [upsertProductPageData, alibabaLink.id, pageData.id],
+    [upsertProductPageData, rowId, pageData.id],
   );
 
   return (

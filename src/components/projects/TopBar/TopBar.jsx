@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { useAuthContext } from '../../../store/AuthContext';
 import { ProductContext } from '../../../store/ProductContext';
 import { SupplierContext } from '../../../store/SupplierContext';
+import { canProceedWithRecordSwitch } from '../../../utils/contextDataUtils';
 import styles from './TopBar.module.css';
 
 const TopBar = ({ title, activeView, onViewChange }) => {
@@ -69,6 +70,29 @@ const TopBar = ({ title, activeView, onViewChange }) => {
     }
   };
 
+  const handleViewSwitch = (nextView) => {
+    if (!onViewChange || nextView === activeView) {
+      return;
+    }
+
+    const currentContext =
+      activeView === 'product' ? productContext : supplierContext;
+
+    const canSwitch = canProceedWithRecordSwitch({
+      hasRecordId: !!currentContext?.pageData?.id,
+      isDataUnchanged:
+        typeof currentContext?.isDataUnchanged === 'function'
+          ? currentContext.isDataUnchanged()
+          : true,
+    });
+
+    if (!canSwitch) {
+      return;
+    }
+
+    onViewChange(nextView);
+  };
+
   return (
     <div className={styles.topBar}>
       <div className={styles.leftSection}>
@@ -100,7 +124,7 @@ const TopBar = ({ title, activeView, onViewChange }) => {
             className={`${styles.navBtn} ${
               activeView === 'product' ? styles.active : ''
             }`}
-            onClick={() => onViewChange && onViewChange('product')}
+            onClick={() => handleViewSwitch('product')}
           >
             Product Master
           </button>
@@ -108,7 +132,7 @@ const TopBar = ({ title, activeView, onViewChange }) => {
             className={`${styles.navBtn} ${
               activeView === 'supplier' ? styles.active : ''
             }`}
-            onClick={() => onViewChange && onViewChange('supplier')}
+            onClick={() => handleViewSwitch('supplier')}
           >
             Supplier Master
           </button>

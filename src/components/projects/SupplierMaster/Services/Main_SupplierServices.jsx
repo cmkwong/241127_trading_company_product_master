@@ -39,6 +39,7 @@ const Main_SupplierServices = () => {
           supplier_id: pageData.id,
           service_id: '',
           remark: '',
+          link: '',
           supplier_service_images: [],
         },
       ],
@@ -142,6 +143,22 @@ const Main_SupplierServices = () => {
             defaultSelectedOption={row.service_id || ''}
             onChange={(ov, nv) => {
               handleUpsertRow(row, { service_id: nv });
+            }}
+          />
+        ),
+      },
+      {
+        key: 'link',
+        label: 'Link',
+        sortType: 'string',
+        renderCell: (row) => (
+          <Main_TextField
+            className={styles.cellInput}
+            defaultValue={row.link || ''}
+            placeholder="Service Link"
+            type="link"
+            onChange={(ov, nv) => {
+              handleUpsertRow(row, { link: nv });
             }}
           />
         ),

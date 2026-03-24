@@ -41,8 +41,86 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
   const [comparisonKeys, setComparisonKeys] = useState([]);
   const objectUrlRegistryRef = useRef([]);
   const pageDataUrlRegistryRef = useRef([]);
+  const hasInitialFetchRef = useRef(false);
 
   const productBase64Config = useMemo(() => fileMappings || {}, [fileMappings]);
+
+  // Extracted function to fetch products
+  const doFetchProducts = useCallback(async () => {
+    if (!token) {
+      setProducts({ products: [] });
+      return;
+    }
+
+    setIsProductsLoading(true);
+    try {
+      const response = await apiPost(
+        'http://localhost:3001/api/v1/trade_business/products/data/list',
+        {
+          includeBase64: true,
+          iconOnly: true,
+          compress: true,
+        },
+        {
+          token,
+        },
+      );
+
+      console.log('Fetched products data:', response);
+
+      // Extract data based on expected API response structure
+      const rawData = normalizeStructuredTableResponse(response, 'products');
+
+      // Clear any previously created object URLs before regenerating new ones.
+      releaseObjectUrls(objectUrlRegistryRef.current);
+      const urlRegistry = [];
+
+      console.log('Raw products data before processing:', rawData);
+      // Process images (base64 to objectUrl)
+      let processedProducts = recursiveProcess_base64_to_objectUrl(
+        rawData,
+        'root',
+        productBase64Config,
+        urlRegistry,
+      );
+      console.log('Processed products with object URLs:', processedProducts);
+      setProducts(processedProducts || { products: [] });
+      objectUrlRegistryRef.current = urlRegistry;
+    } catch (err) {
+      console.error('Failed to fetch products:', err);
+      // On error, keep empty or handle gracefully
+      setProducts({ products: [] });
+    } finally {
+      setIsProductsLoading(false);
+    }
+  }, [token, productBase64Config]);
+
+  // Extracted function to fetch comparison keys
+  const doFetchComparisonKeys = useCallback(async () => {
+    if (!token) {
+      setComparisonKeys([]);
+      return;
+    }
+
+    try {
+      const response = await apiGet(
+        'http://localhost:3001/api/v1/trade_business/products/data/comparison-keys',
+        { token },
+      );
+
+      const keys = response?.data?.firstLevelKeys;
+      setComparisonKeys(Array.isArray(keys) ? keys : []);
+    } catch (err) {
+      console.error('Failed to fetch product comparison keys:', err);
+      setComparisonKeys([]);
+    }
+  }, [token]);
+
+  // Public method to manually refresh all product data
+  const refreshProductList = useCallback(async () => {
+    await doFetchProducts();
+    await doFetchComparisonKeys();
+  }, [doFetchProducts, doFetchComparisonKeys]);
 
   // Fetch products data on mount and when token changes
   useEffect(() => {
@@ -54,70 +132,16 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
     if (!token) {
       setProducts({ products: [] });
       setPageData({});
+      hasInitialFetchRef.current = false;
       return;
     }
 
-    const fetchProducts = async () => {
-      setIsProductsLoading(true);
-      try {
-        const response = await apiPost(
-          'http://localhost:3001/api/v1/trade_business/products/data/list',
-          {
-            includeBase64: true,
-            iconOnly: true,
-            compress: true,
-          },
-          {
-            token,
-          },
-        );
-
-        console.log('Fetched products data:', response);
-
-        // Extract data based on expected API response structure
-        const rawData = normalizeStructuredTableResponse(response, 'products');
-
-        // Clear any previously created object URLs before regenerating new ones.
-        releaseObjectUrls(objectUrlRegistryRef.current);
-        const urlRegistry = [];
-
-        console.log('Raw products data before processing:', rawData);
-        // Process images (base64 to objectUrl)
-        let processedProducts = recursiveProcess_base64_to_objectUrl(
-          rawData,
-          'root',
-          productBase64Config,
-          urlRegistry,
-        );
-        console.log('Processed products with object URLs:', processedProducts);
-        setProducts(processedProducts || { products: [] });
-        objectUrlRegistryRef.current = urlRegistry;
-      } catch (err) {
-        console.error('Failed to fetch products:', err);
-        // On error, keep empty or handle gracefully
-        setProducts({ products: [] });
-      } finally {
-        setIsProductsLoading(false);
-      }
-    };
-
-    const fetchProductComparisonKeys = async () => {
-      try {
-        const response = await apiGet(
-          'http://localhost:3001/api/v1/trade_business/products/data/comparison-keys',
-          { token },
-        );
-
-        const keys = response?.data?.firstLevelKeys;
-        setComparisonKeys(Array.isArray(keys) ? keys : []);
-      } catch (err) {
-        console.error('Failed to fetch product comparison keys:', err);
-        setComparisonKeys([]);
-      }
-    };
-
-    fetchProducts();
-    fetchProductComparisonKeys();
+    // Only fetch once per token to prevent re-fetching on tab switches
+    if (!hasInitialFetchRef.current) {
+      doFetchProducts();
+      doFetchComparisonKeys();
+      hasInitialFetchRef.current = true;
+    }
 
     return () => {
       releaseObjectUrls(objectUrlRegistryRef.current);
@@ -125,7 +149,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
       releaseObjectUrls(pageDataUrlRegistryRef.current);
       pageDataUrlRegistryRef.current = [];
     };
-  }, [token, isFileMappingsLoading, productBase64Config]); // Re-run when token/mappings change
+  }, [token, isFileMappingsLoading, doFetchProducts, doFetchComparisonKeys]);
 
   const effectiveComparisonKeys = useCallback(() => {
     if (comparisonKeys.length > 0) {
@@ -463,6 +487,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
         upsertProductPageData,
         getAllProducts,
         updateProducts,
+        refreshProductList,
 
         // Save/create actions
         handleProductSave,

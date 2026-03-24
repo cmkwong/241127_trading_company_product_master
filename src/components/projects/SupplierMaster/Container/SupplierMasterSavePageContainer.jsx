@@ -1,8 +1,5 @@
 import { MasterContext_Provider } from '../../../../store/MasterContext';
-import {
-  SupplierContext_Provider,
-  useSupplierContext,
-} from '../../../../store/SupplierContext';
+import { useSupplierContext } from '../../../../store/SupplierContext';
 import Main_SavePage from '../../../common/SavePage/Main_SavePage';
 
 const SavePageContextBridge = ({
@@ -47,18 +44,16 @@ const SupplierMasterSavePageContainer = ({
 }) => {
   return (
     <MasterContext_Provider>
-      <SupplierContext_Provider initialData={initialData}>
-        <SavePageContextBridge
-          onSave={onSave}
-          saveButtonText={saveButtonText}
-          successMessage={successMessage}
-          showSaveButton={showSaveButton}
-          customSaveAction={customSaveAction}
-          className={className}
-        >
-          {children}
-        </SavePageContextBridge>
-      </SupplierContext_Provider>
+      <SavePageContextBridge
+        onSave={onSave}
+        saveButtonText={saveButtonText}
+        successMessage={successMessage}
+        showSaveButton={showSaveButton}
+        customSaveAction={customSaveAction}
+        className={className}
+      >
+        {children}
+      </SavePageContextBridge>
     </MasterContext_Provider>
   );
 };

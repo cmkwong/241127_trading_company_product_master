@@ -1,15 +1,22 @@
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import PropTypes from 'prop-types';
 import { useAuthContext } from '../../../store/AuthContext';
+import { ProductContext } from '../../../store/ProductContext';
+import { SupplierContext } from '../../../store/SupplierContext';
 import styles from './TopBar.module.css';
 
 const TopBar = ({ title, activeView, onViewChange }) => {
   const { token, refreshToken, isLoading, error, clearToken } =
     useAuthContext();
+  const productContext = useContext(ProductContext);
+  const supplierContext = useContext(SupplierContext);
+  const refreshProductList = productContext?.refreshProductList;
+  const refreshSupplierList = supplierContext?.refreshSupplierList;
   const [showLogin, setShowLogin] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const handleLoginClick = () => {
     setShowLogin(!showLogin);
@@ -19,6 +26,23 @@ const TopBar = ({ title, activeView, onViewChange }) => {
   const handleLogout = () => {
     clearToken();
     setShowLogin(false);
+  };
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      if (activeView === 'product') {
+        if (typeof refreshProductList === 'function') {
+          await refreshProductList();
+        }
+      } else {
+        if (typeof refreshSupplierList === 'function') {
+          await refreshSupplierList();
+        }
+      }
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -48,7 +72,29 @@ const TopBar = ({ title, activeView, onViewChange }) => {
   return (
     <div className={styles.topBar}>
       <div className={styles.leftSection}>
-        <div className={styles.title}>{title || 'Product Master'}</div>
+        <div className={styles.titleWrap}>
+          <div className={styles.title}>{title || 'Product Master'}</div>
+          <button
+            type="button"
+            className={styles.refreshBtn}
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            title="Refresh list"
+            aria-label="Refresh list"
+          >
+            <svg
+              className={`${styles.refreshIcon} ${isRefreshing ? styles.spinning : ''}`}
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              aria-hidden="true"
+            >
+              <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36M20.49 15a9 9 0 01-14.85 3.36" />
+            </svg>
+          </button>
+        </div>
         <div className={styles.navLinks}>
           <button
             className={`${styles.navBtn} ${

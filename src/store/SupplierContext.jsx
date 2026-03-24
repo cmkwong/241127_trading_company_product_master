@@ -39,11 +39,81 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
   const [comparisonKeys, setComparisonKeys] = useState([]);
   const objectUrlRegistryRef = useRef([]);
   const pageDataUrlRegistryRef = useRef([]);
+  const hasInitialFetchRef = useRef(false);
 
   const supplierBase64Config = useMemo(
     () => fileMappings || {},
     [fileMappings],
   );
+
+  // Extracted function to fetch suppliers
+  const doFetchSuppliers = useCallback(async () => {
+    if (!token) {
+      setSuppliers({ suppliers: [] });
+      return;
+    }
+
+    setIsSuppliersLoading(true);
+    try {
+      const response = await apiGet(
+        'http://localhost:3001/api/v1/trade_business/suppliers/data',
+        {
+          token,
+          params: {
+            includeBase64: '1',
+            compress: '1',
+          },
+        },
+      );
+
+      const rawData = normalizeStructuredTableResponse(response, 'suppliers');
+
+      releaseObjectUrls(objectUrlRegistryRef.current);
+      const urlRegistry = [];
+
+      const processedSuppliers = recursiveProcess_base64_to_objectUrl(
+        rawData,
+        'root',
+        supplierBase64Config,
+        urlRegistry,
+      );
+
+      setSuppliers(processedSuppliers || { suppliers: [] });
+      objectUrlRegistryRef.current = urlRegistry;
+    } catch (error) {
+      console.error('Failed to fetch suppliers:', error);
+      setSuppliers({ suppliers: [] });
+    } finally {
+      setIsSuppliersLoading(false);
+    }
+  }, [token, supplierBase64Config]);
+
+  // Extracted function to fetch comparison keys
+  const doFetchComparisonKeys = useCallback(async () => {
+    if (!token) {
+      setComparisonKeys([]);
+      return;
+    }
+
+    try {
+      const response = await apiGet(
+        'http://localhost:3001/api/v1/trade_business/suppliers/data/comparison-keys',
+        { token },
+      );
+
+      const keys = response?.data?.firstLevelKeys;
+      setComparisonKeys(Array.isArray(keys) ? keys : []);
+    } catch (error) {
+      console.error('Failed to fetch supplier comparison keys:', error);
+      setComparisonKeys([]);
+    }
+  }, [token]);
+
+  // Public method to manually refresh all supplier data
+  const refreshSupplierList = useCallback(async () => {
+    await doFetchSuppliers();
+    await doFetchComparisonKeys();
+  }, [doFetchSuppliers, doFetchComparisonKeys]);
 
   useEffect(() => {
     if (isFileMappingsLoading) {
@@ -53,62 +123,16 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
     if (!token) {
       setSuppliers({ suppliers: [] });
       setPageData({});
+      hasInitialFetchRef.current = false;
       return;
     }
 
-    const fetchSuppliers = async () => {
-      setIsSuppliersLoading(true);
-      try {
-        const response = await apiGet(
-          'http://localhost:3001/api/v1/trade_business/suppliers/data',
-          {
-            token,
-            params: {
-              includeBase64: '1',
-              compress: '1',
-            },
-          },
-        );
-
-        const rawData = normalizeStructuredTableResponse(response, 'suppliers');
-
-        releaseObjectUrls(objectUrlRegistryRef.current);
-        const urlRegistry = [];
-
-        const processedSuppliers = recursiveProcess_base64_to_objectUrl(
-          rawData,
-          'root',
-          supplierBase64Config,
-          urlRegistry,
-        );
-
-        setSuppliers(processedSuppliers || { suppliers: [] });
-        objectUrlRegistryRef.current = urlRegistry;
-      } catch (error) {
-        console.error('Failed to fetch suppliers:', error);
-        setSuppliers({ suppliers: [] });
-      } finally {
-        setIsSuppliersLoading(false);
-      }
-    };
-
-    const fetchSupplierComparisonKeys = async () => {
-      try {
-        const response = await apiGet(
-          'http://localhost:3001/api/v1/trade_business/suppliers/data/comparison-keys',
-          { token },
-        );
-
-        const keys = response?.data?.firstLevelKeys;
-        setComparisonKeys(Array.isArray(keys) ? keys : []);
-      } catch (error) {
-        console.error('Failed to fetch supplier comparison keys:', error);
-        setComparisonKeys([]);
-      }
-    };
-
-    fetchSuppliers();
-    fetchSupplierComparisonKeys();
+    // Only fetch once per token to prevent re-fetching on tab switches
+    if (!hasInitialFetchRef.current) {
+      doFetchSuppliers();
+      doFetchComparisonKeys();
+      hasInitialFetchRef.current = true;
+    }
 
     return () => {
       releaseObjectUrls(objectUrlRegistryRef.current);
@@ -116,7 +140,7 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
       releaseObjectUrls(pageDataUrlRegistryRef.current);
       pageDataUrlRegistryRef.current = [];
     };
-  }, [token, isFileMappingsLoading, supplierBase64Config]);
+  }, [token, isFileMappingsLoading, doFetchSuppliers, doFetchComparisonKeys]);
 
   const effectiveComparisonKeys = useCallback(() => {
     if (comparisonKeys.length > 0) {
@@ -361,6 +385,7 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
         upsertSupplierPageData,
         getAllSuppliers,
         updateSuppliers,
+        refreshSupplierList,
         handleSupplierSave,
         createNewSupplier,
         getAllData,

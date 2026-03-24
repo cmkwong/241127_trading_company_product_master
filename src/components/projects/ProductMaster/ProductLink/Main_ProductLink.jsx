@@ -118,6 +118,7 @@ const Main_ProductLink = () => {
         label: 'Link',
         sortType: 'string',
         minWidth: '280px',
+        cellClassName: styles.middleCell,
         renderCell: (row) => (
           <Main_TextField
             className={styles.cellInput}
@@ -132,7 +133,10 @@ const Main_ProductLink = () => {
         key: 'product_link_images',
         label: 'Images',
         sortable: false,
-        minWidth: '320px',
+        width: '560px',
+        minWidth: '240px',
+        maxWidth: '8000px',
+        cellClassName: styles.middleCell,
         renderCell: (row) => {
           const defaultImages = sortByDisplayOrder(
             row.product_link_images || [],
@@ -167,6 +171,7 @@ const Main_ProductLink = () => {
         label: 'Remark',
         sortable: false,
         minWidth: '260px',
+        cellClassName: styles.middleCell,
         renderCell: (row) => (
           <div className={styles.remarkCell}>
             <Main_TextArea
@@ -185,6 +190,7 @@ const Main_ProductLink = () => {
         sortable: false,
         width: '160px',
         minWidth: '160px',
+        cellClassName: styles.middleCell,
         renderCell: (row) => (
           <div className={styles.dateCell}>
             <Main_DateSelector
@@ -200,6 +206,7 @@ const Main_ProductLink = () => {
         sortable: false,
         width: '90px',
         minWidth: '90px',
+        cellClassName: styles.middleCell,
         renderCell: (row) => (
           <DeleteBtn onClick={() => handleDeleteLinkRow(row)} />
         ),

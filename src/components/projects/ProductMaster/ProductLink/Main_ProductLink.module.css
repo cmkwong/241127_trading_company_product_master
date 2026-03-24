@@ -20,8 +20,8 @@
 }
 
 .uploadsCell {
-  min-width: 280px;
-  max-width: 420px;
+  width: 100%;
+  min-width: 0;
 }
 
 .remarkCell {
@@ -40,4 +40,8 @@
 
 .dateCell :global([data-testid='date-selector']) {
   width: 100%;
+}
+
+.middleCell {
+  vertical-align: middle !important;
 }

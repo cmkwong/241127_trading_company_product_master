@@ -3,6 +3,9 @@ import PropTypes from 'prop-types';
 import styles from './Main_DateSelector.module.css';
 import Sub_DateField from './Sub_DateField';
 
+const DATE_DASH_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
+const DATE_PLAIN_RE = /^(\d{4})(\d{2})(\d{2})$/;
+
 const Main_DateSelector = ({
   // Controlled
   defaultValue, // Date or ISO string
@@ -29,6 +32,28 @@ const Main_DateSelector = ({
   const toDate = useCallback((d) => {
     if (!d) return undefined;
     if (d instanceof Date) return isNaN(d.getTime()) ? undefined : d;
+
+    if (typeof d === 'string') {
+      const value = d.trim();
+      let m = value.match(DATE_DASH_RE);
+      if (!m) m = value.match(DATE_PLAIN_RE);
+
+      if (m) {
+        const year = Number(m[1]);
+        const month = Number(m[2]);
+        const day = Number(m[3]);
+        const localDate = new Date(year, month - 1, day);
+
+        if (
+          localDate.getFullYear() === year &&
+          localDate.getMonth() === month - 1 &&
+          localDate.getDate() === day
+        ) {
+          return localDate;
+        }
+      }
+    }
+
     const parsed = new Date(d);
     return isNaN(parsed.getTime()) ? undefined : parsed;
   }, []);
@@ -58,7 +83,10 @@ const Main_DateSelector = ({
 
   const displayValue = useMemo(() => {
     if (!currentDate) return '';
-    return currentDate.toISOString().slice(0, 10);
+    const yyyy = String(currentDate.getFullYear());
+    const mm = String(currentDate.getMonth() + 1).padStart(2, '0');
+    const dd = String(currentDate.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
   }, [currentDate]);
 
   const fieldProps = useMemo(

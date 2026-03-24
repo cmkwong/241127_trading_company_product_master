@@ -110,7 +110,7 @@ const Main_DropZone = ({
 
       <div className={styles.dropZoneContent}>
         {/* Show preview/list if we have items and children */}
-        {showPreview && (hasItems || tableCell) && children && (
+        {showPreview && hasItems && children && (
           <div
             className={`${styles.previewContainer} ${
               itemType === 'files' ? styles.filePreviewContainer : ''

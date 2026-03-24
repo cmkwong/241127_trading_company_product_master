@@ -6,6 +6,7 @@ const SearchSideBarListItem = ({
   item,
   isSelected,
   onClick,
+  itemRef,
   iconUrl,
   iconAlt,
   title,
@@ -18,6 +19,8 @@ const SearchSideBarListItem = ({
 
   return (
     <div
+      ref={itemRef}
+      tabIndex={-1}
       className={`${styles.listItem} ${isSelected ? styles.selected : ''}`}
       onClick={() => onClick?.(item)}
     >

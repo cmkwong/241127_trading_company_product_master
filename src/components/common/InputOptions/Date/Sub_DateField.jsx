@@ -1,8 +1,14 @@
 import { useMemo, useState, useRef, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import styles from './Sub_DateField.module.css';
-
-const weekdays = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+import Sub_DateInputField from './Sub_DateInputField';
+import Sub_DateCalendarPopover from './Sub_DateCalendarPopover';
+import {
+  buildCalendar,
+  formatDate,
+  parseDateInput,
+  stripTime,
+} from './dateHelpers';
 
 const Sub_DateField = ({
   id,
@@ -16,23 +22,66 @@ const Sub_DateField = ({
   label,
 }) => {
   const [open, setOpen] = useState(false);
+  const [inputValue, setInputValue] = useState(displayValue || '');
+  const [inputInvalid, setInputInvalid] = useState(false);
   const [viewDate, setViewDate] = useState(() =>
     stripTime(defaultValue || new Date()),
   );
   const containerRef = useRef(null);
+  const popoverRef = useRef(null);
+  const [popoverPosition, setPopoverPosition] = useState({ top: 0, left: 0 });
 
   useEffect(() => {
     if (defaultValue) setViewDate(stripTime(defaultValue));
   }, [defaultValue]);
 
   useEffect(() => {
+    setInputValue(displayValue || '');
+    setInputInvalid(false);
+  }, [displayValue]);
+
+  useEffect(() => {
     const onDocClick = (e) => {
       if (!containerRef.current) return;
-      if (!containerRef.current.contains(e.target)) setOpen(false);
+      const target = e.target;
+      const clickedInsideField = containerRef.current.contains(target);
+      const clickedInsidePopover = popoverRef.current?.contains(target);
+      if (!clickedInsideField && !clickedInsidePopover) setOpen(false);
     };
     if (open) document.addEventListener('mousedown', onDocClick);
     return () => document.removeEventListener('mousedown', onDocClick);
   }, [open]);
+
+  const updatePopoverPosition = useCallback(() => {
+    const anchor = containerRef.current;
+    if (!anchor) return;
+
+    const rect = anchor.getBoundingClientRect();
+    setPopoverPosition({
+      top: rect.bottom + 6,
+      left: rect.left,
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+
+    updatePopoverPosition();
+
+    const onEscape = (event) => {
+      if (event.key === 'Escape') setOpen(false);
+    };
+
+    window.addEventListener('resize', updatePopoverPosition);
+    window.addEventListener('scroll', updatePopoverPosition, true);
+    document.addEventListener('keydown', onEscape);
+
+    return () => {
+      window.removeEventListener('resize', updatePopoverPosition);
+      window.removeEventListener('scroll', updatePopoverPosition, true);
+      document.removeEventListener('keydown', onEscape);
+    };
+  }, [open, updatePopoverPosition]);
 
   const prevMonth = useCallback(() => {
     setViewDate((d) => {
@@ -67,97 +116,101 @@ const Sub_DateField = ({
     [viewDate],
   );
 
+  const applyTextDate = useCallback(
+    (rawValue) => {
+      const text = String(rawValue || '').trim();
+
+      if (!text) {
+        onSelect(undefined);
+        setInputValue('');
+        setInputInvalid(false);
+        return true;
+      }
+
+      const parsed = parseDateInput(text);
+      if (!parsed || isDateDisabled(parsed)) {
+        setInputInvalid(true);
+        return false;
+      }
+
+      const normalized = formatDate(parsed);
+      setInputValue(normalized);
+      setViewDate(parsed);
+      onSelect(parsed);
+      setInputInvalid(false);
+      return true;
+    },
+    [onSelect, isDateDisabled],
+  );
+
+  const handleInputBlur = useCallback(() => {
+    const ok = applyTextDate(inputValue);
+    if (!ok) {
+      setInputValue(displayValue || '');
+      setInputInvalid(false);
+    }
+  }, [applyTextDate, inputValue, displayValue]);
+
+  const handleInputKeyDown = useCallback(
+    (event) => {
+      if (event.key !== 'Enter') return;
+      event.preventDefault();
+
+      const ok = applyTextDate(inputValue);
+      if (!ok) {
+        setInputValue(displayValue || '');
+        setInputInvalid(false);
+      }
+    },
+    [applyTextDate, inputValue, displayValue],
+  );
+
+  const handleSelectFromCalendar = useCallback(
+    (date) => {
+      setInputValue(formatDate(date));
+      setInputInvalid(false);
+      setViewDate(stripTime(date));
+      onSelect(date);
+      setOpen(false);
+    },
+    [onSelect],
+  );
+
   return (
     <div className={styles.fieldContainer} ref={containerRef}>
-      <button
+      <Sub_DateInputField
         id={id}
-        type="button"
-        className={styles.button}
-        aria-haspopup="dialog"
-        aria-expanded={open}
-        onClick={() => setOpen((v) => !v)}
-      >
-        {displayValue || placeholder}
-      </button>
-
-      {open && (
-        <div
-          role="dialog"
-          aria-label={label || 'Date picker'}
-          className={styles.popover}
-        >
-          <div className={styles.header}>
-            <button
-              type="button"
-              className={styles.navBtn}
-              onClick={prevMonth}
-              aria-label="Previous month"
-            >
-              ‹
-            </button>
-            <div className={styles.monthLabel}>{monthLabel}</div>
-            <button
-              type="button"
-              className={styles.navBtn}
-              onClick={nextMonth}
-              aria-label="Next month"
-            >
-              ›
-            </button>
-          </div>
-
-          <div className={styles.grid} role="grid" aria-labelledby={id}>
-            <div className={styles.weekHeader} role="row">
-              {weekdays.map((d) => (
-                <div key={d} className={styles.weekday} role="columnheader">
-                  {d}
-                </div>
-              ))}
-            </div>
-
-            {weeks.map((week, wi) => (
-              <div key={wi} className={styles.week} role="row">
-                {week.map((cell, ci) => {
-                  if (!cell)
-                    return <div key={ci} className={styles.dayCellEmpty} />;
-                  const { date, isToday, isCurrentMonth } = cell;
-                  const disabled = isDateDisabled(date);
-                  const selected = defaultValue && sameDay(defaultValue, date);
-
-                  const classNames = [
-                    styles.dayCell,
-                    !isCurrentMonth && styles.outside,
-                    isToday && styles.today,
-                    selected && styles.selected,
-                    disabled && styles.disabled,
-                  ]
-                    .filter(Boolean)
-                    .join(' ');
-
-                  return (
-                    <button
-                      key={ci}
-                      type="button"
-                      className={classNames}
-                      onClick={() => {
-                        if (!disabled) {
-                          onSelect(date);
-                          setOpen(false);
-                        }
-                      }}
-                      aria-pressed={selected}
-                      aria-disabled={disabled}
-                      disabled={disabled}
-                    >
-                      {date.getDate()}
-                    </button>
-                  );
-                })}
-              </div>
-            ))}
-          </div>
+        inputValue={inputValue}
+        inputInvalid={inputInvalid}
+        placeholder={placeholder}
+        open={open}
+        onInputChange={(event) => {
+          setInputValue(event.target.value);
+          if (inputInvalid) setInputInvalid(false);
+        }}
+        onInputBlur={handleInputBlur}
+        onInputKeyDown={handleInputKeyDown}
+        onToggleCalendar={() => setOpen((v) => !v)}
+      />
+      {inputInvalid && (
+        <div id={`${id}-date-help`} className={styles.errorText}>
+          Use YYYY-MM-DD or YYYYMMDD.
         </div>
       )}
+      <Sub_DateCalendarPopover
+        open={open}
+        popoverRef={popoverRef}
+        label={label}
+        popoverPosition={popoverPosition}
+        monthLabel={monthLabel}
+        id={id}
+        weeks={weeks}
+        defaultValue={defaultValue}
+        isDateDisabled={isDateDisabled}
+        onPrevMonth={prevMonth}
+        onNextMonth={nextMonth}
+        onSelectDate={handleSelectFromCalendar}
+      />
     </div>
   );
 };
@@ -175,56 +228,3 @@ Sub_DateField.propTypes = {
 };
 
 export default Sub_DateField;
-
-// Helpers
-function stripTime(d) {
-  const nd = new Date(d);
-  nd.setHours(0, 0, 0, 0);
-  return nd;
-}
-
-function sameDay(a, b) {
-  return (
-    a &&
-    b &&
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate()
-  );
-}
-
-function buildCalendar(viewDate) {
-  const base = stripTime(viewDate || new Date());
-  const year = base.getFullYear();
-  const month = base.getMonth();
-
-  const start = new Date(year, month, 1);
-  const end = new Date(year, month + 1, 0);
-
-  const startWeekday = start.getDay();
-  const totalDays = end.getDate();
-
-  const monthLabel = base.toLocaleString(undefined, {
-    month: 'long',
-    year: 'numeric',
-  });
-
-  const days = [];
-  for (let i = 0; i < startWeekday; i++) days.push(null);
-  for (let d = 1; d <= totalDays; d++) {
-    const date = new Date(year, month, d);
-    days.push({
-      date,
-      isToday: sameDay(date, new Date()),
-      isCurrentMonth: true,
-    });
-  }
-  while (days.length % 7 !== 0) days.push(null);
-
-  const weeks = [];
-  for (let i = 0; i < days.length; i += 7) {
-    weeks.push(days.slice(i, i + 7));
-  }
-
-  return { monthLabel, weeks };
-}

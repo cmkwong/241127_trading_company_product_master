@@ -60,15 +60,15 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
     const fetchProducts = async () => {
       setIsProductsLoading(true);
       try {
-        const response = await apiGet(
-          'http://localhost:3001/api/v1/trade_business/products/data',
+        const response = await apiPost(
+          'http://localhost:3001/api/v1/trade_business/products/data/list',
+          {
+            includeBase64: true,
+            iconOnly: true,
+            compress: true,
+          },
           {
             token,
-            params: {
-              includeBase64: '1',
-              iconOnly: '1',
-              compress: '1',
-            },
           },
         );
 
@@ -180,6 +180,8 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
         setIsProductsLoading(true);
         try {
           const requestBody = {
+            includeBase64: true,
+            compress: true,
             data: {
               products: [
                 {
@@ -194,10 +196,6 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
             requestBody,
             {
               token,
-              params: {
-                includeBase64: '1',
-                compress: '1',
-              },
             },
           );
 

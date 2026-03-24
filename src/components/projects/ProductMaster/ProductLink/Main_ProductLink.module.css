@@ -38,6 +38,6 @@
   min-width: 140px;
 }
 
-.dateCell :global(button) {
+.dateCell :global([data-testid='date-selector']) {
   width: 100%;
 }

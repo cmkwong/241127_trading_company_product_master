@@ -1,29 +1,74 @@
 .fieldContainer {
   position: relative;
-  display: inline-block;
+  display: inline-flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-.button {
+.inputWrap {
   width: 220px;
-  padding: 8px 10px;
-  border: 1px solid #ccc;
+  display: flex;
+  align-items: stretch;
+  border: 1px solid #111;
+  border-radius: 2px;
+  overflow: hidden;
   background: #fff;
-  border-radius: 6px;
-  text-align: left;
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  padding: 8px 10px;
+  font-size: 13px;
+}
+
+.input::placeholder {
+  color: #9aa0a6;
+}
+
+.inputInvalid {
+  background: #fff5f5;
+}
+
+.calendarButton {
+  width: 40px;
+  min-width: 40px;
+  border: none;
+  border-left: 1px solid #111;
+  background: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
 }
 
+.calendarButton:hover {
+  background: #f5f5f5;
+}
+
+.calendarIcon {
+  width: 20px;
+  height: 20px;
+  color: #111;
+}
+
+.errorText {
+  color: #b91c1c;
+  font-size: 11px;
+}
+
 .popover {
-  position: absolute;
-  top: 100%;
+  position: fixed;
+  top: 0;
   left: 0;
-  margin-top: 6px;
   width: 260px;
   background: #fff;
   border: 1px solid #ddd;
   border-radius: 8px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-  z-index: 10;
+  z-index: 2000;
   padding: 8px;
 }
 

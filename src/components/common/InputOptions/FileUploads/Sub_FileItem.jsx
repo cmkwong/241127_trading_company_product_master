@@ -2,6 +2,10 @@ import { useEffect, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import { createPortal } from 'react-dom';
 import styles from './Sub_FileItem.module.css';
+import {
+  DRAG_READY_LABEL,
+  getDragPlacementUiState,
+} from '../../../../utils/dragUi';
 
 /**
  * Sub_FileItem Component
@@ -22,6 +26,8 @@ const Sub_FileItem = ({
   hoverPreview = false,
 }) => {
   const [dropPosition, setDropPosition] = useState(null);
+  const [dragSourceIndex, setDragSourceIndex] = useState(null);
+  const [isSelfDragging, setIsSelfDragging] = useState(false);
   const [showHoverPreview, setShowHoverPreview] = useState(false);
   const [hoverPreviewStyle, setHoverPreviewStyle] = useState(null);
 
@@ -64,11 +70,13 @@ const Sub_FileItem = ({
     }
     e.dataTransfer.setData('text/plain', index);
     e.dataTransfer.effectAllowed = 'move';
-    e.target.style.opacity = '0.4';
+    setIsSelfDragging(true);
+    setDragSourceIndex(index);
   };
 
-  const handleDragEnd = (e) => {
-    e.target.style.opacity = '1';
+  const handleDragEnd = () => {
+    setIsSelfDragging(false);
+    setDragSourceIndex(null);
     setDropPosition(null);
   };
 
@@ -79,6 +87,7 @@ const Sub_FileItem = ({
   const handleDragLeave = (e) => {
     if (e.currentTarget.contains(e.relatedTarget)) return;
     setDropPosition(null);
+    setDragSourceIndex(null);
   };
 
   const handleDragOver = (e) => {
@@ -86,6 +95,11 @@ const Sub_FileItem = ({
     e.dataTransfer.dropEffect = 'move';
 
     if (disabled || !onMove) return;
+
+    const dragIndex = parseInt(e.dataTransfer.getData('text/plain'));
+    if (!Number.isNaN(dragIndex)) {
+      setDragSourceIndex(dragIndex);
+    }
 
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
@@ -108,6 +122,7 @@ const Sub_FileItem = ({
     }
 
     setDropPosition(null);
+    setDragSourceIndex(null);
 
     if (dragIndex === index && dropPosition === 'left') {
       return;
@@ -120,6 +135,12 @@ const Sub_FileItem = ({
       onMove(dragIndex, insertIndex);
     }
   };
+
+  const { isDraggedItem, isDropTarget } = getDragPlacementUiState({
+    draggedKey: isSelfDragging ? index : dragSourceIndex,
+    overKey: dropPosition ? index : null,
+    currentKey: index,
+  });
 
   // Determine shift classes for drag reordering
   let shiftClass = '';
@@ -230,7 +251,9 @@ const Sub_FileItem = ({
       <div
         className={`${styles.imagePreview} ${
           fullSizePreview ? styles.fullSizePreview : ''
-        } ${editMode ? styles.editorModePreview : ''} ${compactImage ? styles.compactImagePreview : ''} ${shiftClass}`}
+        } ${editMode ? styles.editorModePreview : ''} ${compactImage ? styles.compactImagePreview : ''} ${shiftClass} ${
+          isDraggedItem ? styles.draggingItem : ''
+        } ${isDropTarget ? styles.dragOverItem : ''}`}
         draggable={!disabled && !!onMove}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
@@ -244,11 +267,8 @@ const Sub_FileItem = ({
         title={onMove ? 'Drag to reorder' : name}
         style={{ cursor: 'pointer' }}
       >
-        {dropPosition === 'left' && (
-          <div className={styles.dropIndicatorLeft} />
-        )}
-        {dropPosition === 'right' && (
-          <div className={styles.dropIndicatorRight} />
+        {isDropTarget && (
+          <div className={styles.dropReadyBadge}>{DRAG_READY_LABEL}</div>
         )}
 
         <img src={file.url} alt={name} className={styles.previewImg} />
@@ -305,7 +325,9 @@ const Sub_FileItem = ({
   // Render as file list item
   return (
     <li
-      className={`${styles.fileItem} ${compactFile ? styles.compactFileItem : ''} ${shiftClass}`}
+      className={`${styles.fileItem} ${compactFile ? styles.compactFileItem : ''} ${shiftClass} ${
+        isDraggedItem ? styles.draggingItem : ''
+      } ${isDropTarget ? styles.dragOverItem : ''}`}
       draggable={!disabled && !!onMove}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
@@ -317,9 +339,8 @@ const Sub_FileItem = ({
       onClick={handlePreview}
       style={{ cursor: 'pointer' }}
     >
-      {dropPosition === 'left' && <div className={styles.dropIndicatorLeft} />}
-      {dropPosition === 'right' && (
-        <div className={styles.dropIndicatorRight} />
+      {isDropTarget && (
+        <div className={styles.dropReadyBadge}>{DRAG_READY_LABEL}</div>
       )}
 
       <div className={styles.fileInfo}>

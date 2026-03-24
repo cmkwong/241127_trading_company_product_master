@@ -13,6 +13,33 @@
   cursor: grab;
 }
 
+.draggingItem {
+  opacity: 0.55;
+  transform: scale(0.99);
+}
+
+.dragOverItem {
+  background-color: #f0f7ff !important;
+  border: 1px dashed #6aa8ff;
+  border-radius: 8px;
+  box-shadow: 0 0 0 2px rgba(86, 156, 255, 0.2);
+}
+
+.dropReadyBadge {
+  position: absolute;
+  top: -10px;
+  left: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #1e5aa8;
+  background: #e9f3ff;
+  border: 1px solid #b8d7ff;
+  border-radius: 999px;
+  padding: 2px 8px;
+  pointer-events: none;
+  z-index: 25;
+}
+
 .fileItem:active {
   cursor: grabbing;
 }
@@ -167,33 +194,11 @@
 
 /* Shift Effects for Drag Reordering */
 .shiftRight {
-  transform: translateX(12px);
+  transform: translateX(15px);
 }
 
 .shiftLeft {
-  transform: translateX(-12px);
-}
-
-/* Drop Indicators */
-.dropIndicatorLeft,
-.dropIndicatorRight {
-  position: absolute;
-  top: -4px;
-  bottom: -4px;
-  width: 4px;
-  background-color: #1890ff;
-  border-radius: 2px;
-  z-index: 20;
-  pointer-events: none;
-  box-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
-}
-
-.dropIndicatorLeft {
-  left: -8px;
-}
-
-.dropIndicatorRight {
-  right: -8px;
+  transform: translateX(-15px);
 }
 
 .fullSizePreview {

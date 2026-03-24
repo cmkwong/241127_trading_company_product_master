@@ -18,7 +18,6 @@ import VerticalLayout from '../../common/Layouts/VerticalLayout';
 import SplitLayout from '../../common/Layouts/SplitLayout';
 
 const Main_ProductMaster = () => {
-  const [selectedProduct, setSelectedProduct] = useState(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showIconPanel, setShowIconPanel] = useState(false);
   const iconOverlayRef = useRef(null);
@@ -58,11 +57,6 @@ const Main_ProductMaster = () => {
     });
   };
 
-  // Handle product selection from the list
-  const handleProductSelect = (product) => {
-    setSelectedProduct(product);
-  };
-
   // Toggle sidebar visibility
   const handleToggleSidebar = (collapsed) => {
     setSidebarCollapsed(collapsed);
@@ -73,17 +67,9 @@ const Main_ProductMaster = () => {
       onSave={onSaveProduct}
       saveButtonText="Save Product"
       successMessage="Product saved successfully!"
-      initialData={
-        selectedProduct || {
-          id: null,
-          name: '',
-          icon_url: '',
-        }
-      }
     >
       <div className={styles.masterContainer}>
         <ProductSidebar
-          onSelectProduct={handleProductSelect}
           isCollapsed={sidebarCollapsed}
           onToggleCollapse={handleToggleSidebar}
         />

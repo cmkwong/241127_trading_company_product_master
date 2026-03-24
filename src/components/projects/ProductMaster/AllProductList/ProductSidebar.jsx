@@ -5,14 +5,14 @@ import { useProductContext } from '../../../../store/ProductContext';
 import { useMasterContext } from '../../../../store/MasterContext';
 
 const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
-  const { getProductData, products, createNewProduct } = useProductContext();
+  const { getProductData, products, createNewProduct, selectedProductId } =
+    useProductContext();
   const { category } = useMasterContext();
   const [windowWidth, setWindowWidth] = useState(
     typeof window !== 'undefined' ? window.innerWidth : 1024,
   );
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredProducts, setFilteredProducts] = useState([]);
-  const [selectedProduct, setSelectedProduct] = useState(null);
 
   useEffect(() => {
     const currentProductList = Array.isArray(products)
@@ -56,8 +56,6 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
     (product) => {
       const getProductDataSuccess = getProductData(product.id);
       if (!getProductDataSuccess) return;
-
-      setSelectedProduct(product);
 
       // On mobile, collapse the sidebar after selection
       if (windowWidth <= 768) {
@@ -132,7 +130,7 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
       >
         <SearchSideBarList
           items={filteredProducts}
-          selectedItemId={selectedProduct?.id}
+          selectedItemId={selectedProductId}
           onSelectItem={handleProductSelect}
           searchValue={searchTerm}
           onSearchChange={handleSearchChange}

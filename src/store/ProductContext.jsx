@@ -37,6 +37,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState(null);
   const [products, setProducts] = useState({ products: [] });
+  const [selectedProductId, setSelectedProductId] = useState(null);
   const [isProductsLoading, setIsProductsLoading] = useState(false);
   const [comparisonKeys, setComparisonKeys] = useState([]);
   const objectUrlRegistryRef = useRef([]);
@@ -132,6 +133,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
     if (!token) {
       setProducts({ products: [] });
       setPageData({});
+      setSelectedProductId(null);
       hasInitialFetchRef.current = false;
       return;
     }
@@ -198,6 +200,8 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
       ) {
         return false;
       }
+
+      setSelectedProductId(id);
 
       // Start async fetch to retrieve full product data (including base64 images)
       (async () => {
@@ -466,7 +470,9 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
       return false;
     }
 
-    setPageData({ id: uuidv4() }); // Start with a new product with a generated ID
+    const newProductId = uuidv4();
+    setSelectedProductId(newProductId);
+    setPageData({ id: newProductId }); // Start with a new product with a generated ID
     return true;
   }, [pageData, isDataUnchanged]);
 
@@ -481,6 +487,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
         // Core product state
         pageData,
         products,
+        selectedProductId,
 
         // Data loading and mutation actions
         getProductData,
@@ -488,6 +495,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
         getAllProducts,
         updateProducts,
         refreshProductList,
+        setSelectedProductId,
 
         // Save/create actions
         handleProductSave,

@@ -55,14 +55,14 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
 
     setIsSuppliersLoading(true);
     try {
-      const response = await apiGet(
-        'http://localhost:3001/api/v1/trade_business/suppliers/data',
+      const response = await apiPost(
+        'http://localhost:3001/api/v1/trade_business/suppliers/data/list',
+        {
+          includeBase64: true,
+          compress: true,
+        },
         {
           token,
-          params: {
-            includeBase64: '1',
-            compress: '1',
-          },
         },
       );
 
@@ -186,6 +186,8 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
         setIsSuppliersLoading(true);
         try {
           const requestBody = {
+            includeBase64: true,
+            compress: true,
             data: {
               suppliers: [
                 {
@@ -200,10 +202,6 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
             requestBody,
             {
               token,
-              params: {
-                includeBase64: '1',
-                compress: '1',
-              },
             },
           );
 
@@ -350,6 +348,35 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
     [pageData, getChangedData, token, _cleanupFlags, supplierBase64Config],
   );
 
+  const generateNextSupplierCode = useCallback(() => {
+    const supplierList = Array.isArray(suppliers?.suppliers)
+      ? suppliers.suppliers
+      : [];
+
+    const maxCounter = supplierList.reduce((maxValue, supplier) => {
+      const rawCode = supplier?.supplier_code || supplier?.code || '';
+      const code = String(rawCode).trim().toUpperCase();
+      const match = code.match(/^S(\d{4})-(\d{4})$/);
+
+      if (!match) return maxValue;
+
+      const high = Number(match[1]);
+      const low = Number(match[2]);
+      if (Number.isNaN(high) || Number.isNaN(low)) return maxValue;
+
+      const counter = high * 10000 + low;
+      return Math.max(maxValue, counter);
+    }, 0);
+
+    const nextCounter = maxCounter + 1;
+    const highPart = Math.floor(nextCounter / 10000)
+      .toString()
+      .padStart(4, '0');
+    const lowPart = (nextCounter % 10000).toString().padStart(4, '0');
+
+    return `S${highPart}-${lowPart}`;
+  }, [suppliers]);
+
   const createNewSupplier = useCallback(() => {
     if (
       !canProceedWithRecordSwitch({
@@ -360,8 +387,12 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
       return false;
     }
 
+    const newSupplierCode = generateNextSupplierCode();
+
     setPageData({
       id: uuidv4(),
+      code: newSupplierCode,
+      supplier_code: newSupplierCode,
       supplier_types: [],
       supplier_addresses: [],
       supplier_contacts: [],
@@ -370,7 +401,7 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
     });
 
     return true;
-  }, [pageData, isDataUnchanged]);
+  }, [pageData, isDataUnchanged, generateNextSupplierCode]);
 
   const getAllData = useCallback(() => {
     return pageData;

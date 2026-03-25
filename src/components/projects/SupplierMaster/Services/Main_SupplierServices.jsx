@@ -4,6 +4,7 @@ import Main_InputContainer from '../../../common/InputOptions/InputContainer/Mai
 import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
 import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_FileUploads';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
+import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
 import AddNewBtn from '../../../common/Buttons/AddNewBtn';
 import DeleteBtn from '../../../common/Buttons/DeleteBtn';
 import EditableDataTable from '../../../common/Table/EditableDataTable';
@@ -168,10 +169,10 @@ const Main_SupplierServices = () => {
         label: 'Remark',
         sortType: 'string',
         renderCell: (row) => (
-          <Main_TextField
-            className={styles.cellInput}
+          <Main_TextArea
             defaultValue={row.remark || ''}
             placeholder="Service Remark"
+            rows={2}
             onChange={(ov, nv) => {
               handleUpsertRow(row, { remark: nv });
             }}

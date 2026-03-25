@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
 import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
+import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
 import AddNewBtn from '../../../common/Buttons/AddNewBtn';
 import EditableDataTable from '../../../common/Table/EditableDataTable';
 import { useSupplierContext } from '../../../../store/SupplierContext';
@@ -145,10 +146,10 @@ const Main_SupplierContacts = () => {
         label: 'Remark',
         sortType: 'string',
         renderCell: (row) => (
-          <Main_TextField
-            className={styles.cellInput}
+          <Main_TextArea
             defaultValue={row.remark || ''}
             placeholder="Remark"
+            rows={2}
             onChange={(ov, nv) => {
               upsertContactRow(row, { remark: nv });
             }}

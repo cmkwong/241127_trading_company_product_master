@@ -2,8 +2,8 @@ import { useCallback, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
+import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
 import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
-import Button from '../../../common/Buttons/Button';
 import EditableDataTable from '../../../common/Table/EditableDataTable';
 import { useSupplierContext } from '../../../../store/SupplierContext';
 import { useMasterContext } from '../../../../store/MasterContext';
@@ -108,10 +108,10 @@ const Main_SupplierLinks = () => {
         label: 'Remark',
         sortType: 'string',
         renderCell: (row) => (
-          <Main_TextField
-            className={styles.cellInput}
+          <Main_TextArea
             defaultValue={row.remark || ''}
             placeholder="Remark"
+            rows={2}
             onChange={(ov, nv) => {
               upsertLinkRow(row, { remark: nv });
             }}

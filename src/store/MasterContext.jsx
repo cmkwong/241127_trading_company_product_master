@@ -26,6 +26,7 @@ const DEFAULT_TABLE_NAMES = [
   'master_packing_reliability_types',
   'master_product_image_types',
   'master_product_name_types',
+  'master_product_status',
   'master_service_images',
   'master_services',
   'master_size_types',
@@ -48,6 +49,7 @@ const TABLE_INITIAL_DATA = {
   master_packing_reliability_types: [],
   master_product_image_types: [],
   master_product_name_types: [],
+  master_product_status: [],
   master_service_images: [],
   master_services: [],
   master_size_types: [],
@@ -79,6 +81,13 @@ const LEGACY_TABLE_BINDINGS = [
     updateName: 'updateProductNameTypes',
     addName: 'addProductNameType',
     removeName: 'removeProductNameType',
+  },
+  {
+    tableName: 'master_product_status',
+    getName: 'getProductStatus',
+    updateName: 'updateProductStatus',
+    addName: 'addProductStatus',
+    removeName: 'removeProductStatus',
   },
   {
     tableName: 'master_categories',
@@ -210,6 +219,7 @@ export const MasterContext_Provider = ({ children }) => {
   const packingReliabilityType =
     masterDataMap.master_packing_reliability_types || [];
   const productNameType = masterDataMap.master_product_name_types || [];
+  const productStatus = masterDataMap.master_product_status || [];
   const serviceImages = masterDataMap.master_service_images || [];
   const services = masterDataMap.master_services || [];
   const sizeType = masterDataMap.master_size_types || [];
@@ -367,6 +377,7 @@ export const MasterContext_Provider = ({ children }) => {
     customerImageType,
     customerNameType,
     productImageType,
+    productStatus,
     productKeywords,
     serviceImages,
     services,

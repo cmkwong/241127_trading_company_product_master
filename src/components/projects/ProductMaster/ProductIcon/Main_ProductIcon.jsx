@@ -4,7 +4,9 @@ import styles from './Main_ProductIcon.module.css';
 import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
 import { useProductContext } from '../../../../store/ProductContext';
+import { useMasterContext } from '../../../../store/MasterContext';
 import IconUpload from '../../../common/InputOptions/IconUpload/IconUpload';
+import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
 
 /**
  * Main_ProductIcon Component
@@ -21,6 +23,7 @@ const MAX_IMAGE_SIZE_MB = 5;
 
 const Main_ProductIcon = ({ showMaxImagesNotice = false }) => {
   const { pageData, upsertProductPageData } = useProductContext();
+  const { productStatus } = useMasterContext();
 
   // product ID state setup
   const [id, setId] = useState(pageData.id || '');
@@ -115,6 +118,21 @@ const Main_ProductIcon = ({ showMaxImagesNotice = false }) => {
             });
           }}
           disabled={false} // Set to false to allow editing of Product Index
+        />
+        <Main_Dropdown
+          label="Product Status"
+          defaultOptions={(productStatus || []).map((item) => ({
+            id: item.id,
+            name: item.name || item.label || '',
+          }))}
+          defaultSelectedOption={
+            pageData.product_status_id || pageData.status_id || ''
+          }
+          onChange={(ov, nv) => {
+            upsertProductPageData({
+              product_status_id: nv,
+            });
+          }}
         />
         <Main_TextField
           label={'Product ID'}

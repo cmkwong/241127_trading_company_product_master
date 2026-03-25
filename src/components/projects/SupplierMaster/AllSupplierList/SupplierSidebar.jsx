@@ -9,7 +9,7 @@ const SupplierSidebar = ({
   isCollapsed,
   onToggleCollapse,
 }) => {
-  const { getSupplierData, suppliers, createNewSupplier } =
+  const { getSupplierData, suppliers, createNewSupplier, selectedSupplierId } =
     useSupplierContext();
   const { supplierType, services } = useMasterContext();
 
@@ -18,7 +18,6 @@ const SupplierSidebar = ({
   );
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredSuppliers, setFilteredSuppliers] = useState([]);
-  const [selectedSupplier, setSelectedSupplier] = useState(null);
 
   useEffect(() => {
     const currentSupplierList = Array.isArray(suppliers)
@@ -51,8 +50,6 @@ const SupplierSidebar = ({
       const getSupplierDataSuccess = getSupplierData(supplier.id);
       if (!getSupplierDataSuccess) return;
 
-      setSelectedSupplier(supplier);
-
       if (windowWidth <= 768) {
         onToggleCollapse(true);
       }
@@ -70,7 +67,6 @@ const SupplierSidebar = ({
 
   const handleCreateSupplier = () => {
     createNewSupplier();
-    setSelectedSupplier(null);
   };
 
   const getSupplierName = useCallback(
@@ -230,7 +226,7 @@ const SupplierSidebar = ({
       >
         <SearchSideBarList
           items={filteredSuppliers}
-          selectedItemId={selectedSupplier?.id}
+          selectedItemId={selectedSupplierId}
           onSelectItem={handleSupplierSelect}
           searchValue={searchTerm}
           onSearchChange={handleSearchChange}

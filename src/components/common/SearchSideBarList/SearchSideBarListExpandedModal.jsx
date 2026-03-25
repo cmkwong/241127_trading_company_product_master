@@ -99,6 +99,13 @@ const SearchSideBarListExpandedModal = ({
     return ['Title', ...Array.from(labels)];
   }, [items, getItemRows]);
 
+  const hasAnySubRows = useMemo(() => {
+    return items.some((item) => {
+      const subRows = getItemSubRows(item) || [];
+      return Array.isArray(subRows) && subRows.length > 0;
+    });
+  }, [items, getItemSubRows]);
+
   useEffect(() => {
     if (!isOpen) {
       return;
@@ -246,7 +253,7 @@ const SearchSideBarListExpandedModal = ({
     );
   };
 
-  const renderLineContent = (line, column) => {
+  const renderLineContent = (line) => {
     if (isNil(line) || line === '') {
       return null;
     }
@@ -301,12 +308,12 @@ const SearchSideBarListExpandedModal = ({
       return renderImageRow(lines);
     }
     if (lines.length === 1) {
-      return renderLineContent(lines[0], column);
+      return renderLineContent(lines[0]);
     }
     return (
       <div className={styles.expandedCellMultiLine}>
         {lines.map((line, index) => {
-          const content = renderLineContent(line, column);
+          const content = renderLineContent(line);
           if (!content) return null;
           return (
             <div
@@ -414,37 +421,74 @@ const SearchSideBarListExpandedModal = ({
                 <line x1="19" y1="12" x2="22" y2="12" />
               </svg>
             </button>
-            <button
-              type="button"
-              style={{
-                marginRight: 8,
-                fontSize: 14,
-                padding: '0 10px',
-                borderRadius: 6,
-                border: '1px solid #bcd',
-                background: allExpanded ? '#e3f2fd' : '#fff',
-                color: '#1976d2',
-                cursor: 'pointer',
-                height: 32,
-              }}
-              onClick={() => {
-                setAllExpanded((prev) => {
-                  const next = !prev;
-                  setExpandedSubRows((old) => {
-                    const newState = {};
-                    sortedItems.forEach((item, idx) => {
-                      const itemId = getItemId(item) || idx;
-                      newState[itemId] = next;
+            {hasAnySubRows ? (
+              <button
+                type="button"
+                style={{
+                  marginRight: 8,
+                  borderRadius: 6,
+                  border: '1px solid #bcd',
+                  background: allExpanded ? '#e3f2fd' : '#fff',
+                  color: '#1976d2',
+                  cursor: 'pointer',
+                  height: 32,
+                  width: 40,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+                onClick={() => {
+                  setAllExpanded((prev) => {
+                    const next = !prev;
+                    setExpandedSubRows(() => {
+                      const newState = {};
+                      sortedItems.forEach((item, idx) => {
+                        const itemId = getItemId(item) || idx;
+                        newState[itemId] = next;
+                      });
+                      return newState;
                     });
-                    return newState;
+                    return next;
                   });
-                  return next;
-                });
-              }}
-              title={allExpanded ? 'Collapse all' : 'Expand all'}
-            >
-              {allExpanded ? 'Collapse All' : 'Expand All'}
-            </button>
+                }}
+                title={
+                  allExpanded ? 'Collapse all details' : 'Expand all details'
+                }
+                aria-label={
+                  allExpanded ? 'Collapse all details' : 'Expand all details'
+                }
+              >
+                {allExpanded ? (
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <polyline points="18 15 12 9 6 15" />
+                  </svg>
+                ) : (
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                )}
+              </button>
+            ) : null}
             <button
               type="button"
               className={styles.closeOverlayButton}

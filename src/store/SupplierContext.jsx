@@ -41,6 +41,7 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
   const [saveError, setSaveError] = useState(null);
   const [suppliers, setSuppliers] = useState({ suppliers: [] });
   const [isSuppliersLoading, setIsSuppliersLoading] = useState(false);
+  const [selectedSupplierId, setSelectedSupplierId] = useState(null);
   const [comparisonKeys, setComparisonKeys] = useState([]);
   const objectUrlRegistryRef = useRef([]);
   const pageDataUrlRegistryRef = useRef([]);
@@ -128,6 +129,7 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
     if (!token) {
       setSuppliers({ suppliers: [] });
       setPageData({});
+      setSelectedSupplierId(null);
       hasInitialFetchRef.current = false;
       return;
     }
@@ -222,6 +224,7 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
           const supplier =
             processed?.suppliers?.[0] || rawData?.suppliers?.[0] || null;
           if (supplier) {
+            setSelectedSupplierId(id);
             setPageData(supplier);
             setOriginalPageData(JSON.parse(JSON.stringify(supplier)));
             pageDataUrlRegistryRef.current = urlRegistry;
@@ -363,9 +366,10 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
     }
 
     const newSupplierCode = generateNextSupplierCode();
+    const newSupplierId = uuidv4();
 
     setPageData({
-      id: uuidv4(),
+      id: newSupplierId,
       code: newSupplierCode,
       supplier_code: newSupplierCode,
       supplier_types: [],
@@ -374,6 +378,7 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
       supplier_links: [],
       supplier_services: [],
     });
+    setSelectedSupplierId(newSupplierId);
 
     return true;
   }, [pageData, isDataUnchanged, generateNextSupplierCode]);
@@ -401,6 +406,8 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
         isSuppliersLoading,
         isDataUnchanged,
         getChangedData,
+        selectedSupplierId,
+        setSelectedSupplierId,
       }}
     >
       {children}

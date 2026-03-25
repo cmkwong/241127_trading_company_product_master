@@ -59,7 +59,6 @@ const Main_Dropdown = (props) => {
   const resolvedId = dropdownId || autoIdRef.current;
 
   // Internal state
-  const [options] = useState(defaultOptions);
   const [selected, setSelectedValue] = useState(defaultSelectedOption);
 
   // Handle selection change
@@ -84,7 +83,7 @@ const Main_Dropdown = (props) => {
   const dropdownProps = useMemo(
     () => ({
       id: resolvedId,
-      options: options,
+      options: defaultOptions,
       selectedValue: selected,
       onOptionClick: setSelected,
       buttonAltText: 'Select an option',
@@ -92,7 +91,14 @@ const Main_Dropdown = (props) => {
       buttonClassName: sizeClassName,
       buttonStyle: { width: `${sizeWidth}px` },
     }),
-    [resolvedId, options, selected, setSelected, sizeClassName, sizeWidth],
+    [
+      resolvedId,
+      defaultOptions,
+      selected,
+      setSelected,
+      sizeClassName,
+      sizeWidth,
+    ],
   );
 
   return (

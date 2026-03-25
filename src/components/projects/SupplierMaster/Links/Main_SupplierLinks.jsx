@@ -20,7 +20,7 @@ const Main_SupplierLinks = () => {
     () =>
       (supplierLinkType || []).map((item) => ({
         id: item.id,
-        label: item.label ?? item.name ?? '',
+        label: item.name,
       })),
     [supplierLinkType],
   );
@@ -71,15 +71,15 @@ const Main_SupplierLinks = () => {
         label: 'Link Type',
         sortType: 'string',
         getSortValue: (row) =>
-          linkTypeOptions.find((item) => item.id === row.link_type_id)?.label ||
+          supplierLinkType.find((item) => item.id === row.link_type_id)?.name ||
           '',
         renderCell: (row) => (
           <Main_Dropdown
-            defaultOptions={linkTypeOptions.map((item) => ({
+            defaultOptions={supplierLinkType.map((item) => ({
               id: item.id,
-              name: item.label,
+              name: item.name,
             }))}
-            defaultSelectedOption={row.link_type_id || row.type || ''}
+            defaultSelectedOption={row.link_type_id}
             onChange={(ov, nv) => {
               upsertLinkRow(row, { link_type_id: nv });
             }}
@@ -127,7 +127,7 @@ const Main_SupplierLinks = () => {
         ),
       },
     ],
-    [linkTypeOptions, upsertLinkRow, handleDeleteLinkRow],
+    [supplierLinkType, upsertLinkRow, handleDeleteLinkRow],
   );
 
   return (

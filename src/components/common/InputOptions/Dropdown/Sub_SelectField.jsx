@@ -13,6 +13,13 @@ const getNameFromOption = (option) =>
 const getIdFromOption = (option) =>
   isOptionObject(option) ? option.id : option;
 
+const isSameOptionValue = (left, right) => {
+  if (left === right) return true;
+  if (left === undefined || left === null) return false;
+  if (right === undefined || right === null) return false;
+  return String(left) === String(right);
+};
+
 const Sub_SelectField = ({
   id,
   buttonAltText = 'Toggle dropdown menu',
@@ -51,13 +58,15 @@ const Sub_SelectField = ({
     }
     // Match by id/value for object options
     if (options.length && options.some(isOptionObject)) {
-      const found = options.find(
-        (opt) => getIdFromOption(opt) === selectedValue,
+      const found = options.find((opt) =>
+        isSameOptionValue(getIdFromOption(opt), selectedValue),
       );
       return found ? getNameFromOption(found) : placeholder;
     }
     // For string options
-    return options.includes(selectedValue) ? selectedValue : placeholder;
+    return options.some((opt) => isSameOptionValue(opt, selectedValue))
+      ? selectedValue
+      : placeholder;
   }, [options, selectedValue, placeholder]);
 
   const openDropdown = useCallback(() => setOpen(true), []);
@@ -194,7 +203,7 @@ const Sub_SelectField = ({
             {options.map((option, index) => {
               const value = getIdFromOption(option);
               const name = getNameFromOption(option);
-              const isSelected = value === selectedValue;
+              const isSelected = isSameOptionValue(value, selectedValue);
               const ref = index === 0 ? firstItemRef : undefined;
 
               return (

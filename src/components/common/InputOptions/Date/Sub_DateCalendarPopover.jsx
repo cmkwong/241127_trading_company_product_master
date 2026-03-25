@@ -18,6 +18,10 @@ const Sub_DateCalendarPopover = ({
   onPrevMonth,
   onNextMonth,
   onSelectDate,
+  enableTime = false,
+  includeSeconds = false,
+  timeValue = '00:00',
+  onTimeChange = () => {},
 }) => {
   if (!open) return null;
 
@@ -99,6 +103,22 @@ const Sub_DateCalendarPopover = ({
           </div>
         ))}
       </div>
+
+      {enableTime ? (
+        <div className={styles.timeRow}>
+          <label htmlFor={`${id}-time`} className={styles.timeLabel}>
+            Time
+          </label>
+          <input
+            id={`${id}-time`}
+            type="time"
+            step={includeSeconds ? 1 : 60}
+            className={styles.timeInput}
+            value={timeValue}
+            onChange={onTimeChange}
+          />
+        </div>
+      ) : null}
     </div>,
     document.body,
   );
@@ -131,6 +151,10 @@ Sub_DateCalendarPopover.propTypes = {
   onPrevMonth: PropTypes.func.isRequired,
   onNextMonth: PropTypes.func.isRequired,
   onSelectDate: PropTypes.func.isRequired,
+  enableTime: PropTypes.bool,
+  includeSeconds: PropTypes.bool,
+  timeValue: PropTypes.string,
+  onTimeChange: PropTypes.func,
 };
 
 export default Sub_DateCalendarPopover;

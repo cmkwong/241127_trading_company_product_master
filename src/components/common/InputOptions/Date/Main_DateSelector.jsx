@@ -5,6 +5,10 @@ import Sub_DateField from './Sub_DateField';
 
 const DATE_DASH_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
 const DATE_PLAIN_RE = /^(\d{4})(\d{2})(\d{2})$/;
+const DATE_TIME_RE =
+  /^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2})(?::(\d{2}))?)$/;
+const DATE_TIME_WITH_ZONE_RE =
+  /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?$/i;
 
 const Main_DateSelector = ({
   // Controlled
@@ -15,6 +19,9 @@ const Main_DateSelector = ({
   label,
   dropdownId,
   placeholder = 'Select a date',
+  disabled = false,
+  enableTime = false,
+  includeSeconds = false,
 
   // Bounds
   minDate, // Date or ISO string
@@ -35,6 +42,48 @@ const Main_DateSelector = ({
 
     if (typeof d === 'string') {
       const value = d.trim();
+
+      const zonedDateTimeMatch = value.match(DATE_TIME_WITH_ZONE_RE);
+      if (zonedDateTimeMatch) {
+        const year = Number(zonedDateTimeMatch[1]);
+        const month = Number(zonedDateTimeMatch[2]);
+        const day = Number(zonedDateTimeMatch[3]);
+        const hh = Number(zonedDateTimeMatch[4] || 0);
+        const min = Number(zonedDateTimeMatch[5] || 0);
+        const sec = Number(zonedDateTimeMatch[6] || 0);
+
+        // Treat incoming datetime as local wall-clock time.
+        // This avoids UTC offset auto-conversion (e.g., +8 hours shift).
+        const localDate = new Date(year, month - 1, day, hh, min, sec, 0);
+
+        if (
+          localDate.getFullYear() === year &&
+          localDate.getMonth() === month - 1 &&
+          localDate.getDate() === day
+        ) {
+          return localDate;
+        }
+      }
+
+      const dateTimeMatch = value.match(DATE_TIME_RE);
+      if (dateTimeMatch) {
+        const year = Number(dateTimeMatch[1]);
+        const month = Number(dateTimeMatch[2]);
+        const day = Number(dateTimeMatch[3]);
+        const hh = Number(dateTimeMatch[4] || 0);
+        const min = Number(dateTimeMatch[5] || 0);
+        const sec = Number(dateTimeMatch[6] || 0);
+        const localDate = new Date(year, month - 1, day, hh, min, sec, 0);
+
+        if (
+          localDate.getFullYear() === year &&
+          localDate.getMonth() === month - 1 &&
+          localDate.getDate() === day
+        ) {
+          return localDate;
+        }
+      }
+
       let m = value.match(DATE_DASH_RE);
       if (!m) m = value.match(DATE_PLAIN_RE);
 
@@ -68,10 +117,15 @@ const Main_DateSelector = ({
 
   const emitChange = useCallback(
     (d) => {
-      const valid = d && !isNaN(d.getTime()) ? stripTime(d) : undefined;
+      const valid =
+        d && !isNaN(d.getTime())
+          ? enableTime
+            ? new Date(d)
+            : stripTime(d)
+          : undefined;
       onChange(currentDate, valid);
     },
-    [onChange, currentDate],
+    [onChange, currentDate, enableTime],
   );
 
   const setDate = useCallback(
@@ -86,8 +140,17 @@ const Main_DateSelector = ({
     const yyyy = String(currentDate.getFullYear());
     const mm = String(currentDate.getMonth() + 1).padStart(2, '0');
     const dd = String(currentDate.getDate()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd}`;
-  }, [currentDate]);
+    if (!enableTime) {
+      return `${yyyy}-${mm}-${dd}`;
+    }
+
+    const hh = String(currentDate.getHours()).padStart(2, '0');
+    const min = String(currentDate.getMinutes()).padStart(2, '0');
+    const ss = String(currentDate.getSeconds()).padStart(2, '0');
+    return includeSeconds
+      ? `${yyyy}-${mm}-${dd} ${hh}:${min}:${ss}`
+      : `${yyyy}-${mm}-${dd} ${hh}:${min}`;
+  }, [currentDate, enableTime, includeSeconds]);
 
   const fieldProps = useMemo(
     () => ({
@@ -100,6 +163,9 @@ const Main_DateSelector = ({
       maxDate: toDate(maxDate),
       disableDate,
       label,
+      disabled,
+      enableTime,
+      includeSeconds,
     }),
     [
       resolvedId,
@@ -112,6 +178,9 @@ const Main_DateSelector = ({
       disableDate,
       toDate,
       label,
+      disabled,
+      enableTime,
+      includeSeconds,
     ],
   );
 
@@ -132,6 +201,9 @@ Main_DateSelector.propTypes = {
   label: PropTypes.string,
   dropdownId: PropTypes.string,
   placeholder: PropTypes.string,
+  disabled: PropTypes.bool,
+  enableTime: PropTypes.bool,
+  includeSeconds: PropTypes.bool,
   minDate: PropTypes.oneOfType([PropTypes.instanceOf(Date), PropTypes.string]),
   maxDate: PropTypes.oneOfType([PropTypes.instanceOf(Date), PropTypes.string]),
   disableDate: PropTypes.func,

@@ -7,6 +7,7 @@ const Sub_DateInputField = ({
   inputInvalid,
   placeholder,
   open,
+  disabled = false,
   onInputChange,
   onInputBlur,
   onInputKeyDown,
@@ -24,6 +25,7 @@ const Sub_DateInputField = ({
         autoComplete="off"
         aria-invalid={inputInvalid}
         aria-describedby={inputInvalid ? `${id}-date-help` : undefined}
+        disabled={disabled}
         onChange={onInputChange}
         onBlur={onInputBlur}
         onKeyDown={onInputKeyDown}
@@ -34,6 +36,7 @@ const Sub_DateInputField = ({
         aria-label="Open calendar"
         aria-haspopup="dialog"
         aria-expanded={open}
+        disabled={disabled}
         onClick={onToggleCalendar}
       >
         <svg
@@ -77,6 +80,7 @@ Sub_DateInputField.propTypes = {
   inputInvalid: PropTypes.bool.isRequired,
   placeholder: PropTypes.string,
   open: PropTypes.bool.isRequired,
+  disabled: PropTypes.bool,
   onInputChange: PropTypes.func.isRequired,
   onInputBlur: PropTypes.func.isRequired,
   onInputKeyDown: PropTypes.func.isRequired,

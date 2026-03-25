@@ -195,7 +195,9 @@ const Main_ProductLink = () => {
           <div className={styles.dateCell}>
             <Main_DateSelector
               defaultValue={row.updated_at || ''}
-              onChange={(ov, nv) => upsertLinkRow(row, { updated_at: nv })}
+              disabled
+              enableTime
+              includeSeconds
             />
           </div>
         ),

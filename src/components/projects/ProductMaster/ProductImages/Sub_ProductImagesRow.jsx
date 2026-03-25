@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useMasterContext } from '../../../../store/MasterContext';
 import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
 import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_FileUploads';
@@ -15,6 +15,24 @@ const Sub_ProductImagesRow = (props) => {
 
   const [mainImageTypeId, setMainImageTypeId] = useState();
   const [defaultImages, setDefaultImages] = useState([]);
+
+  const getImageTypePriority = useCallback((name = '', isMain = false) => {
+    if (isMain) return 99;
+    const normalized = String(name || '').toLowerCase();
+    if (normalized.includes('display')) return 1;
+    if (normalized.includes('description')) return 2;
+    if (normalized.includes('video')) return 3;
+    return 50;
+  }, []);
+
+  const orderedSubTypes = useMemo(() => {
+    return [...productImageSubType].sort((a, b) => {
+      const pa = getImageTypePriority(a?.name, false);
+      const pb = getImageTypePriority(b?.name, false);
+      if (pa !== pb) return pa - pb;
+      return String(a?.name || '').localeCompare(String(b?.name || ''));
+    });
+  }, [productImageSubType, getImageTypePriority]);
 
   // Update sub image type options when main image type changes
   useEffect(() => {
@@ -228,25 +246,7 @@ const Sub_ProductImagesRow = (props) => {
       </div>
 
       <div className={styles.uploadArea}>
-        {mainImageTypeId && (
-          <div className={styles.uploadCell} key={`main-${mainImageTypeId}`}>
-            <Main_FileUploads
-              mode="image"
-              label={`${
-                (productImageType || []).find(
-                  (type) => type.id === mainImageTypeId,
-                )?.name || 'Main Type'
-              } - main`}
-              onError={handleImageError}
-              onChange={(oldImages, newImages) =>
-                handleImageChange(mainImageTypeId, oldImages, newImages)
-              }
-              defaultImages={getDefaultImagesByMainType()}
-            />
-          </div>
-        )}
-
-        {productImageSubType.map((subType) => {
+        {orderedSubTypes.map((subType) => {
           const isVideoType = /video/i.test(subType?.name || '');
 
           return (
@@ -270,6 +270,24 @@ const Sub_ProductImagesRow = (props) => {
             </div>
           );
         })}
+
+        {mainImageTypeId && (
+          <div className={styles.uploadCell} key={`main-${mainImageTypeId}`}>
+            <Main_FileUploads
+              mode="image"
+              label={`${
+                (productImageType || []).find(
+                  (type) => type.id === mainImageTypeId,
+                )?.name || 'Main Type'
+              } - main`}
+              onError={handleImageError}
+              onChange={(oldImages, newImages) =>
+                handleImageChange(mainImageTypeId, oldImages, newImages)
+              }
+              defaultImages={getDefaultImagesByMainType()}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

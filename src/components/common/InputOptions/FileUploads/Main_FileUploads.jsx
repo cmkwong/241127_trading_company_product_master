@@ -6,6 +6,8 @@ import Sub_FileItem from './Sub_FileItem';
 import { v4 as uuidv4 } from 'uuid';
 import Sub_FileUploadsHeader from './Sub_FileUploadsHeader';
 import Sub_SequenceEditorModal from './Sub_SequenceEditorModal';
+import { apiPost } from '../../../../utils/crud';
+import { useAuthContext } from '../../../../store/AuthContext';
 import {
   processDefaultImages,
   shouldReplaceImageList,
@@ -37,6 +39,12 @@ const Main_FileUploads = (props) => {
     tableCell = false,
     hoverPreview = false,
     enableSequenceEditor = true,
+    showDownloadButton = false,
+    downloadEndpoint = '',
+    downloadRequestBody = null,
+    downloadFileBaseName = 'files',
+    downloadNameProductId = '',
+    downloadNameImageType = '',
 
     // Initial state
     defaultFiles = [],
@@ -45,6 +53,7 @@ const Main_FileUploads = (props) => {
     // Mode control
     mode = 'file', // 'file' or 'image'
   } = props;
+  const { token } = useAuthContext();
 
   // Determine initial state based on mode
   const getInitialState = () => {
@@ -58,6 +67,215 @@ const Main_FileUploads = (props) => {
   const [fileList, setFileList] = useState(getInitialState);
   const [isDragging, setIsDragging] = useState(false);
   const [isSequenceEditorOpen, setIsSequenceEditorOpen] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  const createBlobFromBase64 = useCallback((base64Value, filename = '') => {
+    if (!base64Value || typeof base64Value !== 'string') return null;
+
+    let mimeType = 'application/octet-stream';
+    let base64Payload = base64Value;
+
+    if (base64Value.startsWith('data:')) {
+      const [metadata, payload] = base64Value.split(',');
+      if (!payload) return null;
+      base64Payload = payload;
+      const mimeMatch = metadata.match(/data:(.*?);base64/i);
+      if (mimeMatch?.[1]) {
+        mimeType = mimeMatch[1];
+      }
+    } else {
+      const ext = String(filename).split('.').pop()?.toLowerCase();
+      if (ext === 'jpg' || ext === 'jpeg') mimeType = 'image/jpeg';
+      if (ext === 'png') mimeType = 'image/png';
+      if (ext === 'webp') mimeType = 'image/webp';
+      if (ext === 'gif') mimeType = 'image/gif';
+      if (ext === 'mp4') mimeType = 'video/mp4';
+      if (ext === 'webm') mimeType = 'video/webm';
+      if (ext === 'mov') mimeType = 'video/quicktime';
+    }
+
+    try {
+      const binary = atob(base64Payload);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i += 1) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      return new Blob([bytes], { type: mimeType });
+    } catch (error) {
+      console.error('Failed to parse base64 payload:', error);
+      return null;
+    }
+  }, []);
+
+  const getExtensionFromName = useCallback((filename = '') => {
+    const base = String(filename || '');
+    const idx = base.lastIndexOf('.');
+    if (idx < 0 || idx === base.length - 1) return '';
+    return base.slice(idx + 1).toLowerCase();
+  }, []);
+
+  const getExtensionFromMime = useCallback((mime = '') => {
+    const type = String(mime || '').toLowerCase();
+    if (type.includes('jpeg')) return 'jpg';
+    if (type.includes('png')) return 'png';
+    if (type.includes('webp')) return 'webp';
+    if (type.includes('gif')) return 'gif';
+    if (type.includes('mp4')) return 'mp4';
+    if (type.includes('webm')) return 'webm';
+    if (type.includes('quicktime')) return 'mov';
+    return 'bin';
+  }, []);
+
+  const buildDownloadFileName = useCallback(
+    (record, fallbackName, fallbackMime, index) => {
+      const rawOrder = record?.display_order ?? index + 1;
+      const order = String(rawOrder || index + 1).trim();
+
+      const productPrefix = String(downloadNameProductId || '')
+        .trim()
+        .slice(0, 4);
+      const imageType = String(downloadNameImageType || '')
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, '_')
+        .replace(/[^a-z0-9_-]/g, '');
+
+      const extFromName = getExtensionFromName(
+        record?.image_name || fallbackName || '',
+      );
+      const ext = extFromName || getExtensionFromMime(fallbackMime);
+
+      if (productPrefix && imageType) {
+        return `${productPrefix}-${imageType}-${order}.${ext}`;
+      }
+
+      return (
+        record?.image_name ||
+        fallbackName ||
+        `file-${record?.id || Math.random().toString(36).slice(2)}.${ext}`
+      );
+    },
+    [
+      downloadNameProductId,
+      downloadNameImageType,
+      getExtensionFromName,
+      getExtensionFromMime,
+    ],
+  );
+
+  const triggerBrowserDownload = useCallback((blob, filename) => {
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = filename;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+  }, []);
+
+  const fetchBlobFromPath = useCallback(
+    async (path, endpointForOrigin = '') => {
+      if (!path) return null;
+      const isAbsolute = /^https?:\/\//i.test(path);
+      const origin = endpointForOrigin ? new URL(endpointForOrigin).origin : '';
+      const targetUrl = isAbsolute ? path : `${origin}${path}`;
+      const response = await fetch(targetUrl, {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      });
+      if (!response.ok) {
+        throw new Error(`Download file failed: ${response.status}`);
+      }
+      return response.blob();
+    },
+    [token],
+  );
+
+  const handleDownload = useCallback(async () => {
+    if (!downloadEndpoint || !downloadRequestBody) {
+      onError('Download endpoint or request body is missing.');
+      return;
+    }
+
+    setIsDownloading(true);
+    try {
+      const response = await apiPost(downloadEndpoint, downloadRequestBody, {
+        token,
+      });
+
+      const records = response?.structuredData?.data?.product_images || [];
+
+      if (!Array.isArray(records) || records.length === 0) {
+        onError('No files available to download.');
+        return;
+      }
+
+      const files = [];
+      for (let index = 0; index < records.length; index += 1) {
+        const record = records[index];
+        const fallbackName =
+          record?.image_name ||
+          `file-${record?.id || Math.random().toString(36).slice(2)}.bin`;
+
+        let blob = null;
+        if (record?.base64_image) {
+          blob = createBlobFromBase64(record.base64_image, fallbackName);
+        }
+
+        if (!blob && record?.image_url) {
+          blob = await fetchBlobFromPath(record.image_url, downloadEndpoint);
+        }
+
+        if (blob) {
+          const fileName = buildDownloadFileName(
+            record,
+            fallbackName,
+            blob.type,
+            index,
+          );
+          files.push({ name: fileName, blob });
+        }
+      }
+
+      if (files.length === 0) {
+        onError('No valid files could be prepared for download.');
+        return;
+      }
+
+      if (files.length === 1) {
+        triggerBrowserDownload(files[0].blob, files[0].name);
+        return;
+      }
+
+      const { default: JSZip } = await import('jszip');
+      const zip = new JSZip();
+      files.forEach((file) => {
+        zip.file(file.name, file.blob);
+      });
+
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      triggerBrowserDownload(
+        zipBlob,
+        `${downloadFileBaseName}-${timestamp}.zip`,
+      );
+    } catch (error) {
+      console.error('Download failed:', error);
+      onError(error?.message || 'Download failed.');
+    } finally {
+      setIsDownloading(false);
+    }
+  }, [
+    downloadEndpoint,
+    downloadRequestBody,
+    token,
+    onError,
+    createBlobFromBase64,
+    fetchBlobFromPath,
+    triggerBrowserDownload,
+    downloadFileBaseName,
+    buildDownloadFileName,
+  ]);
 
   // Update state when defaultImages changes (for image mode)
   useEffect(() => {
@@ -257,6 +475,9 @@ const Main_FileUploads = (props) => {
         label={label}
         canOpenSequenceEditor={showHeaderEditorButton}
         onOpenSequenceEditor={() => setIsSequenceEditorOpen(true)}
+        showDownloadButton={showDownloadButton}
+        isDownloading={isDownloading}
+        onDownload={handleDownload}
       />
 
       <div className={styles.dropZoneEditorWrap}>
@@ -293,6 +514,9 @@ const Main_FileUploads = (props) => {
         <Sub_SequenceEditorModal
           isOpen={isSequenceEditorOpen}
           onClose={() => setIsSequenceEditorOpen(false)}
+          showDownloadButton={showDownloadButton}
+          isDownloading={isDownloading}
+          onDownload={handleDownload}
           dropZoneProps={{
             ...baseDropZoneProps,
             testIdPrefix: `${testIdPrefix}-sequence-editor`,
@@ -328,6 +552,12 @@ Main_FileUploads.propTypes = {
   tableCell: PropTypes.bool,
   hoverPreview: PropTypes.bool,
   enableSequenceEditor: PropTypes.bool,
+  showDownloadButton: PropTypes.bool,
+  downloadEndpoint: PropTypes.string,
+  downloadRequestBody: PropTypes.object,
+  downloadFileBaseName: PropTypes.string,
+  downloadNameProductId: PropTypes.string,
+  downloadNameImageType: PropTypes.string,
 
   // Initial state
   defaultFiles: PropTypes.arrayOf(

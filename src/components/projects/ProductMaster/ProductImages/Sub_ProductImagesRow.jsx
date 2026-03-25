@@ -254,6 +254,15 @@ const Sub_ProductImagesRow = (props) => {
               <Main_FileUploads
                 mode={isVideoType ? 'file' : 'image'}
                 label={subType.name}
+                showDownloadButton
+                downloadEndpoint="http://localhost:3001/api/v1/trade_business/products/data/images/download"
+                downloadRequestBody={{
+                  product_id: pageData.id,
+                  image_type_id: subType.id,
+                }}
+                downloadFileBaseName={`${String(subType.name || 'images').replace(/\s+/g, '_')}`}
+                downloadNameProductId={pageData.id || ''}
+                downloadNameImageType={subType.name || 'images'}
                 onError={handleImageError}
                 onChange={(oldImages, newImages) =>
                   handleImageChange(subType.id, oldImages, newImages)
@@ -280,6 +289,19 @@ const Sub_ProductImagesRow = (props) => {
                   (type) => type.id === mainImageTypeId,
                 )?.name || 'Main Type'
               } - main`}
+              showDownloadButton
+              downloadEndpoint="http://localhost:3001/api/v1/trade_business/products/data/images/download"
+              downloadRequestBody={{
+                product_id: pageData.id,
+                image_type_id: mainImageTypeId,
+              }}
+              downloadFileBaseName={`${String(
+                (productImageType || []).find(
+                  (type) => type.id === mainImageTypeId,
+                )?.name || 'main',
+              ).replace(/\s+/g, '_')}_main`}
+              downloadNameProductId={pageData.id || ''}
+              downloadNameImageType="main"
               onError={handleImageError}
               onChange={(oldImages, newImages) =>
                 handleImageChange(mainImageTypeId, oldImages, newImages)

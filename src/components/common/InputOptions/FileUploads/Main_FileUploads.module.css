@@ -33,6 +33,12 @@
   gap: 8px;
 }
 
+.headerActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .dropZoneEditorWrap {
   position: relative;
 }

@@ -46,6 +46,8 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
   const objectUrlRegistryRef = useRef([]);
   const pageDataUrlRegistryRef = useRef([]);
   const hasInitialFetchRef = useRef(false);
+  const hasFetchedWithMappingsRef = useRef(false);
+  const suppliersFetchSequenceRef = useRef(0);
 
   const supplierBase64Config = useMemo(
     () => fileMappings || {},
@@ -54,6 +56,9 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
 
   // Extracted function to fetch suppliers
   const doFetchSuppliers = useCallback(async () => {
+    const fetchSequence = ++suppliersFetchSequenceRef.current;
+    const hasMappings = Object.keys(supplierBase64Config || {}).length > 0;
+
     if (!token) {
       setSuppliers({ suppliers: [] });
       return;
@@ -84,8 +89,15 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
         urlRegistry,
       );
 
+      // Ignore stale responses (e.g., non-mapping fetch finishing after mapping fetch)
+      if (fetchSequence !== suppliersFetchSequenceRef.current) {
+        releaseObjectUrls(urlRegistry);
+        return;
+      }
+
       setSuppliers(processedSuppliers || { suppliers: [] });
       objectUrlRegistryRef.current = urlRegistry;
+      hasFetchedWithMappingsRef.current = hasMappings;
     } catch (error) {
       console.error('Failed to fetch suppliers:', error);
       setSuppliers({ suppliers: [] });
@@ -131,11 +143,16 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
       setPageData({});
       setSelectedSupplierId(null);
       hasInitialFetchRef.current = false;
+      hasFetchedWithMappingsRef.current = false;
       return;
     }
 
+    const hasMappings = Object.keys(supplierBase64Config || {}).length > 0;
+    const shouldRefetchWithMappings =
+      hasMappings && !hasFetchedWithMappingsRef.current;
+
     // Only fetch once per token to prevent re-fetching on tab switches
-    if (!hasInitialFetchRef.current) {
+    if (!hasInitialFetchRef.current || shouldRefetchWithMappings) {
       doFetchSuppliers();
       doFetchComparisonKeys();
       hasInitialFetchRef.current = true;
@@ -147,7 +164,13 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
       releaseObjectUrls(pageDataUrlRegistryRef.current);
       pageDataUrlRegistryRef.current = [];
     };
-  }, [token, isFileMappingsLoading, doFetchSuppliers, doFetchComparisonKeys]);
+  }, [
+    token,
+    isFileMappingsLoading,
+    supplierBase64Config,
+    doFetchSuppliers,
+    doFetchComparisonKeys,
+  ]);
 
   const effectiveComparisonKeys = useCallback(() => {
     return getEffectiveComparisonKeys({ comparisonKeys, pageData });

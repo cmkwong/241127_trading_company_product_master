@@ -23,6 +23,8 @@ const SearchSideBarList = ({
   getItemId = (item) => item?.id,
   getItemTitle = (item) => item?.name || '',
   getItemRows = () => [],
+  getExpandedRows,
+  getExpandedSubRows,
   getItemIconUrl = (item) => item?.icon_url,
   getItemIconAlt = (item) => item?.name || 'item',
   renderItemIcon,
@@ -158,7 +160,8 @@ const SearchSideBarList = ({
         noResultsMessage={noResultsMessage}
         getItemId={getItemId}
         getItemTitle={getItemTitle}
-        getItemRows={getItemRows}
+        getItemRows={getExpandedRows || getItemRows}
+        getItemSubRows={getExpandedSubRows}
       />
 
       <div className={`${styles.list} ${listClassName}`}>

@@ -11,7 +11,7 @@ const SupplierSidebar = ({
 }) => {
   const { getSupplierData, suppliers, createNewSupplier } =
     useSupplierContext();
-  const { supplierType } = useMasterContext();
+  const { supplierType, services } = useMasterContext();
 
   const [windowWidth, setWindowWidth] = useState(
     typeof window !== 'undefined' ? window.innerWidth : 1024,
@@ -112,6 +112,104 @@ const SupplierSidebar = ({
     [supplierType],
   );
 
+  const getSupplierExpandedRows = useCallback(
+    (supplier) => {
+      const relationTypeIds =
+        supplier?.supplier_types?.map((item) => item.supplier_type_id) || [];
+
+      const selectedTypeIds =
+        relationTypeIds.length > 0
+          ? relationTypeIds
+          : supplier?.supplier_type_id
+            ? [supplier.supplier_type_id]
+            : [];
+
+      const supplierTypeLabel = selectedTypeIds
+        .map(
+          (id) =>
+            supplierType.find((item) => item.id === id)?.label ||
+            supplierType.find((item) => item.id === id)?.name ||
+            '',
+        )
+        .filter(Boolean)
+        .join(', ');
+
+      return [
+        { label: 'ID:', value: supplier?.id || '' },
+        {
+          label: 'Code:',
+          value: supplier?.code || supplier?.supplier_code || '',
+        },
+        { label: 'Type:', value: supplierTypeLabel },
+      ];
+    },
+    [supplierType],
+  );
+
+  const getSupplierExpandedSubRows = useCallback(
+    (supplier) => {
+      const supplierServices = supplier?.supplier_services || [];
+
+      return supplierServices.map((service, index) => {
+        const matchedService = (services || []).find(
+          (item) => item.id === service?.service_id,
+        );
+
+        const serviceName =
+          matchedService?.service_name ||
+          matchedService?.label ||
+          matchedService?.name ||
+          `Service ${index + 1}`;
+
+        // Only use blob URLs (image_url) as set by context loader
+        const images = (service?.supplier_service_images || [])
+          .filter(
+            (image) =>
+              typeof image?.image_url === 'string' &&
+              image.image_url.startsWith('blob:'),
+          )
+          .map((image) => ({
+            type: 'image',
+            url: image.image_url,
+            text: image?.image_name || '',
+            alt: image?.image_name || 'service-image',
+          }));
+
+        return {
+          title: serviceName,
+          fields: [
+            {
+              label: 'Service Type',
+              value: serviceName,
+            },
+            {
+              label: 'HyperLinks',
+              value:
+                String(service?.link || '').trim().length > 0
+                  ? [
+                      {
+                        type: 'link',
+                        href: service.link,
+                        text: service.link,
+                      },
+                    ]
+                  : [],
+            },
+            {
+              label: 'Remarks',
+              value: service?.remark || '',
+            },
+            {
+              label: 'Images',
+              value: images,
+            },
+          ],
+        };
+      });
+    },
+    [services],
+  );
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const handleResize = () => {
@@ -144,6 +242,8 @@ const SupplierSidebar = ({
           getItemId={(supplier) => supplier.id}
           getItemTitle={getSupplierName}
           getItemRows={getSupplierRows}
+          getExpandedRows={getSupplierExpandedRows}
+          getExpandedSubRows={getSupplierExpandedSubRows}
           getItemIconAlt={getSupplierName}
         />
       </div>

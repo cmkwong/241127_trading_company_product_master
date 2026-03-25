@@ -217,3 +217,118 @@ export const canProceedWithRecordSwitch = ({
 
   return window.confirm(message);
 };
+
+/**
+ * Return comparison keys from server when available; otherwise derive from pageData.
+ */
+export const getEffectiveComparisonKeys = ({
+  comparisonKeys = [],
+  pageData,
+}) => {
+  if (Array.isArray(comparisonKeys) && comparisonKeys.length > 0) {
+    return comparisonKeys;
+  }
+
+  return Object.keys(pageData || {}).filter(
+    (key) => key !== '_objUrl' && key !== '_base64_changed',
+  );
+};
+
+/**
+ * Validate nested upsert payloads.
+ */
+export const validateNestedDataObject = (
+  nestedData,
+  errorMessage = 'Upsert data requires an object argument',
+) => {
+  const isValid = typeof nestedData === 'object' && nestedData !== null;
+  if (!isValid) {
+    console.error(errorMessage);
+  }
+  return isValid;
+};
+
+/**
+ * Upsert an entity into a keyed list inside state.
+ */
+export const mergeEntityIntoStateList = ({
+  prevState,
+  listKey,
+  entity,
+  idKey = 'id',
+}) => {
+  const currentList = prevState?.[listKey] || [];
+  const updatedList = [...currentList];
+
+  const existingIndex = updatedList.findIndex(
+    (item) => item?.[idKey] === entity?.[idKey],
+  );
+
+  if (existingIndex !== -1) {
+    updatedList[existingIndex] = entity;
+  } else {
+    updatedList.push(entity);
+  }
+
+  return {
+    ...prevState,
+    [listKey]: updatedList,
+  };
+};
+
+/**
+ * Generate next segmented code with format like S0000-0001.
+ */
+export const generateNextSegmentedCode = ({
+  items = [],
+  getCode,
+  prefix = 'S',
+  segmentLength = 4,
+}) => {
+  const codePrefix = String(prefix || '').toUpperCase();
+  const escapedPrefix = codePrefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const codeRegex = new RegExp(
+    `^${escapedPrefix}(\\d{${segmentLength}})-(\\d{${segmentLength}})$`,
+  );
+
+  const maxCounter = (Array.isArray(items) ? items : []).reduce(
+    (maxValue, item) => {
+      const rawCode = typeof getCode === 'function' ? getCode(item) : '';
+      const code = String(rawCode || '')
+        .trim()
+        .toUpperCase();
+      const match = code.match(codeRegex);
+
+      if (!match) return maxValue;
+
+      const high = Number(match[1]);
+      const low = Number(match[2]);
+      if (Number.isNaN(high) || Number.isNaN(low)) return maxValue;
+
+      const base = 10 ** segmentLength;
+      const counter = high * base + low;
+      return Math.max(maxValue, counter);
+    },
+    0,
+  );
+
+  const base = 10 ** segmentLength;
+  const nextCounter = maxCounter + 1;
+  const highPart = Math.floor(nextCounter / base)
+    .toString()
+    .padStart(segmentLength, '0');
+  const lowPart = (nextCounter % base).toString().padStart(segmentLength, '0');
+
+  return `${codePrefix}${highPart}-${lowPart}`;
+};
+
+/**
+ * Shared context guard for custom hooks.
+ */
+export const ensureContextAvailable = (context, hookName, providerName) => {
+  if (!context) {
+    throw new Error(`${hookName} must be used within a ${providerName}`);
+  }
+
+  return context;
+};

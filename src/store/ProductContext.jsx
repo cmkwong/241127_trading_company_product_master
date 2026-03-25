@@ -17,6 +17,10 @@ import {
   buildNestedChangedData,
   cleanupNestedInternalFlags,
   canProceedWithRecordSwitch,
+  getEffectiveComparisonKeys,
+  validateNestedDataObject,
+  mergeEntityIntoStateList,
+  ensureContextAvailable,
 } from '../utils/contextDataUtils';
 import { upsertNestedData } from '../utils/crudObj';
 import { apiGet, apiPatch, apiDelete, apiPost } from '../utils/crud';
@@ -154,13 +158,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
   }, [token, isFileMappingsLoading, doFetchProducts, doFetchComparisonKeys]);
 
   const effectiveComparisonKeys = useCallback(() => {
-    if (comparisonKeys.length > 0) {
-      return comparisonKeys;
-    }
-
-    return Object.keys(pageData || {}).filter(
-      (key) => key !== '_objUrl' && key !== '_base64_changed',
-    );
+    return getEffectiveComparisonKeys({ comparisonKeys, pageData });
   }, [comparisonKeys, pageData]);
 
   // Helper function to deep compare and return differences
@@ -324,13 +322,15 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
    */
   const upsertProductPageData = useCallback((nestedData) => {
     setPageData((prevData) => {
-      // Validate input is an object
-      if (typeof nestedData !== 'object' || nestedData === null) {
-        console.error('upsertProductPageData requires an object argument');
+      if (
+        !validateNestedDataObject(
+          nestedData,
+          'upsertProductPageData requires an object argument',
+        )
+      ) {
         return prevData;
       }
 
-      // Use nested data structure approach
       return upsertNestedData(prevData, nestedData);
     });
   }, []);
@@ -413,28 +413,11 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
           setOriginalPageData(savedProductData);
 
           setProducts((prevProductsState) => {
-            // Check if products array exists in state, fallback to empty array if not
-            const currentProductsList = prevProductsState.products || [];
-            const updatedProductsList = [...currentProductsList];
-
-            // Find index of the product in the list
-            const existingIndex = updatedProductsList.findIndex(
-              (p) => p.id === cleanedPageData.id,
-            );
-
-            // If product exists, update it; otherwise, add it to the list
-            if (existingIndex !== -1) {
-              // Update existing product with deep copy
-              updatedProductsList[existingIndex] = savedProductData;
-            } else {
-              // Add new product
-              updatedProductsList.push(savedProductData);
-            }
-
-            return {
-              ...prevProductsState,
-              products: updatedProductsList,
-            };
+            return mergeEntityIntoStateList({
+              prevState: prevProductsState,
+              listKey: 'products',
+              entity: savedProductData,
+            });
           });
         }
 
@@ -523,10 +506,9 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
 // Custom hook to use the save page context
 export const useProductContext = () => {
   const context = useContext(ProductContext);
-  if (!context) {
-    throw new Error(
-      'useProductContext must be used within a ProductContext_Provider',
-    );
-  }
-  return context;
+  return ensureContextAvailable(
+    context,
+    'useProductContext',
+    'ProductContext_Provider',
+  );
 };

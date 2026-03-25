@@ -17,6 +17,11 @@ import {
   buildNestedChangedData,
   cleanupNestedInternalFlags,
   canProceedWithRecordSwitch,
+  getEffectiveComparisonKeys,
+  validateNestedDataObject,
+  mergeEntityIntoStateList,
+  generateNextSegmentedCode,
+  ensureContextAvailable,
 } from '../utils/contextDataUtils';
 import { upsertNestedData } from '../utils/crudObj';
 import { apiGet, apiPatch, apiDelete, apiPost } from '../utils/crud';
@@ -143,13 +148,7 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
   }, [token, isFileMappingsLoading, doFetchSuppliers, doFetchComparisonKeys]);
 
   const effectiveComparisonKeys = useCallback(() => {
-    if (comparisonKeys.length > 0) {
-      return comparisonKeys;
-    }
-
-    return Object.keys(pageData || {}).filter(
-      (key) => key !== '_objUrl' && key !== '_base64_changed',
-    );
+    return getEffectiveComparisonKeys({ comparisonKeys, pageData });
   }, [comparisonKeys, pageData]);
 
   const getChangedData = useCallback(() => {
@@ -241,8 +240,12 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
 
   const upsertSupplierPageData = useCallback((nestedData) => {
     setPageData((prevData) => {
-      if (typeof nestedData !== 'object' || nestedData === null) {
-        console.error('upsertSupplierPageData requires an object argument');
+      if (
+        !validateNestedDataObject(
+          nestedData,
+          'upsertSupplierPageData requires an object argument',
+        )
+      ) {
         return prevData;
       }
       return upsertNestedData(prevData, nestedData);
@@ -311,23 +314,11 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
           setOriginalPageData(savedSupplierData);
 
           setSuppliers((prevSuppliersState) => {
-            const currentSuppliersList = prevSuppliersState.suppliers || [];
-            const updatedSuppliersList = [...currentSuppliersList];
-
-            const existingIndex = updatedSuppliersList.findIndex(
-              (supplier) => supplier.id === cleanedPageData.id,
-            );
-
-            if (existingIndex !== -1) {
-              updatedSuppliersList[existingIndex] = savedSupplierData;
-            } else {
-              updatedSuppliersList.push(savedSupplierData);
-            }
-
-            return {
-              ...prevSuppliersState,
-              suppliers: updatedSuppliersList,
-            };
+            return mergeEntityIntoStateList({
+              prevState: prevSuppliersState,
+              listKey: 'suppliers',
+              entity: savedSupplierData,
+            });
           });
         }
 
@@ -353,28 +344,12 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
       ? suppliers.suppliers
       : [];
 
-    const maxCounter = supplierList.reduce((maxValue, supplier) => {
-      const rawCode = supplier?.supplier_code || supplier?.code || '';
-      const code = String(rawCode).trim().toUpperCase();
-      const match = code.match(/^S(\d{4})-(\d{4})$/);
-
-      if (!match) return maxValue;
-
-      const high = Number(match[1]);
-      const low = Number(match[2]);
-      if (Number.isNaN(high) || Number.isNaN(low)) return maxValue;
-
-      const counter = high * 10000 + low;
-      return Math.max(maxValue, counter);
-    }, 0);
-
-    const nextCounter = maxCounter + 1;
-    const highPart = Math.floor(nextCounter / 10000)
-      .toString()
-      .padStart(4, '0');
-    const lowPart = (nextCounter % 10000).toString().padStart(4, '0');
-
-    return `S${highPart}-${lowPart}`;
+    return generateNextSegmentedCode({
+      items: supplierList,
+      getCode: (supplier) => supplier?.supplier_code || supplier?.code || '',
+      prefix: 'S',
+      segmentLength: 4,
+    });
   }, [suppliers]);
 
   const createNewSupplier = useCallback(() => {
@@ -435,10 +410,9 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
 
 export const useSupplierContext = () => {
   const context = useContext(SupplierContext);
-  if (!context) {
-    throw new Error(
-      'useSupplierContext must be used within a SupplierContext_Provider',
-    );
-  }
-  return context;
+  return ensureContextAvailable(
+    context,
+    'useSupplierContext',
+    'SupplierContext_Provider',
+  );
 };

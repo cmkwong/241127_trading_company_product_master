@@ -8,6 +8,7 @@ import {
 } from 'react';
 import { apiGet, apiPatch } from '../utils/crud';
 import { useAuthContext } from './AuthContext';
+import { ensureContextAvailable } from '../utils/contextDataUtils';
 
 export const MasterContext = createContext();
 
@@ -388,10 +389,9 @@ export const MasterContext_Provider = ({ children }) => {
 // Custom hook to use the MasterContext
 export const useMasterContext = () => {
   const context = useContext(MasterContext);
-  if (!context) {
-    throw new Error(
-      'useMasterContext must be used within a MasterContext_Provider',
-    );
-  }
-  return context;
+  return ensureContextAvailable(
+    context,
+    'useMasterContext',
+    'MasterContext_Provider',
+  );
 };

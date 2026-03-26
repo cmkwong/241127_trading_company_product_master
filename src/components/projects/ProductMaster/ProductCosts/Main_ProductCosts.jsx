@@ -341,25 +341,49 @@ const Main_ProductCosts = () => {
     const name = window.prompt('Add new size name (e.g. M, XXL):');
     if (!name || !name.trim()) return;
 
-    const newId = uuidv4();
-    await updateMasterTableData('master_size_types', {
-      id: newId,
-      name: name.trim(),
-      description: `${name.trim()} size`,
-      default_display_cb: false,
-    });
-    await refreshMasters();
+    const normalizedName = normalizeLower(name);
+    const latestSizesRaw = await fetchMasterData('master_size_types');
+    const latestSizes = Array.isArray(latestSizesRaw) ? latestSizesRaw : [];
+    setMasterSizes(latestSizes);
+
+    let targetSize = latestSizes.find(
+      (item) => normalizeLower(item?.name) === normalizedName,
+    );
+
+    if (!targetSize) {
+      const newId = uuidv4();
+      await updateMasterTableData('master_size_types', {
+        id: newId,
+        name: name.trim(),
+        description: `${name.trim()} size`,
+        default_display_cb: false,
+      });
+
+      targetSize = { id: newId, name: name.trim() };
+      setMasterSizes((prev) => [...prev, targetSize]);
+    }
+
+    const alreadySelected = variantSizes.some(
+      (row) => getVariantTypeId(row, 'size') === targetSize.id,
+    );
+    if (alreadySelected) return;
 
     upsertProductPageData({
       product_varient_sizes: [
         {
           id: uuidv4(),
           product_id: productId,
-          size_type_id: newId,
+          size_type_id: targetSize.id,
         },
       ],
     });
-  }, [updateMasterTableData, refreshMasters, upsertProductPageData, productId]);
+  }, [
+    fetchMasterData,
+    updateMasterTableData,
+    upsertProductPageData,
+    productId,
+    variantSizes,
+  ]);
 
   const handleAddNewCapacity = useCallback(async () => {
     const input = window.prompt('Add new capacity (e.g. 750 mL):');
@@ -371,26 +395,67 @@ const Main_ProductCosts = () => {
     const numeric = Number(valueRaw);
     const value = Number.isNaN(numeric) ? valueRaw : numeric;
 
-    const newId = uuidv4();
-    await updateMasterTableData('master_capacity_types', {
-      id: newId,
-      value,
-      unit,
-      description: `${input.trim()} capacity`,
-      default_display_cb: false,
+    const normalizedInput = normalizeLower(input);
+    const latestCapacitiesRaw = await fetchMasterData('master_capacity_types');
+    const latestCapacities = Array.isArray(latestCapacitiesRaw)
+      ? latestCapacitiesRaw
+      : [];
+    setMasterCapacities(latestCapacities);
+
+    const normalizedUnit = normalizeLower(unit);
+    const targetCapacityByText = latestCapacities.find(
+      (item) => normalizeLower(getCapacityLabel(item)) === normalizedInput,
+    );
+
+    const targetCapacityByValueUnit = latestCapacities.find((item) => {
+      const itemUnit = normalizeLower(item?.unit);
+      if (itemUnit !== normalizedUnit) return false;
+
+      const itemValue = item?.value;
+      if (typeof value === 'number') {
+        return Number(itemValue) === value;
+      }
+
+      return normalizeLower(itemValue) === normalizeLower(value);
     });
-    await refreshMasters();
+
+    let targetCapacity = targetCapacityByText || targetCapacityByValueUnit;
+
+    if (!targetCapacity) {
+      const newId = uuidv4();
+      await updateMasterTableData('master_capacity_types', {
+        id: newId,
+        value,
+        unit,
+        description: `${input.trim()} capacity`,
+        default_display_cb: false,
+      });
+
+      targetCapacity = { id: newId, value, unit };
+      setMasterCapacities((prev) => [...prev, targetCapacity]);
+    }
+
+    const alreadySelected = variantCapacities.some(
+      (row) => getVariantTypeId(row, 'capacity') === targetCapacity.id,
+    );
+    if (alreadySelected) return;
 
     upsertProductPageData({
       product_varient_capacities: [
         {
           id: uuidv4(),
           product_id: productId,
-          capacity_type_id: newId,
+          capacity_type_id: targetCapacity.id,
         },
       ],
     });
-  }, [updateMasterTableData, refreshMasters, upsertProductPageData, productId]);
+  }, [
+    fetchMasterData,
+    updateMasterTableData,
+    upsertProductPageData,
+    productId,
+    variantCapacities,
+  ]);
 
   const costMapByCombo = useMemo(() => {
     const map = new Map();

@@ -15,6 +15,7 @@ const Main_Keywords = () => {
   const [keywords, setKeywords] = useState(pageData.product_keywords || []);
   const [showTextAreaHelper, setShowTextAreaHelper] = useState(false);
   const [textAreaValue, setTextAreaValue] = useState('');
+  const [splitter, setSplitter] = useState(',');
 
   useEffect(() => {
     setKeywords(pageData.product_keywords || []);
@@ -30,19 +31,31 @@ const Main_Keywords = () => {
     [updateMasterTableData],
   );
 
-  const parseKeywordsFromText = useCallback((text) => {
-    return text
-      .split(',')
-      .map((kw) => kw.trim().toLowerCase())
-      .filter((kw) => kw.length > 0);
-  }, []);
+  const parseKeywordsFromText = useCallback(
+    (text) => {
+      if (!splitter) {
+        return [];
+      }
+
+      return text
+        .split(splitter)
+        .map((kw) => kw.trim().toLowerCase())
+        .filter((kw) => kw.length > 0);
+    },
+    [splitter],
+  );
 
   const handleConvertKeywords = useCallback(async () => {
+    if (!splitter) {
+      alert('Splitter is required to Convert & Sync.');
+      return;
+    }
+
     const parsedKeywords = parseKeywordsFromText(textAreaValue);
 
     if (parsedKeywords.length === 0) {
       alert(
-        'No valid keywords found. Please enter keywords separated by commas.',
+        `No valid keywords found. Please enter keywords separated by "${splitter}".`,
       );
       return;
     }
@@ -111,6 +124,7 @@ const Main_Keywords = () => {
     textAreaValue,
     keywords,
     productKeywords,
+    splitter,
     pageData,
     upsertProductPageData,
     updateMasterTableData,
@@ -135,7 +149,7 @@ const Main_Keywords = () => {
         return keywordObj ? keywordObj.name : '';
       })
       .filter((name) => name.length > 0)
-      .join(', ');
+      .join(splitter ? `${splitter} ` : ' ');
 
     setTextAreaValue(keywordNames);
 
@@ -147,7 +161,19 @@ const Main_Keywords = () => {
       .catch(() => {
         alert('Failed to copy to clipboard');
       });
-  }, [keywords, productKeywords]);
+  }, [keywords, productKeywords, splitter]);
+
+  const handleSplitterChange = useCallback((value) => {
+    const next = String(value || '').slice(0, 1);
+    if (next === '') {
+      setSplitter('');
+      return;
+    }
+
+    if ([',', ';', '/'].includes(next)) {
+      setSplitter(next);
+    }
+  }, []);
 
   return (
     <Main_InputContainer label={'Product Keywords'}>
@@ -165,6 +191,8 @@ const Main_Keywords = () => {
           showTextAreaHelper={showTextAreaHelper}
           onToggleHelper={setShowTextAreaHelper}
           onConvertToText={handleConvertToText}
+          splitter={splitter}
+          onSplitterChange={handleSplitterChange}
         />
 
         {showTextAreaHelper && (
@@ -174,6 +202,7 @@ const Main_Keywords = () => {
             onConvert={handleConvertKeywords}
             onReset={handleReset}
             parseKeywordsFromText={parseKeywordsFromText}
+            splitter={splitter}
           />
         )}
       </div>

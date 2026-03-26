@@ -346,7 +346,7 @@ const Main_ProductCosts = () => {
       id: newId,
       name: name.trim(),
       description: `${name.trim()} size`,
-      default_display_cb: true,
+      default_display_cb: false,
     });
     await refreshMasters();
 

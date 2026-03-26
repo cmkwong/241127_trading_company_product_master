@@ -10,13 +10,15 @@ const KeywordsTextHelper = ({
   onConvert,
   onReset,
   parseKeywordsFromText,
+  splitter,
 }) => {
   return (
     <div className={styles.helperContainer}>
       <h4>Batch Convert Keywords</h4>
       <p className={styles.helperDescription}>
-        Enter comma-separated keywords below. They will be split and
-        synchronized with the product keywords above.
+        {splitter
+          ? `Enter keywords separated by "${splitter}". They will be split and synchronized with the product keywords above.`
+          : 'Splitter is empty. Load Keywords as Text can still be used, but Convert & Sync is disabled.'}
       </p>
 
       <div className={styles.textAreaWrapper}>
@@ -33,7 +35,7 @@ const KeywordsTextHelper = ({
         <button
           className={styles.convertButton}
           onClick={onConvert}
-          disabled={!textAreaValue.trim()}
+          disabled={!textAreaValue.trim() || !splitter}
         >
           Convert & Sync
         </button>

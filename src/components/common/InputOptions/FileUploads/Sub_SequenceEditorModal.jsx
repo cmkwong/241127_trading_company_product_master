@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import PropTypes from 'prop-types';
 import { createPortal } from 'react-dom';
 import styles from './Main_FileUploads.module.css';
@@ -9,9 +10,15 @@ const Sub_SequenceEditorModal = ({
   showDownloadButton = false,
   isDownloading = false,
   onDownload = () => {},
+  showSortButton = false,
+  canSort = false,
+  onSortByName = () => {},
+  onSortBySize = () => {},
   dropZoneProps,
   children,
 }) => {
+  const [showSortMenu, setShowSortMenu] = useState(false);
+
   if (!isOpen) return null;
 
   return createPortal(
@@ -42,6 +49,54 @@ const Sub_SequenceEditorModal = ({
                 </svg>
               </button>
             )}
+
+            {showSortButton && (
+              <div className={styles.sortActionWrap}>
+                <button
+                  type="button"
+                  className={styles.sequenceEditorIconBtn}
+                  title="Sort"
+                  aria-label="Sort"
+                  onClick={() => setShowSortMenu((prev) => !prev)}
+                  disabled={!canSort}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path d="M3 18h6v-2H3v2zm0-5h12v-2H3v2zm0-7v2h18V6H3zm14 10-3 3h2v3h2v-3h2l-3-3z" />
+                  </svg>
+                </button>
+
+                {showSortMenu && canSort && (
+                  <div className={styles.sortMenu}>
+                    <button
+                      type="button"
+                      className={styles.sortMenuItem}
+                      onClick={() => {
+                        onSortByName();
+                        setShowSortMenu(false);
+                      }}
+                    >
+                      Sort by Name
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.sortMenuItem}
+                      onClick={() => {
+                        onSortBySize();
+                        setShowSortMenu(false);
+                      }}
+                    >
+                      Sort by File Size
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
             <button
               type="button"
               className={styles.sequenceEditorCloseBtn}
@@ -71,6 +126,10 @@ Sub_SequenceEditorModal.propTypes = {
   showDownloadButton: PropTypes.bool,
   isDownloading: PropTypes.bool,
   onDownload: PropTypes.func,
+  showSortButton: PropTypes.bool,
+  canSort: PropTypes.bool,
+  onSortByName: PropTypes.func,
+  onSortBySize: PropTypes.func,
   dropZoneProps: PropTypes.shape({
     onFileSelect: PropTypes.func.isRequired,
     isDragging: PropTypes.bool.isRequired,

@@ -405,6 +405,44 @@ const Main_FileUploads = (props) => {
     [fileList, disabled, onChange],
   );
 
+  const handleSortByName = useCallback(() => {
+    if (fileList.length < 2) return;
+
+    const oldFiles = [...fileList];
+    const updatedFiles = [...fileList].sort((a, b) =>
+      String(a?.name || '').localeCompare(String(b?.name || ''), undefined, {
+        sensitivity: 'base',
+        numeric: true,
+      }),
+    );
+
+    setFileList(updatedFiles);
+    onChange(oldFiles, updatedFiles);
+  }, [fileList, onChange]);
+
+  const handleSortBySize = useCallback(() => {
+    if (fileList.length < 2) return;
+
+    const oldFiles = [...fileList];
+    const updatedFiles = [...fileList].sort((a, b) => {
+      const sizeA = Number(a?.size || 0);
+      const sizeB = Number(b?.size || 0);
+      if (sizeA !== sizeB) return sizeA - sizeB;
+
+      return String(a?.name || '').localeCompare(
+        String(b?.name || ''),
+        undefined,
+        {
+          sensitivity: 'base',
+          numeric: true,
+        },
+      );
+    });
+
+    setFileList(updatedFiles);
+    onChange(oldFiles, updatedFiles);
+  }, [fileList, onChange]);
+
   // Determine item type label for DropZone
   const itemType = mode === 'image' ? 'images' : 'files';
   const testIdPrefix = mode === 'image' ? 'image' : 'file';
@@ -517,6 +555,10 @@ const Main_FileUploads = (props) => {
           showDownloadButton={showDownloadButton}
           isDownloading={isDownloading}
           onDownload={handleDownload}
+          showSortButton
+          canSort={fileList.length > 1 && !disabled}
+          onSortByName={handleSortByName}
+          onSortBySize={handleSortBySize}
           dropZoneProps={{
             ...baseDropZoneProps,
             testIdPrefix: `${testIdPrefix}-sequence-editor`,

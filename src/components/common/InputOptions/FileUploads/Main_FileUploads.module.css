@@ -67,6 +67,42 @@
   height: 15px;
 }
 
+.sortActionWrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.sortMenu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 20;
+  min-width: 140px;
+  background: #fff;
+  border: 1px solid #dbe3f2;
+  border-radius: 8px;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.16);
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sortMenuItem {
+  border: 0;
+  background: transparent;
+  text-align: left;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #1f2937;
+  cursor: pointer;
+}
+
+.sortMenuItem:hover {
+  background: #f3f4f6;
+}
+
 .inlineSequenceEditorBtn {
   position: absolute;
   top: 50%;

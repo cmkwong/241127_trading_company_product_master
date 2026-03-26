@@ -47,11 +47,16 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
   const objectUrlRegistryRef = useRef([]);
   const pageDataUrlRegistryRef = useRef([]);
   const hasInitialFetchRef = useRef(false);
+  const hasFetchedWithMappingsRef = useRef(false);
+  const productsFetchSequenceRef = useRef(0);
 
   const productBase64Config = useMemo(() => fileMappings || {}, [fileMappings]);
 
   // Extracted function to fetch products
   const doFetchProducts = useCallback(async () => {
+    const fetchSequence = ++productsFetchSequenceRef.current;
+    const hasMappings = Object.keys(productBase64Config || {}).length > 0;
+
     if (!token) {
       setProducts({ products: [] });
       return;
@@ -88,9 +93,17 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
         productBase64Config,
         urlRegistry,
       );
+
+      // Ignore stale responses (e.g., non-mapping fetch finishing after mapping fetch)
+      if (fetchSequence !== productsFetchSequenceRef.current) {
+        releaseObjectUrls(urlRegistry);
+        return;
+      }
+
       console.log('Processed products with object URLs:', processedProducts);
       setProducts(processedProducts || { products: [] });
       objectUrlRegistryRef.current = urlRegistry;
+      hasFetchedWithMappingsRef.current = hasMappings;
     } catch (err) {
       console.error('Failed to fetch products:', err);
       // On error, keep empty or handle gracefully
@@ -139,11 +152,16 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
       setPageData({});
       setSelectedProductId(null);
       hasInitialFetchRef.current = false;
+      hasFetchedWithMappingsRef.current = false;
       return;
     }
 
+    const hasMappings = Object.keys(productBase64Config || {}).length > 0;
+    const shouldRefetchWithMappings =
+      hasMappings && !hasFetchedWithMappingsRef.current;
+
     // Only fetch once per token to prevent re-fetching on tab switches
-    if (!hasInitialFetchRef.current) {
+    if (!hasInitialFetchRef.current || shouldRefetchWithMappings) {
       doFetchProducts();
       doFetchComparisonKeys();
       hasInitialFetchRef.current = true;
@@ -155,7 +173,13 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
       releaseObjectUrls(pageDataUrlRegistryRef.current);
       pageDataUrlRegistryRef.current = [];
     };
-  }, [token, isFileMappingsLoading, doFetchProducts, doFetchComparisonKeys]);
+  }, [
+    token,
+    isFileMappingsLoading,
+    productBase64Config,
+    doFetchProducts,
+    doFetchComparisonKeys,
+  ]);
 
   const effectiveComparisonKeys = useCallback(() => {
     return getEffectiveComparisonKeys({ comparisonKeys, pageData });

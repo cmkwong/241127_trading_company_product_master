@@ -34,16 +34,27 @@ const SupplierSidebar = ({
       const name = supplier?.name || supplier?.company_name || '';
       const code = supplier?.code || '';
       const id = supplier?.id || '';
+      const createdAt = supplier?.created_at || '';
+      const updatedAt = supplier?.updated_at || '';
 
       return (
         String(name).toLowerCase().includes(lowerSearchTerm) ||
         String(code).toLowerCase().includes(lowerSearchTerm) ||
-        String(id).toLowerCase().includes(lowerSearchTerm)
+        String(id).toLowerCase().includes(lowerSearchTerm) ||
+        String(createdAt).toLowerCase().includes(lowerSearchTerm) ||
+        String(updatedAt).toLowerCase().includes(lowerSearchTerm)
       );
     });
 
     setFilteredSuppliers(filtered);
   }, [searchTerm, suppliers]);
+
+  const formatDateTime = useCallback((value) => {
+    if (!value) return '';
+    return String(value)
+      .replace('T', ' ')
+      .replace(/\.\d{3}Z?$/, '');
+  }, []);
 
   const handleSupplierSelect = useCallback(
     (supplier) => {
@@ -103,9 +114,11 @@ const SupplierSidebar = ({
           value: supplier?.code || supplier?.supplier_code || '',
         },
         { label: 'Type:', value: supplierTypeLabel },
+        { label: 'Created At:', value: formatDateTime(supplier?.created_at) },
+        { label: 'Updated At:', value: formatDateTime(supplier?.updated_at) },
       ];
     },
-    [supplierType],
+    [supplierType, formatDateTime],
   );
 
   const getSupplierExpandedRows = useCallback(
@@ -137,9 +150,11 @@ const SupplierSidebar = ({
           value: supplier?.code || supplier?.supplier_code || '',
         },
         { label: 'Type:', value: supplierTypeLabel },
+        { label: 'Created At:', value: formatDateTime(supplier?.created_at) },
+        { label: 'Updated At:', value: formatDateTime(supplier?.updated_at) },
       ];
     },
-    [supplierType],
+    [supplierType, formatDateTime],
   );
 
   const getSupplierExpandedSubRows = useCallback(

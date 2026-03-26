@@ -25,6 +25,13 @@ const Main_ProductIcon = ({ showMaxImagesNotice = false }) => {
   const { pageData, upsertProductPageData } = useProductContext();
   const { productStatus } = useMasterContext();
 
+  const formatDateTime = (value) => {
+    if (!value) return '';
+    return String(value)
+      .replace('T', ' ')
+      .replace(/\.\d{3}Z?$/, '');
+  };
+
   // product ID state setup
   const [id, setId] = useState(pageData.id || '');
 
@@ -139,6 +146,18 @@ const Main_ProductIcon = ({ showMaxImagesNotice = false }) => {
           defaultValue={id}
           onChange={() => {}}
           disabled={true} // Product ID is typically not editable, set to true to disable
+        />
+        <Main_TextField
+          label={'Created Date Time'}
+          defaultValue={formatDateTime(pageData.created_at)}
+          onChange={() => {}}
+          disabled={true}
+        />
+        <Main_TextField
+          label={'Updated Date Time'}
+          defaultValue={formatDateTime(pageData.updated_at)}
+          onChange={() => {}}
+          disabled={true}
         />
       </div>
     </Main_InputContainer>

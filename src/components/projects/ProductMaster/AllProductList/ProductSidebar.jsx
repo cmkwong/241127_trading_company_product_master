@@ -7,7 +7,7 @@ import { useMasterContext } from '../../../../store/MasterContext';
 const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
   const { getProductData, products, createNewProduct, selectedProductId } =
     useProductContext();
-  const { category } = useMasterContext();
+  const { category, productStatus } = useMasterContext();
   const [windowWidth, setWindowWidth] = useState(
     typeof window !== 'undefined' ? window.innerWidth : 1024,
   );
@@ -25,8 +25,19 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
     }
 
     const lowerSearchTerm = searchTerm.toLowerCase();
-    const filtered = currentProductList.filter(
-      (product) =>
+    const filtered = currentProductList.filter((product) => {
+      const statusName =
+        productStatus.find(
+          (item) =>
+            item.id === (product?.product_status_id || product?.status_id),
+        )?.name ||
+        productStatus.find(
+          (item) =>
+            item.id === (product?.product_status_id || product?.status_id),
+        )?.label ||
+        '';
+
+      return (
         (typeof product.product_names === 'string' &&
           product.product_names.toLowerCase().includes(lowerSearchTerm)) ||
         (Array.isArray(product.product_names) &&
@@ -34,6 +45,13 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
             name.name.toLowerCase().includes(lowerSearchTerm),
           )) ||
         product.id.toLowerCase().includes(lowerSearchTerm) ||
+        String(statusName).toLowerCase().includes(lowerSearchTerm) ||
+        String(product?.created_at || '')
+          .toLowerCase()
+          .includes(lowerSearchTerm) ||
+        String(product?.updated_at || '')
+          .toLowerCase()
+          .includes(lowerSearchTerm) ||
         (Array.isArray(product.product_alibaba_ids) &&
           product.product_alibaba_ids.some((id) =>
             typeof id === 'string'
@@ -45,11 +63,19 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
             typeof cat === 'string' || typeof cat === 'number'
               ? String(cat).toLowerCase().includes(lowerSearchTerm)
               : false,
-          )),
-    );
+          ))
+      );
+    });
 
     setFilteredProducts(filtered);
-  }, [searchTerm, products]);
+  }, [searchTerm, products, productStatus]);
+
+  const formatDateTime = useCallback((value) => {
+    if (!value) return '';
+    return String(value)
+      .replace('T', ' ')
+      .replace(/\.\d{3}Z?$/, '');
+  }, []);
 
   // Handle product selection
   const handleProductSelect = useCallback(
@@ -100,13 +126,27 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
           ?.map((item) => item.value)
           .filter(Boolean) || [];
 
+      const statusLabel =
+        productStatus.find(
+          (item) =>
+            item.id === (product?.product_status_id || product?.status_id),
+        )?.name ||
+        productStatus.find(
+          (item) =>
+            item.id === (product?.product_status_id || product?.status_id),
+        )?.label ||
+        '';
+
       return [
         { label: 'ID:', value: product?.id || '' },
+        { label: 'Status:', value: statusLabel },
         { label: 'Categories:', value: categoryLabels.join(', ') },
         { label: 'Alibaba:', value: alibabaIdValues.join(', ') },
+        { label: 'Created At:', value: formatDateTime(product?.created_at) },
+        { label: 'Updated At:', value: formatDateTime(product?.updated_at) },
       ];
     },
-    [category],
+    [category, productStatus, formatDateTime],
   );
 
   // Track window resize for responsive behavior

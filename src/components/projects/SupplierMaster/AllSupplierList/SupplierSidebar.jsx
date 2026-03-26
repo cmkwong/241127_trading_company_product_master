@@ -4,6 +4,27 @@ import SearchSideBarList from '../../../common/SearchSideBarList/SearchSideBarLi
 import { useSupplierContext } from '../../../../store/SupplierContext';
 import { useMasterContext } from '../../../../store/MasterContext';
 
+const SUPPLIER_SEARCH_HISTORY_KEY = 'supplier_sidebar_search_history';
+const MAX_SEARCH_HISTORY_ITEMS = 15;
+
+const normalizeHistoryEntry = (entry) => {
+  if (typeof entry === 'string') {
+    const title = String(entry || '').trim();
+    if (!title) return null;
+    return { id: '', title };
+  }
+
+  if (!entry || typeof entry !== 'object') {
+    return null;
+  }
+
+  const id = String(entry.id || '').trim();
+  const title = String(entry.title || entry.name || '').trim();
+  if (!id && !title) return null;
+
+  return { id, title };
+};
+
 const SupplierSidebar = ({
   onSelectSupplier,
   isCollapsed,
@@ -17,7 +38,25 @@ const SupplierSidebar = ({
     typeof window !== 'undefined' ? window.innerWidth : 1024,
   );
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchHistory, setSearchHistory] = useState([]);
   const [filteredSuppliers, setFilteredSuppliers] = useState([]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    try {
+      const raw = window.localStorage.getItem(SUPPLIER_SEARCH_HISTORY_KEY);
+      const parsed = JSON.parse(raw || '[]');
+      const normalized = (Array.isArray(parsed) ? parsed : [])
+        .map(normalizeHistoryEntry)
+        .filter(Boolean)
+        .slice(0, MAX_SEARCH_HISTORY_ITEMS);
+      setSearchHistory(normalized);
+    } catch (error) {
+      console.error('Failed to load supplier search history:', error);
+      setSearchHistory([]);
+    }
+  }, []);
 
   useEffect(() => {
     const currentSupplierList = Array.isArray(suppliers)
@@ -56,6 +95,24 @@ const SupplierSidebar = ({
       .replace(/\.\d{3}Z?$/, '');
   }, []);
 
+  const getSupplierName = useCallback(
+    (supplier) => supplier?.name || supplier?.company_name || '-',
+    [],
+  );
+
+  const saveSearchHistory = useCallback((updater) => {
+    setSearchHistory((prev) => {
+      const next = updater(prev);
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem(
+          SUPPLIER_SEARCH_HISTORY_KEY,
+          JSON.stringify(next),
+        );
+      }
+      return next;
+    });
+  }, []);
+
   const handleSupplierSelect = useCallback(
     (supplier) => {
       const getSupplierDataSuccess = getSupplierData(supplier.id);
@@ -68,22 +125,80 @@ const SupplierSidebar = ({
       if (onSelectSupplier) {
         onSelectSupplier(supplier);
       }
+
+      saveSearchHistory((prev) => {
+        const entry = {
+          id: String(supplier?.id || '').trim(),
+          title: String(getSupplierName(supplier) || supplier?.id || '').trim(),
+        };
+
+        const deduped = prev.filter((item) => {
+          if (entry.id && item.id) {
+            return item.id !== entry.id;
+          }
+
+          return (
+            String(item.title || '').toLowerCase() !==
+            String(entry.title || '').toLowerCase()
+          );
+        });
+
+        return [entry, ...deduped].slice(0, MAX_SEARCH_HISTORY_ITEMS);
+      });
     },
-    [getSupplierData, windowWidth, onToggleCollapse, onSelectSupplier],
+    [
+      getSupplierData,
+      windowWidth,
+      onToggleCollapse,
+      onSelectSupplier,
+      saveSearchHistory,
+      getSupplierName,
+    ],
   );
 
   const handleSearchChange = (value) => {
     setSearchTerm(value);
   };
 
+  const handleSelectSearchHistory = useCallback(
+    (entry) => {
+      const normalized = normalizeHistoryEntry(entry);
+      if (!normalized) return;
+
+      const currentSupplierList = Array.isArray(suppliers)
+        ? suppliers
+        : suppliers?.suppliers || [];
+
+      const found = currentSupplierList.find((item) => {
+        const byId =
+          normalized.id && String(item?.id || '').trim() === normalized.id;
+        if (byId) return true;
+
+        const itemTitle = String(getSupplierName(item) || '').trim();
+        return (
+          !normalized.id &&
+          itemTitle &&
+          itemTitle.toLowerCase() === normalized.title.toLowerCase()
+        );
+      });
+
+      if (found) {
+        handleSupplierSelect(found);
+        return;
+      }
+
+      setSearchTerm(normalized.title);
+    },
+    [suppliers, getSupplierName, handleSupplierSelect],
+  );
+
+  const handleClearSearch = useCallback(() => {
+    setSearchTerm('');
+  }, []);
+
   const handleCreateSupplier = () => {
     createNewSupplier();
   };
-
-  const getSupplierName = useCallback(
-    (supplier) => supplier?.name || supplier?.company_name || '-',
-    [],
-  );
 
   const getSupplierRows = useCallback(
     (supplier) => {
@@ -245,6 +360,9 @@ const SupplierSidebar = ({
           onSelectItem={handleSupplierSelect}
           searchValue={searchTerm}
           onSearchChange={handleSearchChange}
+          searchHistory={searchHistory}
+          onSelectSearchHistory={handleSelectSearchHistory}
+          onClearSearch={handleClearSearch}
           searchPlaceholder="Search suppliers..."
           onCreate={handleCreateSupplier}
           createButtonTitle="Create New Supplier"

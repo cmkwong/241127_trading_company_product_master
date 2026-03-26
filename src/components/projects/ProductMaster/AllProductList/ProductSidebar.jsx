@@ -4,6 +4,27 @@ import SearchSideBarList from '../../../common/SearchSideBarList/SearchSideBarLi
 import { useProductContext } from '../../../../store/ProductContext';
 import { useMasterContext } from '../../../../store/MasterContext';
 
+const PRODUCT_SEARCH_HISTORY_KEY = 'product_sidebar_search_history';
+const MAX_SEARCH_HISTORY_ITEMS = 15;
+
+const normalizeHistoryEntry = (entry) => {
+  if (typeof entry === 'string') {
+    const title = String(entry || '').trim();
+    if (!title) return null;
+    return { id: '', title };
+  }
+
+  if (!entry || typeof entry !== 'object') {
+    return null;
+  }
+
+  const id = String(entry.id || '').trim();
+  const title = String(entry.title || entry.name || '').trim();
+  if (!id && !title) return null;
+
+  return { id, title };
+};
+
 const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
   const { getProductData, products, createNewProduct, selectedProductId } =
     useProductContext();
@@ -12,7 +33,25 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
     typeof window !== 'undefined' ? window.innerWidth : 1024,
   );
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchHistory, setSearchHistory] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    try {
+      const raw = window.localStorage.getItem(PRODUCT_SEARCH_HISTORY_KEY);
+      const parsed = JSON.parse(raw || '[]');
+      const normalized = (Array.isArray(parsed) ? parsed : [])
+        .map(normalizeHistoryEntry)
+        .filter(Boolean)
+        .slice(0, MAX_SEARCH_HISTORY_ITEMS);
+      setSearchHistory(normalized);
+    } catch (error) {
+      console.error('Failed to load product search history:', error);
+      setSearchHistory([]);
+    }
+  }, []);
 
   useEffect(() => {
     const currentProductList = Array.isArray(products)
@@ -77,6 +116,24 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
       .replace(/\.\d{3}Z?$/, '');
   }, []);
 
+  const getProductName = useCallback(
+    (product) => product?.product_names?.[0]?.name || '',
+    [],
+  );
+
+  const saveSearchHistory = useCallback((updater) => {
+    setSearchHistory((prev) => {
+      const next = updater(prev);
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem(
+          PRODUCT_SEARCH_HISTORY_KEY,
+          JSON.stringify(next),
+        );
+      }
+      return next;
+    });
+  }, []);
+
   // Handle product selection
   const handleProductSelect = useCallback(
     (product) => {
@@ -92,22 +149,80 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
       if (onSelectProduct) {
         onSelectProduct(product);
       }
+
+      saveSearchHistory((prev) => {
+        const entry = {
+          id: String(product?.id || '').trim(),
+          title: String(getProductName(product) || product?.id || '').trim(),
+        };
+
+        const deduped = prev.filter((item) => {
+          if (entry.id && item.id) {
+            return item.id !== entry.id;
+          }
+
+          return (
+            String(item.title || '').toLowerCase() !==
+            String(entry.title || '').toLowerCase()
+          );
+        });
+
+        return [entry, ...deduped].slice(0, MAX_SEARCH_HISTORY_ITEMS);
+      });
     },
-    [getProductData, windowWidth, onToggleCollapse, onSelectProduct],
+    [
+      getProductData,
+      windowWidth,
+      onToggleCollapse,
+      onSelectProduct,
+      saveSearchHistory,
+      getProductName,
+    ],
   );
 
   const handleSearchChange = (value) => {
     setSearchTerm(value);
   };
 
+  const handleSelectSearchHistory = useCallback(
+    (entry) => {
+      const normalized = normalizeHistoryEntry(entry);
+      if (!normalized) return;
+
+      const currentProductList = Array.isArray(products)
+        ? products
+        : products?.products || [];
+
+      const found = currentProductList.find((item) => {
+        const byId =
+          normalized.id && String(item?.id || '').trim() === normalized.id;
+        if (byId) return true;
+
+        const itemTitle = String(getProductName(item) || '').trim();
+        return (
+          !normalized.id &&
+          itemTitle &&
+          itemTitle.toLowerCase() === normalized.title.toLowerCase()
+        );
+      });
+
+      if (found) {
+        handleProductSelect(found);
+        return;
+      }
+
+      setSearchTerm(normalized.title);
+    },
+    [products, getProductName, handleProductSelect],
+  );
+
+  const handleClearSearch = useCallback(() => {
+    setSearchTerm('');
+  }, []);
+
   const handleCreateProduct = () => {
     createNewProduct();
   };
-
-  const getProductName = useCallback(
-    (product) => product?.product_names?.[0]?.name || '',
-    [],
-  );
 
   const getProductRows = useCallback(
     (product) => {
@@ -174,6 +289,9 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
           onSelectItem={handleProductSelect}
           searchValue={searchTerm}
           onSearchChange={handleSearchChange}
+          searchHistory={searchHistory}
+          onSelectSearchHistory={handleSelectSearchHistory}
+          onClearSearch={handleClearSearch}
           searchPlaceholder="Search products..."
           onCreate={handleCreateProduct}
           createButtonTitle="Create New Product"

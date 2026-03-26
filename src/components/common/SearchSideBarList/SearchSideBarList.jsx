@@ -11,6 +11,10 @@ const SearchSideBarList = ({
   onSelectItem,
   searchValue = '',
   onSearchChange,
+  searchHistory = [],
+  onSelectSearchHistory,
+  onClearSearch,
+  onCommitSearch,
   searchPlaceholder = 'Search...',
   onCreate,
   showCreateButton = true,
@@ -65,6 +69,10 @@ const SearchSideBarList = ({
           <SearchSideBarListSearchBar
             value={searchValue}
             onChange={onSearchChange}
+            searchHistory={searchHistory}
+            onSelectHistory={onSelectSearchHistory}
+            onClear={onClearSearch}
+            onCommitSearch={onCommitSearch}
             placeholder={searchPlaceholder}
           />
         </div>

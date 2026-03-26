@@ -42,6 +42,7 @@
   width: 100%;
   display: flex;
   align-items: center;
+  position: relative;
 }
 
 .searchFieldWrapper > div {
@@ -52,8 +53,72 @@
 .searchFieldWrapper input {
   height: 40px;
   box-sizing: border-box;
-  padding: 8px 12px;
+  padding: 8px 74px 8px 12px;
   margin: 0;
+}
+
+.searchInlineButton {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 30px;
+  height: 30px;
+  border: none;
+  background: transparent;
+  color: #111;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.searchInlineButton:first-of-type {
+  right: 38px;
+}
+
+.searchInlineButton:nth-of-type(2) {
+  right: 8px;
+}
+
+.searchInlineButton:hover:not(:disabled) {
+  background: #f3f4f6;
+}
+
+.searchInlineButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.searchHistoryPanel {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  left: 0;
+  max-height: 280px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  z-index: 30;
+  padding: 4px;
+}
+
+.searchHistoryItem {
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: transparent;
+  padding: 8px;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #333;
+  cursor: pointer;
+}
+
+.searchHistoryItem:hover {
+  background: #f5f9ff;
 }
 
 .createButton {

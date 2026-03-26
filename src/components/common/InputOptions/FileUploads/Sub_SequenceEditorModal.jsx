@@ -25,6 +25,7 @@ const Sub_SequenceEditorModal = ({
     <div className={styles.sequenceEditorOverlay} onClick={onClose}>
       <div
         className={styles.sequenceEditorModal}
+        data-sequence-editor-modal="true"
         onClick={(e) => e.stopPropagation()}
       >
         <div className={styles.sequenceEditorHeader}>

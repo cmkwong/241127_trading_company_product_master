@@ -214,30 +214,65 @@ const Sub_FileItem = ({
     if (!hoverPreview || !isImagePreview || !hoverImageUrl) return;
 
     const rect = event.currentTarget.getBoundingClientRect();
-    const popupWidth = editMode ? 420 : 320;
-    const popupHeight = editMode ? 420 : 240;
+    const popupWidth = editMode ? 560 : 320;
+    const popupHeight = editMode ? 560 : 240;
     const gap = 12;
     const viewportWidth =
       window.innerWidth || document.documentElement.clientWidth;
     const viewportHeight =
       window.innerHeight || document.documentElement.clientHeight;
 
-    const placeRight = rect.right + gap + popupWidth < viewportWidth - 8;
-    const left = placeRight
-      ? rect.right + gap
-      : Math.max(8, rect.left - popupWidth - gap);
+    let left;
+    let top;
 
-    const idealTop = rect.top + rect.height / 2 - popupHeight / 2;
-    const top = Math.min(
-      Math.max(8, idealTop),
-      Math.max(8, viewportHeight - popupHeight - 8),
-    );
+    if (editMode) {
+      const modal = document.querySelector(
+        '[data-sequence-editor-modal="true"]',
+      );
+      const modalRect = modal?.getBoundingClientRect?.();
+
+      if (modalRect) {
+        const outsideRightLeft = modalRect.right + gap;
+        const hasOutsideRightSpace =
+          outsideRightLeft + popupWidth <= viewportWidth - 12;
+
+        if (hasOutsideRightSpace) {
+          left = outsideRightLeft;
+        } else {
+          left = Math.max(12, modalRect.right - popupWidth - 12);
+        }
+
+        const idealTop = rect.top + rect.height / 2 - popupHeight / 2;
+        const minTop = Math.max(12, modalRect.top + 72);
+        const maxTop = Math.max(minTop, viewportHeight - popupHeight - 12);
+        top = Math.min(Math.max(minTop, idealTop), maxTop);
+      } else {
+        left = Math.max(12, viewportWidth - popupWidth - 12);
+        const idealTop = rect.top + rect.height / 2 - popupHeight / 2;
+        top = Math.min(
+          Math.max(12, idealTop),
+          Math.max(12, viewportHeight - popupHeight - 12),
+        );
+      }
+    } else {
+      const placeRight = rect.right + gap + popupWidth < viewportWidth - 8;
+      left = placeRight
+        ? rect.right + gap
+        : Math.max(8, rect.left - popupWidth - gap);
+
+      const idealTop = rect.top + rect.height / 2 - popupHeight / 2;
+      top = Math.min(
+        Math.max(8, idealTop),
+        Math.max(8, viewportHeight - popupHeight - 8),
+      );
+    }
 
     setHoverPreviewStyle({
       position: 'fixed',
       left,
       top,
       width: popupWidth,
+      maxHeight: popupHeight,
       zIndex: 10100,
     });
     setShowHoverPreview(true);

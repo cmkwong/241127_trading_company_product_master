@@ -363,7 +363,8 @@
 }
 
 .hoverPreviewCardEditMode .hoverPreviewImage {
-  height: 360px;
+  height: 800px;
+  width: 100%;
 }
 
 .hoverPreviewName {

@@ -260,7 +260,7 @@ const Sub_ProductImagesRow = (props) => {
                   product_id: pageData.id,
                   image_type_id: subType.id,
                 }}
-                downloadFileBaseName={`${String(subType.name || 'images').replace(/\s+/g, '_')}`}
+                downloadFileBaseName={`${String(subType.name || 'images').replace(/\s+/g, '')}`}
                 downloadNameProductId={pageData.id || ''}
                 downloadNameImageType={subType.name || 'images'}
                 onError={handleImageError}
@@ -299,7 +299,7 @@ const Sub_ProductImagesRow = (props) => {
                 (productImageType || []).find(
                   (type) => type.id === mainImageTypeId,
                 )?.name || 'main',
-              ).replace(/\s+/g, '_')}_main`}
+              ).replace(/\s+/g, '')}_main`}
               downloadNameProductId={pageData.id || ''}
               downloadNameImageType="main"
               onError={handleImageError}

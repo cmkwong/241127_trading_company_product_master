@@ -135,18 +135,18 @@ const Main_FileUploads = (props) => {
         .trim()
         .slice(0, 4);
       const imageType = String(downloadNameImageType || '')
+        .replace('-', '')
         .trim()
         .toLowerCase()
-        .replace(/\s+/g, '_')
+        .replace(/\s+/g, '')
         .replace(/[^a-z0-9_-]/g, '');
-
       const extFromName = getExtensionFromName(
         record?.image_name || fallbackName || '',
       );
       const ext = extFromName || getExtensionFromMime(fallbackMime);
 
       if (productPrefix && imageType) {
-        return `${productPrefix}-${imageType}-${order}.${ext}`;
+        return `${productPrefix}${imageType}${order}.${ext}`;
       }
 
       return (

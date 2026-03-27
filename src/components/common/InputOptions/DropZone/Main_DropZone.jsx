@@ -31,7 +31,7 @@ const Main_DropZone = ({
   // Styling/Labels
   itemType = 'files', // 'files' or 'images'
   compact = false,
-  compactButtonText = '選取',
+  compactButtonText = 'Select',
   tableCell = false,
   expandedPreview = false,
 }) => {

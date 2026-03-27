@@ -20,6 +20,7 @@ const ACCEPTED_IMAGE_TYPES = [
 ];
 
 const MAX_IMAGE_SIZE_MB = 5;
+const PRODUCT_IMAGES_BASE_PATH = 'E:\\Pet Product Images\\public\\products';
 
 const Main_ProductIcon = ({ showMaxImagesNotice = false }) => {
   const { pageData, upsertProductPageData } = useProductContext();
@@ -72,6 +73,23 @@ const Main_ProductIcon = ({ showMaxImagesNotice = false }) => {
       icon_name: '',
       _base64_changed: true,
     });
+  };
+
+  const handleOpenProductFolder = async () => {
+    if (!id) return;
+
+    const windowsPath = `${PRODUCT_IMAGES_BASE_PATH}\\${id}`;
+    const fileUrl = `file:///${windowsPath.replace(/\\/g, '/')}`;
+
+    // Browsers may block opening local folders directly.
+    window.open(fileUrl, '_blank', 'noopener,noreferrer');
+
+    try {
+      await navigator.clipboard.writeText(windowsPath);
+      alert('Folder path copied to clipboard.');
+    } catch {
+      // ignore clipboard failure
+    }
   };
 
   return (
@@ -147,6 +165,16 @@ const Main_ProductIcon = ({ showMaxImagesNotice = false }) => {
           onChange={() => {}}
           disabled={true} // Product ID is typically not editable, set to true to disable
         />
+        <button
+          type="button"
+          className={styles.openFolderBtn}
+          onClick={handleOpenProductFolder}
+          disabled={!id}
+          title="Open product images folder"
+          aria-label="Open product images folder"
+        >
+          Open Product Images Folder
+        </button>
         <Main_TextField
           label={'Created Date Time'}
           defaultValue={formatDateTime(pageData.created_at)}

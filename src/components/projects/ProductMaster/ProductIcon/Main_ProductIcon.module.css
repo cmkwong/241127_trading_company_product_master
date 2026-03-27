@@ -38,3 +38,24 @@
 .removeIconBtn:hover {
   background: #f9fafb;
 }
+
+.openFolderBtn {
+  align-self: flex-start;
+  border: 1px solid #cfd8e3;
+  background: #fff;
+  color: #1d4ed8;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.openFolderBtn:hover:not(:disabled) {
+  background: #f4f8ff;
+}
+
+.openFolderBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

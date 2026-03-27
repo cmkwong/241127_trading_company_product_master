@@ -37,6 +37,7 @@ const Main_ProductLink = () => {
         {
           id: uuidv4(),
           product_id: pageData.id,
+          name: '',
           link: '',
           remark: '',
           updated_at: '',
@@ -113,6 +114,21 @@ const Main_ProductLink = () => {
 
   const columns = useMemo(
     () => [
+      {
+        key: 'name',
+        label: 'Name',
+        sortType: 'string',
+        minWidth: '220px',
+        cellClassName: styles.middleCell,
+        renderCell: (row) => (
+          <Main_TextField
+            className={styles.cellInput}
+            defaultValue={row.name || ''}
+            placeholder="Link name"
+            onChange={(ov, nv) => upsertLinkRow(row, { name: nv })}
+          />
+        ),
+      },
       {
         key: 'link',
         label: 'Link',

@@ -72,6 +72,8 @@ const SearchSideBarListExpandedModal = ({
   noResultsMessage = 'No results found',
   getItemId = (item) => item?.id,
   getItemTitle = (item) => item?.name || '',
+  getItemIconUrl = (item) => item?.icon_url,
+  getItemIconAlt = (item) => item?.name || 'item',
   getItemRows = () => [],
   getItemSubRows = () => [],
 }) => {
@@ -96,7 +98,7 @@ const SearchSideBarListExpandedModal = ({
       });
     });
 
-    return ['Title', ...Array.from(labels)];
+    return ['Icon', 'Title', ...Array.from(labels)];
   }, [items, getItemRows]);
 
   const hasAnySubRows = useMemo(() => {
@@ -125,6 +127,10 @@ const SearchSideBarListExpandedModal = ({
 
   const getCellValue = useCallback(
     (item, column) => {
+      if (column === 'Icon') {
+        return String(getItemIconUrl(item) || '').trim();
+      }
+
       if (column === 'Title') {
         return getItemTitle(item);
       }
@@ -136,7 +142,7 @@ const SearchSideBarListExpandedModal = ({
 
       return row?.value ?? '';
     },
-    [getItemTitle, getItemRows],
+    [getItemTitle, getItemRows, getItemIconUrl],
   );
 
   const sortedItems = useMemo(() => {
@@ -157,6 +163,10 @@ const SearchSideBarListExpandedModal = ({
   }, [items, sortKey, sortDirection, getCellValue]);
 
   const handleSort = (column) => {
+    if (column === 'Icon') {
+      return;
+    }
+
     if (sortKey === column) {
       setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
       return;
@@ -167,6 +177,10 @@ const SearchSideBarListExpandedModal = ({
   };
 
   const getSortIndicator = (column) => {
+    if (column === 'Icon') {
+      return '';
+    }
+
     if (sortKey !== column) {
       return '↕';
     }
@@ -298,7 +312,27 @@ const SearchSideBarListExpandedModal = ({
     return <span>{String(line)}</span>;
   };
 
-  const renderCellContent = (value, itemId, column) => {
+  const renderCellContent = (value, itemOrId, column) => {
+    const keyBase =
+      typeof itemOrId === 'object'
+        ? getItemId(itemOrId) || 'item'
+        : String(itemOrId || 'item');
+
+    if (column === 'Icon') {
+      const iconUrl = String(value || '').trim();
+      if (!iconUrl) {
+        return <span className={styles.expandedCellEmpty}>-</span>;
+      }
+
+      return (
+        <img
+          src={iconUrl}
+          alt={getItemIconAlt(itemOrId) || 'icon'}
+          className={styles.overlayIconImage}
+        />
+      );
+    }
+
     const lines = toArray(value);
     if (lines.length === 0) {
       return <span className={styles.expandedCellEmpty}>-</span>;
@@ -317,7 +351,7 @@ const SearchSideBarListExpandedModal = ({
           if (!content) return null;
           return (
             <div
-              key={`${itemId}-${column}-line-${index}`}
+              key={`${keyBase}-${column}-line-${index}`}
               className={styles.expandedCellLine}
             >
               {content}
@@ -519,6 +553,7 @@ const SearchSideBarListExpandedModal = ({
                       type="button"
                       className={styles.sortButton}
                       onClick={() => handleSort(column)}
+                      disabled={column === 'Icon'}
                     >
                       <span>{column}</span>
                       <span className={styles.sortIndicator}>
@@ -552,10 +587,15 @@ const SearchSideBarListExpandedModal = ({
                         }}
                       >
                         {tableColumns.map((column) => (
-                          <td key={`${itemId}-${column}`}>
+                          <td
+                            key={`${itemId}-${column}`}
+                            className={
+                              column === 'Icon' ? styles.overlayIconCell : ''
+                            }
+                          >
                             {renderCellContent(
                               getCellValue(item, column),
-                              itemId,
+                              item,
                               column,
                             )}
                           </td>

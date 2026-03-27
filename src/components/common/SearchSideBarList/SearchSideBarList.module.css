@@ -343,6 +343,10 @@
   font-size: 12px;
 }
 
+.sortButton:disabled {
+  cursor: default;
+}
+
 .overlayTable th {
   position: sticky;
   top: 0;
@@ -357,6 +361,22 @@
 
 .overlayTable tbody tr:hover {
   background: #f8fbff;
+}
+
+.overlayIconCell {
+  width: 56px;
+  min-width: 56px;
+  max-width: 56px;
+  text-align: center;
+}
+
+.overlayIconImage {
+  width: 44px;
+  height: 44px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid #d9d9d9;
+  background: #fff;
 }
 
 .overlaySelectedRow {

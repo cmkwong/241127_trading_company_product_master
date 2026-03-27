@@ -170,6 +170,8 @@ const SearchSideBarList = ({
         getItemTitle={getItemTitle}
         getItemRows={getExpandedRows || getItemRows}
         getItemSubRows={getExpandedSubRows}
+        getItemIconUrl={getItemIconUrl}
+        getItemIconAlt={getItemIconAlt}
       />
 
       <div className={`${styles.list} ${listClassName}`}>

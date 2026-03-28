@@ -148,6 +148,10 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
 
     // If no token, we can't fetch. Reset products or keep existing?
     if (!token) {
+      releaseObjectUrls(objectUrlRegistryRef.current);
+      objectUrlRegistryRef.current = [];
+      releaseObjectUrls(pageDataUrlRegistryRef.current);
+      pageDataUrlRegistryRef.current = [];
       setProducts({ products: [] });
       setPageData({});
       setSelectedProductId(null);
@@ -166,13 +170,6 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
       doFetchComparisonKeys();
       hasInitialFetchRef.current = true;
     }
-
-    return () => {
-      releaseObjectUrls(objectUrlRegistryRef.current);
-      objectUrlRegistryRef.current = [];
-      releaseObjectUrls(pageDataUrlRegistryRef.current);
-      pageDataUrlRegistryRef.current = [];
-    };
   }, [
     token,
     isFileMappingsLoading,
@@ -180,6 +177,16 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
     doFetchProducts,
     doFetchComparisonKeys,
   ]);
+
+  // Cleanup object URLs only when provider unmounts.
+  useEffect(() => {
+    return () => {
+      releaseObjectUrls(objectUrlRegistryRef.current);
+      objectUrlRegistryRef.current = [];
+      releaseObjectUrls(pageDataUrlRegistryRef.current);
+      pageDataUrlRegistryRef.current = [];
+    };
+  }, []);
 
   const effectiveComparisonKeys = useCallback(() => {
     return getEffectiveComparisonKeys({ comparisonKeys, pageData });

@@ -101,8 +101,13 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
         return;
       }
 
+      if (objectUrlRegistryRef.current.length > 0) {
+        releaseObjectUrls(objectUrlRegistryRef.current);
+      }
+
       setProducts(rawData || { products: [] });
       hasFetchedWithMappingsRef.current = hasMappings;
+      objectUrlRegistryRef.current = [];
       iconFetchedIdsRef.current = new Set();
       iconInFlightIdsRef.current = new Set();
       iconMemoryEntriesRef.current = [];

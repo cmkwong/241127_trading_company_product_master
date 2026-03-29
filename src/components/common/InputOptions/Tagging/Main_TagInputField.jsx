@@ -41,7 +41,17 @@ const Main_TagInputField = (props) => {
   const [inputValue, setInputValue] = useState('');
   const [showOption, setShowOption] = useState(false);
   const [selectionMouseIn, setSelectionMouseIn] = useState(false);
-  const [showHierarchy, setShowHierarchy] = useState(false);
+  const [showHierarchy, setShowHierarchy] = useState(enableHierarchyViewToggle);
+  const [collapsedNodeIds, setCollapsedNodeIds] = useState(new Set());
+
+  useEffect(() => {
+    if (enableHierarchyViewToggle) {
+      setShowHierarchy(true);
+      return;
+    }
+
+    setShowHierarchy(false);
+  }, [enableHierarchyViewToggle]);
 
   // Click outside handler
   useEffect(() => {
@@ -63,18 +73,44 @@ const Main_TagInputField = (props) => {
     };
   }, [showOption]);
 
+  const parentById = useMemo(() => {
+    const map = new Map();
+    (options || []).forEach((item) => {
+      map.set(item?.id, item?.parent_id ?? null);
+    });
+    return map;
+  }, [options]);
+
+  const getAncestorIds = useCallback(
+    (startId) => {
+      const ancestors = [];
+      const visited = new Set([startId]);
+      let cursor = parentById.get(startId);
+
+      while (cursor != null && !visited.has(cursor)) {
+        ancestors.push(cursor);
+        visited.add(cursor);
+        cursor = parentById.get(cursor);
+      }
+
+      return ancestors;
+    },
+    [parentById],
+  );
+
   // Update selection for one option
   const updateOptionData = useCallback(
     (id, checked) => {
       const oldSelected = selectedOptions || [];
+      const ancestorIds = checked ? getAncestorIds(id) : [];
       const nextSelected = checked
-        ? Array.from(new Set([...(selectedOptions || []), id]))
+        ? Array.from(new Set([...(selectedOptions || []), id, ...ancestorIds]))
         : (selectedOptions || []).filter((x) => x !== id);
 
       setSelectedOptions(nextSelected);
       onChange?.(oldSelected, nextSelected);
     },
-    [selectedOptions, onChange],
+    [selectedOptions, onChange, getAncestorIds],
   );
   // Internal addOptionData
   const addOptionData = useCallback(
@@ -158,6 +194,27 @@ const Main_TagInputField = (props) => {
     });
   }, [options, inputValue]);
 
+  useEffect(() => {
+    const validIds = new Set((options || []).map((item) => item?.id));
+
+    setCollapsedNodeIds((prev) => {
+      if (!prev || prev.size === 0) return prev;
+
+      const next = new Set();
+      prev.forEach((id) => {
+        if (validIds.has(id)) {
+          next.add(id);
+        }
+      });
+
+      if (next.size === prev.size) {
+        return prev;
+      }
+
+      return next;
+    });
+  }, [options]);
+
   const hierarchicalOptions = useMemo(() => {
     const source = options || [];
     if (!source.length) return [];
@@ -182,36 +239,67 @@ const Main_TagInputField = (props) => {
     const visited = new Set();
     const result = [];
 
-    const walk = (node, level) => {
+    const walk = (node, level, isVisible = true) => {
       if (!node || visited.has(node.id)) return;
       visited.add(node.id);
-      result.push({ ...node, level });
 
       const children = childrenByParent.get(node.id) || [];
-      children.forEach((child) => walk(child, level + 1));
+      const hasChildren = children.length > 0;
+      const isCollapsed = collapsedNodeIds.has(node.id);
+
+      if (isVisible) {
+        result.push({ ...node, level, hasChildren, isCollapsed });
+      }
+
+      const childrenVisible = isVisible && !isCollapsed;
+      children.forEach((child) => walk(child, level + 1, childrenVisible));
     };
 
-    roots.forEach((root) => walk(root, 0));
+    roots.forEach((root) => walk(root, 0, true));
 
     // Append any disconnected/cyclic leftovers safely.
     source.forEach((item) => {
       if (!visited.has(item.id)) {
-        walk(item, 0);
+        walk(item, 0, true);
       }
     });
 
     return result;
-  }, [options]);
+  }, [options, collapsedNodeIds]);
+
+  const toggleNodeCollapsed = useCallback((id) => {
+    if (!id) return;
+
+    setCollapsedNodeIds((prev) => {
+      const next = new Set(prev || []);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }, []);
 
   const displayOptions = useMemo(() => {
     // If searching, keep match-focused flat list even in hierarchy mode.
     if (inputValue) {
-      return filteredOptions.map((item) => ({ ...item, level: 0 }));
+      return filteredOptions.map((item) => ({
+        ...item,
+        level: 0,
+        hasChildren: false,
+        isCollapsed: false,
+      }));
     }
     if (showHierarchy) {
       return hierarchicalOptions;
     }
-    return (options || []).map((item) => ({ ...item, level: 0 }));
+    return (options || []).map((item) => ({
+      ...item,
+      level: 0,
+      hasChildren: false,
+      isCollapsed: false,
+    }));
   }, [
     inputValue,
     filteredOptions,
@@ -264,6 +352,8 @@ const Main_TagInputField = (props) => {
             filteredOptions={displayOptions}
             selectedOptions={selectedOptions}
             updateOptionData={updateOptionData}
+            showHierarchy={showHierarchy && !inputValue}
+            onToggleCollapse={toggleNodeCollapsed}
             showAddNewHint={shouldShowAddNewHint}
             addNewWord={addNewWord}
             onAddNewClick={() => handleEnterPress(addNewWord)}

@@ -30,10 +30,14 @@ const Sub_TagList = (props) => {
               id={el.id}
               name={el.name}
               level={el.level || 0}
+              hasChildren={Boolean(el.hasChildren)}
+              isCollapsed={Boolean(el.isCollapsed)}
+              showHierarchy={Boolean(props.showHierarchy)}
               checked={
                 props.selectedOptions && props.selectedOptions.includes(el.id)
               }
               updateOptionData={props.updateOptionData}
+              onToggleCollapse={props.onToggleCollapse}
             />
           );
         })

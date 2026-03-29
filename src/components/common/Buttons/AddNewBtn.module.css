@@ -36,6 +36,19 @@
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
 }
 
+.addNewBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.addNewBtn:disabled:hover {
+  background: linear-gradient(180deg, #ffffff 0%, #eef4ff 100%);
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+
 .addNewIcon {
   width: 14px;
   height: 14px;

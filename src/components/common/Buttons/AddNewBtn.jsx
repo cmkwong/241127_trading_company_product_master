@@ -6,6 +6,7 @@ const AddNewBtn = ({
   ariaLabel,
   title,
   className = '',
+  disabled = false,
 }) => {
   return (
     <button
@@ -14,6 +15,7 @@ const AddNewBtn = ({
       onClick={onClick}
       aria-label={ariaLabel || text}
       title={title || text}
+      disabled={disabled}
     >
       <svg
         className={styles.addNewIcon}

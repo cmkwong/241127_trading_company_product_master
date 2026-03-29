@@ -6,7 +6,7 @@ import {
   useEffect,
   useMemo,
 } from 'react';
-import { apiGet, apiPatch } from '../utils/crud';
+import { apiDelete, apiGet, apiPatch } from '../utils/crud';
 import { useAuthContext } from './AuthContext';
 import { ensureContextAvailable } from '../utils/contextDataUtils';
 
@@ -287,9 +287,14 @@ export const MasterContext_Provider = ({ children }) => {
       }
 
       const endpoint = `${DEFAULT_MASTER_API_BASE}/${tableName}`;
+      const rows = Array.isArray(data) ? data : [data];
       const response = await apiPatch(
         endpoint,
-        { data },
+        {
+          data: {
+            [tableName]: rows,
+          },
+        },
         {
           ...(token ? { token } : {}),
         },
@@ -301,15 +306,84 @@ export const MasterContext_Provider = ({ children }) => {
     [fetchMasterData, token],
   );
 
-  useEffect(() => {
-    const fetchAllMasterData = async () => {
-      await Promise.all(
-        DEFAULT_TABLE_NAMES.map((tableName) => fetchMasterData(tableName)),
-      );
-    };
+  const deleteMasterTableData = useCallback(
+    async (tableName, rowsOrIds) => {
+      if (!tableName || typeof tableName !== 'string') {
+        throw new Error('deleteMasterTableData requires a valid tableName');
+      }
 
-    fetchAllMasterData();
+      const normalizedRows = (
+        Array.isArray(rowsOrIds) ? rowsOrIds : [rowsOrIds]
+      )
+        .map((item) => {
+          if (typeof item === 'string') {
+            return { id: item };
+          }
+          if (item && typeof item === 'object' && item.id) {
+            return { id: item.id };
+          }
+          return null;
+        })
+        .filter(Boolean);
+
+      if (normalizedRows.length === 0) {
+        return null;
+      }
+
+      const endpoint = `${DEFAULT_MASTER_API_BASE}/${tableName}`;
+      const response = await apiDelete(endpoint, {
+        ...(token ? { token } : {}),
+        body: {
+          data: {
+            [tableName]: normalizedRows,
+          },
+        },
+      });
+
+      await fetchMasterData(tableName);
+      return response;
+    },
+    [fetchMasterData, token],
+  );
+
+  const fetchMasterTableSchema = useCallback(
+    async (tableName) => {
+      if (!tableName || typeof tableName !== 'string') {
+        throw new Error('fetchMasterTableSchema requires a valid tableName');
+      }
+
+      const endpointCandidates = [
+        `${DEFAULT_MASTER_API_BASE}/schema/${tableName}`,
+        `${DEFAULT_MASTER_API_BASE}/${tableName}/schema`,
+      ];
+
+      let lastError = null;
+
+      for (const endpoint of endpointCandidates) {
+        try {
+          const response = await apiGet(endpoint, {
+            ...(token ? { token } : {}),
+          });
+          return response?.schema || response?.data?.schema || null;
+        } catch (error) {
+          lastError = error;
+        }
+      }
+
+      throw lastError || new Error('Failed to fetch master table schema');
+    },
+    [token],
+  );
+
+  const refreshAllMasterData = useCallback(async () => {
+    await Promise.all(
+      DEFAULT_TABLE_NAMES.map((tableName) => fetchMasterData(tableName)),
+    );
   }, [fetchMasterData]);
+
+  useEffect(() => {
+    refreshAllMasterData();
+  }, [refreshAllMasterData]);
 
   // getting the id or label
   const getRequiredData = useCallback((id, label, masterData) => {
@@ -384,9 +458,13 @@ export const MasterContext_Provider = ({ children }) => {
     sizeType,
     currencies,
     masterDataMap,
+    masterTableNames: DEFAULT_TABLE_NAMES,
     fetchMasterData,
+    refreshAllMasterData,
+    fetchMasterTableSchema,
     getMasterTableData,
     updateMasterTableData,
+    deleteMasterTableData,
     ...legacyMethods,
   };
 

@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { useAuthContext } from '../../../store/AuthContext';
 import { ProductContext } from '../../../store/ProductContext';
 import { SupplierContext } from '../../../store/SupplierContext';
+import { MasterContext } from '../../../store/MasterContext';
 import { canProceedWithRecordSwitch } from '../../../utils/contextDataUtils';
 import styles from './TopBar.module.css';
 
@@ -11,8 +12,10 @@ const TopBar = ({ title, activeView, onViewChange }) => {
     useAuthContext();
   const productContext = useContext(ProductContext);
   const supplierContext = useContext(SupplierContext);
+  const masterContext = useContext(MasterContext);
   const refreshProductList = productContext?.refreshProductList;
   const refreshSupplierList = supplierContext?.refreshSupplierList;
+  const refreshAllMasterData = masterContext?.refreshAllMasterData;
   const [showLogin, setShowLogin] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -36,9 +39,13 @@ const TopBar = ({ title, activeView, onViewChange }) => {
         if (typeof refreshProductList === 'function') {
           await refreshProductList();
         }
-      } else {
+      } else if (activeView === 'supplier') {
         if (typeof refreshSupplierList === 'function') {
           await refreshSupplierList();
+        }
+      } else {
+        if (typeof refreshAllMasterData === 'function') {
+          await refreshAllMasterData();
         }
       }
     } finally {
@@ -76,7 +83,11 @@ const TopBar = ({ title, activeView, onViewChange }) => {
     }
 
     const currentContext =
-      activeView === 'product' ? productContext : supplierContext;
+      activeView === 'product'
+        ? productContext
+        : activeView === 'supplier'
+          ? supplierContext
+          : null;
 
     const canSwitch = canProceedWithRecordSwitch({
       hasRecordId: !!currentContext?.pageData?.id,
@@ -135,6 +146,14 @@ const TopBar = ({ title, activeView, onViewChange }) => {
             onClick={() => handleViewSwitch('supplier')}
           >
             Supplier Master
+          </button>
+          <button
+            className={`${styles.navBtn} ${
+              activeView === 'masterControl' ? styles.active : ''
+            }`}
+            onClick={() => handleViewSwitch('masterControl')}
+          >
+            Master Control
           </button>
         </div>
       </div>

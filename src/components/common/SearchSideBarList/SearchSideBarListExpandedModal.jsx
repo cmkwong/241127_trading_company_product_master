@@ -81,6 +81,7 @@ const SearchSideBarListExpandedModal = ({
   const [sortKey, setSortKey] = useState('Title');
   const [sortDirection, setSortDirection] = useState('asc');
   const [previewImage, setPreviewImage] = useState(null);
+  const [hoverPreview, setHoverPreview] = useState(null);
   // Track which subrows are expanded (by itemId)
   const [expandedSubRows, setExpandedSubRows] = useState({});
   // Track global expand/collapse state
@@ -194,6 +195,30 @@ const SearchSideBarListExpandedModal = ({
     onSelectItem?.(item);
     onClose?.();
   };
+
+  const handleIconMouseEnter = useCallback((event, src, alt) => {
+    setHoverPreview({
+      src,
+      alt,
+      x: event.clientX + 20,
+      y: event.clientY + 20,
+    });
+  }, []);
+
+  const handleIconMouseMove = useCallback((event) => {
+    setHoverPreview((prev) => {
+      if (!prev?.src) return prev;
+      return {
+        ...prev,
+        x: event.clientX + 20,
+        y: event.clientY + 20,
+      };
+    });
+  }, []);
+
+  const handleIconMouseLeave = useCallback(() => {
+    setHoverPreview(null);
+  }, []);
 
   const setRowRef = useCallback((itemId, element) => {
     if (element) {
@@ -370,11 +395,33 @@ const SearchSideBarListExpandedModal = ({
       }
 
       return (
-        <img
-          src={iconUrl}
-          alt={getItemIconAlt(itemOrId) || 'icon'}
-          className={styles.overlayIconImage}
-        />
+        <button
+          type="button"
+          className={styles.overlayIconButton}
+          onClick={(event) => {
+            event.stopPropagation();
+            setPreviewImage({
+              src: iconUrl,
+              alt: getItemIconAlt(itemOrId) || 'icon',
+            });
+          }}
+          onMouseEnter={(event) =>
+            handleIconMouseEnter(
+              event,
+              iconUrl,
+              getItemIconAlt(itemOrId) || 'icon',
+            )
+          }
+          onMouseMove={handleIconMouseMove}
+          onMouseLeave={handleIconMouseLeave}
+          title="Hover to preview, click to zoom"
+        >
+          <img
+            src={iconUrl}
+            alt={getItemIconAlt(itemOrId) || 'icon'}
+            className={styles.overlayIconImage}
+          />
+        </button>
       );
     }
 
@@ -689,6 +736,19 @@ const SearchSideBarListExpandedModal = ({
               className={styles.imagePreviewLarge}
             />
           </div>
+        </div>
+      )}
+
+      {hoverPreview?.src && (
+        <div
+          className={styles.hoverImagePreview}
+          style={{ left: hoverPreview.x, top: hoverPreview.y }}
+        >
+          <img
+            src={hoverPreview.src}
+            alt={hoverPreview.alt || 'hover-preview'}
+            className={styles.hoverImagePreviewLarge}
+          />
         </div>
       )}
     </div>

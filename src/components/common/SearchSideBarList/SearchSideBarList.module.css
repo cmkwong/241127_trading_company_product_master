@@ -364,19 +364,47 @@
 }
 
 .overlayIconCell {
-  width: 56px;
-  min-width: 56px;
-  max-width: 56px;
+  width: 108px;
+  min-width: 108px;
+  max-width: 108px;
   text-align: center;
 }
 
+.overlayIconButton {
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  cursor: zoom-in;
+  line-height: 0;
+}
+
 .overlayIconImage {
-  width: 44px;
-  height: 44px;
+  width: 88px;
+  height: 88px;
   object-fit: cover;
-  border-radius: 4px;
+  border-radius: 6px;
   border: 1px solid #d9d9d9;
   background: #fff;
+}
+
+.hoverImagePreview {
+  position: fixed;
+  z-index: 2300;
+  pointer-events: none;
+  background: #101418;
+  border: 1px solid #404a54;
+  border-radius: 8px;
+  padding: 6px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+}
+
+.hoverImagePreviewLarge {
+  width: 320px;
+  height: 320px;
+  object-fit: contain;
+  border-radius: 6px;
+  background: #101418;
 }
 
 .overlaySelectedRow {

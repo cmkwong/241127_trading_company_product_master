@@ -3,6 +3,7 @@ import SearchSideBarListInfo from './SearchSideBarListInfo';
 import styles from './SearchSideBarList.module.css';
 
 const SearchSideBarListItem = ({
+  itemId,
   item,
   isSelected,
   onClick,
@@ -20,6 +21,7 @@ const SearchSideBarListItem = ({
   return (
     <div
       ref={itemRef}
+      data-item-id={itemId}
       tabIndex={-1}
       className={`${styles.listItem} ${isSelected ? styles.selected : ''}`}
       onClick={() => onClick?.(item)}

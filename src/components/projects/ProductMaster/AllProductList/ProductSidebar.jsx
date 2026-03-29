@@ -26,8 +26,13 @@ const normalizeHistoryEntry = (entry) => {
 };
 
 const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
-  const { getProductData, products, createNewProduct, selectedProductId } =
-    useProductContext();
+  const {
+    getProductData,
+    products,
+    createNewProduct,
+    selectedProductId,
+    hydrateProductIcons,
+  } = useProductContext();
   const { category, productStatus } = useMasterContext();
   const [windowWidth, setWindowWidth] = useState(
     typeof window !== 'undefined' ? window.innerWidth : 1024,
@@ -108,6 +113,17 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
 
     setFilteredProducts(filtered);
   }, [searchTerm, products, productStatus]);
+
+  useEffect(() => {
+    const ids = filteredProducts
+      .slice(0, 30)
+      .map((item) => item?.id)
+      .filter(Boolean);
+
+    if (ids.length > 0) {
+      hydrateProductIcons(ids);
+    }
+  }, [filteredProducts, hydrateProductIcons]);
 
   const formatDateTime = useCallback((value) => {
     if (!value) return '';
@@ -220,6 +236,14 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
     setSearchTerm('');
   }, []);
 
+  const handleVisibleItemIdsChange = useCallback(
+    (visibleIds = []) => {
+      if (!Array.isArray(visibleIds) || visibleIds.length === 0) return;
+      hydrateProductIcons(visibleIds);
+    },
+    [hydrateProductIcons],
+  );
+
   const handleCreateProduct = () => {
     createNewProduct();
   };
@@ -292,6 +316,7 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
           searchHistory={searchHistory}
           onSelectSearchHistory={handleSelectSearchHistory}
           onClearSearch={handleClearSearch}
+          onVisibleItemIdsChange={handleVisibleItemIdsChange}
           searchPlaceholder="Search products..."
           onCreate={handleCreateProduct}
           createButtonTitle="Create New Product"

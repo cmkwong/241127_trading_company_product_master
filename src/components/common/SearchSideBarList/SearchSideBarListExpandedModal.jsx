@@ -76,6 +76,7 @@ const SearchSideBarListExpandedModal = ({
   getItemIconAlt = (item) => item?.name || 'item',
   getItemRows = () => [],
   getItemSubRows = () => [],
+  onVisibleItemIdsChange,
 }) => {
   const [sortKey, setSortKey] = useState('Title');
   const [sortDirection, setSortDirection] = useState('asc');
@@ -85,6 +86,7 @@ const SearchSideBarListExpandedModal = ({
   // Track global expand/collapse state
   const [allExpanded, setAllExpanded] = useState(true);
   const rowRefs = useRef(new Map());
+  const tableWrapRef = useRef(null);
 
   const tableColumns = useMemo(() => {
     const labels = new Set();
@@ -201,6 +203,49 @@ const SearchSideBarListExpandedModal = ({
 
     rowRefs.current.delete(itemId);
   }, []);
+
+  useEffect(() => {
+    if (!isOpen || typeof onVisibleItemIdsChange !== 'function') {
+      return;
+    }
+
+    const root = tableWrapRef.current;
+    if (!root) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const ids = entries
+          .filter((entry) => entry.isIntersecting)
+          .map((entry) => entry.target.getAttribute('data-item-id'))
+          .filter(Boolean);
+
+        if (ids.length > 0) {
+          onVisibleItemIdsChange(ids);
+        }
+      },
+      {
+        root,
+        rootMargin: '180px 0px',
+        threshold: 0.01,
+      },
+    );
+
+    rowRefs.current.forEach((element) => {
+      if (element) observer.observe(element);
+    });
+
+    // Prime initial visible range quickly
+    onVisibleItemIdsChange(
+      sortedItems
+        .slice(0, 60)
+        .map((item) => getItemId(item))
+        .filter(Boolean),
+    );
+
+    return () => observer.disconnect();
+  }, [isOpen, sortedItems, getItemId, onVisibleItemIdsChange]);
 
   const scrollToSelectedRow = useCallback(() => {
     if (selectedItemId === undefined || selectedItemId === null) {
@@ -543,7 +588,7 @@ const SearchSideBarListExpandedModal = ({
           />
         </div>
 
-        <div className={styles.overlayTableWrap}>
+        <div ref={tableWrapRef} className={styles.overlayTableWrap}>
           <table className={styles.overlayTable}>
             <thead>
               <tr>
@@ -574,6 +619,7 @@ const SearchSideBarListExpandedModal = ({
                     <Fragment key={`row-${itemId}`}>
                       <tr
                         ref={(element) => setRowRef(itemId, element)}
+                        data-item-id={itemId}
                         tabIndex={-1}
                         className={isSelected ? styles.overlaySelectedRow : ''}
                         onClick={() => handleRowClick(item)}

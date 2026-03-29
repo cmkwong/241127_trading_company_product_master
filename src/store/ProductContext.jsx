@@ -31,6 +31,9 @@ import { v4 as uuidv4 } from 'uuid';
 // Create context for data collection
 export const ProductContext = createContext();
 
+const SIDEBAR_ICON_MEMORY_BUDGET_BYTES = 400 * 1024 * 1024;
+const ICON_FETCH_BATCH_SIZE = 40;
+
 // Provider component for save page data
 export const ProductContext_Provider = ({ children, initialData = {} }) => {
   const { token } = useAuthContext();
@@ -49,6 +52,10 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
   const hasInitialFetchRef = useRef(false);
   const hasFetchedWithMappingsRef = useRef(false);
   const productsFetchSequenceRef = useRef(0);
+  const iconFetchedIdsRef = useRef(new Set());
+  const iconInFlightIdsRef = useRef(new Set());
+  const iconMemoryEntriesRef = useRef([]); // [{ id, url, bytes }]
+  const iconMemoryBytesRef = useRef(0);
 
   const productBase64Config = useMemo(() => fileMappings || {}, [fileMappings]);
 
@@ -68,42 +75,38 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
         'http://localhost:3001/api/v1/trade_business/products/data/list',
         {
           includeBase64: true,
-          iconOnly: true,
           compress: true,
+          fields: {
+            products: [
+              'id',
+              'product_status_id',
+              'status_id',
+              'created_at',
+              'updated_at',
+            ],
+            product_names: ['id', 'product_id', 'name'],
+            product_categories: ['id', 'product_id', 'category_id'],
+            product_alibaba_ids: ['id', 'product_id', 'value'],
+          },
         },
         {
           token,
         },
       );
 
-      console.log('Fetched products data:', response);
-
-      // Extract data based on expected API response structure
       const rawData = normalizeStructuredTableResponse(response, 'products');
-
-      // Clear any previously created object URLs before regenerating new ones.
-      releaseObjectUrls(objectUrlRegistryRef.current);
-      const urlRegistry = [];
-
-      console.log('Raw products data before processing:', rawData);
-      // Process images (base64 to objectUrl)
-      let processedProducts = recursiveProcess_base64_to_objectUrl(
-        rawData,
-        'root',
-        productBase64Config,
-        urlRegistry,
-      );
 
       // Ignore stale responses (e.g., non-mapping fetch finishing after mapping fetch)
       if (fetchSequence !== productsFetchSequenceRef.current) {
-        releaseObjectUrls(urlRegistry);
         return;
       }
 
-      console.log('Processed products with object URLs:', processedProducts);
-      setProducts(processedProducts || { products: [] });
-      objectUrlRegistryRef.current = urlRegistry;
+      setProducts(rawData || { products: [] });
       hasFetchedWithMappingsRef.current = hasMappings;
+      iconFetchedIdsRef.current = new Set();
+      iconInFlightIdsRef.current = new Set();
+      iconMemoryEntriesRef.current = [];
+      iconMemoryBytesRef.current = 0;
     } catch (err) {
       console.error('Failed to fetch products:', err);
       // On error, keep empty or handle gracefully
@@ -112,6 +115,173 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
       setIsProductsLoading(false);
     }
   }, [token, productBase64Config]);
+
+  const enforceIconMemoryBudget = useCallback(() => {
+    if (iconMemoryBytesRef.current <= SIDEBAR_ICON_MEMORY_BUDGET_BYTES) {
+      return;
+    }
+
+    const idsToRelease = [];
+    const urlsToRelease = [];
+
+    while (
+      iconMemoryBytesRef.current > SIDEBAR_ICON_MEMORY_BUDGET_BYTES &&
+      iconMemoryEntriesRef.current.length > 0
+    ) {
+      const oldest = iconMemoryEntriesRef.current.shift();
+      if (!oldest) break;
+      iconMemoryBytesRef.current -= Number(oldest.bytes || 0);
+      if (oldest.url) {
+        urlsToRelease.push(oldest.url);
+      }
+      if (oldest.id) {
+        idsToRelease.push(oldest.id);
+        iconFetchedIdsRef.current.delete(oldest.id);
+      }
+    }
+
+    if (urlsToRelease.length > 0) {
+      releaseObjectUrls(urlsToRelease);
+      objectUrlRegistryRef.current = objectUrlRegistryRef.current.filter(
+        (url) => !urlsToRelease.includes(url),
+      );
+    }
+
+    if (idsToRelease.length > 0) {
+      const ids = new Set(idsToRelease);
+      setProducts((prev) => ({
+        ...prev,
+        products: (prev?.products || []).map((item) =>
+          ids.has(item.id) ? { ...item, icon_url: '' } : item,
+        ),
+      }));
+    }
+  }, []);
+
+  // Public method to refresh product list, can be called from outside (e.g., after saving) to ensure data is up to date
+  // when visiting the product list page again or when needing to refresh icons after changes
+  const hydrateProductIcons = useCallback(
+    async (requestedIds = []) => {
+      const hasMappings = Object.keys(productBase64Config || {}).length > 0;
+      if (!token || !Array.isArray(requestedIds) || requestedIds.length === 0) {
+        return;
+      }
+
+      if (!hasMappings) {
+        return;
+      }
+
+      const candidateIds = requestedIds
+        .map((id) => String(id || '').trim())
+        .filter(Boolean)
+        .filter(
+          (id) =>
+            !iconFetchedIdsRef.current.has(id) &&
+            !iconInFlightIdsRef.current.has(id),
+        );
+
+      if (candidateIds.length === 0) {
+        return;
+      }
+
+      const ids = candidateIds.slice(0, ICON_FETCH_BATCH_SIZE);
+      ids.forEach((id) => iconInFlightIdsRef.current.add(id));
+
+      try {
+        const response = await apiPost(
+          'http://localhost:3001/api/v1/trade_business/products/data/get/ids',
+          {
+            includeBase64: true,
+            iconOnly: true,
+            compress: true,
+            fields: {
+              products: [
+                'id',
+                'product_status_id',
+                'status_id',
+                'created_at',
+                'updated_at',
+              ],
+              product_names: ['id', 'product_id', 'name'],
+              product_categories: ['id', 'product_id', 'category_id'],
+              product_alibaba_ids: ['id', 'product_id', 'value'],
+            },
+            data: {
+              products: ids.map((id) => ({ id })),
+            },
+          },
+          { token },
+        );
+
+        const rawData = normalizeStructuredTableResponse(response, 'products');
+        const urlRegistry = [];
+        const processed = recursiveProcess_base64_to_objectUrl(
+          rawData,
+          'root',
+          productBase64Config,
+          urlRegistry,
+        );
+
+        const processedProducts = processed?.products || [];
+        const rawProducts = rawData?.products || [];
+        const iconMap = new Map();
+
+        processedProducts.forEach((product, index) => {
+          const id = String(product?.id || rawProducts[index]?.id || '').trim();
+          if (!id) return;
+
+          const iconUrl = String(product?.icon_url || '').trim();
+          const base64Image = String(rawProducts[index]?.base64_image || '');
+          const estimatedBytes = base64Image
+            ? Math.floor((base64Image.length * 3) / 4)
+            : 0;
+
+          iconMap.set(id, { icon_url: iconUrl, estimatedBytes });
+          iconFetchedIdsRef.current.add(id);
+        });
+
+        ids.forEach((id) => {
+          if (!iconMap.has(id)) {
+            iconFetchedIdsRef.current.add(id);
+          }
+        });
+
+        setProducts((prev) => ({
+          ...prev,
+          products: (prev?.products || []).map((item) => {
+            const iconInfo = iconMap.get(String(item?.id || '').trim());
+            if (!iconInfo) return item;
+            return {
+              ...item,
+              icon_url: iconInfo.icon_url || '',
+            };
+          }),
+        }));
+
+        objectUrlRegistryRef.current = [
+          ...objectUrlRegistryRef.current,
+          ...urlRegistry,
+        ];
+
+        iconMap.forEach((iconInfo, id) => {
+          if (!iconInfo.icon_url) return;
+          iconMemoryEntriesRef.current.push({
+            id,
+            url: iconInfo.icon_url,
+            bytes: iconInfo.estimatedBytes,
+          });
+          iconMemoryBytesRef.current += Number(iconInfo.estimatedBytes || 0);
+        });
+
+        enforceIconMemoryBudget();
+      } catch (error) {
+        console.error('Failed to hydrate product icons:', error);
+      } finally {
+        ids.forEach((id) => iconInFlightIdsRef.current.delete(id));
+      }
+    },
+    [token, productBase64Config, enforceIconMemoryBudget],
+  );
 
   // Extracted function to fetch comparison keys
   const doFetchComparisonKeys = useCallback(async () => {
@@ -152,6 +322,10 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
       objectUrlRegistryRef.current = [];
       releaseObjectUrls(pageDataUrlRegistryRef.current);
       pageDataUrlRegistryRef.current = [];
+      iconFetchedIdsRef.current = new Set();
+      iconInFlightIdsRef.current = new Set();
+      iconMemoryEntriesRef.current = [];
+      iconMemoryBytesRef.current = 0;
       setProducts({ products: [] });
       setPageData({});
       setSelectedProductId(null);
@@ -185,6 +359,10 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
       objectUrlRegistryRef.current = [];
       releaseObjectUrls(pageDataUrlRegistryRef.current);
       pageDataUrlRegistryRef.current = [];
+      iconFetchedIdsRef.current = new Set();
+      iconInFlightIdsRef.current = new Set();
+      iconMemoryEntriesRef.current = [];
+      iconMemoryBytesRef.current = 0;
     };
   }, []);
 
@@ -236,21 +414,19 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
       (async () => {
         setIsProductsLoading(true);
         try {
-          const requestBody = {
-            includeBase64: true,
-            compress: true,
-            data: {
-              products: [
-                {
-                  id,
-                },
-              ],
-            },
-          };
-
           const response = await apiPost(
             'http://localhost:3001/api/v1/trade_business/products/data/get/ids',
-            requestBody,
+            {
+              includeBase64: true,
+              compress: true,
+              data: {
+                products: [
+                  {
+                    id,
+                  },
+                ],
+              },
+            },
             {
               token,
             },
@@ -509,6 +685,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
         getAllProducts,
         updateProducts,
         refreshProductList,
+        hydrateProductIcons,
         setSelectedProductId,
 
         // Save/create actions

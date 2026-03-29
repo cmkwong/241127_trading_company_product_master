@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import SearchSideBarListItem from './SearchSideBarListItem';
 import SearchSideBarListNoResults from './SearchSideBarListNoResults';
 import SearchSideBarListSearchBar from './SearchSideBarListSearchBar';
@@ -15,6 +15,7 @@ const SearchSideBarList = ({
   onSelectSearchHistory,
   onClearSearch,
   onCommitSearch,
+  onVisibleItemIdsChange,
   searchPlaceholder = 'Search...',
   onCreate,
   showCreateButton = true,
@@ -38,6 +39,7 @@ const SearchSideBarList = ({
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const itemRefs = useRef(new Map());
+  const listRef = useRef(null);
 
   const setItemRef = useCallback((itemId, element) => {
     if (element) {
@@ -61,6 +63,45 @@ const SearchSideBarList = ({
     targetNode.scrollIntoView({ behavior: 'smooth', block: 'center' });
     targetNode.focus({ preventScroll: true });
   }, [selectedItemId]);
+
+  useEffect(() => {
+    if (typeof onVisibleItemIdsChange !== 'function') {
+      return;
+    }
+
+    const root = listRef.current;
+    if (!root) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visibleIds = entries
+          .filter((entry) => entry.isIntersecting)
+          .map((entry) => entry.target.getAttribute('data-item-id'))
+          .filter(Boolean);
+
+        if (visibleIds.length > 0) {
+          onVisibleItemIdsChange(visibleIds);
+        }
+      },
+      {
+        root,
+        rootMargin: '120px 0px',
+        threshold: 0.01,
+      },
+    );
+
+    itemRefs.current.forEach((element) => {
+      if (element) {
+        observer.observe(element);
+      }
+    });
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [items, onVisibleItemIdsChange]);
 
   return (
     <div className={`${styles.container} ${className}`}>
@@ -172,9 +213,10 @@ const SearchSideBarList = ({
         getItemSubRows={getExpandedSubRows}
         getItemIconUrl={getItemIconUrl}
         getItemIconAlt={getItemIconAlt}
+        onVisibleItemIdsChange={onVisibleItemIdsChange}
       />
 
-      <div className={`${styles.list} ${listClassName}`}>
+      <div ref={listRef} className={`${styles.list} ${listClassName}`}>
         {items.length > 0 ? (
           items.map((item, index) => {
             const itemId = getItemId(item) || index;
@@ -182,6 +224,7 @@ const SearchSideBarList = ({
               <SearchSideBarListItem
                 key={itemId}
                 itemRef={(element) => setItemRef(itemId, element)}
+                itemId={itemId}
                 item={item}
                 isSelected={selectedItemId === getItemId(item)}
                 onClick={onSelectItem}

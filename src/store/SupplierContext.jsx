@@ -195,6 +195,42 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
     return getChangedData() === null;
   }, [getChangedData]);
 
+  const getSupplierSaveDryRunData = useCallback(() => {
+    const changesResult = getChangedData();
+    const preview = {
+      endpoint:
+        'http://localhost:3001/api/v1/trade_business/suppliers/data/ids',
+      method: 'PATCH + DELETE',
+      create: {},
+      update: {},
+      delete: {},
+    };
+
+    if (!changesResult) {
+      return {
+        ...preview,
+        message: 'No changes detected',
+      };
+    }
+
+    const isRootCreate =
+      !originalPageData || originalPageData.id !== pageData.id;
+
+    if (changesResult?.changes?.suppliers) {
+      if (isRootCreate) {
+        preview.create.suppliers = changesResult.changes.suppliers;
+      } else {
+        preview.update.suppliers = changesResult.changes.suppliers;
+      }
+    }
+
+    if (changesResult?.deletions) {
+      preview.delete = changesResult.deletions;
+    }
+
+    return preview;
+  }, [getChangedData, originalPageData, pageData.id]);
+
   const getSupplierData = useCallback(
     (id) => {
       if (
@@ -429,6 +465,7 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
         isSuppliersLoading,
         isDataUnchanged,
         getChangedData,
+        getSupplierSaveDryRunData,
         selectedSupplierId,
         setSelectedSupplierId,
       }}

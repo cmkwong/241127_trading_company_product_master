@@ -30,6 +30,7 @@ const Sub_SelectField = ({
   buttonStyle,
   listClassName = '',
   placeholder = 'Select an option',
+  disabled = false,
 }) => {
   const [open, setOpen] = useState(false);
   const containerRef = useRef(null);
@@ -69,9 +70,15 @@ const Sub_SelectField = ({
       : placeholder;
   }, [options, selectedValue, placeholder]);
 
-  const openDropdown = useCallback(() => setOpen(true), []);
+  const openDropdown = useCallback(() => {
+    if (disabled) return;
+    setOpen(true);
+  }, [disabled]);
   const closeDropdown = useCallback(() => setOpen(false), []);
-  const toggleDropdown = useCallback(() => setOpen((p) => !p), []);
+  const toggleDropdown = useCallback(() => {
+    if (disabled) return;
+    setOpen((p) => !p);
+  }, [disabled]);
 
   // Close menu when pointer interaction occurs outside of the container
   useEffect(() => {
@@ -161,11 +168,12 @@ const Sub_SelectField = ({
   // Normalize the selected value then notify parent and close the menu
   const handleSelect = useCallback(
     (option) => {
+      if (disabled) return;
       const value = getIdFromOption(option);
       onOptionClick(value);
       closeDropdown();
     },
-    [onOptionClick, closeDropdown],
+    [onOptionClick, closeDropdown, disabled],
   );
 
   return (
@@ -178,6 +186,7 @@ const Sub_SelectField = ({
         onClick={toggleDropdown}
         onKeyDown={onButtonKeyDown}
         type="button"
+        disabled={disabled}
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={`${id}-list`}
@@ -257,6 +266,7 @@ Sub_SelectField.propTypes = {
   buttonStyle: PropTypes.object,
   listClassName: PropTypes.string,
   placeholder: PropTypes.string,
+  disabled: PropTypes.bool,
 };
 
 export default Sub_SelectField;

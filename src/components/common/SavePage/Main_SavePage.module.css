@@ -36,6 +36,7 @@
 .buttonContainer {
   display: flex;
   align-items: center;
+  gap: 10px;
 }
 
 .successMessage {
@@ -50,6 +51,72 @@
   margin-right: 16px;
 }
 
+.dryRunModalBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.dryRunModalWindow {
+  width: min(1600px, 95vw);
+  height: min(800px, 92vh);
+  background: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.28);
+  border: 1px solid #d9d9d9;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.dryRunModalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid #ececec;
+  background: #f7f7f7;
+}
+
+.dryRunTitle {
+  font-weight: 700;
+  color: #333;
+  margin: 0;
+}
+
+.dryRunCloseBtn {
+  border: 1px solid #cfcfcf;
+  background: #fff;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.dryRunCloseBtn:hover {
+  background: #f0f0f0;
+}
+
+.dryRunModalBody {
+  flex: 1;
+  overflow: auto;
+  padding: 16px;
+  background: #fcfcfc;
+}
+
+.dryRunJson {
+  margin: 0;
+  white-space: pre;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #222;
+  font-family: Consolas, 'Courier New', monospace;
+}
+
 @media (max-width: 768px) {
   .saveActions {
     flex-direction: column;
@@ -62,5 +129,12 @@
 
   .buttonContainer {
     width: 100%;
+    justify-content: flex-end;
+  }
+
+  .dryRunModalWindow {
+    width: 98vw;
+    height: 90vh;
+    border-radius: 6px;
   }
 }

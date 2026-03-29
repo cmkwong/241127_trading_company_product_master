@@ -11,8 +11,13 @@ const SavePageContextBridge = ({
   customSaveAction,
   className,
 }) => {
-  const { handleSupplierSave, isSaving, saveSuccess, saveError } =
-    useSupplierContext();
+  const {
+    handleSupplierSave,
+    getSupplierSaveDryRunData,
+    isSaving,
+    saveSuccess,
+    saveError,
+  } = useSupplierContext();
 
   return (
     <Main_SavePage
@@ -21,6 +26,7 @@ const SavePageContextBridge = ({
       successMessage={successMessage}
       showSaveButton={showSaveButton}
       customSaveAction={customSaveAction}
+      dryRunAction={getSupplierSaveDryRunData}
       saveAction={handleSupplierSave}
       isSaving={isSaving}
       saveSuccess={saveSuccess}

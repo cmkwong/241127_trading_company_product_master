@@ -1,54 +1,29 @@
 /* eslint-disable react-refresh/only-export-components */
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
+import { useAuthContext } from '../../../store/AuthContext';
 import { useMasterContext } from '../../../store/MasterContext';
 import AddNewBtn from '../../common/Buttons/AddNewBtn';
 import DeleteBtn from '../../common/Buttons/DeleteBtn';
+import Main_Dropdown from '../../common/InputOptions/Dropdown/Main_Dropdown';
+import Main_FileUploads from '../../common/InputOptions/FileUploads/Main_FileUploads';
 import Main_TextField from '../../common/InputOptions/TextField/Main_TextField';
-import EditableDataTable from '../../common/Table/EditableDataTable';
+import { sortByDisplayOrder } from '../../../utils/arr';
+import MasterControlHeader from './components/MasterControlHeader';
+import MasterControlSidebar from './components/MasterControlSidebar';
+import MasterControlTablePanel from './components/MasterControlTablePanel';
+import MasterControlSavePageContainer from './Container/MasterControlSavePageContainer';
+import {
+  asInputValue,
+  isBooleanType,
+  normalizeReferenceTarget,
+  parseInputValue,
+  resolveMediaUrl,
+} from './utils/masterControlUtils';
 import styles from './Main_MasterControl.module.css';
 
-const asInputValue = (value) => {
-  if (value === null || value === undefined) return '';
-  return String(value);
-};
-
-const isBooleanType = (type = '') => {
-  const t = String(type || '').toLowerCase();
-  return (
-    t.includes('boolean') || t.includes('bool') || t.includes('tinyint(1)')
-  );
-};
-
-const isNumberType = (type = '') => {
-  const t = String(type || '').toLowerCase();
-  return (
-    t.includes('int') ||
-    t.includes('decimal') ||
-    t.includes('numeric') ||
-    t.includes('float') ||
-    t.includes('double')
-  );
-};
-
-const parseInputValue = (rawValue, schemaField = {}) => {
-  if (isBooleanType(schemaField?.type)) {
-    const normalized = String(rawValue || '')
-      .trim()
-      .toLowerCase();
-    return ['true', '1', 'yes', 'y'].includes(normalized);
-  }
-
-  if (isNumberType(schemaField?.type)) {
-    if (rawValue === '') return '';
-    const parsed = Number(rawValue);
-    return Number.isNaN(parsed) ? rawValue : parsed;
-  }
-
-  return rawValue;
-};
-
 const MasterControlContent = () => {
+  const { token } = useAuthContext();
   const {
     masterDataMap,
     masterTableNames,
@@ -67,10 +42,15 @@ const MasterControlContent = () => {
 
   const [selectedTable, setSelectedTable] = useState('');
   const [tableSchema, setTableSchema] = useState(null);
+  const [serviceImagesSchema, setServiceImagesSchema] = useState(null);
+  const [originalRows, setOriginalRows] = useState([]);
   const [draftRows, setDraftRows] = useState([]);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  const canEdit = Boolean(token);
 
   useEffect(() => {
     if (!selectedTable && tableNames.length > 0) {
@@ -98,7 +78,34 @@ const MasterControlContent = () => {
         : [];
 
       setDraftRows(normalizedRows);
+      setOriginalRows(normalizedRows);
       setTableSchema(schema || null);
+
+      if (selectedTable === 'master_services') {
+        try {
+          await fetchMasterData('master_service_images');
+        } catch (serviceImageError) {
+          console.warn(
+            'Failed to load master_service_images rows:',
+            serviceImageError,
+          );
+        }
+
+        try {
+          const imageSchema = await fetchMasterTableSchema(
+            'master_service_images',
+          );
+          setServiceImagesSchema(imageSchema || null);
+        } catch (serviceImageSchemaError) {
+          console.warn(
+            'Failed to load master_service_images schema:',
+            serviceImageSchemaError,
+          );
+          setServiceImagesSchema(null);
+        }
+      } else {
+        setServiceImagesSchema(null);
+      }
     } catch (err) {
       setError(err?.message || 'Failed to load master table');
     } finally {
@@ -132,11 +139,152 @@ const MasterControlContent = () => {
     return tableSchema?.fields || {};
   }, [tableSchema]);
 
-  const handleReload = useCallback(async () => {
-    await loadTableData();
-  }, [loadTableData]);
+  const displayNameField = useMemo(() => {
+    const candidates = [
+      'name',
+      'label',
+      'service_name',
+      'category_name',
+      'title',
+      'value',
+      'description',
+    ];
 
-  const handleAddRow = useCallback(() => {
+    for (const field of candidates) {
+      if (columns.includes(field)) {
+        return field;
+      }
+    }
+
+    const nameLike = columns.find((field) => String(field).endsWith('_name'));
+    return nameLike || 'id';
+  }, [columns]);
+
+  const selfReferenceField = useMemo(() => {
+    if (!selectedTable) return '';
+
+    for (const [fieldName, fieldSchema] of Object.entries(
+      schemaFieldByColumn,
+    )) {
+      const refTarget = normalizeReferenceTarget(fieldSchema);
+      if (
+        refTarget &&
+        refTarget.includes(String(selectedTable).toLowerCase())
+      ) {
+        return fieldName;
+      }
+    }
+
+    if (columns.includes('parent_id') && columns.includes('id')) {
+      return 'parent_id';
+    }
+
+    return '';
+  }, [columns, schemaFieldByColumn, selectedTable]);
+
+  const nodeById = useMemo(() => {
+    const map = new Map();
+    draftRows.forEach((row) => {
+      const id = String(row?.id || '').trim();
+      if (id) {
+        map.set(id, row);
+      }
+    });
+    return map;
+  }, [draftRows]);
+
+  const hierarchyPathByRowKey = useMemo(() => {
+    const pathMap = new Map();
+    if (!selfReferenceField) return pathMap;
+
+    const resolveLabel = (row) => {
+      const candidate = row?.[displayNameField];
+      if (candidate === null || candidate === undefined || candidate === '') {
+        return row?.id || '(unnamed)';
+      }
+      return String(candidate);
+    };
+
+    const resolvePath = (row) => {
+      const visited = new Set();
+      const labels = [];
+
+      let cursor = row;
+      while (cursor) {
+        const currentId = String(cursor?.id || '').trim();
+        if (currentId && visited.has(currentId)) {
+          labels.unshift('(cycle)');
+          break;
+        }
+        if (currentId) {
+          visited.add(currentId);
+        }
+
+        labels.unshift(resolveLabel(cursor));
+
+        const parentId = String(cursor?.[selfReferenceField] || '').trim();
+        if (!parentId) break;
+        const parentRow = nodeById.get(parentId);
+        if (!parentRow) {
+          labels.unshift(`(missing:${parentId})`);
+          break;
+        }
+        cursor = parentRow;
+      }
+
+      return labels.join(' -> ');
+    };
+
+    draftRows.forEach((row, index) => {
+      const key = row?.id || row?._localId || index;
+      pathMap.set(key, resolvePath(row));
+    });
+
+    return pathMap;
+  }, [displayNameField, draftRows, nodeById, selfReferenceField]);
+
+  const selfReferenceOptions = useMemo(() => {
+    if (!selfReferenceField) return [];
+
+    const options = [{ id: '', name: '(None)' }];
+    draftRows.forEach((row) => {
+      const id = String(row?.id || '').trim();
+      if (!id) return;
+      const label = row?.[displayNameField] || id;
+      options.push({ id, name: `${label} (${id.slice(0, 8)})` });
+    });
+    return options;
+  }, [displayNameField, draftRows, selfReferenceField]);
+
+  const serviceImageRows = useMemo(() => {
+    return masterDataMap?.master_service_images || [];
+  }, [masterDataMap]);
+
+  const masterServiceImageRelationField = useMemo(() => {
+    const fields = serviceImagesSchema?.fields || {};
+    for (const [fieldName, fieldSchema] of Object.entries(fields)) {
+      const refTarget = normalizeReferenceTarget(fieldSchema);
+      if (refTarget && refTarget.includes('master_services')) {
+        return fieldName;
+      }
+    }
+
+    if ((serviceImageRows || []).some((row) => row?.service_id !== undefined)) {
+      return 'service_id';
+    }
+
+    if (
+      (serviceImageRows || []).some(
+        (row) => row?.master_service_id !== undefined,
+      )
+    ) {
+      return 'master_service_id';
+    }
+
+    return 'service_id';
+  }, [serviceImageRows, serviceImagesSchema]);
+
+  const buildBlankRow = useCallback(() => {
     const nextRow = {
       _isNew: true,
       _localId: uuidv4(),
@@ -157,27 +305,100 @@ const MasterControlContent = () => {
       nextRow[column] = '';
     });
 
-    setDraftRows((prev) => [...prev, nextRow]);
+    return nextRow;
   }, [columns, schemaFieldByColumn]);
+
+  const handleReload = useCallback(async () => {
+    await loadTableData();
+    setSaveSuccess(false);
+    setSaveError('');
+  }, [loadTableData]);
+
+  const handleAddRow = useCallback(() => {
+    setDraftRows((prev) => [...prev, buildBlankRow()]);
+    setSaveSuccess(false);
+    setSaveError('');
+  }, [buildBlankRow]);
+
+  const handleInsertRowAfter = useCallback(
+    (row) => {
+      const targetKey = row?.id || row?._localId;
+      if (!targetKey) {
+        setDraftRows((prev) => [...prev, buildBlankRow()]);
+        return;
+      }
+
+      setDraftRows((prev) => {
+        const index = prev.findIndex(
+          (candidate) => (candidate?.id || candidate?._localId) === targetKey,
+        );
+        if (index < 0) {
+          return [...prev, buildBlankRow()];
+        }
+
+        const next = [...prev];
+        next.splice(index + 1, 0, buildBlankRow());
+        return next;
+      });
+      setSaveSuccess(false);
+      setSaveError('');
+    },
+    [buildBlankRow],
+  );
 
   const handleCellChange = useCallback(
     (rowIndex, key, value) => {
+      if (!canEdit) return;
+
       setDraftRows((prev) => {
         const next = [...prev];
         const current = next[rowIndex] || {};
         const schemaField = schemaFieldByColumn[key] || {};
+
+        if (key === selfReferenceField) {
+          const nextParentId = String(value || '').trim();
+          const currentId = String(current?.id || '').trim();
+
+          if (nextParentId && nextParentId === currentId) {
+            return prev;
+          }
+
+          if (nextParentId) {
+            const byId = new Map();
+            next.forEach((row) => {
+              const id = String(row?.id || '').trim();
+              if (id) byId.set(id, row);
+            });
+
+            const visited = new Set([currentId]);
+            let cursorId = nextParentId;
+            while (cursorId) {
+              if (visited.has(cursorId)) {
+                return prev;
+              }
+              visited.add(cursorId);
+
+              const cursor = byId.get(cursorId);
+              cursorId = String(cursor?.[selfReferenceField] || '').trim();
+            }
+          }
+        }
+
         next[rowIndex] = {
           ...current,
           [key]: parseInputValue(value, schemaField),
         };
         return next;
       });
+      setSaveSuccess(false);
+      setSaveError('');
     },
-    [schemaFieldByColumn],
+    [canEdit, schemaFieldByColumn, selfReferenceField],
   );
 
   const handleDeleteRow = useCallback(
     async (row) => {
+      if (!canEdit) return;
       if (!selectedTable || !row) return;
 
       const rowId = String(row?.id || '').trim();
@@ -191,6 +412,8 @@ const MasterControlContent = () => {
 
       setIsSaving(true);
       setError('');
+      setSaveSuccess(false);
+      setSaveError('');
       try {
         await deleteMasterTableData(selectedTable, [{ id: rowId }]);
         await loadTableData();
@@ -200,10 +423,127 @@ const MasterControlContent = () => {
         setIsSaving(false);
       }
     },
-    [deleteMasterTableData, loadTableData, selectedTable],
+    [canEdit, deleteMasterTableData, loadTableData, selectedTable],
+  );
+
+  const handleMasterServiceImagesChange = useCallback(
+    async (serviceRow, oldFiles = [], newFiles = []) => {
+      if (!canEdit) return;
+      if (selectedTable !== 'master_services') return;
+
+      const serviceId = String(serviceRow?.id || '').trim();
+      if (!serviceId) return;
+
+      const oldList = Array.isArray(oldFiles) ? oldFiles : [];
+      const newList = Array.isArray(newFiles) ? newFiles : [];
+
+      const removedImages = oldList.filter(
+        (oldImage) => !newList.some((newImage) => newImage.id === oldImage.id),
+      );
+
+      const addedImages = newList.filter(
+        (newImage) => !oldList.some((oldImage) => oldImage.id === newImage.id),
+      );
+
+      const sameLength = oldList.length === newList.length;
+      const sameOrder =
+        sameLength && oldList.every((img, i) => img.id === newList[i]?.id);
+
+      if (removedImages.length === 0 && addedImages.length === 0 && sameOrder) {
+        return;
+      }
+
+      const imageSchemaFields = serviceImagesSchema?.fields || {};
+
+      setIsSaving(true);
+      setError('');
+      setSaveSuccess(false);
+      setSaveError('');
+      try {
+        if (removedImages.length > 0) {
+          await deleteMasterTableData(
+            'master_service_images',
+            removedImages
+              .filter((img) => !!img?.id)
+              .map((img) => ({ id: img.id })),
+          );
+        }
+
+        if (newList.length > 0) {
+          const addedImageIds = new Set(addedImages.map((img) => img.id));
+
+          const rowsToUpsert = newList
+            .filter((img) => !!img?.id)
+            .map((img, index) => {
+              const payload = {
+                id: img.id,
+                [masterServiceImageRelationField]: serviceId,
+              };
+
+              if ('display_order' in imageSchemaFields) {
+                payload.display_order = index + 1;
+              }
+
+              if (addedImageIds.has(img.id)) {
+                if ('image_url' in imageSchemaFields) {
+                  payload.image_url = img.url;
+                }
+                if ('image_name' in imageSchemaFields) {
+                  payload.image_name = img.name;
+                }
+                if ('size' in imageSchemaFields && img.size !== undefined) {
+                  payload.size = img.size;
+                }
+              }
+
+              return payload;
+            });
+
+          if (rowsToUpsert.length > 0) {
+            await updateMasterTableData('master_service_images', rowsToUpsert);
+          }
+        }
+
+        await fetchMasterData('master_service_images');
+      } catch (err) {
+        setError(err?.message || 'Failed to update master service images');
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [
+      canEdit,
+      deleteMasterTableData,
+      fetchMasterData,
+      masterServiceImageRelationField,
+      selectedTable,
+      serviceImagesSchema,
+      updateMasterTableData,
+    ],
   );
 
   const tableColumns = useMemo(() => {
+    const hierarchyColumn = selfReferenceField
+      ? [
+          {
+            key: '__hierarchy_path',
+            label: 'Hierarchy',
+            sortable: true,
+            getSortValue: (row) => {
+              const key = row?.id || row?._localId;
+              return hierarchyPathByRowKey.get(key) || '';
+            },
+            renderCell: (row) => {
+              const key = row?.id || row?._localId;
+              const path = hierarchyPathByRowKey.get(key) || '';
+              return (
+                <span className={styles.hierarchyPath}>{path || '-'}</span>
+              );
+            },
+          },
+        ]
+      : [];
+
     const dataColumns = columns.map((column) => ({
       key: column,
       label: column,
@@ -223,7 +563,19 @@ const MasterControlContent = () => {
               onChange={(event) =>
                 handleCellChange(rowIndex, column, event.target.checked)
               }
-              disabled={isReadonly}
+              disabled={isReadonly || !canEdit}
+            />
+          );
+        }
+
+        if (column === selfReferenceField) {
+          return (
+            <Main_Dropdown
+              defaultOptions={selfReferenceOptions}
+              defaultSelectedOption={String(row?.[column] || '')}
+              onChange={(ov, nv) => handleCellChange(rowIndex, column, nv)}
+              size="S"
+              disabled={!canEdit || isSaving}
             />
           );
         }
@@ -232,7 +584,7 @@ const MasterControlContent = () => {
           <Main_TextField
             defaultValue={asInputValue(row?.[column])}
             onChange={(ov, nv) => handleCellChange(rowIndex, column, nv)}
-            disabled={isReadonly}
+            disabled={isReadonly || !canEdit}
             className={styles.cellTextField}
             placeholder=""
           />
@@ -240,20 +592,87 @@ const MasterControlContent = () => {
       },
     }));
 
+    const serviceImageColumn =
+      selectedTable === 'master_services'
+        ? [
+            {
+              key: '__service_images',
+              label: 'Service Images',
+              sortable: false,
+              renderCell: (row) => {
+                const relationField = masterServiceImageRelationField;
+                const relationId = String(row?.id || '').trim();
+
+                const defaults = sortByDisplayOrder(
+                  (serviceImageRows || [])
+                    .filter(
+                      (img) =>
+                        String(img?.[relationField] || '').trim() ===
+                        relationId,
+                    )
+                    .map((img) => ({
+                      id: img.id,
+                      url: resolveMediaUrl(img.image_url),
+                      name: img.image_name,
+                      size: img.size,
+                      display_order: img.display_order,
+                    })),
+                );
+
+                return (
+                  <div className={styles.uploadsCell}>
+                    <Main_FileUploads
+                      mode="image"
+                      label=""
+                      compact
+                      compactButtonText="Upload"
+                      tableCell
+                      hoverPreview
+                      defaultImages={defaults}
+                      disabled={!canEdit || isSaving}
+                      onChange={(ov, nv) =>
+                        handleMasterServiceImagesChange(row, ov, nv)
+                      }
+                      onError={(uploadError) => {
+                        console.error(
+                          'Master service image upload error:',
+                          uploadError,
+                        );
+                      }}
+                    />
+                  </div>
+                );
+              },
+            },
+          ]
+        : [];
+
     return [
+      ...hierarchyColumn,
       ...dataColumns,
+      ...serviceImageColumn,
       {
         key: '__actions',
         label: 'Actions',
         sortable: false,
-        renderCell: (row) => (
-          <DeleteBtn
-            text="Delete"
-            onClick={() => handleDeleteRow(row)}
-            disabled={isSaving}
-            className={styles.inlineDeleteBtn}
-          />
-        ),
+        renderCell: (row) => {
+          return (
+            <div className={styles.rowActionsGroup}>
+              <AddNewBtn
+                text="Insert Below"
+                onClick={() => handleInsertRowAfter(row)}
+                className={styles.inlineInsertBtn}
+                disabled={isSaving || !canEdit}
+              />
+              <DeleteBtn
+                text="Delete"
+                onClick={() => handleDeleteRow(row)}
+                disabled={isSaving || !canEdit}
+                className={styles.inlineDeleteBtn}
+              />
+            </div>
+          );
+        },
       },
     ];
   }, [
@@ -261,41 +680,137 @@ const MasterControlContent = () => {
     draftRows,
     handleCellChange,
     handleDeleteRow,
+    handleInsertRowAfter,
+    handleMasterServiceImagesChange,
+    hierarchyPathByRowKey,
     isSaving,
+    masterServiceImageRelationField,
+    canEdit,
+    selfReferenceField,
+    selfReferenceOptions,
+    selectedTable,
+    serviceImageRows,
     schemaFieldByColumn,
   ]);
 
-  const sanitizeRowForSave = useCallback((row) => {
-    const cleaned = {};
-    Object.entries(row || {}).forEach(([key, value]) => {
-      if (String(key).startsWith('_')) return;
-      cleaned[key] = value;
+  const sanitizeRowForSave = useCallback(
+    (row) => {
+      const cleaned = {};
+      Object.entries(row || {}).forEach(([key, value]) => {
+        if (String(key).startsWith('_')) return;
+        if (key === 'created_at' || key === 'updated_at') return;
+
+        const schemaField = schemaFieldByColumn?.[key] || {};
+        const hasReference = Boolean(normalizeReferenceTarget(schemaField));
+        const isLikelyIdField = String(key).toLowerCase().endsWith('_id');
+
+        if (value === '' && (hasReference || isLikelyIdField)) {
+          cleaned[key] = null;
+          return;
+        }
+
+        cleaned[key] = value;
+      });
+
+      if (!cleaned.id) {
+        cleaned.id = uuidv4();
+      }
+
+      return cleaned;
+    },
+    [schemaFieldByColumn],
+  );
+
+  const getMasterControlDryRunData = useCallback(() => {
+    const originalById = new Map();
+    const draftById = new Map();
+
+    const sanitizedOriginalRows = (originalRows || []).map((row) =>
+      sanitizeRowForSave(row),
+    );
+    const sanitizedDraftRows = (draftRows || []).map((row) =>
+      sanitizeRowForSave(row),
+    );
+
+    sanitizedOriginalRows.forEach((row) => {
+      const id = String(row?.id || '').trim();
+      if (id) originalById.set(id, row);
     });
 
-    if (!cleaned.id) {
-      cleaned.id = uuidv4();
-    }
+    sanitizedDraftRows.forEach((row) => {
+      const id = String(row?.id || '').trim();
+      if (id) draftById.set(id, row);
+    });
 
-    return cleaned;
-  }, []);
+    const createRows = [];
+    const updateRows = [];
+
+    sanitizedDraftRows.forEach((row) => {
+      const id = String(row?.id || '').trim();
+      if (!id || !originalById.has(id)) {
+        createRows.push(row);
+        return;
+      }
+
+      const originalRow = originalById.get(id);
+      if (JSON.stringify(originalRow) !== JSON.stringify(row)) {
+        updateRows.push(row);
+      }
+    });
+
+    const deleteRows = [];
+    sanitizedOriginalRows.forEach((row) => {
+      const id = String(row?.id || '').trim();
+      if (id && !draftById.has(id)) {
+        deleteRows.push({ id });
+      }
+    });
+
+    const upsertRows = [...createRows, ...updateRows];
+
+    return {
+      endpoint: 'http://localhost:3001/api/v1/trade_business/master/rows',
+      method: 'POST',
+      table: selectedTable,
+      create: { [selectedTable]: createRows },
+      update: { [selectedTable]: updateRows },
+      delete: { [selectedTable]: deleteRows },
+      payload: {
+        data: {
+          [selectedTable]: upsertRows,
+        },
+      },
+      message:
+        upsertRows.length === 0 && deleteRows.length === 0
+          ? 'No changes detected'
+          : undefined,
+    };
+  }, [draftRows, originalRows, sanitizeRowForSave, selectedTable]);
 
   const handleSaveAll = useCallback(async () => {
+    if (!canEdit) return;
     if (!selectedTable) return;
 
     setIsSaving(true);
     setError('');
+    setSaveSuccess(false);
+    setSaveError('');
     try {
       const payloadRows = draftRows.map((row) => sanitizeRowForSave(row));
       if (payloadRows.length > 0) {
         await updateMasterTableData(selectedTable, payloadRows);
       }
       await loadTableData();
+      setSaveSuccess(true);
     } catch (err) {
-      setError(err?.message || 'Failed to save master table rows');
+      const message = err?.message || 'Failed to save master table rows';
+      setError(message);
+      setSaveError(message);
     } finally {
       setIsSaving(false);
     }
   }, [
+    canEdit,
     draftRows,
     loadTableData,
     sanitizeRowForSave,
@@ -304,63 +819,48 @@ const MasterControlContent = () => {
   ]);
 
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <h2 className={styles.title}>Master Control</h2>
-        <div className={styles.actions}>
-          <button
-            type="button"
-            className={styles.secondaryBtn}
-            onClick={handleReload}
-            disabled={!selectedTable || isLoading || isSaving}
-          >
-            {isLoading ? 'Reloading...' : 'Reload'}
-          </button>
-          <AddNewBtn
-            onClick={handleAddRow}
-            text="Add Row"
-            className={styles.inlineAddBtn}
-            disabled={!selectedTable || isSaving}
+    <MasterControlSavePageContainer
+      saveButtonText="Save All"
+      successMessage="Master rows saved successfully!"
+      showSaveButton={canEdit && Boolean(selectedTable)}
+      customSaveAction={handleSaveAll}
+      dryRunAction={getMasterControlDryRunData}
+      isSaving={isSaving}
+      saveSuccess={saveSuccess}
+      saveError={saveError}
+    >
+      <div className={styles.container}>
+        <MasterControlHeader
+          isLoading={isLoading}
+          isSaving={isSaving}
+          selectedTable={selectedTable}
+          canEdit={canEdit}
+          onReload={handleReload}
+          onAddRow={handleAddRow}
+        />
+
+        {!canEdit ? (
+          <div className={styles.authNotice}>
+            Please login to edit master data. View mode is enabled.
+          </div>
+        ) : null}
+
+        <div className={styles.main}>
+          <MasterControlSidebar
+            tableNames={tableNames}
+            selectedTable={selectedTable}
+            onSelect={setSelectedTable}
           />
-          <button
-            type="button"
-            className={styles.primaryBtn}
-            onClick={handleSaveAll}
-            disabled={!selectedTable || isSaving}
-          >
-            {isSaving ? 'Saving...' : 'Save All'}
-          </button>
+
+          <MasterControlTablePanel
+            error={error}
+            rows={draftRows}
+            columns={tableColumns}
+            rowKey={(row, rowIndex) => row.id || row._localId || rowIndex}
+          />
         </div>
       </div>
-
-      <div className={styles.main}>
-        <aside className={styles.sidebar}>
-          {tableNames.map((tableName) => (
-            <button
-              key={tableName}
-              type="button"
-              className={`${styles.tableBtn} ${selectedTable === tableName ? styles.activeTableBtn : ''}`}
-              onClick={() => setSelectedTable(tableName)}
-            >
-              {tableName}
-            </button>
-          ))}
-        </aside>
-
-        <section className={styles.tableSection}>
-          {error ? <div className={styles.error}>{error}</div> : null}
-
-          <div className={styles.tableWrap}>
-            <EditableDataTable
-              rows={draftRows}
-              columns={tableColumns}
-              rowKey={(row, rowIndex) => row.id || row._localId || rowIndex}
-              emptyMessage="No rows in this table."
-            />
-          </div>
-        </section>
-      </div>
-    </div>
+    </MasterControlSavePageContainer>
   );
 };
 

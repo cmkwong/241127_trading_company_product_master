@@ -396,6 +396,41 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
     return getChangedData() === null;
   }, [getChangedData]);
 
+  const getProductSaveDryRunData = useCallback(() => {
+    const changesResult = getChangedData();
+    const preview = {
+      endpoint: 'http://localhost:3001/api/v1/trade_business/products/data/ids',
+      method: 'PATCH + DELETE',
+      create: {},
+      update: {},
+      delete: {},
+    };
+
+    if (!changesResult) {
+      return {
+        ...preview,
+        message: 'No changes detected',
+      };
+    }
+
+    const isRootCreate =
+      !originalPageData || originalPageData.id !== pageData.id;
+
+    if (changesResult?.changes?.products) {
+      if (isRootCreate) {
+        preview.create.products = changesResult.changes.products;
+      } else {
+        preview.update.products = changesResult.changes.products;
+      }
+    }
+
+    if (changesResult?.deletions) {
+      preview.delete = changesResult.deletions;
+    }
+
+    return preview;
+  }, [getChangedData, originalPageData, pageData.id]);
+
   /**
    * Load a product into pageData by ID
    * @param {string} id - The ID of the product to load
@@ -709,6 +744,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
         // Change detection helpers
         isDataUnchanged,
         getChangedData,
+        getProductSaveDryRunData,
       }}
     >
       {children}

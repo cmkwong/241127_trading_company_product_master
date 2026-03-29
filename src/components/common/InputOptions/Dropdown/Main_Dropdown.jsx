@@ -27,6 +27,7 @@ const Main_Dropdown = (props) => {
     label,
     dropdownId,
     size = 'M',
+    disabled = false,
   } = props;
 
   const normalizedSize = useMemo(() => {
@@ -90,6 +91,7 @@ const Main_Dropdown = (props) => {
       placeholder: 'Select an option',
       buttonClassName: sizeClassName,
       buttonStyle: { width: `${sizeWidth}px` },
+      disabled,
     }),
     [
       resolvedId,
@@ -98,6 +100,7 @@ const Main_Dropdown = (props) => {
       setSelected,
       sizeClassName,
       sizeWidth,
+      disabled,
     ],
   );
 
@@ -128,6 +131,7 @@ Main_Dropdown.propTypes = {
   label: PropTypes.string,
   dropdownId: PropTypes.string,
   size: PropTypes.oneOf(['S', 'M', 'L', 'XL', 's', 'm', 'l', 'xl']),
+  disabled: PropTypes.bool,
 };
 
 export default Main_Dropdown;

@@ -6,7 +6,7 @@ import {
   useEffect,
   useMemo,
 } from 'react';
-import { apiDelete, apiGet, apiPatch } from '../utils/crud';
+import { apiDelete, apiGet, apiPost } from '../utils/crud';
 import { useAuthContext } from './AuthContext';
 import { ensureContextAvailable } from '../utils/contextDataUtils';
 
@@ -286,9 +286,9 @@ export const MasterContext_Provider = ({ children }) => {
         throw new Error('updateMasterTableData requires a valid tableName');
       }
 
-      const endpoint = `${DEFAULT_MASTER_API_BASE}/${tableName}`;
+      const endpoint = `${DEFAULT_MASTER_API_BASE}/rows`;
       const rows = Array.isArray(data) ? data : [data];
-      const response = await apiPatch(
+      const response = await apiPost(
         endpoint,
         {
           data: {

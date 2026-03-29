@@ -7,7 +7,7 @@ import { sortByDisplayOrder } from '../../../../utils/arr';
 import styles from './Sub_ProductImagesRow.module.css';
 
 const Sub_ProductImagesRow = (props) => {
-  const { imageData, rowindex } = props;
+  const { imageData, rowindex, rowId } = props;
 
   const { pageData, upsertProductPageData } = useProductContext();
   const { productImageType } = useMasterContext();
@@ -15,6 +15,8 @@ const Sub_ProductImagesRow = (props) => {
 
   const [mainImageTypeId, setMainImageTypeId] = useState();
   const [defaultImages, setDefaultImages] = useState([]);
+
+  const currentImageRow = rowId || imageData?.[rowindex]?.id;
 
   const getImageTypePriority = useCallback((name = '', isMain = false) => {
     if (isMain) return 99;
@@ -51,13 +53,13 @@ const Sub_ProductImagesRow = (props) => {
   useEffect(() => {
     const rowImages = imageData?.[rowindex]?.images || [];
     const firstImageTypeId =
-      rowImages.length > 0
-        ? rowImages[0].image_type_id
-        : imageData?.[rowindex]?.id;
+      rowImages.length > 0 ? rowImages[0].image_type_id : null;
     const firstImageType = (productImageType || []).find(
       (type) => type.id === firstImageTypeId,
     );
-    const resolvedMainTypeId = firstImageType?.parent_id || firstImageTypeId;
+    const resolvedMainTypeId = firstImageTypeId
+      ? firstImageType?.parent_id || firstImageTypeId
+      : null;
 
     setMainImageTypeId(resolvedMainTypeId);
 
@@ -68,6 +70,7 @@ const Sub_ProductImagesRow = (props) => {
         url: el.image_url,
         name: el.image_name,
         size: el.size,
+        image_row: el.image_row,
         image_type_id: el.image_type_id,
         display_order: el.display_order,
       })),
@@ -77,22 +80,34 @@ const Sub_ProductImagesRow = (props) => {
   const getDefaultImagesBySubType = useCallback(
     (subTypeId) => {
       return sortByDisplayOrder(
-        defaultImages.filter((img) => img.image_type_id === subTypeId),
+        defaultImages.filter(
+          (img) =>
+            img.image_row === currentImageRow &&
+            img.image_type_id === subTypeId,
+        ),
       );
     },
-    [defaultImages],
+    [defaultImages, currentImageRow],
   );
 
   const getDefaultImagesByMainType = useCallback(() => {
     return sortByDisplayOrder(
-      defaultImages.filter((img) => img.image_type_id === mainImageTypeId),
+      defaultImages.filter(
+        (img) =>
+          img.image_row === currentImageRow &&
+          img.image_type_id === mainImageTypeId,
+      ),
     );
-  }, [defaultImages, mainImageTypeId]);
+  }, [defaultImages, mainImageTypeId, currentImageRow]);
 
   const getDefaultFilesBySubType = useCallback(
     (subTypeId) => {
       return sortByDisplayOrder(
-        defaultImages.filter((img) => img.image_type_id === subTypeId),
+        defaultImages.filter(
+          (img) =>
+            img.image_row === currentImageRow &&
+            img.image_type_id === subTypeId,
+        ),
       ).map((img) => ({
         id: img.id,
         name: img.name,
@@ -101,7 +116,7 @@ const Sub_ProductImagesRow = (props) => {
         url: img.url,
       }));
     },
-    [defaultImages],
+    [defaultImages, currentImageRow],
   );
 
   // hande the image changed
@@ -141,6 +156,7 @@ const Sub_ProductImagesRow = (props) => {
           product_images: newList.map((img, index) => ({
             id: img.id,
             product_id: pageData.id,
+            image_row: currentImageRow,
             image_type_id: subTypeId,
             display_order: index + 1,
             ...(addedImageIds.has(img.id)
@@ -154,7 +170,7 @@ const Sub_ProductImagesRow = (props) => {
         });
       }
     },
-    [upsertProductPageData, pageData.id],
+    [upsertProductPageData, pageData.id, currentImageRow],
   );
 
   // Handle image upload errors
@@ -166,8 +182,6 @@ const Sub_ProductImagesRow = (props) => {
   const handleImageTypeChange = useCallback(
     (ov, nv) => {
       if (ov === nv) return;
-
-      const productImages = pageData?.product_images || [];
 
       const currentRowHasFiles =
         (imageData?.[rowindex]?.images || []).length > 0;
@@ -183,50 +197,9 @@ const Sub_ProductImagesRow = (props) => {
         return;
       }
 
-      // finding required image id
-      const ids = productImages
-        .filter((d) => d.image_type_id === ov || (!ov && !d.image_type_id))
-        .map((d) => d.id);
-
-      // check if nv is currently used by other images, if yes, we need to update those images to avoid duplicate image type id issue, if no, we can just update the current images with the new image type id
-      const isNvUsed = productImages.some((d) => d.image_type_id === nv);
-      let confirmSwitch = false;
-      if (isNvUsed) {
-        confirmSwitch = window.confirm(
-          'The selected image type is currently used by other images. Do you want to switch the image type? This will update all images using this image type to the new image type.',
-        );
-      }
-      if (isNvUsed && !confirmSwitch) {
-        // if user cancel the switch, we need to reset the image type id to the previous value
-        // Force reset
-        setMainImageTypeId(null);
-        setTimeout(() => {
-          setMainImageTypeId(ov);
-        }, 0);
-        return;
-      } else {
-        setMainImageTypeId(nv);
-        console.log('set nv as new image type id: ', nv);
-        for (let i = 0; i < ids.length; i++) {
-          upsertProductPageData({
-            product_images: [
-              {
-                id: ids[i], // Assuming all images in the row have the same image_type_id, we can use the first image's id for the update
-                product_id: pageData.id,
-                image_type_id: nv,
-              },
-            ],
-          });
-        }
-      }
+      setMainImageTypeId(nv);
     },
-    [
-      pageData?.product_images,
-      upsertProductPageData,
-      pageData.id,
-      imageData,
-      rowindex,
-    ],
+    [imageData, rowindex],
   );
 
   return (
@@ -259,6 +232,7 @@ const Sub_ProductImagesRow = (props) => {
                 downloadRequestBody={{
                   product_id: pageData.id,
                   image_type_id: subType.id,
+                  image_row: currentImageRow,
                 }}
                 downloadFileBaseName={`${String(subType.name || 'images').replace(/\s+/g, '')}`}
                 downloadNameProductId={pageData.id || ''}
@@ -294,6 +268,7 @@ const Sub_ProductImagesRow = (props) => {
               downloadRequestBody={{
                 product_id: pageData.id,
                 image_type_id: mainImageTypeId,
+                image_row: currentImageRow,
               }}
               downloadFileBaseName={`${String(
                 (productImageType || []).find(

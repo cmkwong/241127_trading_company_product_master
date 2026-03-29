@@ -2,19 +2,16 @@ import { useCallback, useEffect, useState } from 'react';
 import ControlRowBtn from '../../../common/Buttons/ControlRowBtn';
 import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
 import { useProductContext } from '../../../../store/ProductContext';
-import { useMasterContext } from '../../../../store/MasterContext';
 import Sub_ProductImagesRow from './Sub_ProductImagesRow';
 
 const Main_ProductImages = () => {
   const { pageData, upsertProductPageData } = useProductContext();
-  const { productImageType } = useMasterContext();
 
   const [rowIds, setRowIds] = useState([]);
 
   const [processedImageData, setProcessedImageData] = useState([]);
 
-  // prepare the image data grouped by MAIN image_type_id
-  // e.g. Alibaba - description/display/video are grouped under Alibaba
+  // prepare the image data grouped by image_row
   useEffect(() => {
     const images = pageData?.product_images || [];
 
@@ -24,36 +21,25 @@ const Main_ProductImages = () => {
       return;
     }
 
-    const imageTypeById = new Map(
-      (productImageType || []).map((t) => [t.id, t]),
-    );
-
-    const resolveMainTypeId = (typeId) => {
-      if (!typeId) return '__unassigned__';
-      const type = imageTypeById.get(typeId);
-      if (!type) return typeId;
-      return type.parent_id || type.id;
-    };
-
-    const groupedByMainType = new Map();
+    const groupedByImageRow = new Map();
 
     images.forEach((img) => {
-      const mainTypeId = resolveMainTypeId(img.image_type_id);
-      if (!groupedByMainType.has(mainTypeId)) {
-        groupedByMainType.set(mainTypeId, {
-          id: mainTypeId,
+      const imageRowId = img.image_row || `legacy-${img.id}`;
+      if (!groupedByImageRow.has(imageRowId)) {
+        groupedByImageRow.set(imageRowId, {
+          id: imageRowId,
           images: [],
         });
       }
-      groupedByMainType.get(mainTypeId).images.push(img);
+      groupedByImageRow.get(imageRowId).images.push(img);
     });
 
-    const imageData = Array.from(groupedByMainType.values());
+    const imageData = Array.from(groupedByImageRow.values());
     const validRowIds = imageData.map((row) => row.id);
 
     setProcessedImageData(imageData);
     setRowIds(validRowIds);
-  }, [pageData?.product_images, productImageType]);
+  }, [pageData?.product_images]);
 
   const handleRowIdsChange = useCallback(() => {
     // Handle any additional logic when row IDs change, if necessary

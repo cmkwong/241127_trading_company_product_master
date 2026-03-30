@@ -330,7 +330,7 @@ export const MasterContext_Provider = ({ children }) => {
         return null;
       }
 
-      const endpoint = `${DEFAULT_MASTER_API_BASE}/${tableName}`;
+      const endpoint = `${DEFAULT_MASTER_API_BASE}/rows`;
       const response = await apiDelete(endpoint, {
         ...(token ? { token } : {}),
         body: {

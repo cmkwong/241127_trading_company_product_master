@@ -62,17 +62,37 @@ export const normalizeReferenceTarget = (schemaField = {}) => {
 export const resolveMediaUrl = (
   inputUrl,
   baseOrigin = 'http://localhost:3001',
+  base64Value = '',
 ) => {
+  const base64 = String(base64Value || '').trim();
+  if (base64.startsWith('data:')) {
+    return base64;
+  }
+
+  const normalizePath = (path = '') => {
+    const unified = String(path || '').replace(/\\/g, '/');
+    const withSlash = unified.startsWith('/') ? unified : `/${unified}`;
+    return withSlash.replace(/^\/public\//i, '/');
+  };
+
   const raw = String(inputUrl || '').trim();
   if (!raw) return '';
-  if (
-    /^https?:\/\//i.test(raw) ||
-    raw.startsWith('blob:') ||
-    raw.startsWith('data:')
-  ) {
+
+  if (raw.startsWith('blob:') || raw.startsWith('data:')) {
     return raw;
   }
 
-  const normalizedPath = raw.startsWith('/') ? raw : `/${raw}`;
-  return `${baseOrigin}${normalizedPath}`;
+  if (/^https?:\/\//i.test(raw)) {
+    try {
+      const url = new URL(raw);
+      if (url.origin === baseOrigin) {
+        url.pathname = normalizePath(url.pathname);
+      }
+      return url.toString();
+    } catch {
+      return raw;
+    }
+  }
+
+  return `${baseOrigin}${normalizePath(raw)}`;
 };

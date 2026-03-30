@@ -18,8 +18,14 @@ import {
   isBooleanType,
   normalizeReferenceTarget,
   parseInputValue,
-  resolveMediaUrl,
 } from './utils/masterControlUtils';
+import {
+  buildMasterServiceImageMutations as buildMasterServiceImageMutationsPayload,
+  buildMasterServiceImagesRelatedDryRunPreview,
+  getDefaultMasterServiceImagesForService,
+  normalizePendingMasterServiceImages,
+  resolveMasterServiceImageRelationField,
+} from './utils/masterServiceUtils';
 import styles from './Main_MasterControl.module.css';
 
 const MasterControlContent = () => {
@@ -43,6 +49,8 @@ const MasterControlContent = () => {
   const [selectedTable, setSelectedTable] = useState('');
   const [tableSchema, setTableSchema] = useState(null);
   const [serviceImagesSchema, setServiceImagesSchema] = useState(null);
+  const [pendingServiceImagesByServiceId, setPendingServiceImagesByServiceId] =
+    useState({});
   const [originalRows, setOriginalRows] = useState([]);
   const [draftRows, setDraftRows] = useState([]);
   const [isSaving, setIsSaving] = useState(false);
@@ -106,6 +114,8 @@ const MasterControlContent = () => {
       } else {
         setServiceImagesSchema(null);
       }
+
+      setPendingServiceImagesByServiceId({});
     } catch (err) {
       setError(err?.message || 'Failed to load master table');
     } finally {
@@ -261,27 +271,10 @@ const MasterControlContent = () => {
   }, [masterDataMap]);
 
   const masterServiceImageRelationField = useMemo(() => {
-    const fields = serviceImagesSchema?.fields || {};
-    for (const [fieldName, fieldSchema] of Object.entries(fields)) {
-      const refTarget = normalizeReferenceTarget(fieldSchema);
-      if (refTarget && refTarget.includes('master_services')) {
-        return fieldName;
-      }
-    }
-
-    if ((serviceImageRows || []).some((row) => row?.service_id !== undefined)) {
-      return 'service_id';
-    }
-
-    if (
-      (serviceImageRows || []).some(
-        (row) => row?.master_service_id !== undefined,
-      )
-    ) {
-      return 'master_service_id';
-    }
-
-    return 'service_id';
+    return resolveMasterServiceImageRelationField(
+      serviceImagesSchema,
+      serviceImageRows,
+    );
   }, [serviceImageRows, serviceImagesSchema]);
 
   const buildBlankRow = useCallback(() => {
@@ -427,7 +420,7 @@ const MasterControlContent = () => {
   );
 
   const handleMasterServiceImagesChange = useCallback(
-    async (serviceRow, oldFiles = [], newFiles = []) => {
+    (serviceRow, oldFiles = [], newFiles = []) => {
       if (!canEdit) return;
       if (selectedTable !== 'master_services') return;
 
@@ -454,73 +447,45 @@ const MasterControlContent = () => {
       }
 
       const imageSchemaFields = serviceImagesSchema?.fields || {};
-
-      setIsSaving(true);
-      setError('');
       setSaveSuccess(false);
       setSaveError('');
-      try {
-        if (removedImages.length > 0) {
-          await deleteMasterTableData(
-            'master_service_images',
-            removedImages
-              .filter((img) => !!img?.id)
-              .map((img) => ({ id: img.id })),
-          );
-        }
+      const normalized = normalizePendingMasterServiceImages(
+        newList,
+        imageSchemaFields,
+      );
 
-        if (newList.length > 0) {
-          const addedImageIds = new Set(addedImages.map((img) => img.id));
-
-          const rowsToUpsert = newList
-            .filter((img) => !!img?.id)
-            .map((img, index) => {
-              const payload = {
-                id: img.id,
-                [masterServiceImageRelationField]: serviceId,
-              };
-
-              if ('display_order' in imageSchemaFields) {
-                payload.display_order = index + 1;
-              }
-
-              if (addedImageIds.has(img.id)) {
-                if ('image_url' in imageSchemaFields) {
-                  payload.image_url = img.url;
-                }
-                if ('image_name' in imageSchemaFields) {
-                  payload.image_name = img.name;
-                }
-                if ('size' in imageSchemaFields && img.size !== undefined) {
-                  payload.size = img.size;
-                }
-              }
-
-              return payload;
-            });
-
-          if (rowsToUpsert.length > 0) {
-            await updateMasterTableData('master_service_images', rowsToUpsert);
-          }
-        }
-
-        await fetchMasterData('master_service_images');
-      } catch (err) {
-        setError(err?.message || 'Failed to update master service images');
-      } finally {
-        setIsSaving(false);
-      }
+      setPendingServiceImagesByServiceId((prev) => ({
+        ...prev,
+        [serviceId]: normalized,
+      }));
     },
-    [
-      canEdit,
-      deleteMasterTableData,
-      fetchMasterData,
-      masterServiceImageRelationField,
-      selectedTable,
-      serviceImagesSchema,
-      updateMasterTableData,
-    ],
+    [canEdit, selectedTable, serviceImagesSchema],
   );
+
+  const getDefaultServiceImagesForService = useCallback(
+    (serviceId) => {
+      return getDefaultMasterServiceImagesForService({
+        serviceId,
+        serviceImageRows,
+        masterServiceImageRelationField,
+      });
+    },
+    [masterServiceImageRelationField, serviceImageRows],
+  );
+
+  const buildMasterServiceImageMutations = useCallback(async () => {
+    return buildMasterServiceImageMutationsPayload({
+      pendingServiceImagesByServiceId,
+      serviceImagesSchema,
+      serviceImageRows,
+      masterServiceImageRelationField,
+    });
+  }, [
+    masterServiceImageRelationField,
+    pendingServiceImagesByServiceId,
+    serviceImageRows,
+    serviceImagesSchema,
+  ]);
 
   const tableColumns = useMemo(() => {
     const hierarchyColumn = selfReferenceField
@@ -600,24 +565,12 @@ const MasterControlContent = () => {
               label: 'Service Images',
               sortable: false,
               renderCell: (row) => {
-                const relationField = masterServiceImageRelationField;
                 const relationId = String(row?.id || '').trim();
 
-                const defaults = sortByDisplayOrder(
-                  (serviceImageRows || [])
-                    .filter(
-                      (img) =>
-                        String(img?.[relationField] || '').trim() ===
-                        relationId,
-                    )
-                    .map((img) => ({
-                      id: img.id,
-                      url: resolveMediaUrl(img.image_url),
-                      name: img.image_name,
-                      size: img.size,
-                      display_order: img.display_order,
-                    })),
-                );
+                const pending = pendingServiceImagesByServiceId[relationId];
+                const defaults = Array.isArray(pending)
+                  ? sortByDisplayOrder(pending)
+                  : getDefaultServiceImagesForService(relationId);
 
                 return (
                   <div className={styles.uploadsCell}>
@@ -684,12 +637,12 @@ const MasterControlContent = () => {
     handleMasterServiceImagesChange,
     hierarchyPathByRowKey,
     isSaving,
-    masterServiceImageRelationField,
     canEdit,
+    getDefaultServiceImagesForService,
     selfReferenceField,
     selfReferenceOptions,
+    pendingServiceImagesByServiceId,
     selectedTable,
-    serviceImageRows,
     schemaFieldByColumn,
   ]);
 
@@ -721,7 +674,7 @@ const MasterControlContent = () => {
     [schemaFieldByColumn],
   );
 
-  const getMasterControlDryRunData = useCallback(() => {
+  const getMasterControlDryRunData = useCallback(async () => {
     const originalById = new Map();
     const draftById = new Map();
 
@@ -767,8 +720,9 @@ const MasterControlContent = () => {
     });
 
     const upsertRows = [...createRows, ...updateRows];
+    let hasRelatedChanges = false;
 
-    return {
+    const preview = {
       endpoint: 'http://localhost:3001/api/v1/trade_business/master/rows',
       method: 'POST',
       table: selectedTable,
@@ -780,12 +734,37 @@ const MasterControlContent = () => {
           [selectedTable]: upsertRows,
         },
       },
-      message:
-        upsertRows.length === 0 && deleteRows.length === 0
-          ? 'No changes detected'
-          : undefined,
     };
-  }, [draftRows, originalRows, sanitizeRowForSave, selectedTable]);
+
+    if (selectedTable === 'master_services') {
+      const { deleteRows: imageDeleteRows, upsertRows: imageUpsertRows } =
+        await buildMasterServiceImageMutations();
+
+      const { hasRelatedChanges: hasServiceImageChanges, relatedPayload } =
+        buildMasterServiceImagesRelatedDryRunPreview({
+          imageDeleteRows,
+          imageUpsertRows,
+        });
+      hasRelatedChanges = hasServiceImageChanges;
+
+      preview.relatedPayloads = {
+        master_service_images: relatedPayload,
+      };
+    }
+
+    preview.message =
+      upsertRows.length === 0 && deleteRows.length === 0 && !hasRelatedChanges
+        ? 'No changes detected'
+        : undefined;
+
+    return preview;
+  }, [
+    buildMasterServiceImageMutations,
+    draftRows,
+    originalRows,
+    sanitizeRowForSave,
+    selectedTable,
+  ]);
 
   const handleSaveAll = useCallback(async () => {
     if (!canEdit) return;
@@ -797,6 +776,20 @@ const MasterControlContent = () => {
     setSaveError('');
     try {
       const payloadRows = draftRows.map((row) => sanitizeRowForSave(row));
+
+      if (selectedTable === 'master_services') {
+        const { deleteRows, upsertRows } =
+          await buildMasterServiceImageMutations();
+
+        if (deleteRows.length > 0) {
+          await deleteMasterTableData('master_service_images', deleteRows);
+        }
+
+        if (upsertRows.length > 0) {
+          await updateMasterTableData('master_service_images', upsertRows);
+        }
+      }
+
       if (payloadRows.length > 0) {
         await updateMasterTableData(selectedTable, payloadRows);
       }
@@ -810,6 +803,8 @@ const MasterControlContent = () => {
       setIsSaving(false);
     }
   }, [
+    buildMasterServiceImageMutations,
+    deleteMasterTableData,
     canEdit,
     draftRows,
     loadTableData,

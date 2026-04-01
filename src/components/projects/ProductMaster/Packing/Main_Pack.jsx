@@ -18,6 +18,7 @@ const Main_Pack = () => {
   const { packType, packingReliabilityType } = useMasterContext();
   const packRows = pageData.product_packings || [];
 
+  // Prepare dropdown options
   const packTypeOptions = useMemo(
     () =>
       (packType || []).map((item) => ({
@@ -27,6 +28,7 @@ const Main_Pack = () => {
     [packType],
   );
 
+  // Reliability type options for dropdown
   const reliabilityTypeOptions = useMemo(
     () =>
       (packingReliabilityType || []).map((item) => ({
@@ -36,6 +38,7 @@ const Main_Pack = () => {
     [packingReliabilityType],
   );
 
+  // Upsert (add/update) a packing row
   const upsertPackRow = useCallback(
     (row, patch) => {
       upsertProductPageData({
@@ -65,7 +68,7 @@ const Main_Pack = () => {
           quantity: 0,
           weight: 0,
           remark: '',
-          product_packing_images: [],
+          product_packing_files: [],
         },
       ],
     });
@@ -87,10 +90,10 @@ const Main_Pack = () => {
     [upsertProductPageData],
   );
 
-  const handlePackImagesChange = useCallback(
-    (row, oldImages = [], newImages = []) => {
-      const oldList = Array.isArray(oldImages) ? oldImages : [];
-      const newList = Array.isArray(newImages) ? newImages : [];
+  const handlePackFilesChange = useCallback(
+    (row, oldFiles = [], newFiles = []) => {
+      const oldList = Array.isArray(oldFiles) ? oldFiles : [];
+      const newList = Array.isArray(newFiles) ? newFiles : [];
 
       const removedImages = oldList.filter(
         (img) => !newList.some((newImg) => newImg.id === img.id),
@@ -110,7 +113,7 @@ const Main_Pack = () => {
 
       if (removedImages.length > 0) {
         upsertPackRow(row, {
-          product_packing_images: removedImages.map((img) => ({
+          product_packing_files: removedImages.map((img) => ({
             id: img.id,
             _delete: true,
           })),
@@ -118,16 +121,16 @@ const Main_Pack = () => {
       }
 
       if (newList.length > 0) {
-        const addedImageIds = new Set(addedImages.map((img) => img.id));
+        const addedFileIds = new Set(addedImages.map((img) => img.id));
 
         upsertPackRow(row, {
-          product_packing_images: newList.map((img, index) => ({
+          product_packing_files: newList.map((img, index) => ({
             id: img.id,
             display_order: index + 1,
-            ...(addedImageIds.has(img.id)
+            ...(addedFileIds.has(img.id)
               ? {
-                  image_name: img.name,
-                  image_url: img.url,
+                  file_name: img.name,
+                  file_url: img.url,
                 }
               : {}),
           })),
@@ -259,32 +262,33 @@ const Main_Pack = () => {
         ),
       },
       {
-        key: 'product_packing_images',
-        label: 'Images',
+        key: 'product_packing_files',
+        label: 'Files',
         sortable: false,
         renderCell: (row) => {
-          const imageDefaults = sortByDisplayOrder(
-            row.product_packing_images || [],
-          ).map((image) => ({
-            id: image.id,
-            url: image.image_url,
-            name: image.image_name,
-            display_order: image.display_order,
+          const fileDefaults = sortByDisplayOrder(
+            row.product_packing_files || [],
+          ).map((file) => ({
+            id: file.id,
+            url: file.file_url ?? file.image_url,
+            name: file.file_name ?? file.image_name,
+            display_order: file.display_order,
           }));
 
           return (
             <div className={styles.uploadsCell}>
               <Main_FileUploads
-                mode="image"
+                mode="file"
+                maxSizeInMB={20}
                 label=""
                 compact
                 tableCell
                 hoverPreview
                 compactButtonText="Upload"
-                defaultImages={imageDefaults}
-                onChange={(ov, nv) => handlePackImagesChange(row, ov, nv)}
+                defaultFiles={fileDefaults}
+                onChange={(ov, nv) => handlePackFilesChange(row, ov, nv)}
                 onError={(error) => {
-                  console.error('Packing image upload error:', error);
+                  console.error('Packing file upload error:', error);
                 }}
               />
             </div>
@@ -321,7 +325,7 @@ const Main_Pack = () => {
       packTypeOptions,
       reliabilityTypeOptions,
       upsertPackRow,
-      handlePackImagesChange,
+      handlePackFilesChange,
       handleDeletePackRow,
     ],
   );

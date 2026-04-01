@@ -57,7 +57,11 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
   const iconMemoryEntriesRef = useRef([]); // [{ id, url, bytes }]
   const iconMemoryBytesRef = useRef(0);
 
-  const productBase64Config = useMemo(() => fileMappings || {}, [fileMappings]);
+  const productBase64Config = useMemo(() => {
+    return {
+      ...(fileMappings || {}),
+    };
+  }, [fileMappings]);
 
   // Extracted function to fetch products
   const doFetchProducts = useCallback(async () => {
@@ -396,7 +400,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
     return getChangedData() === null;
   }, [getChangedData]);
 
-  const getProductSaveDryRunData = useCallback(() => {
+  const getProductSaveDryRunData = useCallback(async () => {
     const changesResult = getChangedData();
     const preview = {
       endpoint: 'http://localhost:3001/api/v1/trade_business/products/data/ids',
@@ -416,11 +420,21 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
     const isRootCreate =
       !originalPageData || originalPageData.id !== pageData.id;
 
-    if (changesResult?.changes?.products) {
+    // For dry run, we want to show the final payload after processing base64 but without actually sending it to the server
+    let processedChanges = changesResult?.changes;
+    if (processedChanges) {
+      processedChanges = await processChangesWithBase64(
+        processedChanges,
+        productBase64Config,
+      );
+      preview.payload = { data: processedChanges };
+    }
+
+    if (processedChanges?.products) {
       if (isRootCreate) {
-        preview.create.products = changesResult.changes.products;
+        preview.create.products = processedChanges.products;
       } else {
-        preview.update.products = changesResult.changes.products;
+        preview.update.products = processedChanges.products;
       }
     }
 
@@ -429,7 +443,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
     }
 
     return preview;
-  }, [getChangedData, originalPageData, pageData.id]);
+  }, [getChangedData, originalPageData, pageData.id, productBase64Config]);
 
   /**
    * Load a product into pageData by ID

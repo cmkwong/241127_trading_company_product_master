@@ -8,29 +8,48 @@ const Sub_FileUploadsHeader = ({
   showDownloadButton,
   isDownloading,
   onDownload,
+  showSelectAll,
+  allSelected,
+  selectedCount,
+  totalCount,
+  onToggleSelectAll,
 }) => {
   return (
     <div className={styles.headerRow}>
       {label && <label className={styles.label}>{label}</label>}
       <div className={styles.headerActions}>
+        {showSelectAll && (
+          <label className={styles.selectAllWrap}>
+            <input
+              type="checkbox"
+              checked={Boolean(allSelected)}
+              onChange={onToggleSelectAll}
+            />
+            <span>{`All (${selectedCount}/${totalCount})`}</span>
+          </label>
+        )}
         {showDownloadButton && (
-          <button
-            type="button"
-            className={styles.sequenceEditorIconBtn}
-            onClick={onDownload}
-            title={isDownloading ? 'Downloading...' : 'Download'}
-            aria-label={isDownloading ? 'Downloading...' : 'Download'}
-            disabled={isDownloading}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              aria-hidden="true"
+          <>
+            <button
+              type="button"
+              className={styles.sequenceEditorIconBtn}
+              onClick={onDownload}
+              title={isDownloading ? 'Downloading...' : 'Download selected'}
+              aria-label={
+                isDownloading ? 'Downloading...' : 'Download selected'
+              }
+              disabled={isDownloading}
             >
-              <path d="M5 20h14v-2H5v2zm7-18v9.17l3.59-3.58L17 9l-5 5-5-5 1.41-1.41L11 11.17V2h1z" />
-            </svg>
-          </button>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path d="M5 20h14v-2H5v2zm7-18v9.17l3.59-3.58L17 9l-5 5-5-5 1.41-1.41L11 11.17V2h1z" />
+              </svg>
+            </button>
+          </>
         )}
 
         {canOpenSequenceEditor && (
@@ -63,6 +82,11 @@ Sub_FileUploadsHeader.propTypes = {
   showDownloadButton: PropTypes.bool,
   isDownloading: PropTypes.bool,
   onDownload: PropTypes.func,
+  showSelectAll: PropTypes.bool,
+  allSelected: PropTypes.bool,
+  selectedCount: PropTypes.number,
+  totalCount: PropTypes.number,
+  onToggleSelectAll: PropTypes.func,
 };
 
 export default Sub_FileUploadsHeader;

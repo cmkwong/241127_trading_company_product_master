@@ -24,6 +24,8 @@ const Sub_FileItem = ({
   compactImage = false,
   compactFile = false,
   hoverPreview = false,
+  isSelected = true,
+  onToggleSelected = null,
 }) => {
   const [dropPosition, setDropPosition] = useState(null);
   const [dragSourceIndex, setDragSourceIndex] = useState(null);
@@ -306,6 +308,23 @@ const Sub_FileItem = ({
           <div className={styles.dropReadyBadge}>{DRAG_READY_LABEL}</div>
         )}
 
+        {typeof onToggleSelected === 'function' && (
+          <button
+            type="button"
+            className={`${styles.selectCircle} ${
+              isSelected ? styles.selectCircleActive : ''
+            }`}
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleSelected();
+            }}
+            aria-label={isSelected ? 'Deselect image' : 'Select image'}
+            title={isSelected ? 'Deselect image' : 'Select image'}
+          >
+            {isSelected ? '✓' : ''}
+          </button>
+        )}
+
         <img src={file.url} alt={name} className={styles.previewImg} />
         <div className={styles.imageIndexBadge}>{index + 1}</div>
         <div className={styles.imageInfo}>
@@ -432,6 +451,8 @@ Sub_FileItem.propTypes = {
   compactImage: PropTypes.bool,
   compactFile: PropTypes.bool,
   hoverPreview: PropTypes.bool,
+  isSelected: PropTypes.bool,
+  onToggleSelected: PropTypes.func,
 };
 
 export default Sub_FileItem;

@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import styles from './Main_FileUploads.module.css';
 import Main_DropZone from '../DropZone/Main_DropZone';
@@ -65,6 +65,11 @@ const Main_FileUploads = (props) => {
 
   // State to store uploaded files/images
   const [fileList, setFileList] = useState(getInitialState);
+  const [selectedFileIds, setSelectedFileIds] = useState(() =>
+    getInitialState()
+      .map((file) => file?.id)
+      .filter(Boolean),
+  );
   const [isDragging, setIsDragging] = useState(false);
   const [isSequenceEditorOpen, setIsSequenceEditorOpen] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -204,15 +209,26 @@ const Main_FileUploads = (props) => {
       });
 
       const records = response?.structuredData?.data?.product_images || [];
+      const selectedIdSet = new Set(
+        (selectedFileIds || []).map((id) => String(id || '').trim()),
+      );
+      const selectedRecords = records.filter((record) =>
+        selectedIdSet.has(String(record?.id || '').trim()),
+      );
 
       if (!Array.isArray(records) || records.length === 0) {
         onError('No files available to download.');
         return;
       }
 
+      if (selectedRecords.length === 0) {
+        onError('No selected files available to download.');
+        return;
+      }
+
       const files = [];
-      for (let index = 0; index < records.length; index += 1) {
-        const record = records[index];
+      for (let index = 0; index < selectedRecords.length; index += 1) {
+        const record = selectedRecords[index];
         const fallbackName =
           record?.image_name ||
           `file-${record?.id || Math.random().toString(36).slice(2)}.bin`;
@@ -275,23 +291,33 @@ const Main_FileUploads = (props) => {
     triggerBrowserDownload,
     downloadFileBaseName,
     buildDownloadFileName,
+    selectedFileIds,
   ]);
 
   // Update state when defaultImages changes (for image mode)
   useEffect(() => {
     if (mode === 'image') {
       const newProcessedImages = processDefaultImages(defaultImages);
+      let replaced = false;
 
       setFileList((currentImages) => {
         if (shouldReplaceImageList(currentImages, newProcessedImages)) {
+          replaced = true;
           return newProcessedImages;
         }
 
         return currentImages;
       });
+
+      if (replaced) {
+        setSelectedFileIds(
+          newProcessedImages.map((file) => file?.id).filter(Boolean),
+        );
+      }
     } else {
       // For file mode, simply update if defaultFiles changes
       // We perform a shallow comparison to avoid unnecessary updates if ref changed but content is same
+      let replaced = false;
       setFileList((prev) => {
         if (prev === defaultFiles) return prev;
         if (
@@ -300,8 +326,15 @@ const Main_FileUploads = (props) => {
         ) {
           return prev;
         }
+        replaced = true;
         return defaultFiles || [];
       });
+
+      if (replaced) {
+        setSelectedFileIds(
+          (defaultFiles || []).map((file) => file?.id).filter(Boolean),
+        );
+      }
     }
   }, [defaultImages, defaultFiles, mode]);
 
@@ -386,6 +419,10 @@ const Main_FileUploads = (props) => {
         const oldFiles = [...fileList];
         const updatedFiles = [...fileList, ...newFiles];
         setFileList(updatedFiles);
+        setSelectedFileIds((prev) => [
+          ...(prev || []),
+          ...newFiles.map((file) => file?.id).filter(Boolean),
+        ]);
         onChange(oldFiles, updatedFiles);
       }
     },
@@ -399,11 +436,34 @@ const Main_FileUploads = (props) => {
 
       const oldFiles = [...fileList];
       const updatedFiles = fileList.filter((_, i) => i !== index);
+      const removedId = String(fileList[index]?.id || '').trim();
       setFileList(updatedFiles);
+      if (removedId) {
+        setSelectedFileIds((prev) =>
+          (prev || []).filter((id) => String(id || '').trim() !== removedId),
+        );
+      }
       onChange(oldFiles, updatedFiles);
     },
     [fileList, disabled, onChange],
   );
+
+  const handleToggleSelectFile = useCallback((fileId) => {
+    const normalized = String(fileId || '').trim();
+    if (!normalized) return;
+
+    setSelectedFileIds((prev) => {
+      const exists = (prev || []).some(
+        (id) => String(id || '').trim() === normalized,
+      );
+      if (exists) {
+        return (prev || []).filter(
+          (id) => String(id || '').trim() !== normalized,
+        );
+      }
+      return [...(prev || []), normalized];
+    });
+  }, []);
 
   const handleSortByName = useCallback(() => {
     if (fileList.length < 2) return;
@@ -449,6 +509,25 @@ const Main_FileUploads = (props) => {
   const canOpenSequenceEditor = enableSequenceEditor && mode === 'image';
   const showHeaderEditorButton = canOpenSequenceEditor && !tableCell;
   const showInlineEditorButton = canOpenSequenceEditor && tableCell;
+  const selectableIds = useMemo(
+    () => fileList.map((file) => String(file?.id || '').trim()).filter(Boolean),
+    [fileList],
+  );
+  const selectedSet = useMemo(
+    () => new Set((selectedFileIds || []).map((id) => String(id || '').trim())),
+    [selectedFileIds],
+  );
+  const allSelected =
+    selectableIds.length > 0 &&
+    selectableIds.every((id) => selectedSet.has(id));
+
+  const handleToggleSelectAll = useCallback(() => {
+    if (allSelected) {
+      setSelectedFileIds([]);
+      return;
+    }
+    setSelectedFileIds(selectableIds);
+  }, [allSelected, selectableIds]);
 
   const renderFileItems = (forModal = false) => {
     return fileList.map((file, index) => (
@@ -465,6 +544,12 @@ const Main_FileUploads = (props) => {
         compactImage={forModal ? false : tableCell}
         compactFile={!forModal && tableCell && mode === 'file'}
         hoverPreview={forModal ? true : hoverPreview}
+        isSelected={selectedSet.has(String(file?.id || '').trim())}
+        onToggleSelected={
+          showDownloadButton && mode === 'image'
+            ? () => handleToggleSelectFile(file?.id)
+            : null
+        }
       />
     ));
   };
@@ -516,6 +601,11 @@ const Main_FileUploads = (props) => {
         showDownloadButton={showDownloadButton}
         isDownloading={isDownloading}
         onDownload={handleDownload}
+        showSelectAll={showDownloadButton && mode === 'image'}
+        allSelected={allSelected}
+        selectedCount={selectedFileIds.length}
+        totalCount={selectableIds.length}
+        onToggleSelectAll={handleToggleSelectAll}
       />
 
       <div className={styles.dropZoneEditorWrap}>
@@ -559,6 +649,11 @@ const Main_FileUploads = (props) => {
           canSort={fileList.length > 1 && !disabled}
           onSortByName={handleSortByName}
           onSortBySize={handleSortBySize}
+          showSelectAll={showDownloadButton && mode === 'image'}
+          allSelected={allSelected}
+          selectedCount={selectedFileIds.length}
+          totalCount={selectableIds.length}
+          onToggleSelectAll={handleToggleSelectAll}
           dropZoneProps={{
             ...baseDropZoneProps,
             testIdPrefix: `${testIdPrefix}-sequence-editor`,

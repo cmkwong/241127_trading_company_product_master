@@ -39,6 +39,20 @@
   gap: 6px;
 }
 
+.selectAllWrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #334155;
+  user-select: none;
+}
+
+.selectAllWrap input {
+  width: 14px;
+  height: 14px;
+}
+
 .dropZoneEditorWrap {
   position: relative;
 }

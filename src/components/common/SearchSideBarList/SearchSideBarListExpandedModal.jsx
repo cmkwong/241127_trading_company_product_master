@@ -94,6 +94,7 @@ const SearchSideBarListExpandedModal = ({
   const [allExpanded, setAllExpanded] = useState(true);
   const rowRefs = useRef(new Map());
   const tableWrapRef = useRef(null);
+  const pendingHistoryScrollRef = useRef(false);
 
   const tableColumns = useMemo(() => {
     const labels = new Set();
@@ -273,16 +274,35 @@ const SearchSideBarListExpandedModal = ({
   }, [selectedItemId]);
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || !pendingHistoryScrollRef.current) {
+      return;
+    }
+
+    if (selectedItemId === undefined || selectedItemId === null) {
+      return;
+    }
 
     const raf = window.requestAnimationFrame(() => {
       scrollToSelectedRow();
+
+      window.setTimeout(() => {
+        scrollToSelectedRow();
+        pendingHistoryScrollRef.current = false;
+      }, 80);
     });
 
     return () => {
       window.cancelAnimationFrame(raf);
     };
-  }, [isOpen, scrollToSelectedRow, sortedItems]);
+  }, [isOpen, selectedItemId, sortedItems, scrollToSelectedRow]);
+
+  const handleSelectHistoryInModal = useCallback(
+    (entry) => {
+      pendingHistoryScrollRef.current = true;
+      onSelectSearchHistory?.(entry);
+    },
+    [onSelectSearchHistory],
+  );
 
   useEffect(() => {
     if (!isOpen || typeof onVisibleItemIdsChange !== 'function') {
@@ -673,12 +693,7 @@ const SearchSideBarListExpandedModal = ({
             value={searchValue}
             onChange={onSearchChange}
             searchHistory={searchHistory}
-            onSelectHistory={(entry) => {
-              onSelectSearchHistory?.(entry);
-              window.setTimeout(() => {
-                scrollToSelectedRow();
-              }, 0);
-            }}
+            onSelectHistory={handleSelectHistoryInModal}
             onClear={onClearSearch}
             onCommitSearch={onCommitSearch}
             placeholder={searchPlaceholder}

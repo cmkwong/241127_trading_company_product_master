@@ -43,6 +43,7 @@ const SearchSideBarList = ({
   const [isExpanded, setIsExpanded] = useState(false);
   const itemRefs = useRef(new Map());
   const listRef = useRef(null);
+  const pendingHistoryScrollRef = useRef(false);
 
   const setItemRef = useCallback((itemId, element) => {
     const itemKey = toItemKey(itemId);
@@ -92,12 +93,21 @@ const SearchSideBarList = ({
   }, [selectedItemId]);
 
   useEffect(() => {
+    if (!pendingHistoryScrollRef.current) {
+      return;
+    }
+
     if (selectedItemId === undefined || selectedItemId === null) {
       return;
     }
 
     const raf = window.requestAnimationFrame(() => {
       scrollToSelectedItem();
+
+      window.setTimeout(() => {
+        scrollToSelectedItem();
+        pendingHistoryScrollRef.current = false;
+      }, 80);
     });
 
     return () => {
@@ -107,17 +117,10 @@ const SearchSideBarList = ({
 
   const handleSelectHistory = useCallback(
     (entry) => {
+      pendingHistoryScrollRef.current = true;
       onSelectSearchHistory?.(entry);
-
-      window.setTimeout(() => {
-        scrollToSelectedItem();
-      }, 0);
-
-      window.setTimeout(() => {
-        scrollToSelectedItem();
-      }, 80);
     },
-    [onSelectSearchHistory, scrollToSelectedItem],
+    [onSelectSearchHistory],
   );
 
   useEffect(() => {

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import styles from './SupplierSidebar.module.css';
 import SearchSideBarList from '../../../common/SearchSideBarList/SearchSideBarList';
 import { useSupplierContext } from '../../../../store/SupplierContext';
@@ -11,7 +11,7 @@ const normalizeHistoryEntry = (entry) => {
   if (typeof entry === 'string') {
     const title = String(entry || '').trim();
     if (!title) return null;
-    return { id: '', title };
+    return { id: '', title, icon_url: '' };
   }
 
   if (!entry || typeof entry !== 'object') {
@@ -20,9 +20,10 @@ const normalizeHistoryEntry = (entry) => {
 
   const id = String(entry.id || '').trim();
   const title = String(entry.title || entry.name || '').trim();
+  const icon_url = String(entry.icon_url || entry.iconUrl || '').trim();
   if (!id && !title) return null;
 
-  return { id, title };
+  return { id, title, icon_url };
 };
 
 const SupplierSidebar = ({
@@ -40,6 +41,28 @@ const SupplierSidebar = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [searchHistory, setSearchHistory] = useState([]);
   const [filteredSuppliers, setFilteredSuppliers] = useState([]);
+
+  const searchHistoryWithIcons = useMemo(() => {
+    const currentSupplierList = Array.isArray(suppliers)
+      ? suppliers
+      : suppliers?.suppliers || [];
+
+    return (searchHistory || []).map((entry) => {
+      const normalizedId = String(entry?.id || '').trim();
+      if (!normalizedId) {
+        return entry;
+      }
+
+      const matchedSupplier = currentSupplierList.find(
+        (item) => String(item?.id || '').trim() === normalizedId,
+      );
+
+      return {
+        ...entry,
+        icon_url: String(matchedSupplier?.icon_url || entry?.icon_url || ''),
+      };
+    });
+  }, [searchHistory, suppliers]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -130,6 +153,7 @@ const SupplierSidebar = ({
         const entry = {
           id: String(supplier?.id || '').trim(),
           title: String(getSupplierName(supplier) || supplier?.id || '').trim(),
+          icon_url: String(supplier?.icon_url || '').trim(),
         };
 
         const deduped = prev.filter((item) => {
@@ -360,7 +384,7 @@ const SupplierSidebar = ({
           onSelectItem={handleSupplierSelect}
           searchValue={searchTerm}
           onSearchChange={handleSearchChange}
-          searchHistory={searchHistory}
+          searchHistory={searchHistoryWithIcons}
           onSelectSearchHistory={handleSelectSearchHistory}
           onClearSearch={handleClearSearch}
           searchPlaceholder="Search suppliers..."

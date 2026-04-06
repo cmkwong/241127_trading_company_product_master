@@ -5,6 +5,9 @@ import SearchSideBarListSearchBar from './SearchSideBarListSearchBar';
 import SearchSideBarListExpandedModal from './SearchSideBarListExpandedModal';
 import styles from './SearchSideBarList.module.css';
 
+const toItemKey = (value) =>
+  value === undefined || value === null ? '' : String(value);
+
 const SearchSideBarList = ({
   items = [],
   selectedItemId,
@@ -42,27 +45,80 @@ const SearchSideBarList = ({
   const listRef = useRef(null);
 
   const setItemRef = useCallback((itemId, element) => {
-    if (element) {
-      itemRefs.current.set(itemId, element);
+    const itemKey = toItemKey(itemId);
+    if (!itemKey) {
       return;
     }
 
-    itemRefs.current.delete(itemId);
+    if (element) {
+      itemRefs.current.set(itemKey, element);
+      return;
+    }
+
+    itemRefs.current.delete(itemKey);
   }, []);
 
   const scrollToSelectedItem = useCallback(() => {
-    if (selectedItemId === undefined || selectedItemId === null) {
+    const selectedKey = toItemKey(selectedItemId);
+    if (!selectedKey) {
       return;
     }
 
-    const targetNode = itemRefs.current.get(selectedItemId);
+    const root = listRef.current;
+    const targetNode = itemRefs.current.get(selectedKey);
     if (!targetNode) {
       return;
     }
 
-    targetNode.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (!root) {
+      targetNode.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      targetNode.focus({ preventScroll: true });
+      return;
+    }
+
+    const targetTop = targetNode.offsetTop;
+    const targetHeight = targetNode.offsetHeight;
+    const desiredTop = Math.max(
+      0,
+      targetTop - root.clientHeight / 2 + targetHeight / 2,
+    );
+
+    root.scrollTo({
+      top: desiredTop,
+      behavior: 'smooth',
+    });
+
     targetNode.focus({ preventScroll: true });
   }, [selectedItemId]);
+
+  useEffect(() => {
+    if (selectedItemId === undefined || selectedItemId === null) {
+      return;
+    }
+
+    const raf = window.requestAnimationFrame(() => {
+      scrollToSelectedItem();
+    });
+
+    return () => {
+      window.cancelAnimationFrame(raf);
+    };
+  }, [selectedItemId, items, scrollToSelectedItem]);
+
+  const handleSelectHistory = useCallback(
+    (entry) => {
+      onSelectSearchHistory?.(entry);
+
+      window.setTimeout(() => {
+        scrollToSelectedItem();
+      }, 0);
+
+      window.setTimeout(() => {
+        scrollToSelectedItem();
+      }, 80);
+    },
+    [onSelectSearchHistory, scrollToSelectedItem],
+  );
 
   useEffect(() => {
     if (typeof onVisibleItemIdsChange !== 'function') {
@@ -111,7 +167,7 @@ const SearchSideBarList = ({
             value={searchValue}
             onChange={onSearchChange}
             searchHistory={searchHistory}
-            onSelectHistory={onSelectSearchHistory}
+            onSelectHistory={handleSelectHistory}
             onClear={onClearSearch}
             onCommitSearch={onCommitSearch}
             placeholder={searchPlaceholder}
@@ -205,6 +261,10 @@ const SearchSideBarList = ({
         onSelectItem={onSelectItem}
         searchValue={searchValue}
         onSearchChange={onSearchChange}
+        searchHistory={searchHistory}
+        onSelectSearchHistory={onSelectSearchHistory}
+        onClearSearch={onClearSearch}
+        onCommitSearch={onCommitSearch}
         searchPlaceholder={searchPlaceholder}
         noResultsMessage={noResultsMessage}
         getItemId={getItemId}
@@ -219,14 +279,16 @@ const SearchSideBarList = ({
       <div ref={listRef} className={`${styles.list} ${listClassName}`}>
         {items.length > 0 ? (
           items.map((item, index) => {
-            const itemId = getItemId(item) || index;
+            const itemId = getItemId(item) ?? index;
+            const itemKey = toItemKey(itemId);
+            const selectedKey = toItemKey(selectedItemId);
             return (
               <SearchSideBarListItem
-                key={itemId}
-                itemRef={(element) => setItemRef(itemId, element)}
-                itemId={itemId}
+                key={itemKey}
+                itemRef={(element) => setItemRef(itemKey, element)}
+                itemId={itemKey}
                 item={item}
-                isSelected={selectedItemId === getItemId(item)}
+                isSelected={selectedKey === itemKey}
                 onClick={onSelectItem}
                 iconUrl={getItemIconUrl(item)}
                 iconAlt={getItemIconAlt(item)}

@@ -10,6 +10,16 @@ const getHistoryLabel = (entry) => {
   return '';
 };
 
+const getHistoryIconUrl = (entry) => {
+  if (!entry || typeof entry !== 'object') {
+    return '';
+  }
+
+  return String(
+    entry.icon_url || entry.iconUrl || entry.icon || entry.src || '',
+  ).trim();
+};
+
 const SearchSideBarListSearchBar = ({
   value = '',
   onChange,
@@ -20,9 +30,36 @@ const SearchSideBarListSearchBar = ({
   onCommitSearch,
 }) => {
   const [showHistory, setShowHistory] = useState(false);
+  const [hoverPreview, setHoverPreview] = useState(null);
 
   const handleInputChange = (ov, nv) => {
     onChange?.(nv, ov);
+  };
+
+  const handleIconMouseEnter = (event, src, alt) => {
+    if (!src) return;
+
+    setHoverPreview({
+      src,
+      alt,
+      x: event.clientX + 18,
+      y: event.clientY + 18,
+    });
+  };
+
+  const handleIconMouseMove = (event) => {
+    setHoverPreview((prev) => {
+      if (!prev?.src) return prev;
+      return {
+        ...prev,
+        x: event.clientX + 18,
+        y: event.clientY + 18,
+      };
+    });
+  };
+
+  const handleIconMouseLeave = () => {
+    setHoverPreview(null);
   };
 
   return (
@@ -91,6 +128,7 @@ const SearchSideBarListSearchBar = ({
             <div className={styles.searchHistoryPanel}>
               {searchHistory.map((entry, index) => {
                 const label = getHistoryLabel(entry);
+                const iconUrl = getHistoryIconUrl(entry);
                 if (!label) return null;
 
                 return (
@@ -104,13 +142,47 @@ const SearchSideBarListSearchBar = ({
                     }}
                     title={label}
                   >
-                    {label}
+                    <span className={styles.searchHistoryIconWrap}>
+                      {iconUrl ? (
+                        <img
+                          src={iconUrl}
+                          alt={label}
+                          className={styles.searchHistoryIcon}
+                          onMouseEnter={(event) =>
+                            handleIconMouseEnter(event, iconUrl, label)
+                          }
+                          onMouseMove={handleIconMouseMove}
+                          onMouseLeave={handleIconMouseLeave}
+                        />
+                      ) : (
+                        <span
+                          className={styles.searchHistoryIconFallback}
+                          aria-hidden="true"
+                        >
+                          ⌕
+                        </span>
+                      )}
+                    </span>
+                    <span className={styles.searchHistoryLabel}>{label}</span>
                   </button>
                 );
               })}
             </div>
           )}
       </div>
+
+      {hoverPreview?.src && (
+        <div
+          className={styles.hoverImagePreview}
+          style={{ left: hoverPreview.x, top: hoverPreview.y }}
+        >
+          <img
+            src={hoverPreview.src}
+            alt={hoverPreview.alt || 'hover-preview'}
+            className={styles.hoverImagePreviewLarge}
+          />
+        </div>
+      )}
     </div>
   );
 };

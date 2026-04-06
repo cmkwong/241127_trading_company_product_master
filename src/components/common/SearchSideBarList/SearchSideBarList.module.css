@@ -115,10 +115,45 @@
   font-size: 13px;
   color: #333;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .searchHistoryItem:hover {
   background: #f5f9ff;
+}
+
+.searchHistoryIconWrap {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid #dbe2ec;
+  background: #f8fafc;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 36px;
+  overflow: hidden;
+}
+
+.searchHistoryIcon {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.searchHistoryIconFallback {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.searchHistoryLabel {
+  min-width: 0;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .createButton {
@@ -400,8 +435,8 @@
 }
 
 .hoverImagePreviewLarge {
-  width: 320px;
-  height: 320px;
+  width: 380px;
+  height: 380px;
   object-fit: contain;
   border-radius: 6px;
   background: #101418;

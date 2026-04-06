@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import styles from './ProductSidebar.module.css';
 import SearchSideBarList from '../../../common/SearchSideBarList/SearchSideBarList';
 import { useProductContext } from '../../../../store/ProductContext';
@@ -11,7 +11,7 @@ const normalizeHistoryEntry = (entry) => {
   if (typeof entry === 'string') {
     const title = String(entry || '').trim();
     if (!title) return null;
-    return { id: '', title };
+    return { id: '', title, icon_url: '' };
   }
 
   if (!entry || typeof entry !== 'object') {
@@ -20,9 +20,10 @@ const normalizeHistoryEntry = (entry) => {
 
   const id = String(entry.id || '').trim();
   const title = String(entry.title || entry.name || '').trim();
+  const icon_url = String(entry.icon_url || entry.iconUrl || '').trim();
   if (!id && !title) return null;
 
-  return { id, title };
+  return { id, title, icon_url };
 };
 
 const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
@@ -40,6 +41,28 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchHistory, setSearchHistory] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
+
+  const searchHistoryWithIcons = useMemo(() => {
+    const currentProductList = Array.isArray(products)
+      ? products
+      : products?.products || [];
+
+    return (searchHistory || []).map((entry) => {
+      const normalizedId = String(entry?.id || '').trim();
+      if (!normalizedId) {
+        return entry;
+      }
+
+      const matchedProduct = currentProductList.find(
+        (item) => String(item?.id || '').trim() === normalizedId,
+      );
+
+      return {
+        ...entry,
+        icon_url: String(matchedProduct?.icon_url || entry?.icon_url || ''),
+      };
+    });
+  }, [products, searchHistory]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -170,6 +193,7 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
         const entry = {
           id: String(product?.id || '').trim(),
           title: String(getProductName(product) || product?.id || '').trim(),
+          icon_url: String(product?.icon_url || '').trim(),
         };
 
         const deduped = prev.filter((item) => {
@@ -313,7 +337,7 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
           onSelectItem={handleProductSelect}
           searchValue={searchTerm}
           onSearchChange={handleSearchChange}
-          searchHistory={searchHistory}
+          searchHistory={searchHistoryWithIcons}
           onSelectSearchHistory={handleSelectSearchHistory}
           onClearSearch={handleClearSearch}
           onVisibleItemIdsChange={handleVisibleItemIdsChange}

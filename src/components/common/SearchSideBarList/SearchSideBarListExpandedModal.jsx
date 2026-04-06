@@ -10,6 +10,8 @@ import SearchSideBarListSearchBar from './SearchSideBarListSearchBar';
 import styles from './SearchSideBarList.module.css';
 
 const normalizeLabel = (value) => String(value || '').replace(/:\s*$/, '');
+const toRowKey = (value) =>
+  value === undefined || value === null ? '' : String(value);
 
 const isNil = (value) => value === null || value === undefined;
 
@@ -68,6 +70,10 @@ const SearchSideBarListExpandedModal = ({
   onSelectItem,
   searchValue = '',
   onSearchChange,
+  searchHistory = [],
+  onSelectSearchHistory,
+  onClearSearch,
+  onCommitSearch,
   searchPlaceholder = 'Search...',
   noResultsMessage = 'No results found',
   getItemId = (item) => item?.id,
@@ -221,13 +227,62 @@ const SearchSideBarListExpandedModal = ({
   }, []);
 
   const setRowRef = useCallback((itemId, element) => {
-    if (element) {
-      rowRefs.current.set(itemId, element);
+    const rowKey = toRowKey(itemId);
+    if (!rowKey) {
       return;
     }
 
-    rowRefs.current.delete(itemId);
+    if (element) {
+      rowRefs.current.set(rowKey, element);
+      return;
+    }
+
+    rowRefs.current.delete(rowKey);
   }, []);
+
+  const scrollToSelectedRow = useCallback(() => {
+    const selectedKey = toRowKey(selectedItemId);
+    if (!selectedKey) {
+      return;
+    }
+
+    const root = tableWrapRef.current;
+    const targetNode = rowRefs.current.get(selectedKey);
+    if (!targetNode) {
+      return;
+    }
+
+    if (!root) {
+      targetNode.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    const targetTop = targetNode.offsetTop;
+    const targetHeight = targetNode.offsetHeight;
+    const desiredTop = Math.max(
+      0,
+      targetTop - root.clientHeight / 2 + targetHeight / 2,
+    );
+
+    root.scrollTo({
+      top: desiredTop,
+      behavior: 'smooth',
+    });
+
+    targetNode.focus({ preventScroll: true });
+  }, [selectedItemId]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const raf = window.requestAnimationFrame(() => {
+      scrollToSelectedRow();
+    });
+
+    return () => {
+      window.cancelAnimationFrame(raf);
+    };
+  }, [isOpen, scrollToSelectedRow, sortedItems]);
 
   useEffect(() => {
     if (!isOpen || typeof onVisibleItemIdsChange !== 'function') {
@@ -271,20 +326,6 @@ const SearchSideBarListExpandedModal = ({
 
     return () => observer.disconnect();
   }, [isOpen, sortedItems, getItemId, onVisibleItemIdsChange]);
-
-  const scrollToSelectedRow = useCallback(() => {
-    if (selectedItemId === undefined || selectedItemId === null) {
-      return;
-    }
-
-    const targetNode = rowRefs.current.get(selectedItemId);
-    if (!targetNode) {
-      return;
-    }
-
-    targetNode.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    targetNode.focus({ preventScroll: true });
-  }, [selectedItemId]);
 
   // Helper for horizontal image row, double size, no caption
   const renderImageRow = (images) => {
@@ -631,6 +672,15 @@ const SearchSideBarListExpandedModal = ({
           <SearchSideBarListSearchBar
             value={searchValue}
             onChange={onSearchChange}
+            searchHistory={searchHistory}
+            onSelectHistory={(entry) => {
+              onSelectSearchHistory?.(entry);
+              window.setTimeout(() => {
+                scrollToSelectedRow();
+              }, 0);
+            }}
+            onClear={onClearSearch}
+            onCommitSearch={onCommitSearch}
             placeholder={searchPlaceholder}
           />
         </div>
@@ -659,14 +709,15 @@ const SearchSideBarListExpandedModal = ({
             <tbody>
               {sortedItems.length > 0 ? (
                 sortedItems.map((item, index) => {
-                  const itemId = getItemId(item) || index;
-                  const isSelected = selectedItemId === getItemId(item);
+                  const itemId = getItemId(item) ?? index;
+                  const rowKey = toRowKey(itemId);
+                  const isSelected = toRowKey(selectedItemId) === rowKey;
 
                   return (
-                    <Fragment key={`row-${itemId}`}>
+                    <Fragment key={`row-${rowKey}`}>
                       <tr
-                        ref={(element) => setRowRef(itemId, element)}
-                        data-item-id={itemId}
+                        ref={(element) => setRowRef(rowKey, element)}
+                        data-item-id={rowKey}
                         tabIndex={-1}
                         className={isSelected ? styles.overlaySelectedRow : ''}
                         onClick={() => handleRowClick(item)}
@@ -675,13 +726,13 @@ const SearchSideBarListExpandedModal = ({
                           e.stopPropagation();
                           setExpandedSubRows((old) => ({
                             ...old,
-                            [itemId]: !old[itemId],
+                            [rowKey]: !old[rowKey],
                           }));
                         }}
                       >
                         {tableColumns.map((column) => (
                           <td
-                            key={`${itemId}-${column}`}
+                            key={`${rowKey}-${column}`}
                             className={
                               column === 'Icon' ? styles.overlayIconCell : ''
                             }
@@ -694,7 +745,7 @@ const SearchSideBarListExpandedModal = ({
                           </td>
                         ))}
                       </tr>
-                      {renderSubRows(item, itemId)}
+                      {renderSubRows(item, rowKey)}
                     </Fragment>
                   );
                 })

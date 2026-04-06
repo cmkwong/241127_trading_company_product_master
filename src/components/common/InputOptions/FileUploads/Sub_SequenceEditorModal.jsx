@@ -19,6 +19,9 @@ const Sub_SequenceEditorModal = ({
   selectedCount = 0,
   totalCount = 0,
   onToggleSelectAll = () => {},
+  showWatermarkToggle = false,
+  applyWatermarkOnDownload = true,
+  onToggleApplyWatermark = () => {},
   dropZoneProps,
   children,
 }) => {
@@ -48,6 +51,16 @@ const Sub_SequenceEditorModal = ({
             )}
             {showDownloadButton && (
               <>
+                {showWatermarkToggle && (
+                  <label className={styles.selectAllWrap}>
+                    <input
+                      type="checkbox"
+                      checked={Boolean(applyWatermarkOnDownload)}
+                      onChange={onToggleApplyWatermark}
+                    />
+                    <span>Watermark</span>
+                  </label>
+                )}
                 <button
                   type="button"
                   className={styles.sequenceEditorIconBtn}
@@ -155,6 +168,9 @@ Sub_SequenceEditorModal.propTypes = {
   selectedCount: PropTypes.number,
   totalCount: PropTypes.number,
   onToggleSelectAll: PropTypes.func,
+  showWatermarkToggle: PropTypes.bool,
+  applyWatermarkOnDownload: PropTypes.bool,
+  onToggleApplyWatermark: PropTypes.func,
   dropZoneProps: PropTypes.shape({
     onFileSelect: PropTypes.func.isRequired,
     isDragging: PropTypes.bool.isRequired,

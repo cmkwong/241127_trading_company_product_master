@@ -13,6 +13,9 @@ const Sub_FileUploadsHeader = ({
   selectedCount,
   totalCount,
   onToggleSelectAll,
+  showWatermarkToggle,
+  applyWatermarkOnDownload,
+  onToggleApplyWatermark,
 }) => {
   return (
     <div className={styles.headerRow}>
@@ -30,6 +33,16 @@ const Sub_FileUploadsHeader = ({
         )}
         {showDownloadButton && (
           <>
+            {showWatermarkToggle && (
+              <label className={styles.selectAllWrap}>
+                <input
+                  type="checkbox"
+                  checked={Boolean(applyWatermarkOnDownload)}
+                  onChange={onToggleApplyWatermark}
+                />
+                <span>Watermark</span>
+              </label>
+            )}
             <button
               type="button"
               className={styles.sequenceEditorIconBtn}
@@ -87,6 +100,9 @@ Sub_FileUploadsHeader.propTypes = {
   selectedCount: PropTypes.number,
   totalCount: PropTypes.number,
   onToggleSelectAll: PropTypes.func,
+  showWatermarkToggle: PropTypes.bool,
+  applyWatermarkOnDownload: PropTypes.bool,
+  onToggleApplyWatermark: PropTypes.func,
 };
 
 export default Sub_FileUploadsHeader;

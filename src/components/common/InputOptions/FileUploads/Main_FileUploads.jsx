@@ -12,6 +12,7 @@ import {
   processDefaultImages,
   shouldReplaceImageList,
 } from './fileUploadsUtils';
+import useWatermarkFile from './Watermark_file';
 
 /**
  * Main_FileUploads Component
@@ -45,6 +46,7 @@ const Main_FileUploads = (props) => {
     downloadFileBaseName = 'files',
     downloadNameProductId = '',
     downloadNameImageType = '',
+    watermarkImagePath = '/assets/watermark_v1.png',
 
     // Initial state
     defaultFiles = [],
@@ -73,6 +75,11 @@ const Main_FileUploads = (props) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isSequenceEditorOpen, setIsSequenceEditorOpen] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [applyWatermarkOnDownload, setApplyWatermarkOnDownload] =
+    useState(true);
+  const { addWatermarkToImageBlob } = useWatermarkFile({
+    watermarkImagePath,
+  });
 
   const createBlobFromBase64 = useCallback((base64Value, filename = '') => {
     if (!base64Value || typeof base64Value !== 'string') return null;
@@ -167,7 +174,7 @@ const Main_FileUploads = (props) => {
       getExtensionFromMime,
     ],
   );
-
+  // Helper function to trigger browser download
   const triggerBrowserDownload = useCallback((blob, filename) => {
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
@@ -179,6 +186,7 @@ const Main_FileUploads = (props) => {
     URL.revokeObjectURL(url);
   }, []);
 
+  // Helper function to fetch blob from a given path (absolute URL or relative path with origin)
   const fetchBlobFromPath = useCallback(
     async (path, endpointForOrigin = '') => {
       if (!path) return null;
@@ -243,6 +251,13 @@ const Main_FileUploads = (props) => {
         }
 
         if (blob) {
+          if (
+            applyWatermarkOnDownload &&
+            String(blob?.type || '').startsWith('image/')
+          ) {
+            blob = await addWatermarkToImageBlob(blob);
+          }
+
           const fileName = buildDownloadFileName(
             record,
             fallbackName,
@@ -292,6 +307,8 @@ const Main_FileUploads = (props) => {
     downloadFileBaseName,
     buildDownloadFileName,
     selectedFileIds,
+    applyWatermarkOnDownload,
+    addWatermarkToImageBlob,
   ]);
 
   // Update state when defaultImages changes (for image mode)
@@ -606,6 +623,11 @@ const Main_FileUploads = (props) => {
         selectedCount={selectedFileIds.length}
         totalCount={selectableIds.length}
         onToggleSelectAll={handleToggleSelectAll}
+        showWatermarkToggle={showDownloadButton && mode === 'image'}
+        applyWatermarkOnDownload={applyWatermarkOnDownload}
+        onToggleApplyWatermark={() =>
+          setApplyWatermarkOnDownload((prev) => !prev)
+        }
       />
 
       <div className={styles.dropZoneEditorWrap}>
@@ -654,6 +676,11 @@ const Main_FileUploads = (props) => {
           selectedCount={selectedFileIds.length}
           totalCount={selectableIds.length}
           onToggleSelectAll={handleToggleSelectAll}
+          showWatermarkToggle={showDownloadButton && mode === 'image'}
+          applyWatermarkOnDownload={applyWatermarkOnDownload}
+          onToggleApplyWatermark={() =>
+            setApplyWatermarkOnDownload((prev) => !prev)
+          }
           dropZoneProps={{
             ...baseDropZoneProps,
             testIdPrefix: `${testIdPrefix}-sequence-editor`,
@@ -695,6 +722,7 @@ Main_FileUploads.propTypes = {
   downloadFileBaseName: PropTypes.string,
   downloadNameProductId: PropTypes.string,
   downloadNameImageType: PropTypes.string,
+  watermarkImagePath: PropTypes.string,
 
   // Initial state
   defaultFiles: PropTypes.arrayOf(

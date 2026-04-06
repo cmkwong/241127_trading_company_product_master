@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import EditableDataTableBody from './EditableDataTableBody';
+import EditableDataTableHeader from './EditableDataTableHeader';
 import styles from './EditableDataTable.module.css';
 
 const getDefaultRowKey = (row, index) => row?.id || index;
@@ -11,19 +13,49 @@ const EditableDataTable = ({
   onFillCellChange,
 }) => {
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
+  const [columnFilters, setColumnFilters] = useState({});
   const [fillDrag, setFillDrag] = useState(null);
   const [fillHoverIndex, setFillHoverIndex] = useState(null);
 
+  const filteredRows = useMemo(() => {
+    const activeFilters = Object.entries(columnFilters).filter(([, value]) =>
+      String(value || '').trim(),
+    );
+
+    if (activeFilters.length === 0) {
+      return rows;
+    }
+
+    return rows.filter((row) => {
+      return activeFilters.every(([columnKey, query]) => {
+        const column = columns.find((item) => item.key === columnKey);
+        if (!column) {
+          return true;
+        }
+
+        const getFilterValue =
+          column.getFilterValue ||
+          column.getSortValue ||
+          ((target) => target?.[column.key]);
+
+        const value = getFilterValue(row);
+        return String(value ?? '')
+          .toLowerCase()
+          .includes(String(query).trim().toLowerCase());
+      });
+    });
+  }, [rows, columns, columnFilters]);
+
   const sortedRows = useMemo(() => {
-    if (!sortConfig.key) return rows;
+    if (!sortConfig.key) return filteredRows;
 
     const column = columns.find((item) => item.key === sortConfig.key);
-    if (!column) return rows;
+    if (!column) return filteredRows;
 
     const dir = sortConfig.direction === 'asc' ? 1 : -1;
     const sortType = column.sortType || 'string';
 
-    return [...rows].sort((a, b) => {
+    return [...filteredRows].sort((a, b) => {
       const aValue = column.getSortValue
         ? column.getSortValue(a)
         : a?.[column.key];
@@ -43,7 +75,7 @@ const EditableDataTable = ({
 
       return String(aValue ?? '').localeCompare(String(bValue ?? '')) * dir;
     });
-  }, [rows, columns, sortConfig]);
+  }, [filteredRows, columns, sortConfig]);
 
   const applyFill = useCallback(() => {
     if (
@@ -96,10 +128,12 @@ const EditableDataTable = ({
     });
   };
 
-  const getSortIndicator = (columnKey) => {
-    if (sortConfig.key !== columnKey) return '';
-    return sortConfig.direction === 'asc' ? '↑' : '↓';
-  };
+  const handleFilterChange = useCallback((columnKey, value) => {
+    setColumnFilters((prev) => ({
+      ...prev,
+      [columnKey]: value,
+    }));
+  }, []);
 
   const startFillDrag = (field, sourceIndex, value, event) => {
     event.preventDefault();
@@ -151,89 +185,22 @@ const EditableDataTable = ({
   return (
     <div className={styles.tableWrap}>
       <table className={styles.dataTable}>
-        <thead>
-          <tr>
-            {columns.map((column) => (
-              <th
-                key={column.key}
-                className={column.headerClassName || column.columnClassName}
-                style={{
-                  width: column.width,
-                  minWidth: column.minWidth,
-                  maxWidth: column.maxWidth,
-                }}
-              >
-                <button
-                  type="button"
-                  className={styles.sortButton}
-                  onClick={() => handleSort(column)}
-                >
-                  {column.label}
-                  <span className={styles.sortIndicator}>
-                    {getSortIndicator(column.key)}
-                  </span>
-                </button>
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {sortedRows.length === 0 ? (
-            <tr>
-              <td colSpan={columns.length} className={styles.emptyRow}>
-                {emptyMessage}
-              </td>
-            </tr>
-          ) : (
-            sortedRows.map((row, rowIndex) => (
-              <tr
-                key={
-                  typeof rowKey === 'function'
-                    ? rowKey(row, rowIndex)
-                    : row?.[rowKey]
-                }
-              >
-                {columns.map((column) => {
-                  const fillField = column.fillField;
-                  const tdClassName = fillField
-                    ? getFillCellClassName(fillField, rowIndex)
-                    : '';
-
-                  const content = column.renderCell
-                    ? column.renderCell(row, {
-                        rowIndex,
-                        wrapWithFill,
-                      })
-                    : row?.[column.key];
-
-                  return (
-                    <td
-                      key={column.key}
-                      className={[
-                        tdClassName,
-                        column.cellClassName || column.columnClassName,
-                      ]
-                        .filter(Boolean)
-                        .join(' ')}
-                      style={{
-                        width: column.width,
-                        minWidth: column.minWidth,
-                        maxWidth: column.maxWidth,
-                      }}
-                      onMouseEnter={
-                        fillField
-                          ? () => handleCellMouseEnter(fillField, rowIndex)
-                          : undefined
-                      }
-                    >
-                      {content}
-                    </td>
-                  );
-                })}
-              </tr>
-            ))
-          )}
-        </tbody>
+        <EditableDataTableHeader
+          columns={columns}
+          sortConfig={sortConfig}
+          onSort={handleSort}
+          filters={columnFilters}
+          onFilterChange={handleFilterChange}
+        />
+        <EditableDataTableBody
+          rows={sortedRows}
+          columns={columns}
+          rowKey={rowKey}
+          emptyMessage={emptyMessage}
+          getFillCellClassName={getFillCellClassName}
+          handleCellMouseEnter={handleCellMouseEnter}
+          wrapWithFill={wrapWithFill}
+        />
       </table>
     </div>
   );

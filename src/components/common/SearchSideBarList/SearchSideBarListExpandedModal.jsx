@@ -86,6 +86,7 @@ const SearchSideBarListExpandedModal = ({
 }) => {
   const [sortKey, setSortKey] = useState('Title');
   const [sortDirection, setSortDirection] = useState('asc');
+  const [columnFilters, setColumnFilters] = useState({});
   const [previewImage, setPreviewImage] = useState(null);
   const [hoverPreview, setHoverPreview] = useState(null);
   // Track which subrows are expanded (by itemId)
@@ -110,6 +111,10 @@ const SearchSideBarListExpandedModal = ({
 
     return ['Icon', 'Title', ...Array.from(labels)];
   }, [items, getItemRows]);
+
+  const filterableColumns = useMemo(() => {
+    return new Set(tableColumns.filter((column) => column !== 'Icon'));
+  }, [tableColumns]);
 
   const hasAnySubRows = useMemo(() => {
     return items.some((item) => {
@@ -155,8 +160,29 @@ const SearchSideBarListExpandedModal = ({
     [getItemTitle, getItemRows, getItemIconUrl],
   );
 
+  const filteredItems = useMemo(() => {
+    const activeFilters = Object.entries(columnFilters).filter(([, value]) =>
+      String(value || '').trim(),
+    );
+
+    if (activeFilters.length === 0) {
+      return items;
+    }
+
+    return items.filter((item) => {
+      return activeFilters.every(([columnKey, query]) => {
+        const cellText = getSortableText(getCellValue(item, columnKey));
+        return cellText.toLowerCase().includes(
+          String(query || '')
+            .trim()
+            .toLowerCase(),
+        );
+      });
+    });
+  }, [items, columnFilters, getCellValue]);
+
   const sortedItems = useMemo(() => {
-    const sorted = [...items];
+    const sorted = [...filteredItems];
 
     sorted.sort((a, b) => {
       const left = getSortableText(getCellValue(a, sortKey));
@@ -170,7 +196,14 @@ const SearchSideBarListExpandedModal = ({
     });
 
     return sorted;
-  }, [items, sortKey, sortDirection, getCellValue]);
+  }, [filteredItems, sortKey, sortDirection, getCellValue]);
+
+  const handleFilterChange = useCallback((column, value) => {
+    setColumnFilters((prev) => ({
+      ...prev,
+      [column]: value,
+    }));
+  }, []);
 
   const handleSort = (column) => {
     if (column === 'Icon') {
@@ -703,7 +736,7 @@ const SearchSideBarListExpandedModal = ({
         <div ref={tableWrapRef} className={styles.overlayTableWrap}>
           <table className={styles.overlayTable}>
             <thead>
-              <tr>
+              <tr className={styles.overlayHeaderRow}>
                 {tableColumns.map((column) => (
                   <th key={column}>
                     <button
@@ -719,6 +752,32 @@ const SearchSideBarListExpandedModal = ({
                     </button>
                   </th>
                 ))}
+              </tr>
+              <tr className={styles.overlayFilterRow}>
+                {tableColumns.map((column) => {
+                  const isFilterable = filterableColumns.has(column);
+
+                  return (
+                    <th key={`${column}-filter`}>
+                      {isFilterable ? (
+                        <input
+                          type="text"
+                          value={columnFilters[column] || ''}
+                          onChange={(event) =>
+                            handleFilterChange(column, event.target.value)
+                          }
+                          className={styles.overlayColumnFilterInput}
+                          placeholder={`Filter ${column}...`}
+                          aria-label={`Filter ${column}`}
+                        />
+                      ) : (
+                        <div
+                          className={styles.overlayColumnFilterPlaceholder}
+                        />
+                      )}
+                    </th>
+                  );
+                })}
               </tr>
             </thead>
             <tbody>

@@ -4,6 +4,33 @@
   border-radius: 6px;
 }
 
+.tableControlsRow {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 6px 8px 0;
+  background: #fff;
+}
+
+.filterCollapseButton {
+  width: 24px;
+  height: 24px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #fff;
+  color: #4b5563;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.filterCollapseButton:hover {
+  background: #f8fafc;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+
 .dataTable {
   width: 100%;
   min-width: 780px;

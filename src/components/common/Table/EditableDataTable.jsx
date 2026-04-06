@@ -14,6 +14,7 @@ const EditableDataTable = ({
 }) => {
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   const [columnFilters, setColumnFilters] = useState({});
+  const [isFilterRowOpen, setIsFilterRowOpen] = useState(false);
   const [fillDrag, setFillDrag] = useState(null);
   const [fillHoverIndex, setFillHoverIndex] = useState(null);
 
@@ -184,6 +185,36 @@ const EditableDataTable = ({
 
   return (
     <div className={styles.tableWrap}>
+      <div className={styles.tableControlsRow}>
+        <button
+          type="button"
+          className={styles.filterCollapseButton}
+          onClick={() => setIsFilterRowOpen((prev) => !prev)}
+          title={isFilterRowOpen ? 'Collapse filter row' : 'Expand filter row'}
+          aria-label={
+            isFilterRowOpen ? 'Collapse filter row' : 'Expand filter row'
+          }
+        >
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            {isFilterRowOpen ? (
+              <polyline points="18 15 12 9 6 15" />
+            ) : (
+              <polyline points="6 9 12 15 18 9" />
+            )}
+          </svg>
+        </button>
+      </div>
+
       <table className={styles.dataTable}>
         <EditableDataTableHeader
           columns={columns}
@@ -191,6 +222,7 @@ const EditableDataTable = ({
           onSort={handleSort}
           filters={columnFilters}
           onFilterChange={handleFilterChange}
+          isFilterRowOpen={isFilterRowOpen}
         />
         <EditableDataTableBody
           rows={sortedRows}

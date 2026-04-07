@@ -7,6 +7,7 @@ import AddNewBtn from '../../common/Buttons/AddNewBtn';
 import DeleteBtn from '../../common/Buttons/DeleteBtn';
 import Main_Dropdown from '../../common/InputOptions/Dropdown/Main_Dropdown';
 import Main_FileUploads from '../../common/InputOptions/FileUploads/Main_FileUploads';
+import Main_Suggest from '../../common/InputOptions/Suggest/Main_Suggest';
 import Main_TextField from '../../common/InputOptions/TextField/Main_TextField';
 import { sortByDisplayOrder } from '../../../utils/arr';
 import MasterControlHeader from './components/MasterControlHeader';
@@ -265,6 +266,61 @@ const MasterControlContent = () => {
     });
     return options;
   }, [displayNameField, draftRows, selfReferenceField]);
+
+  const selfReferenceSuggestionMaps = useMemo(() => {
+    const labelToId = new Map();
+    const idToLabel = new Map();
+    const suggestions = [];
+
+    draftRows.forEach((row) => {
+      const id = String(row?.id || '').trim();
+      if (!id) return;
+
+      const label = String(row?.[displayNameField] || id).trim();
+      const suggestionLabel = `${label} (${id})`;
+
+      labelToId.set(suggestionLabel, id);
+      idToLabel.set(id, suggestionLabel);
+      suggestions.push(suggestionLabel);
+    });
+
+    return {
+      labelToId,
+      idToLabel,
+      suggestions,
+    };
+  }, [displayNameField, draftRows]);
+
+  const resolveSuggestionToReferenceId = useCallback(
+    (rawValue) => {
+      const text = String(rawValue || '').trim();
+      if (!text) {
+        return { resolved: true, value: '' };
+      }
+
+      const matchedId = selfReferenceSuggestionMaps.labelToId.get(text);
+      if (matchedId) {
+        return { resolved: true, value: matchedId };
+      }
+
+      const fullUuidMatch = text.match(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+      );
+      if (fullUuidMatch) {
+        return { resolved: true, value: text };
+      }
+
+      const uuidInSuffix = text.match(
+        /\(([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\)\s*$/i,
+      );
+      if (uuidInSuffix?.[1]) {
+        return { resolved: true, value: uuidInSuffix[1] };
+      }
+
+      return { resolved: false, value: text };
+    },
+    [selfReferenceSuggestionMaps.labelToId],
+  );
 
   const serviceImageRows = useMemo(() => {
     return masterDataMap?.master_service_images || [];
@@ -534,6 +590,25 @@ const MasterControlContent = () => {
         }
 
         if (column === selfReferenceField) {
+          if (selectedTable === 'master_supplier_types') {
+            const currentId = String(row?.[column] || '').trim();
+            const displayValue =
+              selfReferenceSuggestionMaps.idToLabel.get(currentId) || currentId;
+
+            return (
+              <Main_Suggest
+                defaultSuggestions={selfReferenceSuggestionMaps.suggestions}
+                defaultValue={displayValue}
+                onChange={(ov, nv) => {
+                  const resolved = resolveSuggestionToReferenceId(nv);
+                  if (!resolved.resolved) return;
+                  handleCellChange(rowIndex, column, resolved.value);
+                }}
+                placeholder="Type to search parent..."
+              />
+            );
+          }
+
           return (
             <Main_Dropdown
               defaultOptions={selfReferenceOptions}
@@ -641,6 +716,8 @@ const MasterControlContent = () => {
     getDefaultServiceImagesForService,
     selfReferenceField,
     selfReferenceOptions,
+    selfReferenceSuggestionMaps,
+    resolveSuggestionToReferenceId,
     pendingServiceImagesByServiceId,
     selectedTable,
     schemaFieldByColumn,

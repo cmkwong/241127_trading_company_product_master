@@ -39,7 +39,7 @@ const Main_ProductLink = () => {
           product_id: pageData.id,
           name: '',
           link: '',
-          scores: 1,
+          score: 1,
           remark: '',
           updated_at: '',
           product_link_images: [],
@@ -147,7 +147,7 @@ const Main_ProductLink = () => {
         ),
       },
       {
-        key: 'scores',
+        key: 'score',
         label: 'Scores',
         sortType: 'number',
         minWidth: '130px',
@@ -155,7 +155,7 @@ const Main_ProductLink = () => {
         renderCell: (row) => (
           <Main_TextField
             className={styles.cellInput}
-            defaultValue={String(row.scores ?? 1)}
+            defaultValue={String(row.score ?? 1)}
             placeholder="1 - 10"
             type="number"
             onChange={(ov, nv) => {
@@ -163,7 +163,7 @@ const Main_ProductLink = () => {
               const safeValue = Number.isNaN(parsed)
                 ? 1
                 : Math.min(10, Math.max(1, parsed));
-              upsertLinkRow(row, { scores: safeValue });
+              upsertLinkRow(row, { score: safeValue });
             }}
           />
         ),

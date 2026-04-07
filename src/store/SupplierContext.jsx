@@ -431,6 +431,7 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
       id: newSupplierId,
       code: newSupplierCode,
       supplier_code: newSupplierCode,
+      score: 1,
       supplier_types: [],
       supplier_addresses: [],
       supplier_contacts: [],

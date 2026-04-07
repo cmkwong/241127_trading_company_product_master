@@ -93,6 +93,20 @@ const Main_SupplierBasicInfo = () => {
             }}
           />
         </Main_InputContainer>
+        <Main_InputContainer label="Supplier Score">
+          <Main_TextField
+            defaultValue={String(pageData.score ?? 1)}
+            placeholder="1 - 10"
+            type="number"
+            onChange={(ov, nv) => {
+              const parsed = Number.parseFloat(nv);
+              const safeValue = Number.isNaN(parsed)
+                ? 1
+                : Math.min(10, Math.max(1, parsed));
+              upsertSupplierPageData({ score: safeValue });
+            }}
+          />
+        </Main_InputContainer>
         <Main_InputContainer label="Supplier Type">
           <Main_TagInputField
             key="supplier-type-input"

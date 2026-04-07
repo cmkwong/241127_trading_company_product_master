@@ -194,7 +194,11 @@ const Main_ProductLink = () => {
                 compact
                 tableCell
                 hoverPreview
+                showDownloadButton
                 compactButtonText="Upload"
+                downloadFileBaseName="product-link-images"
+                downloadNameProductId={pageData.id || ''}
+                downloadNameImageType="link"
                 defaultImages={defaultImages}
                 onError={(error) => {
                   console.error('Link image upload error:', error);
@@ -253,7 +257,7 @@ const Main_ProductLink = () => {
         ),
       },
     ],
-    [upsertLinkRow, handleLinkImagesChange, handleDeleteLinkRow],
+    [upsertLinkRow, handleLinkImagesChange, handleDeleteLinkRow, pageData.id],
   );
 
   return (

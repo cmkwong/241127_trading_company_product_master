@@ -40,7 +40,7 @@ const Main_FileUploads = (props) => {
     tableCell = false,
     hoverPreview = false,
     enableSequenceEditor = true,
-    showDownloadButton = false,
+    showDownloadButton = true,
     downloadEndpoint = '',
     downloadRequestBody = null,
     downloadFileBaseName = 'files',
@@ -205,28 +205,34 @@ const Main_FileUploads = (props) => {
   );
 
   const handleDownload = useCallback(async () => {
-    if (!downloadEndpoint || !downloadRequestBody) {
-      onError('Download endpoint or request body is missing.');
-      return;
-    }
-
     setIsDownloading(true);
     try {
-      const response = await apiPost(downloadEndpoint, downloadRequestBody, {
-        token,
-      });
-
-      const records = response?.structuredData?.data?.product_images || [];
       const selectedIdSet = new Set(
         (selectedFileIds || []).map((id) => String(id || '').trim()),
       );
-      const selectedRecords = records.filter((record) =>
-        selectedIdSet.has(String(record?.id || '').trim()),
-      );
 
-      if (!Array.isArray(records) || records.length === 0) {
-        onError('No files available to download.');
-        return;
+      let selectedRecords = [];
+      let sourceMode = 'local';
+
+      if (downloadEndpoint && downloadRequestBody) {
+        sourceMode = 'api';
+        const response = await apiPost(downloadEndpoint, downloadRequestBody, {
+          token,
+        });
+
+        const records = response?.structuredData?.data?.product_images || [];
+        if (!Array.isArray(records) || records.length === 0) {
+          onError('No files available to download.');
+          return;
+        }
+
+        selectedRecords = records.filter((record) =>
+          selectedIdSet.has(String(record?.id || '').trim()),
+        );
+      } else {
+        selectedRecords = (fileList || []).filter((record) =>
+          selectedIdSet.has(String(record?.id || '').trim()),
+        );
       }
 
       if (selectedRecords.length === 0) {
@@ -238,16 +244,25 @@ const Main_FileUploads = (props) => {
       for (let index = 0; index < selectedRecords.length; index += 1) {
         const record = selectedRecords[index];
         const fallbackName =
+          record?.name ||
           record?.image_name ||
           `file-${record?.id || Math.random().toString(36).slice(2)}.bin`;
 
         let blob = null;
+        if (record?.file && record.file instanceof Blob) {
+          blob = record.file;
+        }
+
         if (record?.base64_image) {
           blob = createBlobFromBase64(record.base64_image, fallbackName);
         }
 
-        if (!blob && record?.image_url) {
-          blob = await fetchBlobFromPath(record.image_url, downloadEndpoint);
+        const candidateUrl = record?.image_url || record?.url;
+        if (!blob && candidateUrl) {
+          blob = await fetchBlobFromPath(
+            candidateUrl,
+            sourceMode === 'api' ? downloadEndpoint : window.location.origin,
+          );
         }
 
         if (blob) {
@@ -307,6 +322,7 @@ const Main_FileUploads = (props) => {
     downloadFileBaseName,
     buildDownloadFileName,
     selectedFileIds,
+    fileList,
     applyWatermarkOnDownload,
     addWatermarkToImageBlob,
   ]);

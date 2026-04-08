@@ -313,6 +313,43 @@ const Main_TagInputField = (props) => {
     (inputValue || '').trim().length > 0 &&
     displayOptions.length === 0;
 
+  const selectedTagOptions = useMemo(() => {
+    const sourceOptions = options || [];
+    const selectedSet = new Set(selectedOptions || []);
+    if (selectedSet.size === 0) return [];
+
+    const byId = new Map(sourceOptions.map((item) => [item.id, item]));
+    const levelCache = new Map();
+
+    const getLevel = (id, stack = new Set()) => {
+      if (!id || !byId.has(id)) return 0;
+      if (levelCache.has(id)) return levelCache.get(id);
+      if (stack.has(id)) return 0;
+
+      const nextStack = new Set(stack);
+      nextStack.add(id);
+
+      const parentId = byId.get(id)?.parent_id;
+      const level =
+        parentId && byId.has(parentId) ? getLevel(parentId, nextStack) + 1 : 0;
+
+      levelCache.set(id, level);
+      return level;
+    };
+
+    return sourceOptions
+      .filter((item) => selectedSet.has(item.id))
+      .map((item, index) => ({
+        ...item,
+        _level: getLevel(item.id),
+        _sourceIndex: index,
+      }))
+      .sort((a, b) => {
+        if (a._level !== b._level) return a._level - b._level;
+        return a._sourceIndex - b._sourceIndex;
+      });
+  }, [options, selectedOptions]);
+
   const addNewWord = (inputValue || '').trim();
 
   return (
@@ -361,17 +398,15 @@ const Main_TagInputField = (props) => {
         )}
       </div>
       <div className={styles.tagContainer}>
-        {(options || []).map((el) =>
+        {selectedTagOptions.map((el) => (
           // Showing the tag plate
-          selectedOptions && selectedOptions.includes(el.id) ? (
-            <Sub_TagPlate
-              key={el.id}
-              id={el.id}
-              name={el.name}
-              updateOptionData={updateOptionData}
-            />
-          ) : null,
-        )}
+          <Sub_TagPlate
+            key={el.id}
+            id={el.id}
+            name={el.name}
+            updateOptionData={updateOptionData}
+          />
+        ))}
       </div>
     </>
   );

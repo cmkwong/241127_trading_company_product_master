@@ -590,7 +590,10 @@ const MasterControlContent = () => {
         }
 
         if (column === selfReferenceField) {
-          if (selectedTable === 'master_supplier_types') {
+          if (
+            selectedTable === 'master_supplier_types' ||
+            selectedTable === 'master_categories'
+          ) {
             const currentId = String(row?.[column] || '').trim();
             const displayValue =
               selfReferenceSuggestionMaps.idToLabel.get(currentId) || currentId;

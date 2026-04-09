@@ -123,6 +123,82 @@ const SupplierSidebar = ({
     [],
   );
 
+  const supplierTypeById = useMemo(() => {
+    const map = new Map();
+    (supplierType || []).forEach((item) => {
+      const id = String(item?.id || '').trim();
+      if (id) {
+        map.set(id, item);
+      }
+    });
+    return map;
+  }, [supplierType]);
+
+  const formatSupplierTypeLabel = useCallback(
+    (supplier) => {
+      const relationTypeIds =
+        supplier?.supplier_types?.map((item) => item.supplier_type_id) || [];
+
+      const selectedTypeIds =
+        relationTypeIds.length > 0
+          ? relationTypeIds
+          : supplier?.supplier_type_id
+            ? [supplier.supplier_type_id]
+            : [];
+
+      const levelCache = new Map();
+      const getLevel = (rawId, stack = new Set()) => {
+        const id = String(rawId || '').trim();
+        if (!id) return 0;
+        if (levelCache.has(id)) return levelCache.get(id);
+        if (stack.has(id)) return 0;
+
+        const current = supplierTypeById.get(id);
+        if (!current) {
+          levelCache.set(id, 0);
+          return 0;
+        }
+
+        const parentId = String(current?.parent_id || '').trim();
+        if (!parentId || !supplierTypeById.has(parentId)) {
+          levelCache.set(id, 0);
+          return 0;
+        }
+
+        const nextStack = new Set(stack);
+        nextStack.add(id);
+        const level = getLevel(parentId, nextStack) + 1;
+        levelCache.set(id, level);
+        return level;
+      };
+
+      return selectedTypeIds
+        .map((rawId, index) => {
+          const id = String(rawId || '').trim();
+          if (!id) return null;
+
+          const item = supplierTypeById.get(id);
+          const label = String(item?.label || item?.name || '').trim();
+          if (!label) return null;
+
+          return {
+            id,
+            label,
+            level: getLevel(id),
+            index,
+          };
+        })
+        .filter(Boolean)
+        .sort((a, b) => {
+          if (a.level !== b.level) return a.level - b.level;
+          return a.index - b.index;
+        })
+        .map((item) => item.label)
+        .join(', ');
+    },
+    [supplierTypeById],
+  );
+
   const saveSearchHistory = useCallback((updater) => {
     setSearchHistory((prev) => {
       const next = updater(prev);
@@ -226,25 +302,7 @@ const SupplierSidebar = ({
 
   const getSupplierRows = useCallback(
     (supplier) => {
-      const relationTypeIds =
-        supplier?.supplier_types?.map((item) => item.supplier_type_id) || [];
-
-      const selectedTypeIds =
-        relationTypeIds.length > 0
-          ? relationTypeIds
-          : supplier?.supplier_type_id
-            ? [supplier.supplier_type_id]
-            : [];
-
-      const supplierTypeLabel = selectedTypeIds
-        .map(
-          (id) =>
-            supplierType.find((item) => item.id === id)?.label ||
-            supplierType.find((item) => item.id === id)?.name ||
-            '',
-        )
-        .filter(Boolean)
-        .join(', ');
+      const supplierTypeLabel = formatSupplierTypeLabel(supplier);
 
       return [
         { label: 'ID:', value: supplier?.id || '' },
@@ -258,30 +316,12 @@ const SupplierSidebar = ({
         { label: 'Updated At:', value: formatDateTime(supplier?.updated_at) },
       ];
     },
-    [supplierType, formatDateTime],
+    [formatDateTime, formatSupplierTypeLabel],
   );
 
   const getSupplierExpandedRows = useCallback(
     (supplier) => {
-      const relationTypeIds =
-        supplier?.supplier_types?.map((item) => item.supplier_type_id) || [];
-
-      const selectedTypeIds =
-        relationTypeIds.length > 0
-          ? relationTypeIds
-          : supplier?.supplier_type_id
-            ? [supplier.supplier_type_id]
-            : [];
-
-      const supplierTypeLabel = selectedTypeIds
-        .map(
-          (id) =>
-            supplierType.find((item) => item.id === id)?.label ||
-            supplierType.find((item) => item.id === id)?.name ||
-            '',
-        )
-        .filter(Boolean)
-        .join(', ');
+      const supplierTypeLabel = formatSupplierTypeLabel(supplier);
 
       return [
         { label: 'ID:', value: supplier?.id || '' },
@@ -295,7 +335,7 @@ const SupplierSidebar = ({
         { label: 'Updated At:', value: formatDateTime(supplier?.updated_at) },
       ];
     },
-    [supplierType, formatDateTime],
+    [formatDateTime, formatSupplierTypeLabel],
   );
 
   const getSupplierExpandedSubRows = useCallback(

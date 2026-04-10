@@ -702,6 +702,53 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
     [pageData, getChangedData, token, _cleanupFlags, productBase64Config],
   );
 
+  const deleteProductById = useCallback(
+    async (id) => {
+      const productId = String(id || '').trim();
+      if (!productId) {
+        throw new Error('Product ID is required for deletion');
+      }
+
+      await apiDelete(
+        'http://localhost:3001/api/v1/trade_business/products/data/ids',
+        {
+          token,
+          body: {
+            data: {
+              products: [{ id: productId }],
+            },
+          },
+        },
+      );
+
+      setProducts((prevState) => ({
+        ...prevState,
+        products: (prevState?.products || []).filter(
+          (item) => String(item?.id || '').trim() !== productId,
+        ),
+      }));
+
+      setSelectedProductId((prevSelectedId) => {
+        return String(prevSelectedId || '').trim() === productId
+          ? null
+          : prevSelectedId;
+      });
+
+      if (String(pageData?.id || '').trim() === productId) {
+        releaseObjectUrls(pageDataUrlRegistryRef.current);
+        pageDataUrlRegistryRef.current = [];
+        setPageData({});
+        setOriginalPageData({});
+      }
+
+      iconFetchedIdsRef.current.delete(productId);
+      iconInFlightIdsRef.current.delete(productId);
+
+      return true;
+    },
+    [token, pageData?.id],
+  );
+
   // Create a new product (clear page data)
   const createNewProduct = useCallback(() => {
     // Check if there are unsaved changes in the current product
@@ -745,6 +792,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
         // Save/create actions
         handleProductSave,
         createNewProduct,
+        deleteProductById,
 
         // Utility getters
         getAllData,

@@ -7,6 +7,7 @@ import { useProductContext } from '../../../../store/ProductContext';
 import { useMasterContext } from '../../../../store/MasterContext';
 import IconUpload from '../../../common/InputOptions/IconUpload/IconUpload';
 import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
+import DeleteBtn from '../../../common/Buttons/DeleteBtn';
 
 /**
  * Main_ProductIcon Component
@@ -23,8 +24,10 @@ const MAX_IMAGE_SIZE_MB = 5;
 const PRODUCT_IMAGES_BASE_PATH = 'E:\\Pet Product Images\\public\\products';
 
 const Main_ProductIcon = ({ showMaxImagesNotice = false }) => {
-  const { pageData, upsertProductPageData } = useProductContext();
+  const { pageData, upsertProductPageData, deleteProductById } =
+    useProductContext();
   const { productStatus } = useMasterContext();
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const formatDateTime = (value) => {
     if (!value) return '';
@@ -89,6 +92,26 @@ const Main_ProductIcon = ({ showMaxImagesNotice = false }) => {
       alert('Folder path copied to clipboard.');
     } catch {
       // ignore clipboard failure
+    }
+  };
+
+  const handleDeleteProduct = async () => {
+    if (!id || isDeleting) return;
+
+    const confirmed = window.confirm(
+      'Delete this product? This action cannot be undone.',
+    );
+    if (!confirmed) return;
+
+    setIsDeleting(true);
+    try {
+      await deleteProductById(id);
+      alert('Product deleted successfully.');
+    } catch (error) {
+      console.error('Failed to delete product:', error);
+      alert(error?.message || 'Failed to delete product.');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -175,6 +198,14 @@ const Main_ProductIcon = ({ showMaxImagesNotice = false }) => {
         >
           Open Product Images Folder
         </button>
+        <DeleteBtn
+          text={isDeleting ? 'Deleting...' : 'Delete Product'}
+          onClick={handleDeleteProduct}
+          disabled={!id || isDeleting}
+          title="Delete product"
+          ariaLabel="Delete product"
+          className={styles.deleteProductBtn}
+        />
         <Main_TextField
           label={'Created Date Time'}
           defaultValue={formatDateTime(pageData.created_at)}

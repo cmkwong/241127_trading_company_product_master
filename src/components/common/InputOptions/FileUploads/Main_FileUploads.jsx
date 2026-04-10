@@ -562,6 +562,28 @@ const Main_FileUploads = (props) => {
     setSelectedFileIds(selectableIds);
   }, [allSelected, selectableIds]);
 
+  const handleToggleSelect = useCallback(() => {
+    if (selectableIds.length === 0) return;
+
+    setSelectedFileIds((prev) => {
+      const prevSet = new Set(
+        (prev || []).map((id) => String(id || '').trim()).filter(Boolean),
+      );
+
+      const selectedInCurrent = selectableIds.filter((id) => prevSet.has(id));
+
+      if (selectedInCurrent.length === 0) {
+        return selectableIds;
+      }
+
+      if (selectedInCurrent.length === selectableIds.length) {
+        return [];
+      }
+
+      return selectableIds.filter((id) => !prevSet.has(id));
+    });
+  }, [selectableIds]);
+
   const renderFileItems = (forModal = false) => {
     return fileList.map((file, index) => (
       <Sub_FileItem
@@ -639,6 +661,8 @@ const Main_FileUploads = (props) => {
         selectedCount={selectedFileIds.length}
         totalCount={selectableIds.length}
         onToggleSelectAll={handleToggleSelectAll}
+        showToggleSelectButton={showDownloadButton && mode === 'image'}
+        onToggleSelect={handleToggleSelect}
         showWatermarkToggle={showDownloadButton && mode === 'image'}
         applyWatermarkOnDownload={applyWatermarkOnDownload}
         onToggleApplyWatermark={() =>
@@ -692,6 +716,8 @@ const Main_FileUploads = (props) => {
           selectedCount={selectedFileIds.length}
           totalCount={selectableIds.length}
           onToggleSelectAll={handleToggleSelectAll}
+          showToggleSelectButton={showDownloadButton && mode === 'image'}
+          onToggleSelect={handleToggleSelect}
           showWatermarkToggle={showDownloadButton && mode === 'image'}
           applyWatermarkOnDownload={applyWatermarkOnDownload}
           onToggleApplyWatermark={() =>

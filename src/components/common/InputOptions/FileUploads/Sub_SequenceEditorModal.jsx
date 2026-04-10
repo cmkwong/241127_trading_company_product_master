@@ -19,6 +19,8 @@ const Sub_SequenceEditorModal = ({
   selectedCount = 0,
   totalCount = 0,
   onToggleSelectAll = () => {},
+  showToggleSelectButton = false,
+  onToggleSelect = () => {},
   showWatermarkToggle = false,
   applyWatermarkOnDownload = true,
   onToggleApplyWatermark = () => {},
@@ -48,6 +50,24 @@ const Sub_SequenceEditorModal = ({
                 />
                 <span>{`All (${selectedCount}/${totalCount})`}</span>
               </label>
+            )}
+            {showToggleSelectButton && (
+              <button
+                type="button"
+                className={styles.sequenceEditorIconBtn}
+                onClick={onToggleSelect}
+                title="Toggle selection"
+                aria-label="Toggle selection"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path d="M3 5h11v2H3V5zm0 6h11v2H3v-2zm0 6h7v2H3v-2zm15.59-4L21 15.41 16.41 20 12 15.59 14.41 13l2 2 5-5z" />
+                </svg>
+              </button>
             )}
             {showDownloadButton && (
               <>
@@ -168,6 +188,8 @@ Sub_SequenceEditorModal.propTypes = {
   selectedCount: PropTypes.number,
   totalCount: PropTypes.number,
   onToggleSelectAll: PropTypes.func,
+  showToggleSelectButton: PropTypes.bool,
+  onToggleSelect: PropTypes.func,
   showWatermarkToggle: PropTypes.bool,
   applyWatermarkOnDownload: PropTypes.bool,
   onToggleApplyWatermark: PropTypes.func,

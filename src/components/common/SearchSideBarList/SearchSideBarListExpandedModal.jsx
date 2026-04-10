@@ -205,6 +205,11 @@ const SearchSideBarListExpandedModal = ({
     }));
   }, []);
 
+  const handleClearSearchAndFilters = useCallback(() => {
+    onClearSearch?.();
+    setColumnFilters({});
+  }, [onClearSearch]);
+
   const handleSort = (column) => {
     if (column === 'Icon') {
       return;
@@ -727,10 +732,19 @@ const SearchSideBarListExpandedModal = ({
             onChange={onSearchChange}
             searchHistory={searchHistory}
             onSelectHistory={handleSelectHistoryInModal}
-            onClear={onClearSearch}
+            onClear={handleClearSearchAndFilters}
             onCommitSearch={onCommitSearch}
             placeholder={searchPlaceholder}
           />
+          <button
+            type="button"
+            className={styles.overlayResetFiltersBtn}
+            onClick={handleClearSearchAndFilters}
+            title="Reset all search fields"
+            aria-label="Reset all search fields"
+          >
+            Reset All
+          </button>
         </div>
 
         <div ref={tableWrapRef} className={styles.overlayTableWrap}>

@@ -91,6 +91,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
             product_names: ['id', 'product_id', 'name'],
             product_categories: ['id', 'product_id', 'category_id'],
             product_alibaba_ids: ['id', 'product_id', 'value'],
+            product_keywords: ['id', 'product_id', 'keyword_id'],
           },
         },
         {
@@ -214,6 +215,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
               product_names: ['id', 'product_id', 'name'],
               product_categories: ['id', 'product_id', 'category_id'],
               product_alibaba_ids: ['id', 'product_id', 'value'],
+              product_keywords: ['id', 'product_id', 'keyword_id'],
             },
             data: {
               products: ids.map((id) => ({ id })),

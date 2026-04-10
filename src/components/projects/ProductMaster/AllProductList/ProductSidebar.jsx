@@ -33,14 +33,95 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
     createNewProduct,
     selectedProductId,
     hydrateProductIcons,
+    pageData,
   } = useProductContext();
-  const { category, productStatus } = useMasterContext();
+  const { category, productStatus, productKeywords } = useMasterContext();
   const [windowWidth, setWindowWidth] = useState(
     typeof window !== 'undefined' ? window.innerWidth : 1024,
   );
   const [searchTerm, setSearchTerm] = useState('');
   const [searchHistory, setSearchHistory] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
+
+  const keywordLabelById = useMemo(() => {
+    const lookup = new Map();
+
+    (productKeywords || []).forEach((item) => {
+      const id = String(item?.id || '').trim();
+      const label = String(item?.name || item?.label || '').trim();
+      if (!id || !label) return;
+      lookup.set(id, label);
+    });
+
+    return lookup;
+  }, [productKeywords]);
+
+  const getProductKeywordRelations = useCallback(
+    (product) => {
+      const listRelations = Array.isArray(product?.product_keywords)
+        ? product.product_keywords
+        : [];
+
+      if (listRelations.length > 0) {
+        return listRelations;
+      }
+
+      const productId = String(product?.id || '').trim();
+      const selectedId = String(pageData?.id || '').trim();
+
+      if (
+        productId &&
+        selectedId &&
+        productId === selectedId &&
+        Array.isArray(pageData?.product_keywords)
+      ) {
+        return pageData.product_keywords;
+      }
+
+      return [];
+    },
+    [pageData],
+  );
+
+  const resolveKeywordLabel = useCallback(
+    (relation) => {
+      if (!relation || typeof relation !== 'object') {
+        return '';
+      }
+
+      const directLabel = String(
+        relation?.keyword_name ||
+          relation?.keywordName ||
+          relation?.name ||
+          relation?.label ||
+          relation?.value ||
+          relation?.text ||
+          relation?.keyword?.name ||
+          relation?.keyword?.label ||
+          '',
+      ).trim();
+
+      if (directLabel) {
+        return directLabel;
+      }
+
+      const keywordId = String(
+        relation?.keyword_id ||
+          relation?.keywordId ||
+          relation?.master_keyword_id ||
+          relation?.masterKeywordId ||
+          relation?.keyword?.id ||
+          '',
+      ).trim();
+
+      if (!keywordId) {
+        return '';
+      }
+
+      return String(keywordLabelById.get(keywordId) || '').trim();
+    },
+    [keywordLabelById],
+  );
 
   const searchHistoryWithIcons = useMemo(() => {
     const currentProductList = Array.isArray(products)
@@ -104,6 +185,12 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
         )?.label ||
         '';
 
+      const keywordText =
+        getProductKeywordRelations(product)
+          .map((relation) => resolveKeywordLabel(relation))
+          .filter(Boolean)
+          .join(', ') || '';
+
       return (
         (typeof product.product_names === 'string' &&
           product.product_names.toLowerCase().includes(lowerSearchTerm)) ||
@@ -119,6 +206,7 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
         String(product?.updated_at || '')
           .toLowerCase()
           .includes(lowerSearchTerm) ||
+        String(keywordText).toLowerCase().includes(lowerSearchTerm) ||
         (Array.isArray(product.product_alibaba_ids) &&
           product.product_alibaba_ids.some((id) =>
             typeof id === 'string'
@@ -135,7 +223,13 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
     });
 
     setFilteredProducts(filtered);
-  }, [searchTerm, products, productStatus]);
+  }, [
+    searchTerm,
+    products,
+    productStatus,
+    getProductKeywordRelations,
+    resolveKeywordLabel,
+  ]);
 
   useEffect(() => {
     const ids = filteredProducts
@@ -300,7 +394,12 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
         )?.label ||
         '';
 
+      const keywordLabels = getProductKeywordRelations(product)
+        .map((relation) => resolveKeywordLabel(relation))
+        .filter(Boolean);
+
       return [
+        { label: 'Product Keywords:', value: keywordLabels.join(', ') },
         { label: 'ID:', value: product?.id || '' },
         { label: 'Status:', value: statusLabel },
         { label: 'Categories:', value: categoryLabels.join(', ') },
@@ -309,7 +408,13 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
         { label: 'Updated At:', value: formatDateTime(product?.updated_at) },
       ];
     },
-    [category, productStatus, formatDateTime],
+    [
+      category,
+      productStatus,
+      formatDateTime,
+      getProductKeywordRelations,
+      resolveKeywordLabel,
+    ],
   );
 
   // Track window resize for responsive behavior

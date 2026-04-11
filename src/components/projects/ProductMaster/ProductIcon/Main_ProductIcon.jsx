@@ -198,14 +198,6 @@ const Main_ProductIcon = ({ showMaxImagesNotice = false }) => {
         >
           Open Product Images Folder
         </button>
-        <DeleteBtn
-          text={isDeleting ? 'Deleting...' : 'Delete Product'}
-          onClick={handleDeleteProduct}
-          disabled={!id || isDeleting}
-          title="Delete product"
-          ariaLabel="Delete product"
-          className={styles.deleteProductBtn}
-        />
         <Main_TextField
           label={'Created Date Time'}
           defaultValue={formatDateTime(pageData.created_at)}
@@ -217,6 +209,14 @@ const Main_ProductIcon = ({ showMaxImagesNotice = false }) => {
           defaultValue={formatDateTime(pageData.updated_at)}
           onChange={() => {}}
           disabled={true}
+        />
+        <DeleteBtn
+          text={isDeleting ? 'Deleting...' : 'Delete Product'}
+          onClick={handleDeleteProduct}
+          disabled={!id || isDeleting}
+          title="Delete product"
+          ariaLabel="Delete product"
+          className={styles.deleteProductBtn}
         />
       </div>
     </Main_InputContainer>

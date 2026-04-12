@@ -20,7 +20,8 @@ const normalizeHistoryEntry = (entry) => {
 
   const id = String(entry.id || '').trim();
   const title = String(entry.title || entry.name || '').trim();
-  const icon_url = String(entry.icon_url || entry.iconUrl || '').trim();
+  const rawIconUrl = String(entry.icon_url || entry.iconUrl || '').trim();
+  const icon_url = rawIconUrl.startsWith('blob:') ? '' : rawIconUrl;
   if (!id && !title) return null;
 
   return { id, title, icon_url };
@@ -287,7 +288,8 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
         const entry = {
           id: String(product?.id || '').trim(),
           title: String(getProductName(product) || product?.id || '').trim(),
-          icon_url: String(product?.icon_url || '').trim(),
+          // Do not persist blob URLs; they become invalid after reload.
+          icon_url: '',
         };
 
         const deduped = prev.filter((item) => {

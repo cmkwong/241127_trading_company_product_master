@@ -1,23 +1,31 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import styles from './SearchSideBarList.module.css';
 
 const SearchSideBarListIcon = ({ url, alt, placeholderIcon }) => {
   const [hoverPreview, setHoverPreview] = useState(null);
+  const [hasImageError, setHasImageError] = useState(false);
+
+  const safeUrl = typeof url === 'string' ? url.trim() : '';
+
+  // Reset error state whenever image source changes.
+  useEffect(() => {
+    setHasImageError(false);
+  }, [safeUrl]);
 
   const handleMouseEnter = useCallback(
     (event) => {
-      if (!url) {
+      if (!safeUrl || hasImageError) {
         return;
       }
 
       setHoverPreview({
-        src: url,
+        src: safeUrl,
         alt: alt || 'item-icon',
         x: event.clientX + 18,
         y: event.clientY + 18,
       });
     },
-    [url, alt],
+    [safeUrl, alt, hasImageError],
   );
 
   const handleMouseMove = useCallback((event) => {
@@ -46,8 +54,15 @@ const SearchSideBarListIcon = ({ url, alt, placeholderIcon }) => {
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
       >
-        {url ? (
-          <img src={url} alt={alt} />
+        {safeUrl && !hasImageError ? (
+          <img
+            src={safeUrl}
+            alt={alt}
+            onError={() => {
+              setHasImageError(true);
+              setHoverPreview(null);
+            }}
+          />
         ) : (
           <div className={styles.placeholderIcon}>
             {placeholderIcon || (

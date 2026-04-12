@@ -247,14 +247,12 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
             ? Math.floor((base64Image.length * 3) / 4)
             : 0;
 
+          if (!iconUrl) {
+            return;
+          }
+
           iconMap.set(id, { icon_url: iconUrl, estimatedBytes });
           iconFetchedIdsRef.current.add(id);
-        });
-
-        ids.forEach((id) => {
-          if (!iconMap.has(id)) {
-            iconFetchedIdsRef.current.add(id);
-          }
         });
 
         setProducts((prev) => ({
@@ -262,9 +260,10 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
           products: (prev?.products || []).map((item) => {
             const iconInfo = iconMap.get(String(item?.id || '').trim());
             if (!iconInfo) return item;
+            if (!iconInfo.icon_url) return item;
             return {
               ...item,
-              icon_url: iconInfo.icon_url || '',
+              icon_url: iconInfo.icon_url,
             };
           }),
         }));

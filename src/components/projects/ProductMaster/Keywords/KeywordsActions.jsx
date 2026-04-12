@@ -17,28 +17,31 @@ const KeywordsActions = ({
         {showTextAreaHelper ? 'Hide' : 'Show'} Text Helper
       </button>
 
-      {keywords.length > 0 && (
-        <div className={styles.loadTextRow}>
-          <button
-            className={styles.convertToTextButton}
-            onClick={onConvertToText}
-            title="Load current keywords as text using the selected splitter"
-          >
-            → Load Keywords as Text
-          </button>
+      <div className={styles.loadTextRow}>
+        <button
+          className={styles.convertToTextButton}
+          onClick={onConvertToText}
+          disabled={keywords.length === 0}
+          title={
+            keywords.length > 0
+              ? 'Load current keywords as text using the selected splitter'
+              : 'No keywords available to load as text'
+          }
+        >
+          → Load Keywords as Text
+        </button>
 
-          <label className={styles.splitterLabel}>Splitter</label>
-          <input
-            className={styles.splitterInput}
-            type="text"
-            value={splitter}
-            onChange={(e) => onSplitterChange(e.target.value)}
-            placeholder=","
-            maxLength={1}
-            title="Allowed: comma (,), slash (/), semicolon (;) or empty"
-          />
-        </div>
-      )}
+        <label className={styles.splitterLabel}>Splitter</label>
+        <input
+          className={styles.splitterInput}
+          type="text"
+          value={splitter}
+          onChange={(e) => onSplitterChange(e.target.value)}
+          placeholder=","
+          maxLength={1}
+          title="Allowed: comma (,), slash (/), semicolon (;) or empty"
+        />
+      </div>
     </>
   );
 };

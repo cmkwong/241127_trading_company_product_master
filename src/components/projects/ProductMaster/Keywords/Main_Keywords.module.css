@@ -47,6 +47,13 @@
   background-color: #b8e1ed;
 }
 
+.convertToTextButton:disabled {
+  background-color: #f2f2f2;
+  border-color: #d9d9d9;
+  color: #999;
+  cursor: not-allowed;
+}
+
 .loadTextRow {
   display: flex;
   align-items: center;

@@ -174,11 +174,11 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
     async (requestedIds = []) => {
       const hasMappings = Object.keys(productBase64Config || {}).length > 0;
       if (!token || !Array.isArray(requestedIds) || requestedIds.length === 0) {
-        return;
+        return {};
       }
 
       if (!hasMappings) {
-        return;
+        return {};
       }
 
       const candidateIds = requestedIds
@@ -191,7 +191,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
         );
 
       if (candidateIds.length === 0) {
-        return;
+        return {};
       }
 
       const ids = candidateIds.slice(0, ICON_FETCH_BATCH_SIZE);
@@ -284,8 +284,16 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
         });
 
         enforceIconMemoryBudget();
+
+        return Object.fromEntries(
+          Array.from(iconMap.entries()).map(([id, iconInfo]) => [
+            id,
+            String(iconInfo?.icon_url || '').trim(),
+          ]),
+        );
       } catch (error) {
         console.error('Failed to hydrate product icons:', error);
+        return {};
       } finally {
         ids.forEach((id) => iconInFlightIdsRef.current.delete(id));
       }

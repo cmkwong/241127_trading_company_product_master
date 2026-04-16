@@ -364,6 +364,71 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
     [hydrateProductIcons],
   );
 
+  const resolveProductExportImage = useCallback(
+    async ({ item, currentSource }) => {
+      const existingSource = String(
+        currentSource || item?.icon_url || '',
+      ).trim();
+
+      if (existingSource) {
+        return existingSource;
+      }
+
+      const productId = String(item?.id || '').trim();
+      if (!productId) {
+        return '';
+      }
+
+      const hydrated = await hydrateProductIcons([productId]);
+      return String(hydrated?.[productId] || '').trim();
+    },
+    [hydrateProductIcons],
+  );
+
+  const resolveProductExportImagesBatch = useCallback(
+    async ({ requests = [], maxBatchSize = 10 }) => {
+      const normalizedBatchSize = Math.max(
+        1,
+        Math.min(10, Number(maxBatchSize) || 10),
+      );
+
+      const idSet = new Set();
+
+      requests.forEach((request) => {
+        const productId = String(
+          request?.itemId || request?.item?.id || '',
+        ).trim();
+        if (!productId) {
+          return;
+        }
+        idSet.add(productId);
+      });
+
+      const ids = Array.from(idSet);
+      if (ids.length === 0) {
+        return {};
+      }
+
+      const resolved = {};
+
+      for (let index = 0; index < ids.length; index += normalizedBatchSize) {
+        const chunk = ids.slice(index, index + normalizedBatchSize);
+        const hydrated = await hydrateProductIcons(chunk);
+
+        chunk.forEach((id) => {
+          const source = String(hydrated?.[id] || '').trim();
+          if (!source) {
+            return;
+          }
+          resolved[id] = source;
+        });
+      }
+
+      return resolved;
+    },
+    [hydrateProductIcons],
+  );
+
   const handleCreateProduct = () => {
     createNewProduct();
   };
@@ -458,6 +523,10 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
           getItemRows={getProductRows}
           getItemIconUrl={(product) => product.icon_url}
           getItemIconAlt={getProductName}
+          exportFileName="products_filtered_list"
+          exportSheetName="Products"
+          onResolveExportImage={resolveProductExportImage}
+          onResolveExportImagesBatch={resolveProductExportImagesBatch}
         />
       </div>
 

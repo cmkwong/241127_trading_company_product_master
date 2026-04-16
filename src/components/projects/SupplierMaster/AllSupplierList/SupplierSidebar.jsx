@@ -440,6 +440,8 @@ const SupplierSidebar = ({
           getExpandedRows={getSupplierExpandedRows}
           getExpandedSubRows={getSupplierExpandedSubRows}
           getItemIconAlt={getSupplierName}
+          exportFileName="suppliers_filtered_list"
+          exportSheetName="Suppliers"
         />
       </div>
 

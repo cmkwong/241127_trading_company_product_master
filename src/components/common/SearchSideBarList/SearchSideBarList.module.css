@@ -205,6 +205,37 @@
     border-color 0.2s;
 }
 
+.exportButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  height: 40px;
+  background-color: #ffffff;
+  color: #333333;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  margin-left: 0;
+  cursor: pointer;
+  transition:
+    background-color 0.2s,
+    border-color 0.2s;
+}
+
+.exportButton:hover:not(:disabled) {
+  background-color: #f5f9ff;
+  border-color: #8ab4f8;
+}
+
+.exportButton:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.exportButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .focusButton:hover:not(:disabled) {
   background-color: #f5f9ff;
   border-color: #8ab4f8;

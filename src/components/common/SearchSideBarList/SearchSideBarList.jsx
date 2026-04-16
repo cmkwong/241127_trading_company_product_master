@@ -35,6 +35,10 @@ const SearchSideBarList = ({
   getExpandedSubRows,
   getItemIconUrl = (item) => item?.icon_url,
   getItemIconAlt = (item) => item?.name || 'item',
+  exportFileName = 'search_results',
+  exportSheetName = 'Search Results',
+  onResolveExportImage,
+  onResolveExportImagesBatch,
   renderItemIcon,
   renderItemInfo,
   className = '',
@@ -276,6 +280,10 @@ const SearchSideBarList = ({
         getItemSubRows={getExpandedSubRows}
         getItemIconUrl={getItemIconUrl}
         getItemIconAlt={getItemIconAlt}
+        exportFileName={exportFileName}
+        exportSheetName={exportSheetName}
+        onResolveExportImage={onResolveExportImage}
+        onResolveExportImagesBatch={onResolveExportImagesBatch}
         onVisibleItemIdsChange={onVisibleItemIdsChange}
       />
 

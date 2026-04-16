@@ -62,6 +62,112 @@ const getSortableText = (value) => {
   return lines.map(getLineText).join(' | ');
 };
 
+const IMAGE_MIME_TO_EXTENSION = {
+  'image/png': 'png',
+  'image/jpeg': 'jpeg',
+  'image/jpg': 'jpeg',
+  'image/gif': 'gif',
+  'image/webp': 'webp',
+  'image/bmp': 'bmp',
+};
+
+const blobToDataUrl = (blob) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ''));
+    reader.onerror = () => reject(new Error('Failed to read image blob.'));
+    reader.readAsDataURL(blob);
+  });
+
+const getImageExtensionFromDataUrl = (dataUrl) => {
+  const match = String(dataUrl || '').match(/^data:(image\/[a-zA-Z0-9+.-]+);/i);
+  const mimeType = String(match?.[1] || '').toLowerCase();
+  return IMAGE_MIME_TO_EXTENSION[mimeType] || 'png';
+};
+
+const getImageExtensionFromUrl = (url) => {
+  const normalized = String(url || '')
+    .trim()
+    .toLowerCase();
+  if (!normalized) {
+    return 'png';
+  }
+
+  if (normalized.includes('.jpeg') || normalized.includes('.jpg')) {
+    return 'jpeg';
+  }
+  if (normalized.includes('.webp')) {
+    return 'webp';
+  }
+  if (normalized.includes('.gif')) {
+    return 'gif';
+  }
+  if (normalized.includes('.bmp')) {
+    return 'bmp';
+  }
+
+  return 'png';
+};
+
+const sanitizeExportName = (value, fallback) => {
+  const cleaned = String(value || '')
+    .trim()
+    .replace(/[<>:"/\\|?*]+/g, '_')
+    .replace(/\s+/g, '_');
+
+  return cleaned || fallback;
+};
+
+const sanitizeSheetName = (value, fallback = 'Sheet1') => {
+  const cleaned = String(value || '')
+    .replace(/[\\/?*\]:]+/g, ' ')
+    .replace(/\[/g, ' ')
+    .trim();
+
+  if (!cleaned) {
+    return fallback;
+  }
+
+  return cleaned.slice(0, 31);
+};
+
+const getExportCellText = (value) => {
+  const lines = toArray(value);
+  if (lines.length === 0) {
+    return '';
+  }
+
+  return lines
+    .map((line) => {
+      if (line && typeof line === 'object' && line.type === 'image') {
+        return String(line.text || line.alt || '').trim();
+      }
+      return getLineText(line);
+    })
+    .filter((line) => String(line || '').trim().length > 0)
+    .join('\n');
+};
+
+const getFirstImageLine = (value) => {
+  const lines = toArray(value);
+  return lines.find(
+    (line) => line && typeof line === 'object' && line.type === 'image',
+  );
+};
+
+const EXPORT_IMAGE_BATCH_LIMIT = 10;
+
+const chunkArray = (list, size) => {
+  const chunkSize = Math.max(1, Number(size) || 1);
+  const chunks = [];
+
+  for (let index = 0; index < list.length; index += chunkSize) {
+    chunks.push(list.slice(index, index + chunkSize));
+  }
+
+  return chunks;
+};
+
 const SearchSideBarListExpandedModal = ({
   isOpen,
   onClose,
@@ -82,6 +188,10 @@ const SearchSideBarListExpandedModal = ({
   getItemIconAlt = (item) => item?.name || 'item',
   getItemRows = () => [],
   getItemSubRows = () => [],
+  exportFileName = 'search_results',
+  exportSheetName = 'Search Results',
+  onResolveExportImage,
+  onResolveExportImagesBatch,
   onVisibleItemIdsChange,
 }) => {
   const [sortKey, setSortKey] = useState('Title');
@@ -89,6 +199,7 @@ const SearchSideBarListExpandedModal = ({
   const [columnFilters, setColumnFilters] = useState({});
   const [previewImage, setPreviewImage] = useState(null);
   const [hoverPreview, setHoverPreview] = useState(null);
+  const [isExporting, setIsExporting] = useState(false);
   // Track which subrows are expanded (by itemId)
   const [expandedSubRows, setExpandedSubRows] = useState({});
   // Track global expand/collapse state
@@ -209,6 +320,365 @@ const SearchSideBarListExpandedModal = ({
     onClearSearch?.();
     setColumnFilters({});
   }, [onClearSearch]);
+
+  const fetchImageAsDataUrl = useCallback(async (source) => {
+    const normalized = String(source || '').trim();
+    if (!normalized) {
+      return null;
+    }
+
+    if (normalized.startsWith('data:image/')) {
+      return {
+        dataUrl: normalized,
+        extension: getImageExtensionFromDataUrl(normalized),
+      };
+    }
+
+    const response = await fetch(normalized);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch image: ${response.status}`);
+    }
+
+    const blob = await response.blob();
+    const dataUrl = await blobToDataUrl(blob);
+
+    return {
+      dataUrl,
+      extension:
+        IMAGE_MIME_TO_EXTENSION[String(blob.type || '').toLowerCase()] ||
+        getImageExtensionFromDataUrl(dataUrl) ||
+        getImageExtensionFromUrl(normalized),
+    };
+  }, []);
+
+  const resolveImageForExport = useCallback(
+    async ({ item, column, value, currentSource, skipResolverCallback }) => {
+      const normalizeResolverValue = async (resolved) => {
+        if (!resolved) {
+          return null;
+        }
+
+        if (typeof resolved === 'string') {
+          return fetchImageAsDataUrl(resolved);
+        }
+
+        if (resolved instanceof Blob) {
+          const dataUrl = await blobToDataUrl(resolved);
+          return {
+            dataUrl,
+            extension:
+              IMAGE_MIME_TO_EXTENSION[
+                String(resolved.type || '').toLowerCase()
+              ] || getImageExtensionFromDataUrl(dataUrl),
+          };
+        }
+
+        if (resolved instanceof ArrayBuffer) {
+          const blob = new Blob([resolved], {
+            type: 'image/png',
+          });
+          const dataUrl = await blobToDataUrl(blob);
+          return {
+            dataUrl,
+            extension: 'png',
+          };
+        }
+
+        if (ArrayBuffer.isView(resolved)) {
+          const blob = new Blob([resolved.buffer], {
+            type: 'image/png',
+          });
+          const dataUrl = await blobToDataUrl(blob);
+          return {
+            dataUrl,
+            extension: 'png',
+          };
+        }
+
+        if (typeof resolved === 'object') {
+          const fromDataUrl = String(
+            resolved.dataUrl || resolved.base64 || '',
+          ).trim();
+          if (fromDataUrl) {
+            const normalizedDataUrl = fromDataUrl.startsWith('data:image/')
+              ? fromDataUrl
+              : `data:image/${String(
+                  resolved.extension || 'png',
+                ).toLowerCase()};base64,${fromDataUrl}`;
+
+            return {
+              dataUrl: normalizedDataUrl,
+              extension:
+                String(resolved.extension || '').toLowerCase() ||
+                getImageExtensionFromDataUrl(normalizedDataUrl),
+            };
+          }
+
+          const src = String(resolved.src || resolved.url || '').trim();
+          if (src) {
+            return fetchImageAsDataUrl(src);
+          }
+        }
+
+        return null;
+      };
+
+      try {
+        const fromCurrent = await normalizeResolverValue(currentSource);
+        if (fromCurrent) {
+          return fromCurrent;
+        }
+      } catch (error) {
+        console.warn('Export image fetch failed for current source:', error);
+      }
+
+      if (skipResolverCallback || typeof onResolveExportImage !== 'function') {
+        return null;
+      }
+
+      try {
+        const resolvedFromCallback = await onResolveExportImage({
+          item,
+          itemId: getItemId(item),
+          itemTitle: getItemTitle(item),
+          column,
+          value,
+          currentSource,
+        });
+
+        return normalizeResolverValue(resolvedFromCallback);
+      } catch (error) {
+        console.warn('Export image resolver callback failed:', error);
+      }
+
+      return null;
+    },
+    [fetchImageAsDataUrl, onResolveExportImage, getItemId, getItemTitle],
+  );
+
+  const handleExportXlsx = useCallback(async () => {
+    if (isExporting) {
+      return;
+    }
+
+    if (sortedItems.length === 0) {
+      alert('No filtered rows to export.');
+      return;
+    }
+
+    setIsExporting(true);
+
+    try {
+      const excelModule = await import('exceljs');
+      const ExcelJS = excelModule?.default || excelModule;
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet(
+        sanitizeSheetName(exportSheetName, 'Search Results'),
+      );
+
+      worksheet.columns = tableColumns.map((column) => ({
+        header: column,
+        key: column,
+        width: column === 'Icon' ? 14 : 20,
+      }));
+
+      const headerRow = worksheet.getRow(1);
+      headerRow.font = { bold: true };
+      headerRow.alignment = { vertical: 'middle' };
+      headerRow.height = 22;
+
+      worksheet.views = [{ state: 'frozen', ySplit: 1 }];
+      worksheet.autoFilter = {
+        from: { row: 1, column: 1 },
+        to: { row: 1, column: tableColumns.length },
+      };
+
+      const prefetchedIconByItemId = new Map();
+
+      if (typeof onResolveExportImagesBatch === 'function') {
+        const missingIconRequests = sortedItems
+          .map((item) => {
+            const itemId = toRowKey(getItemId(item));
+            const currentSource = String(
+              getCellValue(item, 'Icon') || '',
+            ).trim();
+
+            if (!itemId || currentSource) {
+              return null;
+            }
+
+            return {
+              item,
+              itemId,
+              itemTitle: getItemTitle(item),
+              column: 'Icon',
+              value: '',
+              currentSource: '',
+            };
+          })
+          .filter(Boolean);
+
+        const iconRequestBatches = chunkArray(
+          missingIconRequests,
+          EXPORT_IMAGE_BATCH_LIMIT,
+        );
+
+        for (const requests of iconRequestBatches) {
+          try {
+            const resolved = await onResolveExportImagesBatch({
+              requests,
+              maxBatchSize: EXPORT_IMAGE_BATCH_LIMIT,
+            });
+
+            if (!resolved || typeof resolved !== 'object') {
+              continue;
+            }
+
+            requests.forEach((request) => {
+              const source = String(resolved[request.itemId] || '').trim();
+              if (!source) {
+                return;
+              }
+
+              prefetchedIconByItemId.set(request.itemId, source);
+            });
+          } catch (error) {
+            console.warn('Export image batch resolver callback failed:', error);
+          }
+        }
+      }
+
+      for (const item of sortedItems) {
+        const itemId = toRowKey(getItemId(item));
+        const rowData = {};
+
+        tableColumns.forEach((column) => {
+          const value = getCellValue(item, column);
+          rowData[column] = column === 'Icon' ? '' : getExportCellText(value);
+        });
+
+        const row = worksheet.addRow(rowData);
+        row.alignment = { vertical: 'top', wrapText: true };
+
+        let rowHasImage = false;
+
+        for (let index = 0; index < tableColumns.length; index += 1) {
+          const column = tableColumns[index];
+          const cellValue = getCellValue(item, column);
+          const imageLine =
+            column === 'Icon' ? null : getFirstImageLine(cellValue);
+
+          if (column !== 'Icon' && !imageLine) {
+            continue;
+          }
+
+          const sourceCandidate =
+            column === 'Icon'
+              ? String(
+                  cellValue || prefetchedIconByItemId.get(itemId) || '',
+                ).trim()
+              : getImageSource(imageLine);
+
+          const skipResolverCallback =
+            column === 'Icon' &&
+            typeof onResolveExportImagesBatch === 'function';
+
+          const imagePayload = await resolveImageForExport({
+            item,
+            column,
+            value: cellValue,
+            currentSource: sourceCandidate,
+            skipResolverCallback,
+          });
+
+          if (!imagePayload?.dataUrl) {
+            continue;
+          }
+
+          const imageId = workbook.addImage({
+            base64: imagePayload.dataUrl,
+            extension: String(imagePayload.extension || 'png').toLowerCase(),
+          });
+
+          worksheet.addImage(imageId, {
+            tl: { col: index + 0.1, row: row.number - 1 + 0.1 },
+            ext: { width: 64, height: 64 },
+          });
+
+          rowHasImage = true;
+
+          if (column !== 'Icon') {
+            const currentText = String(
+              row.getCell(index + 1).value || '',
+            ).trim();
+            if (!currentText) {
+              row.getCell(index + 1).value = String(
+                imageLine?.text || imageLine?.alt || 'image',
+              );
+            }
+          }
+        }
+
+        if (rowHasImage) {
+          row.height = 52;
+        }
+      }
+
+      tableColumns.forEach((column, index) => {
+        if (column === 'Icon') {
+          worksheet.getColumn(index + 1).width = 14;
+          return;
+        }
+
+        let longest = String(column).length;
+
+        worksheet
+          .getColumn(index + 1)
+          .eachCell({ includeEmpty: true }, (cell) => {
+            const text = String(cell.value || '');
+            const localLongest = text
+              .split('\n')
+              .reduce((max, part) => Math.max(max, part.length), 0);
+            longest = Math.max(longest, localLongest);
+          });
+
+        worksheet.getColumn(index + 1).width = Math.max(
+          14,
+          Math.min(52, longest + 2),
+        );
+      });
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const fileBlob = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+
+      const downloadUrl = URL.createObjectURL(fileBlob);
+      const anchor = document.createElement('a');
+      anchor.href = downloadUrl;
+      anchor.download = `${sanitizeExportName(exportFileName, 'search_results')}.xlsx`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      document.body.removeChild(anchor);
+      window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
+    } catch (error) {
+      console.error('Failed to export filtered table as xlsx:', error);
+      alert('Failed to export xlsx. Please try again.');
+    } finally {
+      setIsExporting(false);
+    }
+  }, [
+    isExporting,
+    sortedItems,
+    exportFileName,
+    exportSheetName,
+    tableColumns,
+    getCellValue,
+    getItemId,
+    getItemTitle,
+    onResolveExportImagesBatch,
+    resolveImageForExport,
+  ]);
 
   const handleSort = (column) => {
     if (column === 'Icon') {
@@ -621,6 +1091,29 @@ const SearchSideBarListExpandedModal = ({
         <div className={styles.modalHeader}>
           <div className={styles.modalTitle}>Expanded Search Table</div>
           <div className={styles.modalHeaderActions}>
+            <button
+              type="button"
+              className={styles.exportButton}
+              onClick={handleExportXlsx}
+              title="Export filtered table to XLSX"
+              aria-label="Export filtered table to XLSX"
+              disabled={isExporting || sortedItems.length === 0}
+            >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+            </button>
             <button
               type="button"
               className={styles.focusButton}

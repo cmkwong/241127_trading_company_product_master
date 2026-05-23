@@ -36,6 +36,7 @@ const Main_DropZone = ({
   expandedPreview = false,
 }) => {
   const fileInputRef = useRef(null);
+  const dropZoneRef = useRef(null);
 
   // Handle click on the upload icon/area
   const handleUploadClick = () => {
@@ -81,11 +82,38 @@ const Main_DropZone = ({
     }
   };
 
+  const handlePaste = (e) => {
+    if (disabled) return;
+
+    const clipboardItems = e.clipboardData?.items;
+    if (!clipboardItems || clipboardItems.length === 0) return;
+
+    const pastedFiles = [];
+    Array.from(clipboardItems).forEach((item) => {
+      if (item.kind !== 'file') return;
+      const file = item.getAsFile();
+      if (file) pastedFiles.push(file);
+    });
+
+    if (pastedFiles.length === 0) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+    onFileSelect(multiple ? pastedFiles : pastedFiles.slice(0, 1));
+  };
+
+  const handleDropZoneClick = () => {
+    if (!disabled) {
+      dropZoneRef.current?.focus();
+    }
+  };
+
   const canAddMoreItems = items.length < maxFiles;
   const hasItems = items.length > 0;
 
   return (
     <div
+      ref={dropZoneRef}
       className={`${styles.dropZone} ${isDragging ? styles.dragging : ''} ${
         disabled ? styles.disabled : ''
       } ${hasItems ? styles.hasItems : ''} ${
@@ -95,6 +123,9 @@ const Main_DropZone = ({
       onDragLeave={handleDragLeave}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
+      onPaste={handlePaste}
+      onClick={handleDropZoneClick}
+      tabIndex={disabled ? -1 : 0}
       data-testid={`${itemType}-upload-dropzone`}
     >
       <input
@@ -159,7 +190,7 @@ const Main_DropZone = ({
                       ? `Drop ${itemType} here`
                       : hasItems
                         ? `Click or drop to add more ${itemType}`
-                        : `Click to upload or drag ${itemType} here`}
+                        : `Click to upload, drag, or paste ${itemType} here`}
                 </div>
 
                 {!compact && (

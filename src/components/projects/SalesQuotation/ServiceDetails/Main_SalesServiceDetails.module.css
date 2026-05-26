@@ -1,0 +1,19 @@
+.tableSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.actionsBar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.cellInput {
+  width: 100%;
+}
+
+.uploadsCell {
+  min-width: 220px;
+}

@@ -88,7 +88,6 @@ const Main_SupplierBasicInfo = () => {
             onChange={(ov, nv) => {
               upsertSupplierPageData({
                 name: nv,
-                company_name: nv,
               });
             }}
           />

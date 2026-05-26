@@ -1,0 +1,77 @@
+.sectionStack {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.tableSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.actionsBar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.cellInput {
+  width: 100%;
+}
+
+.uploadsCell {
+  min-width: 220px;
+}
+
+.checkboxCell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+}
+
+.helperText {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.pricesByDetailSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.pricesByDetailHeading {
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.detailPriceCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fafafa;
+}
+
+.detailPriceHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.detailPriceTitle {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1f2937;
+}

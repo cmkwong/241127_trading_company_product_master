@@ -1,0 +1,4173 @@
+{
+  "info": {
+    "_postman_id": "9b36d4e0-7fec-45c9-90c8-72ccd8fa2425",
+    "name": "Trade Business (Updated)",
+    "description": "Updated collection aligned with current /api/v1 routes.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "24374382"
+  },
+  "item": [
+    {
+      "name": "auths",
+      "item": [
+        {
+          "name": "Get token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let token = pm.response.json()['token'];",
+                  "pm.environment.set('TOKEN', token);",
+                  "console.log(pm.environment.get('TOKEN'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"superuser\",\n  \"password\": \"su1234su\",\n  \"payload\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{URL}}/api/v1/trade_business/auth/getToken",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "trade_business",
+                "auth",
+                "getToken"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Master Data",
+      "item": [
+        {
+          "name": "Get Master Data Rows",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{URL}}/api/v1/trade_business/master/rows?tableName=master_categories",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "trade_business",
+                "master",
+                "rows"
+              ],
+              "query": [
+                {
+                  "key": "tableName",
+                  "value": "master_categories"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Master Data Rows",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"data\": {\n    \"master_keywords\": [\n      {\n        \"id\": \"550e8400-e29b-41d4-a716-446655441234\",\n        \"name\": \"testing\",\n        \"description\": \"testing description\"\n      }\n    ]\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{URL}}/api/v1/trade_business/master/rows",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "trade_business",
+                "master",
+                "rows"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Master Data Rows",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"data\": {\n    \"master_keywords\": [\n      {\n        \"id\": \"550e8400-e29b-41d4-a716-4466554newid\",\n        \"name\": \"testing\",\n        \"description\": \"testing description\"\n      }\n    ]\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{URL}}/api/v1/trade_business/master/rows",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "trade_business",
+                "master",
+                "rows"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Master Data Rows",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"data\": {\n    \"master_keywords\": [\n      {\n        \"id\": \"550e8400-e29b-41d4-a716-4466554newid\"\n      }\n    ]\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{URL}}/api/v1/trade_business/master/rows",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "trade_business",
+                "master",
+                "rows"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Insert all default",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{URL}}/api/v1/trade_business/master/defaults/all",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "trade_business",
+                "master",
+                "defaults",
+                "all"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Reset all default",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{URL}}/api/v1/trade_business/master/reset/all",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "trade_business",
+                "master",
+                "reset",
+                "all"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Reset by table name",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{URL}}/api/v1/trade_business/master/reset/master_keywords",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "trade_business",
+                "master",
+                "reset",
+                "master_keywords"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create all master tables",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{URL}}/api/v1/trade_business/master/create/all",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "trade_business",
+                "master",
+                "create",
+                "all"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create master table by name",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{URL}}/api/v1/trade_business/master/create/master_keywords",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "trade_business",
+                "master",
+                "create",
+                "master_keywords"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Truncate all master tables",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{URL}}/api/v1/trade_business/master/truncate/all",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "trade_business",
+                "master",
+                "truncate",
+                "all"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Drop all master tables",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"confirm\": \"DROP_ALL_MASTER_TABLES\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{URL}}/api/v1/trade_business/master/drop/all",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "trade_business",
+                "master",
+                "drop",
+                "all"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Drop master table by name",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"confirm\": \"DROP_MASTER_TABLE\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{URL}}/api/v1/trade_business/master/drop/master_keywords",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "trade_business",
+                "master",
+                "drop",
+                "master_keywords"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Master table sample get",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{URL}}/api/v1/trade_business/master/master_currencies",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "trade_business",
+                "master",
+                "master_currencies"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Schema for master",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{URL}}/api/v1/trade_business/master/schema/master_services",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "trade_business",
+                "master",
+                "schema",
+                "master_services"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Suppliers",
+      "item": [
+        {
+          "name": "data",
+          "item": [
+            {
+              "name": "Create supplier",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"data\": {\n    \"suppliers\": [\n      {\n        \"supplier_code\": \"S0000-9001\",\n        \"name\": \"Demo Supplier\",\n        \"supplier_types\": [\n          {\n            \"category_id\": \"7f2de1c0-9a84-4d9b-8f5d-7a8ac3e2d101\"\n          }\n        ]\n      }\n    ]\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/suppliers/data",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "suppliers",
+                    "data"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get supplier",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"data\": {\n    \"suppliers\": [\n      {\n        \"id\": \"9a1d4f2b-31b0-4d22-a04b-2d6fdb220001\"\n      }\n    ]\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/suppliers/data/get/ids",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "suppliers",
+                    "data",
+                    "get",
+                    "ids"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get supplier (All)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"includeBase64\": true,\n   // \"iconOnly\": true,\n  \"compress\": true\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/suppliers/data/list",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "suppliers",
+                    "data",
+                    "list"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update supplier",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PATCH",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"data\": {\n    \"suppliers\": [\n      {\n        \"id\": \"9a1d4f2b-31b0-4d22-a04b-2d6fdb220001\",\n        \"name\": \"Demo Supplier (Updated)\"\n      }\n    ]\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/suppliers/data/ids",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "suppliers",
+                    "data",
+                    "ids"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete supplier",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"data\": {\n    \"suppliers\": [\n      {\n        \"id\": \"9a1d4f2b-31b0-4d22-a04b-2d6fdb220001\"\n      }\n    ]\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/suppliers/data/ids",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "suppliers",
+                    "data",
+                    "ids"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Upload default data",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/suppliers/data/defaults",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "suppliers",
+                    "data",
+                    "defaults"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Truncate all supplier tables",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/suppliers/data/truncate",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "suppliers",
+                    "data",
+                    "truncate"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get supplier comparison keys",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/suppliers/data/comparison-keys",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "suppliers",
+                    "data",
+                    "comparison-keys"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "table",
+          "item": [
+            {
+              "name": "Create Suppliers Table",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/suppliers/table/create-all?tableType=suppliers-data",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "suppliers",
+                    "table",
+                    "create-all"
+                  ],
+                  "query": [
+                    {
+                      "key": "tableType",
+                      "value": "suppliers-data"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Suppliers Table (Master)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/suppliers/table/create-all?tableType=suppliers-master",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "suppliers",
+                    "table",
+                    "create-all"
+                  ],
+                  "query": [
+                    {
+                      "key": "tableType",
+                      "value": "suppliers-master"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Drop Suppliers Table",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"confirm\": \"DROP_ALL_SUPPLIER_TABLES\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/suppliers/table/drop-all?tableType=suppliers-data",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "suppliers",
+                    "table",
+                    "drop-all"
+                  ],
+                  "query": [
+                    {
+                      "key": "tableType",
+                      "value": "suppliers-data"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Products",
+      "item": [
+        {
+          "name": "data",
+          "item": [
+            {
+              "name": "Create product",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"data\": {\n    \"products\": [\n      {\n        \"hs_code\": \"39249000\",\n        \"remark\": \"Demo Product\"\n      }\n    ]\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/products/data",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "products",
+                    "data"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Download Product Images (Not specific ids)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"product_id\": \"190e6b4e-cb38-431d-8cba-861527eaeb58\",\n  \"image_type_id\": \"15f5b308-8c3e-4e8a-9d84-9157fafe8429\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/products/data/images/download",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "products",
+                    "data",
+                    "images",
+                    "download"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Download Product Images (Specific id)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"product_id\": \"190e6b4e-cb38-431d-8cba-861527eaeb58\",\n  \"image_type_id\": \"15f5b308-8c3e-4e8a-9d84-9157fafe8429\",\n  \"id\": \"297b0806-1a47-45eb-b73e-9a08dc7fc917\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/products/data/images/download",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "products",
+                    "data",
+                    "images",
+                    "download"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get product (By id) with details and base64 Testing",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"includeBase64\": false,\n  \"compress\": false,\n  \"data\": {\n    \"products\": [\n      {\n        \"id\": \"134cf07a-f803-4a93-a78f-1d32de61a4f5\"\n      }\n    ]\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/products/data/get/ids",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "products",
+                    "data",
+                    "get",
+                    "ids"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get product (By id) with details and base64",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"includeBase64\": true,\n  \"compress\": true,\n  \"data\": {\n    \"products\": [\n      {\n        \"id\": \"134cf07a-f803-4a93-a78f-1d32de61a4f5\"\n      }\n    ]\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/products/data/get/ids",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "products",
+                    "data",
+                    "get",
+                    "ids"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get product (By ids) with details and only Icons",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"includeBase64\": true,\n  \"iconOnly\": true,\n  \"compress\": true,\n  \"fields\": {\n    \"products\": [\n      \"id\",\n      \"product_index\",\n      \"remark\"\n    ]\n  },\n  \"data\": {\n    \"products\": [\n      {\n        \"id\": \"000c95c4-5bd2-4b83-a63e-39a8fce051ac\"\n      },\n      {\n        \"id\": \"00220e52-31c5-4c22-907f-3a1bb92005f1\"\n      },\n      {\n        \"id\": \"00655fda-3e03-4e3c-87f1-bf1a695928cc\"\n      },\n      {\n        \"id\": \"00897d15-0b9e-4fc3-82b1-30bf436a21df\"\n      }\n    ]\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/products/data/get/ids",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "products",
+                    "data",
+                    "get",
+                    "ids"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get product (By ids) with details and with base64",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"includeBase64\": true,\n  \"compress\": true,\n  \"data\": {\n    \"products\": [\n      {\n        \"id\": \"000c95c4-5bd2-4b83-a63e-39a8fce051ac\"\n      },\n      {\n        \"id\": \"00220e52-31c5-4c22-907f-3a1bb92005f1\"\n      },\n      {\n        \"id\": \"00655fda-3e03-4e3c-87f1-bf1a695928cc\"\n      },\n      {\n        \"id\": \"00897d15-0b9e-4fc3-82b1-30bf436a21df\"\n      },\n      {\n        \"id\": \"008a4ad8-a952-4c4e-b238-c9db24a27159\"\n      }\n    ]\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/products/data/get/ids",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "products",
+                    "data",
+                    "get",
+                    "ids"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get product (By ids) with details and without base64",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"data\": {\n    \"products\": [\n      {\n        \"id\": \"000c95c4-5bd2-4b83-a63e-39a8fce051ac\"\n      },\n      {\n        \"id\": \"00220e52-31c5-4c22-907f-3a1bb92005f1\"\n      },\n      {\n        \"id\": \"00655fda-3e03-4e3c-87f1-bf1a695928cc\"\n      },\n      {\n        \"id\": \"00897d15-0b9e-4fc3-82b1-30bf436a21df\"\n      },\n      {\n        \"id\": \"008a4ad8-a952-4c4e-b238-c9db24a27159\"\n      },\n      {\n        \"id\": \"00dcc3e6-ecba-4e0b-8b6d-00670778c9c4\"\n      },\n      {\n        \"id\": \"0145455b-2143-4c36-866b-b0e79d02e113\"\n      },\n      {\n        \"id\": \"01f4cec8-160f-46d9-8f56-35e0fbd51935\"\n      },\n      {\n        \"id\": \"020b7250-7a5d-4a0f-8034-8c8081167669\"\n      },\n      {\n        \"id\": \"021a4585-080d-4fd7-a6b4-5350b048f6d4\"\n      },\n      {\n        \"id\": \"0278e78c-9af3-42c9-a3a6-8b7c6b6fed88\"\n      },\n      {\n        \"id\": \"02b950c1-3eb3-41a1-873d-7eabec293f3c\"\n      },\n      {\n        \"id\": \"02d9ff47-a3c8-478b-8d35-4b8b21581bbb\"\n      },\n      {\n        \"id\": \"03150331-34b0-4fe4-a49e-3aea1fb7c55b\"\n      },\n      {\n        \"id\": \"035ae8ac-fdb0-4314-adab-dc7bf26816df\"\n      },\n      {\n        \"id\": \"0385888e-a777-4367-8dab-57efa5b3c8a0\"\n      },\n      {\n        \"id\": \"038974c5-92c9-42f6-ac9a-b77e3ab2ca10\"\n      },\n      {\n        \"id\": \"038b1fcf-2eea-437c-ab18-fa2b89cbd70e\"\n      },\n      {\n        \"id\": \"039c1dbe-f500-48d9-885f-7671fc17c5ed\"\n      },\n      {\n        \"id\": \"03bf5d7d-93a9-4148-a0b4-72570f7c6d51\"\n      },\n      {\n        \"id\": \"04051459-8684-482f-8999-6860ce696543\"\n      },\n      {\n        \"id\": \"0469addd-01fe-491f-ba8c-476f46cf1fcc\"\n      },\n      {\n        \"id\": \"04a97a31-cf42-4edc-b1f0-7ca2c20a8510\"\n      },\n      {\n        \"id\": \"05243af5-0c67-4071-8c89-407f42b58f09\"\n      },\n      {\n        \"id\": \"054240e6-cc01-4938-958d-f00e1030ae24\"\n      },\n      {\n        \"id\": \"059ae86b-479c-4c92-897d-3c79d76c24d3\"\n      }\n    ]\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/products/data/get/ids",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "products",
+                    "data",
+                    "get",
+                    "ids"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get products (All) with nested fields",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"fields\": {\r\n    \"products\": [\r\n      \"id\",\r\n      \"product_index\",\r\n      \"remark\"\r\n    ],\r\n    \"product_names\": [\r\n      \"id\",\r\n      \"product_id\",\r\n      \"name\",\r\n      \"name_type_id\"\r\n    ],\r\n    \"product_categories\": [\r\n      \"id\",\r\n      \"category_id\"\r\n    ]\r\n  }\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/products/data/list",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "products",
+                    "data",
+                    "list"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get products (All) with nested fields with base64",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"includeBase64\": true,\r\n  \"compress\": true,\r\n  \"fields\": {\r\n    \"products\": [\r\n      \"id\",\r\n      \"product_index\",\r\n      \"remark\"\r\n    ],\r\n    \"product_names\": [\r\n      \"id\",\r\n      \"product_id\",\r\n      \"name\",\r\n      \"name_type_id\"\r\n    ],\r\n    \"product_varient_color_images\": [\r\n      \"id\",\r\n      \"product_varient_color_id\",\r\n      \"image_name\"\r\n    ]\r\n  }\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/products/data/list",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "products",
+                    "data",
+                    "list"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get products (All) with icon and all fields",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"includeBase64\": true,\r\n  \"iconOnly\": true,\r\n  \"compress\": true\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/products/data/list",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "products",
+                    "data",
+                    "list"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get products (All) with icon and id",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"includeBase64\": true,\r\n//   \"iconOnly\": true,\r\n  \"compress\": true,\r\n  \"fields\": {\r\n    \"products\": [\"id\"]\r\n  }\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/products/data/list",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "products",
+                    "data",
+                    "list"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get products (All) ID List",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"fields\": {\r\n    \"products\": [\r\n      \"id\"\r\n    ]\r\n  }\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/products/data/list",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "products",
+                    "data",
+                    "list"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get product comparison keys",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/products/data/comparison-keys",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "products",
+                    "data",
+                    "comparison-keys"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update product",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PATCH",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"data\": {\n    \"products\": [\n      {\n        \"id\": \"550e8400-e29b-41d4-a716-446655440001\",\n        \"remark\": \"Updated from Postman\"\n      }\n    ]\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/products/data/ids",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "products",
+                    "data",
+                    "ids"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete product",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"data\": {\n    \"products\": [\n      {\n        \"id\": \"b3916b6c-700f-4b71-b23a-da2e3a427e10\"\n      }\n    ]\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/products/data/ids",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "products",
+                    "data",
+                    "ids"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Upload default product data",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/products/data/defaults",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "products",
+                    "data",
+                    "defaults"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Truncate all product tables",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/products/data/truncate",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "products",
+                    "data",
+                    "truncate"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Varients - Get all size rows",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/products/data/varients/product_varient_sizes",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "products",
+                    "data",
+                    "varients",
+                    "product_varient_sizes"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Varients - Get all capacity rows",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/products/data/varients/product_varient_capacities",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "products",
+                    "data",
+                    "varients",
+                    "product_varient_capacities"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Varients - Import default costs",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/products/data/varients/product_costs/defaults",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "products",
+                    "data",
+                    "varients",
+                    "product_costs",
+                    "defaults"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "table",
+          "item": [
+            {
+              "name": "Create Products Table",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/products/table/create-all?tableType=products-data",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "products",
+                    "table",
+                    "create-all"
+                  ],
+                  "query": [
+                    {
+                      "key": "tableType",
+                      "value": "products-data"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Products Table (Master)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/products/table/create-all?tableType=products-master",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "products",
+                    "table",
+                    "create-all"
+                  ],
+                  "query": [
+                    {
+                      "key": "tableType",
+                      "value": "products-master"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Capacity Types Table",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/products/table/create/capacity-types",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "products",
+                    "table",
+                    "create",
+                    "capacity-types"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Product Varient Capacities Table",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/products/table/create/varient-capacities",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "products",
+                    "table",
+                    "create",
+                    "varient-capacities"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Drop Products Table",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"confirm\": \"DROP_ALL_PRODUCT_TABLES\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/products/table/drop-all?tableType=products-data",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "products",
+                    "table",
+                    "drop-all"
+                  ],
+                  "query": [
+                    {
+                      "key": "tableType",
+                      "value": "products-data"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Customers",
+      "item": [
+        {
+          "name": "data",
+          "item": [
+            {
+              "name": "Get all customers",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/customers/data",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "customers",
+                    "data"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create customer",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"data\": {\n    \"customers\": [\n      {\n        \"customer_code\": \"C0000-9001\"\n      }\n    ]\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/customers/data",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "customers",
+                    "data"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get customer by ids",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"data\": {\n    \"customers\": [\n      {\n        \"id\": \"9a1d4f2b-31b0-4d22-a04b-2d6fdb220001\"\n      }\n    ]\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/customers/data/ids",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "customers",
+                    "data",
+                    "ids"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Upload default customers",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/customers/data/defaults",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "customers",
+                    "data",
+                    "defaults"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Truncate all customer tables",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/customers/data/truncate",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "customers",
+                    "data",
+                    "truncate"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "table",
+          "item": [
+            {
+              "name": "Create Customers Table",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/customers/table/create-all?tableType=customers-data",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "customers",
+                    "table",
+                    "create-all"
+                  ],
+                  "query": [
+                    {
+                      "key": "tableType",
+                      "value": "customers-data"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Customers Table (Master)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/customers/table/create-all?tableType=customers-master",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "customers",
+                    "table",
+                    "create-all"
+                  ],
+                  "query": [
+                    {
+                      "key": "tableType",
+                      "value": "customers-master"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Drop Customers Table",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"confirm\": \"DROP_ALL_CUSTOMER_TABLES\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/customers/table/drop-all?tableType=customers-data",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "customers",
+                    "table",
+                    "drop-all"
+                  ],
+                  "query": [
+                    {
+                      "key": "tableType",
+                      "value": "customers-data"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Check customer tables exist",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/customers/table/check-exists",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "customers",
+                    "table",
+                    "check-exists"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get customer tables schema",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/customers/table/schema",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "customers",
+                    "table",
+                    "schema"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Sales",
+      "item": [
+        {
+          "name": "data",
+          "item": [
+            {
+              "name": "Get all sales quotations",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/sales/data",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "sales",
+                    "data"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create sales quotation",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"data\": {\n    \"sales_quotations\": [\n      {\n        \"customer_id\": \"9a1d4f2b-31b0-4d22-a04b-2d6fdb220001\",\n        \"to_order\": false\n      }\n    ]\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/sales/data",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "sales",
+                    "data"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Import default sales",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/sales/data/defaults",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "sales",
+                    "data",
+                    "defaults"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Truncate all sales tables",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/sales/data/truncate",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "sales",
+                    "data",
+                    "truncate"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "table",
+          "item": [
+            {
+              "name": "Create Sales Table",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/sales/table/create-all",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "sales",
+                    "table",
+                    "create-all"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Drop Sales Table",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"confirm\": \"DROP_ALL_SALES_TABLES\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/sales/table/drop-all",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "sales",
+                    "table",
+                    "drop-all"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Check sales tables exist",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/sales/table/check-exists",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "sales",
+                    "table",
+                    "check-exists"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get sales tables schema",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/sales/table/schema",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "sales",
+                    "table",
+                    "schema"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "AR",
+      "item": [
+        {
+          "name": "data",
+          "item": [
+            {
+              "name": "Get all AR invoices",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/ar/data",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "ar",
+                    "data"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create AR invoice",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"data\": {\n    \"ar_invoices\": [\n      {\n        \"customer_id\": \"9a1d4f2b-31b0-4d22-a04b-2d6fdb220001\"\n      }\n    ]\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/ar/data",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "ar",
+                    "data"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Upload default AR",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/ar/data/defaults",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "ar",
+                    "data",
+                    "defaults"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Truncate all AR tables",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/ar/data/truncate",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "ar",
+                    "data",
+                    "truncate"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "table",
+          "item": [
+            {
+              "name": "Create AR Table",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/ar/table/create-all",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "ar",
+                    "table",
+                    "create-all"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Drop AR Table",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"confirm\": \"DROP_ALL_AR_TABLES\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/ar/table/drop-all",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "ar",
+                    "table",
+                    "drop-all"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Check AR tables exist",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/ar/table/check-exists",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "ar",
+                    "table",
+                    "check-exists"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get AR tables schema",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/ar/table/schema",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "ar",
+                    "table",
+                    "schema"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Purchase",
+      "item": [
+        {
+          "name": "data",
+          "item": [
+            {
+              "name": "Get all purchase requests",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/purchase/data",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "purchase",
+                    "data"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create purchase request",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"data\": {\n    \"purchase_requests\": [\n      {\n        \"supplier_id\": \"9a1d4f2b-31b0-4d22-a04b-2d6fdb220001\",\n        \"to_order\": false\n      }\n    ]\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/purchase/data",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "purchase",
+                    "data"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Upload default purchase",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/purchase/data/defaults",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "purchase",
+                    "data",
+                    "defaults"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Truncate all purchase tables",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/purchase/data/truncate",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "purchase",
+                    "data",
+                    "truncate"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "table",
+          "item": [
+            {
+              "name": "Create Purchase Table",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/purchase/table/create-all",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "purchase",
+                    "table",
+                    "create-all"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Drop Purchase Table",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"confirm\": \"DROP_ALL_PURCHASE_TABLES\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/purchase/table/drop-all",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "purchase",
+                    "table",
+                    "drop-all"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Check purchase tables exist",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/purchase/table/check-exists",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "purchase",
+                    "table",
+                    "check-exists"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get purchase tables schema",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/purchase/table/schema",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "purchase",
+                    "table",
+                    "schema"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "AP",
+      "item": [
+        {
+          "name": "data",
+          "item": [
+            {
+              "name": "Get all AP invoices",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/ap/data",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "ap",
+                    "data"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create AP invoice",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"data\": {\n    \"ap_invoices\": [\n      {\n        \"supplier_id\": \"9a1d4f2b-31b0-4d22-a04b-2d6fdb220001\"\n      }\n    ]\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/ap/data",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "ap",
+                    "data"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Upload default AP",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/ap/data/defaults",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "ap",
+                    "data",
+                    "defaults"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Truncate all AP tables",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/ap/data/truncate",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "ap",
+                    "data",
+                    "truncate"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "table",
+          "item": [
+            {
+              "name": "Create AP Table",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/ap/table/create-all",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "ap",
+                    "table",
+                    "create-all"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Drop AP Table",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"confirm\": \"DROP_ALL_AP_TABLES\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/ap/table/drop-all",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "ap",
+                    "table",
+                    "drop-all"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Check AP tables exist",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/ap/table/check-exists",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "ap",
+                    "table",
+                    "check-exists"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get AP tables schema",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{URL}}/api/v1/trade_business/ap/table/schema",
+                  "host": [
+                    "{{URL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "trade_business",
+                    "ap",
+                    "table",
+                    "schema"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "General",
+      "item": [
+        {
+          "name": "Create all trade business tables (all)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{URL}}/api/v1/general/trade-business/create/all?scope=all",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "general",
+                "trade-business",
+                "create",
+                "all"
+              ],
+              "query": [
+                {
+                  "key": "scope",
+                  "value": "all"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create all trade business tables (master)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{URL}}/api/v1/general/trade-business/create/all?scope=master",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "general",
+                "trade-business",
+                "create",
+                "all"
+              ],
+              "query": [
+                {
+                  "key": "scope",
+                  "value": "master"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create all trade business tables (data)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{URL}}/api/v1/general/trade-business/create/all?scope=data",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "general",
+                "trade-business",
+                "create",
+                "all"
+              ],
+              "query": [
+                {
+                  "key": "scope",
+                  "value": "data"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Insert default trade business data (all)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{URL}}/api/v1/general/trade-business/defaults/all?scope=all",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "general",
+                "trade-business",
+                "defaults",
+                "all"
+              ],
+              "query": [
+                {
+                  "key": "scope",
+                  "value": "all"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Insert default trade business data (master)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{URL}}/api/v1/general/trade-business/defaults/all?scope=master",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "general",
+                "trade-business",
+                "defaults",
+                "all"
+              ],
+              "query": [
+                {
+                  "key": "scope",
+                  "value": "master"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Insert default trade business data (data)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{URL}}/api/v1/general/trade-business/defaults/all?scope=data",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "general",
+                "trade-business",
+                "defaults",
+                "all"
+              ],
+              "query": [
+                {
+                  "key": "scope",
+                  "value": "data"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get trade business data file mappings",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{URL}}/api/v1/general/trade-business/defaults/data/file-mappings",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "general",
+                "trade-business",
+                "defaults",
+                "data",
+                "file-mappings"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Schema check (all)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{URL}}/api/v1/general/trade-business/schema/check?scope=all",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "general",
+                "trade-business",
+                "schema",
+                "check"
+              ],
+              "query": [
+                {
+                  "key": "scope",
+                  "value": "all"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Schema check (master)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{URL}}/api/v1/general/trade-business/schema/check?scope=master",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "general",
+                "trade-business",
+                "schema",
+                "check"
+              ],
+              "query": [
+                {
+                  "key": "scope",
+                  "value": "master"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Schema sync (dry-run)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scope\": \"all\",\n  \"dryRun\": true,\n  \"allowDrop\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{URL}}/api/v1/general/trade-business/schema/sync",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "general",
+                "trade-business",
+                "schema",
+                "sync"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Schema sync (apply, no drop)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scope\": \"all\",\n  \"dryRun\": false,\n  \"allowDrop\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{URL}}/api/v1/general/trade-business/schema/sync",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "general",
+                "trade-business",
+                "schema",
+                "sync"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Schema sync (apply with drop)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scope\": \"all\",\n  \"dryRun\": false,\n  \"allowDrop\": true,\n  \"confirm\": \"SYNC_SCHEMA_WITH_DROPS\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{URL}}/api/v1/general/trade-business/schema/sync",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "general",
+                "trade-business",
+                "schema",
+                "sync"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Truncate all trade business tables (all)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"confirm\": \"TRUNCATE_ALL_TRADE_BUSINESS_TABLES\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{URL}}/api/v1/general/trade-business/truncate/all?scope=all",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "general",
+                "trade-business",
+                "truncate",
+                "all"
+              ],
+              "query": [
+                {
+                  "key": "scope",
+                  "value": "all"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Truncate all trade business tables (master)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"confirm\": \"TRUNCATE_ALL_TRADE_BUSINESS_MASTER_TABLES\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{URL}}/api/v1/general/trade-business/truncate/all?scope=master",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "general",
+                "trade-business",
+                "truncate",
+                "all"
+              ],
+              "query": [
+                {
+                  "key": "scope",
+                  "value": "master"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Truncate all trade business tables (data)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"confirm\": \"TRUNCATE_ALL_TRADE_BUSINESS_DATA_TABLES\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{URL}}/api/v1/general/trade-business/truncate/all?scope=data",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "general",
+                "trade-business",
+                "truncate",
+                "all"
+              ],
+              "query": [
+                {
+                  "key": "scope",
+                  "value": "data"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Drop all trade business tables (all)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"confirm\": \"DROP_ALL_TRADE_BUSINESS_TABLES\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{URL}}/api/v1/general/trade-business/drop/all?scope=all",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "general",
+                "trade-business",
+                "drop",
+                "all"
+              ],
+              "query": [
+                {
+                  "key": "scope",
+                  "value": "all"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Drop all trade business tables (master)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"confirm\": \"DROP_ALL_TRADE_BUSINESS_MASTER_TABLES\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{URL}}/api/v1/general/trade-business/drop/all?scope=master",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "general",
+                "trade-business",
+                "drop",
+                "all"
+              ],
+              "query": [
+                {
+                  "key": "scope",
+                  "value": "master"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Drop all trade business tables (data)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"confirm\": \"DROP_ALL_TRADE_BUSINESS_DATA_TABLES\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{URL}}/api/v1/general/trade-business/drop/all?scope=data",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "general",
+                "trade-business",
+                "drop",
+                "all"
+              ],
+              "query": [
+                {
+                  "key": "scope",
+                  "value": "data"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "URL",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "TOKEN",
+      "value": ""
+    }
+  ]
+}

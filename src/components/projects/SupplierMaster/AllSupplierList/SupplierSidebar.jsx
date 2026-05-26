@@ -93,7 +93,7 @@ const SupplierSidebar = ({
 
     const lowerSearchTerm = searchTerm.toLowerCase();
     const filtered = currentSupplierList.filter((supplier) => {
-      const name = supplier?.name || supplier?.company_name || '';
+      const name = supplier?.name || '';
       const code = supplier?.code || '';
       const id = supplier?.id || '';
       const createdAt = supplier?.created_at || '';
@@ -119,7 +119,7 @@ const SupplierSidebar = ({
   }, []);
 
   const getSupplierName = useCallback(
-    (supplier) => supplier?.name || supplier?.company_name || '-',
+    (supplier) => supplier?.name || '-',
     [],
   );
 

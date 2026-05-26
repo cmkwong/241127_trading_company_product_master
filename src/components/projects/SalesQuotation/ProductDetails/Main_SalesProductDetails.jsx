@@ -2,6 +2,7 @@ import { useCallback, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
 import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
+import Main_Suggest from '../../../common/InputOptions/Suggest/Main_Suggest';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
 import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
 import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_FileUploads';
@@ -9,6 +10,8 @@ import AddNewBtn from '../../../common/Buttons/AddNewBtn';
 import DeleteBtn from '../../../common/Buttons/DeleteBtn';
 import EditableDataTable from '../../../common/Table/EditableDataTable';
 import styles from './Main_SalesProductDetails.module.css';
+
+const FILE_SERVER_BASE_URL = 'http://localhost:3001';
 
 const toNumber = (value, fallback = '') => {
   if (value === '' || value === null || value === undefined) {
@@ -139,6 +142,9 @@ const Main_SalesProductDetails = ({
       (productOptions || []).map((item) => ({
         id: String(item?.id || '').trim(),
         name: String(item?.name || item?.label || item?.id || '').trim(),
+        category_name: String(item?.category_name || '').trim(),
+        alibaba_id_value: String(item?.alibaba_id_value || '').trim(),
+        searchText: String(item?.searchText || '').trim(),
       })),
     [productOptions],
   );
@@ -162,13 +168,55 @@ const Main_SalesProductDetails = ({
           productDropdownOptions.find((item) => item.id === row.product_id)
             ?.name || '',
         renderCell: (row) => (
-          <Main_Dropdown
-            defaultOptions={productDropdownOptions}
-            defaultSelectedOption={row.product_id || ''}
-            onChange={(ov, nv) =>
-              handleUpsertProductDetail(row, { product_id: nv })
-            }
-          />
+          <div className={styles.suggestCell}>
+            <Main_Suggest
+              defaultSuggestions={productDropdownOptions}
+              defaultValue={
+                productDropdownOptions.find(
+                  (item) => item.id === row.product_id,
+                )?.name || ''
+              }
+              placeholder="Search product"
+              getSuggestionLabel={(suggestion) => suggestion?.name || ''}
+              getSuggestionSearchText={(suggestion) =>
+                String(
+                  suggestion?.searchText ||
+                    [
+                      suggestion?.name,
+                      suggestion?.category_name,
+                      suggestion?.alibaba_id_value,
+                    ]
+                      .filter(Boolean)
+                      .join(' '),
+                )
+              }
+              renderSuggestion={(suggestion) => (
+                <div className={styles.suggestionContent}>
+                  <div className={styles.suggestionTitle}>
+                    {suggestion?.name || ''}
+                  </div>
+                  <div className={styles.suggestionMeta}>
+                    <span>
+                      Category: {suggestion?.category_name || 'Uncategorized'}
+                    </span>
+                    <span>
+                      Alibaba ID: {suggestion?.alibaba_id_value || '-'}
+                    </span>
+                  </div>
+                </div>
+              )}
+              onChange={(ov, nv) => {
+                if (!String(nv || '').trim()) {
+                  handleUpsertProductDetail(row, { product_id: '' });
+                }
+              }}
+              onSelectSuggestion={(suggestion) =>
+                handleUpsertProductDetail(row, {
+                  product_id: String(suggestion?.id || '').trim(),
+                })
+              }
+            />
+          </div>
         ),
       },
       {
@@ -269,6 +317,7 @@ const Main_SalesProductDetails = ({
                 onError={(error) => {
                   console.error('Sales product image upload error:', error);
                 }}
+                fileUrlBase={FILE_SERVER_BASE_URL}
               />
             </div>
           );

@@ -56,3 +56,25 @@
 .suggestionItem:focus {
   background-color: #f5f5f5;
 }
+
+.suggestionContent {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.suggestionTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: #111827;
+  line-height: 1.35;
+}
+
+.suggestionMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 12px;
+  color: #6b7280;
+  line-height: 1.35;
+}

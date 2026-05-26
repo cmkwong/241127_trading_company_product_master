@@ -14,6 +14,7 @@ import {
  */
 const Sub_FileItem = ({
   file,
+  resolveFileUrl = null,
   index,
   onRemove,
   onMove,
@@ -40,17 +41,24 @@ const Sub_FileItem = ({
     else return (bytes / 1048576).toFixed(1) + ' MB';
   };
 
-  // If showing as image preview (and url exists)
-  const isImagePreview = showAsImage && file.url;
+  const resolvedFileUrl = useMemo(() => {
+    if (typeof resolveFileUrl === 'function') {
+      return resolveFileUrl(file?.url);
+    }
+    return String(file?.url || '').trim();
+  }, [file?.url, resolveFileUrl]);
 
-  const shouldCreateHoverObjectUrl = !file?.url && !!file?.file;
+  // If showing as image preview (and url exists)
+  const isImagePreview = showAsImage && resolvedFileUrl;
+
+  const shouldCreateHoverObjectUrl = !resolvedFileUrl && !!file?.file;
 
   const hoverImageUrl = useMemo(() => {
     if (!file) return '';
-    if (file.url) return file.url;
+    if (resolvedFileUrl) return resolvedFileUrl;
     if (shouldCreateHoverObjectUrl) return URL.createObjectURL(file.file);
     return '';
-  }, [file, shouldCreateHoverObjectUrl]);
+  }, [file, resolvedFileUrl, shouldCreateHoverObjectUrl]);
 
   useEffect(() => {
     return () => {
@@ -200,8 +208,8 @@ const Sub_FileItem = ({
       return;
     }
 
-    if (file.url) {
-      window.open(file.url, '_blank');
+    if (resolvedFileUrl) {
+      window.open(resolvedFileUrl, '_blank');
     } else if (file.file) {
       const url = URL.createObjectURL(file.file);
       window.open(url, '_blank');
@@ -325,7 +333,7 @@ const Sub_FileItem = ({
           </button>
         )}
 
-        <img src={file.url} alt={name} className={styles.previewImg} />
+        <img src={resolvedFileUrl} alt={name} className={styles.previewImg} />
         <div className={styles.imageIndexBadge}>{index + 1}</div>
         <div className={styles.imageInfo}>
           <div className={styles.imageName} title={name}>
@@ -441,6 +449,7 @@ Sub_FileItem.propTypes = {
     id: PropTypes.string.isRequired,
     url: PropTypes.string, // For image preview
   }).isRequired,
+  resolveFileUrl: PropTypes.func,
   index: PropTypes.number,
   onRemove: PropTypes.func.isRequired,
   onMove: PropTypes.func,

@@ -5,6 +5,31 @@ import styles from './Main_Suggest.module.css';
 import Main_TextField from '../TextField/Main_TextField';
 import { v4 as uuidv4 } from 'uuid';
 
+const getDefaultSuggestionLabel = (suggestion) => {
+  if (typeof suggestion === 'string') {
+    return suggestion;
+  }
+
+  return String(
+    suggestion?.name || suggestion?.label || suggestion?.value || '',
+  ).trim();
+};
+
+const getDefaultSuggestionSearchText = (suggestion) => {
+  if (typeof suggestion === 'string') {
+    return suggestion;
+  }
+
+  return String(
+    suggestion?.searchText ||
+      suggestion?.name ||
+      suggestion?.label ||
+      suggestion?.value ||
+      suggestion?.id ||
+      '',
+  ).trim();
+};
+
 /**
  * Main_Suggest Component
  * Provides an input field with a suggestion list based on user input.
@@ -20,6 +45,7 @@ const Main_Suggest = (props) => {
     onChange = () => {},
     onFocus,
     onBlur,
+    onSelectSuggestion,
     // Uncontrolled defaults
     defaultSuggestions = [],
     defaultValue = '',
@@ -28,22 +54,27 @@ const Main_Suggest = (props) => {
     label,
     inputId,
     placeholder = 'Type to search...',
+    getSuggestionLabel = getDefaultSuggestionLabel,
+    getSuggestionSearchText = getDefaultSuggestionSearchText,
+    renderSuggestion,
   } = props;
 
   // Internal state
   const [inputValue, setInputValue] = useState(defaultValue);
+  const resolvedInputIdRef = useRef(inputId || `suggest-${uuidv4()}`);
+
+  useEffect(() => {
+    setInputValue(defaultValue || '');
+  }, [defaultValue]);
 
   // when user typed in input, filter the required suggestions to show on list
   const filterSuggestions = useMemo(() => {
     if (!inputValue) return defaultSuggestions || [];
     const v = String(inputValue).toLowerCase();
     return (defaultSuggestions || []).filter((el) => {
-      // Make sure el is a string before calling toLowerCase
-      return typeof el === 'string'
-        ? el.toLowerCase().includes(v)
-        : String(el).toLowerCase().includes(v);
+      return getSuggestionSearchText(el).toLowerCase().includes(v);
     });
-  }, [inputValue, defaultSuggestions]);
+  }, [inputValue, defaultSuggestions, getSuggestionSearchText]);
 
   // Internal state for suggestion UI
   const [isFocused, setIsFocused] = useState(false);
@@ -52,7 +83,6 @@ const Main_Suggest = (props) => {
 
   const handleInputChange = useCallback(
     (ov, nv) => {
-      console.log('Input changed:', nv);
       setInputValue(nv);
       onChange(ov, nv);
     },
@@ -62,13 +92,14 @@ const Main_Suggest = (props) => {
   const handleSuggestionItemClick = useCallback(
     (suggestion) => {
       const ov = inputValue;
-      const nv = suggestion;
+      const nextLabel = getSuggestionLabel(suggestion);
 
-      setInputValue(nv);
-      onChange(ov, nv);
+      setInputValue(nextLabel);
+      onChange(ov, nextLabel);
+      onSelectSuggestion?.(suggestion);
       setIsFocused(false); // Close suggestion list after selection
     },
-    [inputValue, onChange],
+    [inputValue, onChange, onSelectSuggestion, getSuggestionLabel],
   );
 
   const handleFocus = useCallback(() => {
@@ -143,7 +174,7 @@ const Main_Suggest = (props) => {
       <div className={styles.inputWrapper}>
         <div className={styles.inputContainer} ref={inputContainerRef}>
           <Main_TextField
-            inputId={inputId || uuidv4()}
+            inputId={resolvedInputIdRef.current}
             defaultValue={inputValue}
             onChange={handleInputChange}
             placeholder={placeholder}
@@ -158,12 +189,17 @@ const Main_Suggest = (props) => {
               <ul className={styles.suggestionList} style={listStyle}>
                 {filterSuggestions.map((suggestion, index) => (
                   <li
-                    key={index}
+                    key={
+                      suggestion?.id ||
+                      `${getSuggestionLabel(suggestion)}-${String(index)}`
+                    }
                     className={styles.suggestionItem}
                     onClick={() => handleSuggestionItemClick(suggestion)}
                     tabIndex={0}
                   >
-                    {suggestion}
+                    {typeof renderSuggestion === 'function'
+                      ? renderSuggestion(suggestion)
+                      : getSuggestionLabel(suggestion)}
                   </li>
                 ))}
               </ul>,
@@ -180,6 +216,7 @@ Main_Suggest.propTypes = {
   onChange: PropTypes.func,
   onFocus: PropTypes.func,
   onBlur: PropTypes.func,
+  onSelectSuggestion: PropTypes.func,
   // Uncontrolled defaults
   defaultSuggestions: PropTypes.array,
   defaultValue: PropTypes.string,
@@ -191,6 +228,9 @@ Main_Suggest.propTypes = {
   label: PropTypes.string,
   inputId: PropTypes.string,
   placeholder: PropTypes.string,
+  getSuggestionLabel: PropTypes.func,
+  getSuggestionSearchText: PropTypes.func,
+  renderSuggestion: PropTypes.func,
 };
 
 export default Main_Suggest;

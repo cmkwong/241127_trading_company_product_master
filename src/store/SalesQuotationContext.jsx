@@ -17,7 +17,9 @@ import {
   validateNestedDataObject,
 } from '../utils/contextDataUtils';
 import { upsertNestedData } from '../utils/crudObj';
+import { processChangesWithBase64 } from '../utils/objectUrlUtils';
 import { useAuthContext } from './AuthContext';
+import { useGeneralContext } from './GeneralContext';
 import { useMasterContext } from './MasterContext';
 
 export const SalesQuotationContext = createContext();
@@ -31,6 +33,39 @@ const PRODUCTS_API_BASE =
   'http://localhost:3001/api/v1/trade_business/products';
 
 const SALES_TABLE_NAME = 'sales_quotations';
+
+const DEFAULT_QUOTATION_FILE_MAPPINGS = {
+  sales_shipping_images: { url: 'image_url', base64: 'base64_image' },
+  sales_product_detail_images: { url: 'image_url', base64: 'base64_image' },
+  sales_service_detail_images: { url: 'image_url', base64: 'base64_image' },
+};
+
+const SALES_CHILD_TABLE_RENEST_CONFIG = [
+  {
+    rootChildKey: 'sales_shipping_prices',
+    detailKey: 'sales_shipping_details',
+    parentField: 'sales_shipping_detail_id',
+    nestedChildKey: 'sales_shipping_prices',
+  },
+  {
+    rootChildKey: 'sales_shipping_images',
+    detailKey: 'sales_shipping_details',
+    parentField: 'sales_shipping_detail_id',
+    nestedChildKey: 'sales_shipping_images',
+  },
+  {
+    rootChildKey: 'sales_product_detail_images',
+    detailKey: 'sales_product_details',
+    parentField: 'sales_product_detail_id',
+    nestedChildKey: 'sales_product_detail_images',
+  },
+  {
+    rootChildKey: 'sales_service_detail_images',
+    detailKey: 'sales_service_details',
+    parentField: 'sales_service_detail_id',
+    nestedChildKey: 'sales_service_detail_images',
+  },
+];
 
 const DEFAULT_INCOTERM_OPTIONS = [
   { id: 'EXW', name: 'EXW' },
@@ -46,6 +81,34 @@ const toIsoNow = () => new Date().toISOString();
 const deepClone = (value) => JSON.parse(JSON.stringify(value));
 
 const toArray = (value) => (Array.isArray(value) ? value : []);
+
+const flattenNestedRows = (
+  parentRows = [],
+  childKey,
+  parentIdField,
+  fallbackParentIdField,
+) => {
+  const rows = [];
+
+  toArray(parentRows).forEach((parent) => {
+    const parentId = toSafeString(parent?.id);
+    toArray(parent?.[childKey]).forEach((child) => {
+      if (!child || typeof child !== 'object') {
+        return;
+      }
+
+      rows.push({
+        ...child,
+        [parentIdField]:
+          toSafeString(child?.[parentIdField]) ||
+          toSafeString(child?.[fallbackParentIdField]) ||
+          parentId,
+      });
+    });
+  });
+
+  return rows;
+};
 
 const extractRowsFromResponse = (response, tableName) => {
   if (Array.isArray(response?.structuredData?.data?.[tableName])) {
@@ -117,6 +180,50 @@ const toOption = (id, label) => {
 
 const normalizeSalesQuotation = (row = {}) => {
   const now = toIsoNow();
+  const shippingDetails = toArray(row?.sales_shipping_details);
+  const productDetails = toArray(row?.sales_product_details);
+  const serviceDetails = toArray(row?.sales_service_details);
+
+  const shippingPrices =
+    toArray(row?.sales_shipping_prices).length > 0
+      ? toArray(row?.sales_shipping_prices)
+      : flattenNestedRows(
+          shippingDetails,
+          'sales_shipping_prices',
+          'sales_shipping_detail_id',
+          'shipping_detail_id',
+        );
+
+  const shippingImages =
+    toArray(row?.sales_shipping_images).length > 0
+      ? toArray(row?.sales_shipping_images)
+      : flattenNestedRows(
+          shippingDetails,
+          'sales_shipping_images',
+          'sales_shipping_detail_id',
+          'shipping_detail_id',
+        );
+
+  const productImages =
+    toArray(row?.sales_product_detail_images).length > 0
+      ? toArray(row?.sales_product_detail_images)
+      : flattenNestedRows(
+          productDetails,
+          'sales_product_detail_images',
+          'sales_product_detail_id',
+          'product_detail_id',
+        );
+
+  const serviceImages =
+    toArray(row?.sales_service_detail_images).length > 0
+      ? toArray(row?.sales_service_detail_images)
+      : flattenNestedRows(
+          serviceDetails,
+          'sales_service_detail_images',
+          'sales_service_detail_id',
+          'service_detail_id',
+        );
+
   return {
     id: toSafeString(row?.id),
     to_order: Boolean(row?.to_order),
@@ -126,13 +233,13 @@ const normalizeSalesQuotation = (row = {}) => {
     created_at: toSafeString(row?.created_at) || now,
     updated_at:
       toSafeString(row?.updated_at) || toSafeString(row?.created_at) || now,
-    sales_shipping_details: toArray(row?.sales_shipping_details),
-    sales_shipping_prices: toArray(row?.sales_shipping_prices),
-    sales_shipping_images: toArray(row?.sales_shipping_images),
-    sales_product_details: toArray(row?.sales_product_details),
-    sales_product_detail_images: toArray(row?.sales_product_detail_images),
-    sales_service_details: toArray(row?.sales_service_details),
-    sales_service_detail_images: toArray(row?.sales_service_detail_images),
+    sales_shipping_details: shippingDetails,
+    sales_shipping_prices: shippingPrices,
+    sales_shipping_images: shippingImages,
+    sales_product_details: productDetails,
+    sales_product_detail_images: productImages,
+    sales_service_details: serviceDetails,
+    sales_service_detail_images: serviceImages,
   };
 };
 
@@ -156,9 +263,111 @@ const sortByUpdatedDesc = (rows = []) => {
   });
 };
 
+const buildChildParentLookup = (sourceRows = [], rootChildKey, parentField) => {
+  const lookup = new Map();
+
+  toArray(sourceRows).forEach((sourceRow) => {
+    toArray(sourceRow?.[rootChildKey]).forEach((childRow) => {
+      const childId = toSafeString(childRow?.id);
+      const parentId = toSafeString(childRow?.[parentField]);
+      if (childId && parentId && !lookup.has(childId)) {
+        lookup.set(childId, parentId);
+      }
+    });
+  });
+
+  return lookup;
+};
+
+const renestSalesQuotationRowForApi = (row = {}, fallbackRows = []) => {
+  const nextRow = deepClone(row);
+
+  SALES_CHILD_TABLE_RENEST_CONFIG.forEach((config) => {
+    const rootRows = toArray(nextRow?.[config.rootChildKey]);
+    if (rootRows.length === 0) {
+      return;
+    }
+
+    const details = toArray(nextRow?.[config.detailKey]).map((detail) => ({
+      ...detail,
+    }));
+    const detailIndexById = new Map();
+
+    details.forEach((detail, index) => {
+      const detailId = toSafeString(detail?.id);
+      if (detailId) {
+        detailIndexById.set(detailId, index);
+      }
+    });
+
+    const childParentLookup = buildChildParentLookup(
+      [row, ...toArray(fallbackRows)],
+      config.rootChildKey,
+      config.parentField,
+    );
+
+    rootRows.forEach((childRow) => {
+      const nextChildRow = { ...childRow };
+      const childId = toSafeString(nextChildRow?.id);
+      const parentId =
+        toSafeString(nextChildRow?.[config.parentField]) ||
+        (childId ? childParentLookup.get(childId) : '');
+
+      if (!parentId) {
+        return;
+      }
+
+      nextChildRow[config.parentField] = parentId;
+
+      let detailIndex = detailIndexById.get(parentId);
+      if (detailIndex === undefined) {
+        details.push({ id: parentId });
+        detailIndex = details.length - 1;
+        detailIndexById.set(parentId, detailIndex);
+      }
+
+      const detailRow = details[detailIndex] || { id: parentId };
+      const nestedRows = toArray(detailRow?.[config.nestedChildKey]);
+      details[detailIndex] = {
+        ...detailRow,
+        [config.nestedChildKey]: [...nestedRows, nextChildRow],
+      };
+    });
+
+    nextRow[config.detailKey] = details;
+    delete nextRow[config.rootChildKey];
+  });
+
+  return nextRow;
+};
+
+const renestSalesPayloadForApi = (
+  payload,
+  { currentRow = null, originalRow = null } = {},
+) => {
+  if (!payload || typeof payload !== 'object') {
+    return payload;
+  }
+
+  const salesRows = toArray(payload?.sales_quotations);
+  if (salesRows.length === 0) {
+    return payload;
+  }
+
+  const fallbackRows = [currentRow, originalRow].filter(Boolean);
+
+  return {
+    ...payload,
+    sales_quotations: salesRows.map((row) =>
+      renestSalesQuotationRowForApi(row, fallbackRows),
+    ),
+  };
+};
+
 export const SalesQuotationContext_Provider = ({ children }) => {
   const { token } = useAuthContext();
-  const { services, currencies } = useMasterContext();
+  const { fileMappings } = useGeneralContext();
+  const { services, currencies, category, supplierType } = useMasterContext();
 
   const [quotations, setQuotations] = useState([]);
   const [originalQuotationMap, setOriginalQuotationMap] = useState({});
@@ -173,6 +382,13 @@ export const SalesQuotationContext_Provider = ({ children }) => {
 
   const salesFetchSeqRef = useRef(0);
   const optionsFetchSeqRef = useRef(0);
+
+  const quotationBase64Config = useMemo(() => {
+    return {
+      ...DEFAULT_QUOTATION_FILE_MAPPINGS,
+      ...(fileMappings || {}),
+    };
+  }, [fileMappings]);
 
   const selectedQuotation = useMemo(() => {
     return quotations.find((item) => item.id === selectedQuotationId) || null;
@@ -271,6 +487,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
           fields: {
             suppliers: ['id', 'name', 'supplier_code'],
             supplier_names: ['id', 'supplier_id', 'name'],
+            supplier_types: ['id', 'supplier_id', 'supplier_type_id'],
           },
         },
         { token },
@@ -288,6 +505,8 @@ export const SalesQuotationContext_Provider = ({ children }) => {
           fields: {
             products: ['id', 'remark', 'hs_code', 'product_index'],
             product_names: ['id', 'product_id', 'name'],
+            product_categories: ['id', 'product_id', 'category_id'],
+            product_alibaba_ids: ['id', 'product_id', 'value'],
           },
         },
         { token },
@@ -336,11 +555,8 @@ export const SalesQuotationContext_Provider = ({ children }) => {
       .map((customer) => {
         const id = toSafeString(customer?.id);
         const label =
-          pickFirstLabel(customer, [
-            'name',
-            'customer_code',
-            'code',
-          ]) || pickNestedName(customer, ['customer_names']);
+          pickFirstLabel(customer, ['name', 'customer_code', 'code']) ||
+          pickNestedName(customer, ['customer_names']);
         return toOption(id, label);
       })
       .filter(Boolean);
@@ -382,31 +598,161 @@ export const SalesQuotationContext_Provider = ({ children }) => {
       .filter(Boolean);
 
     const supplierRows = extractRowsFromResponse(supplierResponse, 'suppliers');
+    const supplierTypeRows = extractRowsFromResponse(
+      supplierResponse,
+      'supplier_types',
+    );
+    const supplierTypeLabelById = new Map(
+      toArray(supplierType).map((item) => [
+        toSafeString(item?.id),
+        pickFirstLabel(item, ['name', 'label', 'id']),
+      ]),
+    );
+    const categoryLabelLookupById = new Map(
+      toArray(category).map((item) => [
+        toSafeString(item?.id),
+        pickFirstLabel(item, ['name', 'label', 'id']),
+      ]),
+    );
     const normalizedSupplierOptions = supplierRows
       .map((supplier) => {
         const id = toSafeString(supplier?.id);
-        const label =
-          pickFirstLabel(supplier, [
-            'name',
-            'supplier_code',
-            'code',
-          ]) || pickNestedName(supplier, ['supplier_names']);
-        return toOption(id, label);
+        const name =
+          pickFirstLabel(supplier, ['name']) ||
+          pickNestedName(supplier, ['supplier_names']) ||
+          pickFirstLabel(supplier, ['supplier_code', 'code']);
+        const code = pickFirstLabel(supplier, ['supplier_code', 'code']);
+        const typeIds = [
+          ...toArray(supplier?.supplier_types),
+          ...supplierTypeRows.filter(
+            (item) => toSafeString(item?.supplier_id) === id,
+          ),
+        ]
+          .map((item) =>
+            toSafeString(item?.supplier_type_id || item?.category_id),
+          )
+          .filter(Boolean);
+        const typeNames = typeIds
+          .map(
+            (typeId) =>
+              supplierTypeLabelById.get(typeId) ||
+              categoryLabelLookupById.get(typeId) ||
+              typeId,
+          )
+          .filter(Boolean);
+
+        if (!id || !name) {
+          return null;
+        }
+
+        return {
+          id,
+          name,
+          supplier_code: code,
+          supplier_type_name: typeNames.join(', '),
+          searchText: [name, typeNames.join(' '), code]
+            .filter(Boolean)
+            .join(' '),
+        };
       })
       .filter(Boolean);
 
     const productRows = extractRowsFromResponse(productResponse, 'products');
+    const productNameRows = [
+      ...extractRowsFromResponse(productResponse, 'product_names'),
+      ...productRows.flatMap((product) =>
+        toArray(product?.product_names).map((relation) => ({
+          ...relation,
+          product_id: relation?.product_id || product?.id,
+        })),
+      ),
+    ];
+    const productCategoryRows = [
+      ...extractRowsFromResponse(productResponse, 'product_categories'),
+      ...productRows.flatMap((product) =>
+        toArray(product?.product_categories).map((relation) => ({
+          ...relation,
+          product_id: relation?.product_id || product?.id,
+        })),
+      ),
+    ];
+    const productAlibabaRows = [
+      ...extractRowsFromResponse(productResponse, 'product_alibaba_ids'),
+      ...productRows.flatMap((product) =>
+        toArray(product?.product_alibaba_ids).map((relation) => ({
+          ...relation,
+          product_id: relation?.product_id || product?.id,
+        })),
+      ),
+    ];
+    const categoryLabelById = new Map(
+      toArray(category).map((item) => [
+        toSafeString(item?.id),
+        pickFirstLabel(item, ['label', 'name', 'id']),
+      ]),
+    );
+    const primaryProductNameById = new Map();
+    const categoryNamesByProductId = new Map();
+    const alibabaValueByProductId = new Map();
+
+    productNameRows.forEach((nameRow) => {
+      const productId = toSafeString(nameRow?.product_id);
+      const name = pickFirstLabel(nameRow, ['name', 'value', 'label']);
+      if (productId && name && !primaryProductNameById.has(productId)) {
+        primaryProductNameById.set(productId, name);
+      }
+    });
+
+    productCategoryRows.forEach((categoryRow) => {
+      const productId = toSafeString(categoryRow?.product_id);
+      const categoryId = toSafeString(categoryRow?.category_id);
+      const categoryLabel = categoryLabelById.get(categoryId) || categoryId;
+      if (!productId || !categoryLabel) {
+        return;
+      }
+
+      const existing = categoryNamesByProductId.get(productId) || [];
+      if (!existing.includes(categoryLabel)) {
+        categoryNamesByProductId.set(productId, [...existing, categoryLabel]);
+      }
+    });
+
+    productAlibabaRows.forEach((alibabaRow) => {
+      const productId = toSafeString(alibabaRow?.product_id);
+      const value = pickFirstLabel(alibabaRow, ['value', 'name', 'label']);
+      if (productId && value && !alibabaValueByProductId.has(productId)) {
+        alibabaValueByProductId.set(productId, value);
+      }
+    });
+
     const normalizedProductOptions = productRows
       .map((product) => {
         const id = toSafeString(product?.id);
-        const label =
+        const name =
+          primaryProductNameById.get(id) ||
+          pickNestedName(product, ['product_names']) ||
           pickFirstLabel(product, [
-            'remark',
             'name',
-            'hs_code',
+            'remark',
             'product_index',
-          ]) || pickNestedName(product, ['product_names']);
-        return toOption(id, label);
+            'hs_code',
+          ]);
+        const categoryNames = categoryNamesByProductId.get(id) || [];
+        const alibabaIdValue = alibabaValueByProductId.get(id) || '';
+
+        if (!id || !name) {
+          return null;
+        }
+
+        return {
+          id,
+          name,
+          category_name: categoryNames.join(', '),
+          alibaba_id_value: alibabaIdValue,
+          searchText: [name, categoryNames.join(' '), alibabaIdValue]
+            .filter(Boolean)
+            .join(' '),
+        };
       })
       .filter(Boolean);
 
@@ -414,7 +760,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
     setCustomerAddressOptions(normalizedAddressOptions);
     setSupplierOptions(normalizedSupplierOptions);
     setProductOptions(normalizedProductOptions);
-  }, [fetchProductsList, fetchSuppliersList, token]);
+  }, [category, fetchProductsList, fetchSuppliersList, supplierType, token]);
 
   useEffect(() => {
     if (!token) {
@@ -495,38 +841,44 @@ export const SalesQuotationContext_Provider = ({ children }) => {
       }
 
       const { changes, deletions } = changesResult;
+      const cleanedPageData = cleanupQuotationFlags(selectedQuotation);
+      const normalizedChanges = renestSalesPayloadForApi(changes, {
+        currentRow: selectedQuotation,
+        originalRow: originalPageData,
+      });
+      const normalizedDeletions = renestSalesPayloadForApi(deletions, {
+        currentRow: selectedQuotation,
+        originalRow: originalPageData,
+      });
 
-      if (deletions) {
+      if (normalizedDeletions) {
         try {
           await apiDelete(`${SALES_API_BASE}/data/ids`, {
             token,
-            body: { data: deletions },
+            body: { data: normalizedDeletions },
           });
         } catch {
           await apiDelete(`${SALES_API_BASE}/data`, {
             token,
-            body: { data: deletions },
+            body: { data: normalizedDeletions },
           });
         }
       }
 
-      if (changes) {
-        try {
-          await apiPatch(
-            `${SALES_API_BASE}/data/ids`,
-            { data: changes },
-            { token },
-          );
-        } catch {
-          await apiPost(
-            `${SALES_API_BASE}/data`,
-            { data: changes },
-            { token },
-          );
-        }
+      if (normalizedChanges) {
+        // Process base64 fields in changes before sending to server (e.g., blob URLs -> data URIs for images)
+        const processedChanges = await processChangesWithBase64(
+          normalizedChanges,
+          quotationBase64Config,
+        );
+
+        await apiPatch(
+          `${SALES_API_BASE}/data/ids`,
+          { data: processedChanges },
+          { token },
+        );
       }
 
-      const cleanedPageData = cleanupQuotationFlags(selectedQuotation);
       const normalizedSavedRow = normalizeSalesQuotation(cleanedPageData);
 
       setQuotations((previousRows) =>
@@ -544,7 +896,14 @@ export const SalesQuotationContext_Provider = ({ children }) => {
       setSaveError(error?.message || 'Failed to save sales quotation');
       throw error;
     }
-  }, [selectedQuotation, token, getChangedData, cleanupQuotationFlags]);
+  }, [
+    selectedQuotation,
+    originalPageData,
+    token,
+    getChangedData,
+    cleanupQuotationFlags,
+    quotationBase64Config,
+  ]);
 
   const createSalesQuotation = useCallback(async () => {
     if (!token) {
@@ -681,41 +1040,51 @@ export const SalesQuotationContext_Provider = ({ children }) => {
     [isDataUnchanged, selectedQuotation],
   );
 
-  const getSalesQuotationDryRunData = useCallback(() => {
+  const getSalesQuotationDryRunData = useCallback(async () => {
     const changesResult = getChangedData();
+    const preview = {
+      endpoint: `${SALES_API_BASE}/data/ids`,
+      method: 'PATCH + DELETE',
+      create: {},
+      update: {},
+      delete: {},
+    };
+
+    if (!changesResult) {
+      return {
+        ...preview,
+        message: 'No changes detected',
+      };
+    }
+
+    const normalizedChanges = renestSalesPayloadForApi(changesResult?.changes, {
+      currentRow: selectedQuotation,
+      originalRow: originalPageData,
+    });
+    const normalizedDeletions = renestSalesPayloadForApi(
+      changesResult?.deletions,
+      {
+        currentRow: selectedQuotation,
+        originalRow: originalPageData,
+      },
+    );
+    const processedChanges = normalizedChanges
+      ? await processChangesWithBase64(normalizedChanges, quotationBase64Config)
+      : null;
 
     return {
-      read: {
-        method: 'GET',
-        endpoint: `${SALES_API_BASE}/data`,
-      },
-      create: {
-        method: 'POST',
-        endpoint: `${SALES_API_BASE}/data`,
-      },
-      update: {
-        method: 'POST',
-        endpoint: `${SALES_API_BASE}/data`,
-        note: 'Upsert selected quotation payload',
-      },
-      delete: {
-        method: 'DELETE',
-        endpoint: `${SALES_API_BASE}/data/ids`,
-        fallbackEndpoint: `${SALES_API_BASE}/data`,
-      },
-      payload: changesResult
-        ? {
-            changes: changesResult?.changes || null,
-            deletions: changesResult?.deletions || null,
-          }
-        : {
-            message: 'No changes detected',
-          },
-      selectedQuotation: selectedQuotation || {
-        message: 'No sales quotation selected',
+      ...preview,
+      payload: {
+        changes: processedChanges,
+        deletions: normalizedDeletions,
       },
     };
-  }, [selectedQuotation, getChangedData]);
+  }, [
+    getChangedData,
+    selectedQuotation,
+    originalPageData,
+    quotationBase64Config,
+  ]);
 
   const serviceOptions = useMemo(() => {
     return toArray(services)

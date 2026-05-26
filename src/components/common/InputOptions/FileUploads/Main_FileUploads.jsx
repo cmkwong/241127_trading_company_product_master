@@ -47,6 +47,7 @@ const Main_FileUploads = (props) => {
     downloadNameProductId = '',
     downloadNameImageType = '',
     watermarkImagePath = '/assets/watermark_v1.png',
+    fileUrlBase = '',
 
     // Initial state
     defaultFiles = [],
@@ -584,11 +585,40 @@ const Main_FileUploads = (props) => {
     });
   }, [selectableIds]);
 
+  const resolveFileUrl = useCallback(
+    (rawUrl) => {
+      const url = String(rawUrl || '').trim();
+      if (!url) {
+        return '';
+      }
+
+      if (/^(blob:|data:|https?:\/\/)/i.test(url)) {
+        return url;
+      }
+
+      const base = String(fileUrlBase || '')
+        .trim()
+        .replace(/\/+$/, '');
+      if (!base) {
+        return url;
+      }
+
+      const normalizedPath = url.replace(/^\/+/, '');
+      if (url.startsWith('/')) {
+        return `${base}/${normalizedPath}`;
+      }
+
+      return `${base}/${normalizedPath}`;
+    },
+    [fileUrlBase],
+  );
+
   const renderFileItems = (forModal = false) => {
     return fileList.map((file, index) => (
       <Sub_FileItem
         key={file.id}
         file={file}
+        resolveFileUrl={resolveFileUrl}
         index={index}
         onRemove={() => handleRemoveFile(index)}
         onMove={handleMoveItem}
@@ -765,6 +795,7 @@ Main_FileUploads.propTypes = {
   downloadNameProductId: PropTypes.string,
   downloadNameImageType: PropTypes.string,
   watermarkImagePath: PropTypes.string,
+  fileUrlBase: PropTypes.string,
 
   // Initial state
   defaultFiles: PropTypes.arrayOf(

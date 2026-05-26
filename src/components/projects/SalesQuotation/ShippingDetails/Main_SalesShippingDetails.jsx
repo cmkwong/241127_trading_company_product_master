@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
+import Main_Suggest from '../../../common/InputOptions/Suggest/Main_Suggest';
 import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
 import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
@@ -9,6 +10,8 @@ import AddNewBtn from '../../../common/Buttons/AddNewBtn';
 import DeleteBtn from '../../../common/Buttons/DeleteBtn';
 import EditableDataTable from '../../../common/Table/EditableDataTable';
 import styles from './Main_SalesShippingDetails.module.css';
+
+const FILE_SERVER_BASE_URL = 'http://localhost:3001';
 
 const toNumber = (value, fallback = '') => {
   if (value === '' || value === null || value === undefined) {
@@ -231,6 +234,9 @@ const Main_SalesShippingDetails = ({
       (supplierOptions || []).map((item) => ({
         id: String(item?.id || '').trim(),
         name: String(item?.name || item?.label || item?.id || '').trim(),
+        supplier_type_name: String(item?.supplier_type_name || '').trim(),
+        supplier_code: String(item?.supplier_code || '').trim(),
+        searchText: String(item?.searchText || '').trim(),
       })),
     [supplierOptions],
   );
@@ -400,6 +406,7 @@ const Main_SalesShippingDetails = ({
                 hoverPreview
                 showDownloadButton={false}
                 compactButtonText="Upload"
+                fileUrlBase={FILE_SERVER_BASE_URL}
                 defaultImages={defaultImages}
                 onChange={(ov, nv) => handleShippingImagesChange(row?.id, nv)}
                 onError={(error) => {
@@ -438,11 +445,49 @@ const Main_SalesShippingDetails = ({
           supplierDropdownOptions.find((item) => item.id === row.supplier_id)
             ?.name || '',
         renderCell: (row) => (
-          <Main_Dropdown
-            defaultOptions={supplierDropdownOptions}
-            defaultSelectedOption={row.supplier_id || ''}
-            onChange={(ov, nv) =>
-              handleUpsertShippingPrice(row, { supplier_id: nv })
+          <Main_Suggest
+            defaultSuggestions={supplierDropdownOptions}
+            defaultValue={
+              supplierDropdownOptions.find(
+                (item) => item.id === row.supplier_id,
+              )?.name || ''
+            }
+            placeholder="Search supplier"
+            getSuggestionLabel={(suggestion) => suggestion?.name || ''}
+            getSuggestionSearchText={(suggestion) =>
+              String(
+                suggestion?.searchText ||
+                  [
+                    suggestion?.name,
+                    suggestion?.supplier_type_name,
+                    suggestion?.supplier_code,
+                  ]
+                    .filter(Boolean)
+                    .join(' '),
+              )
+            }
+            renderSuggestion={(suggestion) => (
+              <div className={styles.suggestionContent}>
+                <div className={styles.suggestionTitle}>
+                  {suggestion?.name || ''}
+                </div>
+                <div className={styles.suggestionMeta}>
+                  <span>
+                    Supplier Type: {suggestion?.supplier_type_name || 'Unknown'}
+                  </span>
+                  <span>Supplier Code: {suggestion?.supplier_code || '-'}</span>
+                </div>
+              </div>
+            )}
+            onChange={(ov, nv) => {
+              if (!String(nv || '').trim()) {
+                handleUpsertShippingPrice(row, { supplier_id: '' });
+              }
+            }}
+            onSelectSuggestion={(suggestion) =>
+              handleUpsertShippingPrice(row, {
+                supplier_id: String(suggestion?.id || '').trim(),
+              })
             }
           />
         ),

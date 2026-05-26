@@ -32,6 +32,7 @@ const Main_SalesBasicInfo = ({
       id: String(address?.id || '').trim(),
       name: String(address?.name || address?.label || '').trim(),
       customer_id: String(address?.customer_id || '').trim(),
+      address_detail: String(address?.address_detail || '').trim(),
     }));
 
     if (!selectedCustomerId) {
@@ -48,6 +49,10 @@ const Main_SalesBasicInfo = ({
       (customerOptions || []).map((item) => ({
         id: String(item?.id || '').trim(),
         name: String(item?.name || item?.label || item?.id || '').trim(),
+        customer_display_name: String(
+          item?.customer_display_name || item?.name || '',
+        ).trim(),
+        customer_type_name: String(item?.customer_type_name || '').trim(),
       })),
     [customerOptions],
   );
@@ -57,9 +62,29 @@ const Main_SalesBasicInfo = ({
       (filteredAddressOptions || []).map((item) => ({
         id: item.id,
         name: item.name || item.id,
+        address_detail: item.address_detail,
       })),
     [filteredAddressOptions],
   );
+
+  const selectedCustomerOption = useMemo(
+    () =>
+      customerDropdownOptions.find((item) => item.id === selectedCustomerId) ||
+      null,
+    [customerDropdownOptions, selectedCustomerId],
+  );
+
+  const selectedAddressId = String(quotation?.customer_address_id || '').trim();
+  const selectedAddressOption = useMemo(() => {
+    const allAddresses = (customerAddressOptions || []).map((address) => ({
+      id: String(address?.id || '').trim(),
+      address_detail: String(address?.address_detail || '').trim(),
+    }));
+
+    return (
+      allAddresses.find((address) => address.id === selectedAddressId) || null
+    );
+  }, [customerAddressOptions, selectedAddressId]);
 
   return (
     <Main_InputContainer label="Sales Quotation Basic Info">
@@ -116,6 +141,22 @@ const Main_SalesBasicInfo = ({
             />
           </Main_InputContainer>
 
+          <Main_InputContainer label="Customer Name">
+            <Main_TextField
+              defaultValue={selectedCustomerOption?.customer_display_name || ''}
+              disabled
+              placeholder="Customer name"
+            />
+          </Main_InputContainer>
+
+          <Main_InputContainer label="Customer Type">
+            <Main_TextField
+              defaultValue={selectedCustomerOption?.customer_type_name || ''}
+              disabled
+              placeholder="Customer type"
+            />
+          </Main_InputContainer>
+
           <Main_InputContainer label="Customer Address">
             <Main_Dropdown
               defaultOptions={addressDropdownOptions}
@@ -125,6 +166,16 @@ const Main_SalesBasicInfo = ({
               onChange={(ov, nv) => {
                 onPatchQuotation({ customer_address_id: nv });
               }}
+            />
+          </Main_InputContainer>
+
+          <Main_InputContainer label="Address Detail">
+            <Main_TextArea
+              defaultValue={selectedAddressOption?.address_detail || ''}
+              placeholder="Address detail"
+              rows={3}
+              disabled
+              readOnly
             />
           </Main_InputContainer>
         </VerticalLayout>

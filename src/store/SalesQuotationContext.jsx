@@ -31,6 +31,7 @@ const SUPPLIERS_API_BASE =
   'http://localhost:3001/api/v1/trade_business/suppliers';
 const PRODUCTS_API_BASE =
   'http://localhost:3001/api/v1/trade_business/products';
+const MASTER_API_BASE = 'http://localhost:3001/api/v1/trade_business/master';
 
 const SALES_TABLE_NAME = 'sales_quotations';
 
@@ -176,6 +177,21 @@ const toOption = (id, label) => {
     id: normalizedId,
     name: toSafeString(label) || normalizedId,
   };
+};
+
+const formatLabelWithCode = (label, code) => {
+  const normalizedLabel = toSafeString(label);
+  const normalizedCode = toSafeString(code);
+
+  if (normalizedLabel && normalizedCode) {
+    if (normalizedLabel.toLowerCase() === normalizedCode.toLowerCase()) {
+      return normalizedLabel;
+    }
+
+    return `${normalizedLabel} (${normalizedCode})`;
+  }
+
+  return normalizedLabel || normalizedCode;
 };
 
 const normalizeSalesQuotation = (row = {}) => {
@@ -516,6 +532,23 @@ export const SalesQuotationContext_Provider = ({ children }) => {
     }
   }, [token]);
 
+  const fetchMasterCustomerTypes = useCallback(async () => {
+    try {
+      return await apiGet(`${MASTER_API_BASE}/rows`, {
+        token,
+        params: { tableName: 'master_customer_types' },
+      });
+    } catch {
+      try {
+        return await apiGet(`${MASTER_API_BASE}/master_customer_types`, {
+          token,
+        });
+      } catch {
+        return null;
+      }
+    }
+  }, [token]);
+
   const refreshReferenceOptions = useCallback(async () => {
     if (!token) {
       setCustomerOptions([]);
@@ -527,11 +560,12 @@ export const SalesQuotationContext_Provider = ({ children }) => {
 
     const fetchSequence = ++optionsFetchSeqRef.current;
 
-    const [customerResult, supplierResult, productResult] =
+    const [customerResult, supplierResult, productResult, customerTypeResult] =
       await Promise.allSettled([
         apiGet(`${CUSTOMERS_API_BASE}/data`, { token }),
         fetchSuppliersList(),
         fetchProductsList(),
+        fetchMasterCustomerTypes(),
       ]);
 
     if (fetchSequence !== optionsFetchSeqRef.current) {
@@ -544,20 +578,132 @@ export const SalesQuotationContext_Provider = ({ children }) => {
       supplierResult.status === 'fulfilled' ? supplierResult.value : null;
     const productResponse =
       productResult.status === 'fulfilled' ? productResult.value : null;
+    const masterCustomerTypeResponse =
+      customerTypeResult.status === 'fulfilled' ? customerTypeResult.value : null;
 
     const customerRows = extractRowsFromResponse(customerResponse, 'customers');
     const customerAddressRows = extractRowsFromResponse(
       customerResponse,
       'customer_addresses',
     );
+    const customerTypeRows = extractRowsFromResponse(
+      customerResponse,
+      'customer_types',
+    );
+    const masterCustomerTypeRows = [
+      ...extractRowsFromResponse(
+        masterCustomerTypeResponse,
+        'master_customer_types',
+      ),
+      ...extractRowsFromResponse(customerResponse, 'master_customer_types'),
+    ].reduce((acc, row) => {
+      const id = toSafeString(row?.id);
+      if (!id) {
+        return acc;
+      }
+
+      if (acc.some((existing) => toSafeString(existing?.id) === id)) {
+        return acc;
+      }
+
+      acc.push(row);
+      return acc;
+    }, []);
+
+    const customerCategoryLabelById = new Map(
+      toArray(category).map((item) => [
+        toSafeString(item?.id),
+        pickFirstLabel(item, ['name', 'label', 'id']),
+      ]),
+    );
+    const customerCategoryCodeById = new Map(
+      toArray(category).map((item) => [
+        toSafeString(item?.id),
+        pickFirstLabel(item, ['code', 'category_code', 'id']),
+      ]),
+    );
+    const customerTypeLabelById = new Map(
+      toArray(masterCustomerTypeRows).map((item) => [
+        toSafeString(item?.id),
+        pickFirstLabel(item, ['name', 'label', 'value', 'id']),
+      ]),
+    );
+    const customerTypeCodeById = new Map(
+      toArray(masterCustomerTypeRows).map((item) => [
+        toSafeString(item?.id),
+        pickFirstLabel(item, ['code', 'customer_type_code', 'id']),
+      ]),
+    );
 
     const normalizedCustomerOptions = customerRows
       .map((customer) => {
         const id = toSafeString(customer?.id);
+        const customerName =
+          pickFirstLabel(customer, ['name']) ||
+          pickNestedName(customer, ['customer_names']) ||
+          pickFirstLabel(customer, ['customer_code', 'code']);
         const label =
           pickFirstLabel(customer, ['name', 'customer_code', 'code']) ||
           pickNestedName(customer, ['customer_names']);
-        return toOption(id, label);
+
+        const typeRows = [
+          ...toArray(customer?.customer_types),
+          ...customerTypeRows.filter(
+            (row) => toSafeString(row?.customer_id) === id,
+          ),
+        ];
+        const typeNames = typeRows
+          .map((typeRow) => {
+            const explicitLabel = pickFirstLabel(typeRow, [
+              'name',
+              'label',
+              'value',
+              'type_name',
+            ]);
+            const explicitCode = pickFirstLabel(typeRow, [
+              'code',
+              'customer_type_code',
+              'type_code',
+              'short_code',
+            ]);
+
+            if (explicitLabel || explicitCode) {
+              return formatLabelWithCode(explicitLabel, explicitCode);
+            }
+
+            if (explicitLabel) {
+              return explicitLabel;
+            }
+
+            const typeId = toSafeString(
+              typeRow?.customer_type_id ||
+                typeRow?.category_id ||
+                typeRow?.type_id ||
+                typeRow?.id,
+            );
+            const fallbackLabel =
+              customerTypeLabelById.get(typeId) ||
+              customerCategoryLabelById.get(typeId) ||
+              typeId;
+            const fallbackCode =
+              customerTypeCodeById.get(typeId) ||
+              customerCategoryCodeById.get(typeId);
+
+            return formatLabelWithCode(fallbackLabel, fallbackCode);
+          })
+          .filter(Boolean)
+          .filter((value, index, array) => array.indexOf(value) === index);
+
+        const option = toOption(id, label);
+        if (!option) {
+          return null;
+        }
+
+        return {
+          ...option,
+          customer_display_name: customerName || option.name,
+          customer_type_name: typeNames.join(', '),
+        };
       })
       .filter(Boolean);
 
@@ -589,10 +735,26 @@ export const SalesQuotationContext_Provider = ({ children }) => {
           'remark',
         ]);
 
+        const addressParts = [
+          pickFirstLabel(address, ['address']),
+          pickFirstLabel(address, ['line1', 'line_1']),
+          pickFirstLabel(address, ['line2', 'line_2']),
+          pickFirstLabel(address, ['city']),
+          pickFirstLabel(address, ['state', 'province']),
+          pickFirstLabel(address, ['country']),
+          pickFirstLabel(address, ['postal_code', 'zip_code']),
+          pickFirstLabel(address, ['details', 'remark']),
+        ]
+          .map((value) => toSafeString(value))
+          .filter(Boolean);
+
+        const uniqueAddressParts = [...new Set(addressParts)];
+
         return {
           id,
           customer_id: customerId,
           name: label || id,
+          address_detail: uniqueAddressParts.join(', '),
         };
       })
       .filter(Boolean);
@@ -760,7 +922,14 @@ export const SalesQuotationContext_Provider = ({ children }) => {
     setCustomerAddressOptions(normalizedAddressOptions);
     setSupplierOptions(normalizedSupplierOptions);
     setProductOptions(normalizedProductOptions);
-  }, [category, fetchProductsList, fetchSuppliersList, supplierType, token]);
+  }, [
+    category,
+    fetchMasterCustomerTypes,
+    fetchProductsList,
+    fetchSuppliersList,
+    supplierType,
+    token,
+  ]);
 
   useEffect(() => {
     if (!token) {

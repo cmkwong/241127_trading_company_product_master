@@ -802,9 +802,18 @@ export const SalesQuotationContext_Provider = ({ children }) => {
           }
 
           const upsertedRow = upsertNestedData(row, nestedData);
+          const replacedArrayRow = Object.entries(nestedData || {}).reduce(
+            (acc, [key, value]) => {
+              if (Array.isArray(value)) {
+                acc[key] = value;
+              }
+              return acc;
+            },
+            { ...upsertedRow },
+          );
 
           return {
-            ...upsertedRow,
+            ...replacedArrayRow,
             updated_at: toIsoNow(),
           };
         }),

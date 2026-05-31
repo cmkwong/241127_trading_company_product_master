@@ -32,6 +32,7 @@ const DEFAULT_TABLE_NAMES = [
   'master_size_types',
   'master_supplier_link_types',
   'master_supplier_types',
+  'master_customer_types',
   'master_customer_image_types',
   'master_customer_name_types',
   'master_currencies',
@@ -55,6 +56,7 @@ const TABLE_INITIAL_DATA = {
   master_size_types: [],
   master_supplier_link_types: [],
   master_supplier_types: [],
+  master_customer_types: [],
   master_customer_image_types: [],
   master_customer_name_types: [],
   master_currencies: [],
@@ -102,6 +104,13 @@ const LEGACY_TABLE_BINDINGS = [
     updateName: 'updateSupplierTypes',
     addName: 'addSupplierType',
     removeName: 'removeSupplierType',
+  },
+  {
+    tableName: 'master_customer_types',
+    getName: 'getCustomerTypes',
+    updateName: 'updateCustomerTypes',
+    addName: 'addCustomerType',
+    removeName: 'removeCustomerType',
   },
   {
     tableName: 'master_packing_types',
@@ -225,6 +234,7 @@ export const MasterContext_Provider = ({ children }) => {
   const sizeType = masterDataMap.master_size_types || [];
   const supplierLinkType = masterDataMap.master_supplier_link_types || [];
   const supplierType = masterDataMap.master_supplier_types || [];
+  const customerType = masterDataMap.master_customer_types || [];
   const packType = masterDataMap.master_packing_types || [];
   const currencies = masterDataMap.master_currencies || [];
   const productImageType = masterDataMap.master_product_image_types || [];
@@ -442,6 +452,7 @@ export const MasterContext_Provider = ({ children }) => {
     supplierType,
     supplierLinkType,
     packType,
+    customerType,
     packingReliabilityType,
     certType,
     colorType,

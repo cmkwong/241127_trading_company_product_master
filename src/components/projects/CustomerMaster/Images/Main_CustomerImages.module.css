@@ -1,0 +1,18 @@
+.tableSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.actionsBar {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.cellInput {
+  min-width: 120px;
+}
+
+.uploadsCell {
+  min-width: 160px;
+}

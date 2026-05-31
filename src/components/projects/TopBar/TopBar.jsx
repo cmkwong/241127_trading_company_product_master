@@ -1,6 +1,7 @@
 import { useContext, useState } from 'react';
 import PropTypes from 'prop-types';
 import { useAuthContext } from '../../../store/AuthContext';
+import { CustomerContext } from '../../../store/CustomerContext';
 import { ProductContext } from '../../../store/ProductContext';
 import { SalesQuotationContext } from '../../../store/SalesQuotationContext';
 import { SupplierContext } from '../../../store/SupplierContext';
@@ -13,10 +14,12 @@ const TopBar = ({ title, activeView, onViewChange }) => {
     useAuthContext();
   const productContext = useContext(ProductContext);
   const supplierContext = useContext(SupplierContext);
+  const customerContext = useContext(CustomerContext);
   const salesQuotationContext = useContext(SalesQuotationContext);
   const masterContext = useContext(MasterContext);
   const refreshProductList = productContext?.refreshProductList;
   const refreshSupplierList = supplierContext?.refreshSupplierList;
+  const refreshCustomerList = customerContext?.refreshCustomerList;
   const refreshSalesQuotationList =
     salesQuotationContext?.refreshSalesQuotationList;
   const refreshAllMasterData = masterContext?.refreshAllMasterData;
@@ -46,6 +49,13 @@ const TopBar = ({ title, activeView, onViewChange }) => {
       } else if (activeView === 'supplier') {
         if (typeof refreshSupplierList === 'function') {
           await refreshSupplierList();
+        }
+      } else if (activeView === 'customer') {
+        if (typeof refreshCustomerList === 'function') {
+          await refreshCustomerList();
+        }
+        if (typeof refreshAllMasterData === 'function') {
+          await refreshAllMasterData();
         }
       } else if (activeView === 'salesQuotation') {
         if (typeof refreshSalesQuotationList === 'function') {
@@ -98,9 +108,11 @@ const TopBar = ({ title, activeView, onViewChange }) => {
         ? productContext
         : activeView === 'supplier'
           ? supplierContext
-          : activeView === 'salesQuotation'
-            ? salesQuotationContext
-            : null;
+          : activeView === 'customer'
+            ? customerContext
+            : activeView === 'salesQuotation'
+              ? salesQuotationContext
+              : null;
 
     const canSwitch = canProceedWithRecordSwitch({
       hasRecordId: !!currentContext?.pageData?.id,
@@ -167,6 +179,14 @@ const TopBar = ({ title, activeView, onViewChange }) => {
             onClick={() => handleViewSwitch('salesQuotation')}
           >
             Sales Quotation
+          </button>
+          <button
+            className={`${styles.navBtn} ${
+              activeView === 'customer' ? styles.active : ''
+            }`}
+            onClick={() => handleViewSwitch('customer')}
+          >
+            Customer Master
           </button>
           <button
             className={`${styles.navBtn} ${

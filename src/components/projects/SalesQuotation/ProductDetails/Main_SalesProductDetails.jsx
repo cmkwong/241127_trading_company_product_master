@@ -13,6 +13,23 @@ import styles from './Main_SalesProductDetails.module.css';
 
 const FILE_SERVER_BASE_URL = 'http://localhost:3001';
 
+const resolveIconUrl = (iconUrl) => {
+  const normalized = String(iconUrl || '').trim();
+  if (!normalized) {
+    return '';
+  }
+
+  if (/^(blob:|data:|https?:\/\/)/i.test(normalized)) {
+    return normalized;
+  }
+
+  if (normalized.startsWith('/')) {
+    return `${FILE_SERVER_BASE_URL}${normalized}`;
+  }
+
+  return `${FILE_SERVER_BASE_URL}/${normalized}`;
+};
+
 const toNumber = (value, fallback = '') => {
   if (value === '' || value === null || value === undefined) {
     return fallback;
@@ -142,6 +159,7 @@ const Main_SalesProductDetails = ({
       (productOptions || []).map((item) => ({
         id: String(item?.id || '').trim(),
         name: String(item?.name || item?.label || item?.id || '').trim(),
+        icon_url: String(item?.icon_url || '').trim(),
         category_name: String(item?.category_name || '').trim(),
         alibaba_id_value: String(item?.alibaba_id_value || '').trim(),
         searchText: String(item?.searchText || '').trim(),
@@ -192,16 +210,30 @@ const Main_SalesProductDetails = ({
               }
               renderSuggestion={(suggestion) => (
                 <div className={styles.suggestionContent}>
-                  <div className={styles.suggestionTitle}>
-                    {suggestion?.name || ''}
+                  <div className={styles.suggestionIconWrapper}>
+                    {resolveIconUrl(suggestion?.icon_url) ? (
+                      <img
+                        src={resolveIconUrl(suggestion?.icon_url)}
+                        alt={suggestion?.name || 'Product icon'}
+                        className={styles.suggestionIcon}
+                        loading="lazy"
+                      />
+                    ) : (
+                      <span className={styles.suggestionIconFallback}>?</span>
+                    )}
                   </div>
-                  <div className={styles.suggestionMeta}>
-                    <span>
-                      Category: {suggestion?.category_name || 'Uncategorized'}
-                    </span>
-                    <span>
-                      Alibaba ID: {suggestion?.alibaba_id_value || '-'}
-                    </span>
+                  <div className={styles.suggestionTextBlock}>
+                    <div className={styles.suggestionTitle}>
+                      {suggestion?.name || ''}
+                    </div>
+                    <div className={styles.suggestionMeta}>
+                      <span>
+                        Category: {suggestion?.category_name || 'Uncategorized'}
+                      </span>
+                      <span>
+                        Alibaba ID: {suggestion?.alibaba_id_value || '-'}
+                      </span>
+                    </div>
                   </div>
                 </div>
               )}

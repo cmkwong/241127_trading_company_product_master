@@ -20,8 +20,40 @@
 
 .suggestionContent {
   display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.suggestionIconWrapper {
+  width: 28px;
+  height: 28px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  overflow: hidden;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f9fafb;
+}
+
+.suggestionIcon {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.suggestionIconFallback {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.suggestionTextBlock {
+  display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 0;
 }
 
 .suggestionTitle {

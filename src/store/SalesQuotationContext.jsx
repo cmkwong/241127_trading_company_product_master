@@ -526,7 +526,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
         `${PRODUCTS_API_BASE}/data/list`,
         {
           fields: {
-            products: ['id', 'remark', 'hs_code', 'product_index'],
+            products: ['id', 'remark', 'hs_code', 'product_index', 'icon_url'],
             product_names: ['id', 'product_id', 'name'],
             product_categories: ['id', 'product_id', 'category_id'],
             product_alibaba_ids: ['id', 'product_id', 'value'],
@@ -918,6 +918,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
         return {
           id,
           name,
+          icon_url: toSafeString(product?.icon_url),
           category_name: categoryNames.join(', '),
           alibaba_id_value: alibabaIdValue,
           searchText: [name, categoryNames.join(' '), alibabaIdValue]

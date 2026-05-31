@@ -33,6 +33,12 @@ export const ProductContext = createContext();
 
 const SIDEBAR_ICON_MEMORY_BUDGET_BYTES = 400 * 1024 * 1024;
 const ICON_FETCH_BATCH_SIZE = 40;
+const PRODUCT_LIST_ICON_COMPRESSION = {
+  iconCompress: true,
+  iconMaxWidth: 220,
+  iconMaxHeight: 220,
+  iconQuality: 0.45,
+};
 
 // Provider component for save page data
 export const ProductContext_Provider = ({ children, initialData = {} }) => {
@@ -78,16 +84,9 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
       const response = await apiPost(
         'http://localhost:3001/api/v1/trade_business/products/data/list',
         {
-          includeBase64: true,
-          compress: true,
+          includeBase64: false,
           fields: {
-            products: [
-              'id',
-              'product_status_id',
-              'status_id',
-              'created_at',
-              'updated_at',
-            ],
+            products: ['id', 'product_status_id', 'created_at', 'updated_at'],
             product_names: ['id', 'product_id', 'name'],
             product_categories: ['id', 'product_id', 'category_id'],
             product_alibaba_ids: ['id', 'product_id', 'value'],
@@ -204,14 +203,9 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
             includeBase64: true,
             iconOnly: true,
             compress: true,
+            ...PRODUCT_LIST_ICON_COMPRESSION,
             fields: {
-              products: [
-                'id',
-                'product_status_id',
-                'status_id',
-                'created_at',
-                'updated_at',
-              ],
+              products: ['id', 'product_status_id', 'created_at', 'updated_at'],
               product_names: ['id', 'product_id', 'name'],
               product_categories: ['id', 'product_id', 'category_id'],
               product_alibaba_ids: ['id', 'product_id', 'value'],

@@ -22,6 +22,31 @@ const toNumber = (value, fallback = '') => {
   return Number.isNaN(parsed) ? fallback : parsed;
 };
 
+const buildAddressPreview = (address) => {
+  const detail = String(address?.address_detail || '').trim();
+  if (detail) {
+    return detail;
+  }
+
+  const parts = [
+    address?.address,
+    address?.line1,
+    address?.line2,
+    address?.city,
+    address?.state || address?.province,
+    address?.country,
+    address?.postal_code || address?.zip_code,
+  ]
+    .map((value) => String(value || '').trim())
+    .filter(Boolean);
+
+  if (parts.length > 0) {
+    return parts.join(', ');
+  }
+
+  return String(address?.name || address?.label || address?.id || '').trim();
+};
+
 const Main_SalesShippingDetails = ({
   quotation,
   customerAddressOptions = [],
@@ -42,6 +67,7 @@ const Main_SalesShippingDetails = ({
     () => quotation?.sales_shipping_images || [],
     [quotation?.sales_shipping_images],
   );
+  const selectedCustomerId = String(quotation?.customer_id || '').trim();
 
   const setShippingDetails = useCallback(
     (nextRows) => {
@@ -220,14 +246,28 @@ const Main_SalesShippingDetails = ({
     [shippingPrices, incotermOptions, currencyOptions, setShippingPrices],
   );
 
-  const addressDropdownOptions = useMemo(
-    () =>
-      (customerAddressOptions || []).map((item) => ({
-        id: String(item?.id || '').trim(),
-        name: String(item?.name || item?.label || item?.id || '').trim(),
-      })),
-    [customerAddressOptions],
-  );
+  const addressSuggestionOptions = useMemo(() => {
+    const scopedAddresses = !selectedCustomerId
+      ? customerAddressOptions || []
+      : (customerAddressOptions || []).filter(
+          (item) =>
+            String(item?.customer_id || '').trim() === selectedCustomerId,
+        );
+
+    return scopedAddresses.map((item) => ({
+      id: String(item?.id || '').trim(),
+      name: buildAddressPreview(item),
+      customer_id: String(item?.customer_id || '').trim(),
+      address_detail: buildAddressPreview(item),
+      searchText: [
+        buildAddressPreview(item),
+        String(item?.customer_id || '').trim(),
+        String(item?.id || '').trim(),
+      ]
+        .filter(Boolean)
+        .join(' '),
+    }));
+  }, [customerAddressOptions, selectedCustomerId]);
 
   const supplierDropdownOptions = useMemo(
     () =>
@@ -266,15 +306,55 @@ const Main_SalesShippingDetails = ({
         label: 'Customer Address',
         sortType: 'string',
         getSortValue: (row) =>
-          addressDropdownOptions.find(
+          addressSuggestionOptions.find(
             (item) => item.id === row.customer_address_id,
           )?.name || '',
         renderCell: (row) => (
-          <Main_Dropdown
-            defaultOptions={addressDropdownOptions}
-            defaultSelectedOption={row.customer_address_id || ''}
-            onChange={(ov, nv) =>
-              handleUpsertShippingDetail(row, { customer_address_id: nv })
+          <Main_Suggest
+            defaultSuggestions={addressSuggestionOptions}
+            defaultValue={
+              addressSuggestionOptions.find(
+                (item) => item.id === row.customer_address_id,
+              )?.name || ''
+            }
+            placeholder="Search customer address"
+            autoComplete="new-password"
+            getSuggestionLabel={(suggestion) => suggestion?.name || ''}
+            getSuggestionSearchText={(suggestion) =>
+              String(
+                suggestion?.searchText ||
+                  [
+                    suggestion?.name,
+                    suggestion?.address_detail,
+                    suggestion?.customer_id,
+                    suggestion?.id,
+                  ]
+                    .filter(Boolean)
+                    .join(' '),
+              )
+            }
+            renderSuggestion={(suggestion) => (
+              <div className={styles.suggestionContent}>
+                <div className={styles.suggestionTitle}>
+                  {suggestion?.name || suggestion?.id || ''}
+                </div>
+                <div className={styles.suggestionMeta}>
+                  <span>Customer ID: {suggestion?.customer_id || '-'}</span>
+                  <span>
+                    Address Detail: {suggestion?.address_detail || '-'}
+                  </span>
+                </div>
+              </div>
+            )}
+            onChange={(ov, nv) => {
+              if (!String(nv || '').trim()) {
+                handleUpsertShippingDetail(row, { customer_address_id: '' });
+              }
+            }}
+            onSelectSuggestion={(suggestion) =>
+              handleUpsertShippingDetail(row, {
+                customer_address_id: String(suggestion?.id || '').trim(),
+              })
             }
           />
         ),
@@ -427,7 +507,7 @@ const Main_SalesShippingDetails = ({
       },
     ],
     [
-      addressDropdownOptions,
+      addressSuggestionOptions,
       shippingImages,
       handleShippingImagesChange,
       handleUpsertShippingDetail,

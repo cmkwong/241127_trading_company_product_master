@@ -17,6 +17,7 @@ const Sub_TextField = forwardRef((props, externalRef) => {
     maxLength,
     minLength,
     pattern,
+    autoComplete,
     autoFocus = false,
     className = '',
     onFocus,
@@ -97,6 +98,7 @@ const Sub_TextField = forwardRef((props, externalRef) => {
       maxLength={maxLength}
       minLength={minLength}
       pattern={pattern}
+      autoComplete={autoComplete}
       autoFocus={autoFocus}
       onFocus={onFocus}
       onBlur={onBlur}
@@ -155,6 +157,7 @@ Sub_TextField.propTypes = {
   maxLength: PropTypes.number,
   minLength: PropTypes.number,
   pattern: PropTypes.string,
+  autoComplete: PropTypes.string,
   autoFocus: PropTypes.bool,
   className: PropTypes.string,
   onFocus: PropTypes.func,

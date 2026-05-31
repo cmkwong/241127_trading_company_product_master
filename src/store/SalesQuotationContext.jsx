@@ -156,12 +156,19 @@ const pickFirstLabel = (record, keys = []) => {
 const pickNestedName = (record, nestedKeys = []) => {
   for (const key of nestedKeys) {
     const rows = toArray(record?.[key]);
-    const first = rows[0];
-    const label =
-      pickFirstLabel(first, ['name', 'value', 'remark']) ||
-      pickFirstLabel(first, ['label']);
-    if (label) {
-      return label;
+    for (const row of rows) {
+      const label = pickFirstLabel(row, [
+        'name',
+        'customer_name',
+        'display_name',
+        'full_name',
+        'value',
+        'remark',
+        'label',
+      ]);
+      if (label) {
+        return label;
+      }
     }
   }
   return '';
@@ -579,7 +586,9 @@ export const SalesQuotationContext_Provider = ({ children }) => {
     const productResponse =
       productResult.status === 'fulfilled' ? productResult.value : null;
     const masterCustomerTypeResponse =
-      customerTypeResult.status === 'fulfilled' ? customerTypeResult.value : null;
+      customerTypeResult.status === 'fulfilled'
+        ? customerTypeResult.value
+        : null;
 
     const customerRows = extractRowsFromResponse(customerResponse, 'customers');
     const customerAddressRows = extractRowsFromResponse(

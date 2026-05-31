@@ -28,6 +28,7 @@ const Main_TextField = (props) => {
     maxLength,
     minLength,
     pattern,
+    autoComplete,
     autoFocus = false,
     className = '',
     helperText,
@@ -80,6 +81,7 @@ const Main_TextField = (props) => {
             maxLength={maxLength}
             minLength={minLength}
             pattern={pattern}
+            autoComplete={autoComplete}
             autoFocus={autoFocus}
             className={className}
             onFocus={onFocus}
@@ -118,6 +120,7 @@ Main_TextField.propTypes = {
   maxLength: PropTypes.number,
   minLength: PropTypes.number,
   pattern: PropTypes.string,
+  autoComplete: PropTypes.string,
   autoFocus: PropTypes.bool,
   className: PropTypes.string,
   helperText: PropTypes.string,

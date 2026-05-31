@@ -54,6 +54,7 @@ const Main_Suggest = (props) => {
     label,
     inputId,
     placeholder = 'Type to search...',
+    autoComplete,
     getSuggestionLabel = getDefaultSuggestionLabel,
     getSuggestionSearchText = getDefaultSuggestionSearchText,
     renderSuggestion,
@@ -178,6 +179,7 @@ const Main_Suggest = (props) => {
             defaultValue={inputValue}
             onChange={handleInputChange}
             placeholder={placeholder}
+            autoComplete={autoComplete}
             onFocus={handleFocus}
             onBlur={handleBlur}
             className={styles.suggestInput}
@@ -228,6 +230,7 @@ Main_Suggest.propTypes = {
   label: PropTypes.string,
   inputId: PropTypes.string,
   placeholder: PropTypes.string,
+  autoComplete: PropTypes.string,
   getSuggestionLabel: PropTypes.func,
   getSuggestionSearchText: PropTypes.func,
   renderSuggestion: PropTypes.func,

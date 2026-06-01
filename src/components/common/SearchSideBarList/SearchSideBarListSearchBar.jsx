@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Main_TextField from '../InputOptions/TextField/Main_TextField';
 import styles from './SearchSideBarList.module.css';
 
@@ -20,6 +20,14 @@ const getHistoryIconUrl = (entry) => {
   ).trim();
 };
 
+const getHistoryEntryId = (entry) => {
+  if (!entry || typeof entry !== 'object') {
+    return '';
+  }
+
+  return String(entry.id || '').trim();
+};
+
 const SearchSideBarListSearchBar = ({
   value = '',
   onChange,
@@ -28,6 +36,7 @@ const SearchSideBarListSearchBar = ({
   onSelectHistory,
   onClear,
   onCommitSearch,
+  onVisibleHistoryItemIdsChange,
 }) => {
   const [showHistory, setShowHistory] = useState(false);
   const [hoverPreview, setHoverPreview] = useState(null);
@@ -61,6 +70,28 @@ const SearchSideBarListSearchBar = ({
   const handleIconMouseLeave = () => {
     setHoverPreview(null);
   };
+
+  const notifyVisibleHistoryIds = useCallback(() => {
+    if (typeof onVisibleHistoryItemIdsChange !== 'function') {
+      return;
+    }
+
+    const ids = (searchHistory || [])
+      .map((entry) => getHistoryEntryId(entry))
+      .filter(Boolean);
+
+    if (ids.length > 0) {
+      onVisibleHistoryItemIdsChange(ids);
+    }
+  }, [onVisibleHistoryItemIdsChange, searchHistory]);
+
+  useEffect(() => {
+    if (!showHistory) {
+      return;
+    }
+
+    notifyVisibleHistoryIds();
+  }, [showHistory, notifyVisibleHistoryIds]);
 
   return (
     <div className={styles.searchContainer}>
@@ -125,7 +156,10 @@ const SearchSideBarListSearchBar = ({
         {showHistory &&
           Array.isArray(searchHistory) &&
           searchHistory.length > 0 && (
-            <div className={styles.searchHistoryPanel}>
+            <div
+              className={styles.searchHistoryPanel}
+              onScroll={notifyVisibleHistoryIds}
+            >
               {searchHistory.map((entry, index) => {
                 const label = getHistoryLabel(entry);
                 const iconUrl = getHistoryIconUrl(entry);

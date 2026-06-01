@@ -364,6 +364,14 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
     [hydrateProductIcons],
   );
 
+  const handleVisibleHistoryItemIdsChange = useCallback(
+    (visibleIds = []) => {
+      if (!Array.isArray(visibleIds) || visibleIds.length === 0) return;
+      hydrateProductIcons(visibleIds);
+    },
+    [hydrateProductIcons],
+  );
+
   const resolveProductExportImage = useCallback(
     async ({ item, currentSource }) => {
       const existingSource = String(
@@ -513,6 +521,7 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
           onSelectSearchHistory={handleSelectSearchHistory}
           onClearSearch={handleClearSearch}
           onVisibleItemIdsChange={handleVisibleItemIdsChange}
+          onVisibleHistoryItemIdsChange={handleVisibleHistoryItemIdsChange}
           searchPlaceholder="Search products..."
           onCreate={handleCreateProduct}
           createButtonTitle="Create New Product"

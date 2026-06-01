@@ -19,6 +19,7 @@ const SearchSideBarList = ({
   onClearSearch,
   onCommitSearch,
   onVisibleItemIdsChange,
+  onVisibleHistoryItemIdsChange,
   searchPlaceholder = 'Search...',
   onCreate,
   showCreateButton = true,
@@ -48,6 +49,38 @@ const SearchSideBarList = ({
   const itemRefs = useRef(new Map());
   const listRef = useRef(null);
   const pendingHistoryScrollRef = useRef(false);
+
+  const emitVisibleItemIdsFromScroll = useCallback(() => {
+    if (typeof onVisibleItemIdsChange !== 'function') {
+      return;
+    }
+
+    const root = listRef.current;
+    if (!root) {
+      return;
+    }
+
+    const rootRect = root.getBoundingClientRect();
+    const visibleIds = [];
+
+    itemRefs.current.forEach((element, itemId) => {
+      if (!element || !itemId) {
+        return;
+      }
+
+      const rect = element.getBoundingClientRect();
+      const isVisible =
+        rect.bottom >= rootRect.top - 120 && rect.top <= rootRect.bottom + 120;
+
+      if (isVisible) {
+        visibleIds.push(itemId);
+      }
+    });
+
+    if (visibleIds.length > 0) {
+      onVisibleItemIdsChange(visibleIds);
+    }
+  }, [onVisibleItemIdsChange]);
 
   const setItemRef = useCallback((itemId, element) => {
     const itemKey = toItemKey(itemId);
@@ -166,6 +199,38 @@ const SearchSideBarList = ({
     };
   }, [items, onVisibleItemIdsChange]);
 
+  useEffect(() => {
+    const root = listRef.current;
+    if (!root || typeof onVisibleItemIdsChange !== 'function') {
+      return;
+    }
+
+    let rafId = null;
+
+    const handleScroll = () => {
+      if (rafId !== null) {
+        return;
+      }
+
+      rafId = window.requestAnimationFrame(() => {
+        emitVisibleItemIdsFromScroll();
+        rafId = null;
+      });
+    };
+
+    // Initial sync to hydrate icons for initially visible items.
+    emitVisibleItemIdsFromScroll();
+
+    root.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      root.removeEventListener('scroll', handleScroll);
+      if (rafId !== null) {
+        window.cancelAnimationFrame(rafId);
+      }
+    };
+  }, [items, onVisibleItemIdsChange, emitVisibleItemIdsFromScroll]);
+
   return (
     <div className={`${styles.container} ${className}`}>
       <div className={styles.toolbar}>
@@ -177,6 +242,7 @@ const SearchSideBarList = ({
             onSelectHistory={handleSelectHistory}
             onClear={onClearSearch}
             onCommitSearch={onCommitSearch}
+            onVisibleHistoryItemIdsChange={onVisibleHistoryItemIdsChange}
             placeholder={searchPlaceholder}
           />
         </div>

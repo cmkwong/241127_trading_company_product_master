@@ -246,6 +246,41 @@ const Main_SalesShippingDetails = ({
     [shippingPrices, incotermOptions, currencyOptions, setShippingPrices],
   );
 
+  const handleToggleShippingPriceSelected = useCallback(
+    (row, isSelected) => {
+      const rowId = String(row?.id || '').trim();
+      const detailId = String(row?.sales_shipping_detail_id || '').trim();
+
+      if (!rowId || !detailId) {
+        return;
+      }
+
+      if (!isSelected) {
+        handleUpsertShippingPrice(row, { selected: false });
+        return;
+      }
+
+      setShippingPrices(
+        shippingPrices.map((item) => {
+          const itemId = String(item?.id || '').trim();
+          const itemDetailId = String(
+            item?.sales_shipping_detail_id || '',
+          ).trim();
+
+          if (itemDetailId !== detailId) {
+            return item;
+          }
+
+          return {
+            ...item,
+            selected: itemId === rowId,
+          };
+        }),
+      );
+    },
+    [shippingPrices, setShippingPrices, handleUpsertShippingPrice],
+  );
+
   const addressSuggestionOptions = useMemo(() => {
     const scopedAddresses = !selectedCustomerId
       ? customerAddressOptions || []
@@ -626,9 +661,7 @@ const Main_SalesShippingDetails = ({
               type="checkbox"
               checked={Boolean(row.selected)}
               onChange={(event) =>
-                handleUpsertShippingPrice(row, {
-                  selected: event.target.checked,
-                })
+                handleToggleShippingPriceSelected(row, event.target.checked)
               }
             />
           </div>
@@ -663,6 +696,7 @@ const Main_SalesShippingDetails = ({
       incotermDropdownOptions,
       currencyDropdownOptions,
       handleUpsertShippingPrice,
+      handleToggleShippingPriceSelected,
       handleDeleteShippingPrice,
     ],
   );

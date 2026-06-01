@@ -47,7 +47,18 @@ const SalesQuotationSidebar = ({
     (customerOptions || []).forEach((item) => {
       const id = String(item?.id || '').trim();
       if (!id) return;
-      map.set(id, String(item?.name || item?.label || item?.id || '').trim());
+      map.set(
+        id,
+        String(
+          item?.customer_display_name ||
+            item?.display_name ||
+            item?.customer_name ||
+            item?.name ||
+            item?.label ||
+            item?.id ||
+            '',
+        ).trim(),
+      );
     });
     return map;
   }, [customerOptions]);
@@ -97,8 +108,7 @@ const SalesQuotationSidebar = ({
       const customerName =
         customerNameById.get(String(quotation?.customer_id || '').trim()) ||
         'Unknown Customer';
-      const shortId = String(quotation?.id || '').slice(0, 8) || 'new';
-      return `SQ-${shortId} | ${customerName}`;
+      return customerName;
     },
     [customerNameById],
   );

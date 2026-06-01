@@ -7,9 +7,11 @@ import Main_SalesShippingDetails from './ShippingDetails/Main_SalesShippingDetai
 import Main_SalesProductDetails from './ProductDetails/Main_SalesProductDetails';
 import Main_SalesServiceDetails from './ServiceDetails/Main_SalesServiceDetails';
 import { useSalesQuotationContext } from '../../../store/SalesQuotationContext';
+import DeleteBtn from '../../common/Buttons/DeleteBtn';
 
 const Main_SalesQuotation = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const {
     quotations,
     selectedQuotationId,
@@ -26,6 +28,7 @@ const Main_SalesQuotation = () => {
     patchSelectedQuotation: patchSalesQuotationInContext,
     saveSelectedQuotation,
     createSalesQuotation,
+    deleteSalesQuotation,
     getSalesQuotationDryRunData,
   } = useSalesQuotationContext();
 
@@ -53,6 +56,31 @@ const Main_SalesQuotation = () => {
     await saveSelectedQuotation();
   }, [saveSelectedQuotation]);
 
+  const handleDeleteQuotation = useCallback(async () => {
+    const quotationId = String(selectedQuotation?.id || '').trim();
+    if (!quotationId || isDeleting) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      'Delete this sales quotation? This action cannot be undone.',
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      await deleteSalesQuotation(quotationId);
+    } catch (error) {
+      console.error('Failed to delete sales quotation:', error);
+      alert(error?.message || 'Failed to delete sales quotation.');
+    } finally {
+      setIsDeleting(false);
+    }
+  }, [deleteSalesQuotation, isDeleting, selectedQuotation]);
+
   return (
     <SalesQuotationSavePageContainer
       onSave={handleSaveQuotation}
@@ -79,6 +107,16 @@ const Main_SalesQuotation = () => {
           <div className={styles.inputSide}>
             {selectedQuotation ? (
               <>
+                <div className={styles.quotationActions}>
+                  <DeleteBtn
+                    text={isDeleting ? 'Deleting...' : 'Delete Quotation'}
+                    onClick={handleDeleteQuotation}
+                    disabled={isDeleting}
+                    title="Delete selected sales quotation"
+                    ariaLabel="Delete selected sales quotation"
+                  />
+                </div>
+
                 <Main_SalesBasicInfo
                   quotation={selectedQuotation}
                   customerOptions={customerOptions}

@@ -648,12 +648,16 @@ export const SalesQuotationContext_Provider = ({ children }) => {
       .map((customer) => {
         const id = toSafeString(customer?.id);
         const customerName =
-          pickFirstLabel(customer, ['name']) ||
           pickNestedName(customer, ['customer_names']) ||
+          pickFirstLabel(customer, [
+            'customer_display_name',
+            'display_name',
+            'customer_name',
+            'name',
+          ]) ||
           pickFirstLabel(customer, ['customer_code', 'code']);
         const label =
-          pickFirstLabel(customer, ['name', 'customer_code', 'code']) ||
-          pickNestedName(customer, ['customer_names']);
+          customerName || pickFirstLabel(customer, ['customer_code', 'code']);
 
         const typeRows = [
           ...toArray(customer?.customer_types),
@@ -1134,23 +1138,10 @@ export const SalesQuotationContext_Provider = ({ children }) => {
 
     discardSelectedQuotationUnsavedChanges();
 
-    const defaultCustomerId = toSafeString(customerOptions?.[0]?.id);
-    const firstAddress = customerAddressOptions.find(
-      (address) => toSafeString(address?.customer_id) === defaultCustomerId,
-    );
-
     const newPayload = {
       to_order: false,
       remark: '',
     };
-
-    if (defaultCustomerId) {
-      newPayload.customer_id = defaultCustomerId;
-    }
-
-    if (firstAddress?.id) {
-      newPayload.customer_address_id = toSafeString(firstAddress.id);
-    }
 
     const response = await apiPost(
       `${SALES_API_BASE}/data`,
@@ -1187,8 +1178,6 @@ export const SalesQuotationContext_Provider = ({ children }) => {
     const refreshedRows = await refreshSalesQuotationList();
     return refreshedRows[0] || null;
   }, [
-    customerAddressOptions,
-    customerOptions,
     discardSelectedQuotationUnsavedChanges,
     isDataUnchanged,
     refreshSalesQuotationList,

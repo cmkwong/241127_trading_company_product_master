@@ -30,6 +30,12 @@
   padding-bottom: 1.25rem;
 }
 
+.quotationActions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.25rem;
+}
+
 .emptyState {
   border: 1px dashed #cbd5e1;
   border-radius: 10px;
@@ -50,5 +56,9 @@
     margin-left: 0;
     height: auto;
     min-height: calc(100vh - 300px);
+  }
+
+  .quotationActions {
+    justify-content: stretch;
   }
 }

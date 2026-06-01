@@ -13,7 +13,7 @@ const Main_SalesQuotation = () => {
   const {
     quotations,
     selectedQuotationId,
-    setSelectedQuotationId,
+    selectSalesQuotation,
     selectedQuotation,
     isSalesQuotationsLoading,
     customerOptions,
@@ -40,9 +40,9 @@ const Main_SalesQuotation = () => {
 
   const handleSelectQuotation = useCallback(
     (quotation) => {
-      setSelectedQuotationId(String(quotation?.id || ''));
+      selectSalesQuotation(String(quotation?.id || ''));
     },
-    [setSelectedQuotationId],
+    [selectSalesQuotation],
   );
 
   const handleCreateQuotation = useCallback(async () => {

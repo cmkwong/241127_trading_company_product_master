@@ -1009,6 +1009,29 @@ export const SalesQuotationContext_Provider = ({ children }) => {
     [upsertSalesQuotationPageData],
   );
 
+  const discardSelectedQuotationUnsavedChanges = useCallback(() => {
+    const targetId = toSafeString(selectedQuotation?.id);
+    if (!targetId) {
+      return;
+    }
+
+    const originalSnapshot = originalQuotationMap?.[targetId];
+    if (!originalSnapshot) {
+      return;
+    }
+
+    const normalizedOriginal = normalizeSalesQuotation(originalSnapshot);
+
+    setQuotations((previousRows) =>
+      previousRows.map((row) =>
+        toSafeString(row?.id) === targetId
+          ? deepClone(normalizedOriginal)
+          : row,
+      ),
+    );
+    setSaveError('');
+  }, [selectedQuotation, originalQuotationMap]);
+
   const saveSelectedQuotation = useCallback(async () => {
     const targetId = toSafeString(selectedQuotation?.id);
     if (!token) {
@@ -1098,6 +1121,19 @@ export const SalesQuotationContext_Provider = ({ children }) => {
       return null;
     }
 
+    const canCreate = canProceedWithRecordSwitch({
+      hasRecordId: !!selectedQuotation?.id,
+      isDataUnchanged: isDataUnchanged(),
+      message:
+        'You have unsaved changes. Click OK to discard them and create a new sales quotation.',
+    });
+
+    if (!canCreate) {
+      return null;
+    }
+
+    discardSelectedQuotationUnsavedChanges();
+
     const defaultCustomerId = toSafeString(customerOptions?.[0]?.id);
     const firstAddress = customerAddressOptions.find(
       (address) => toSafeString(address?.customer_id) === defaultCustomerId,
@@ -1153,7 +1189,10 @@ export const SalesQuotationContext_Provider = ({ children }) => {
   }, [
     customerAddressOptions,
     customerOptions,
+    discardSelectedQuotationUnsavedChanges,
+    isDataUnchanged,
     refreshSalesQuotationList,
+    selectedQuotation,
     token,
   ]);
 
@@ -1213,6 +1252,10 @@ export const SalesQuotationContext_Provider = ({ children }) => {
         return false;
       }
 
+      if (nextId === toSafeString(selectedQuotation?.id)) {
+        return true;
+      }
+
       const canSwitch = canProceedWithRecordSwitch({
         hasRecordId: !!selectedQuotation?.id,
         isDataUnchanged: isDataUnchanged(),
@@ -1222,10 +1265,16 @@ export const SalesQuotationContext_Provider = ({ children }) => {
         return false;
       }
 
+      discardSelectedQuotationUnsavedChanges();
+
       setSelectedQuotationId(nextId);
       return true;
     },
-    [isDataUnchanged, selectedQuotation],
+    [
+      discardSelectedQuotationUnsavedChanges,
+      isDataUnchanged,
+      selectedQuotation,
+    ],
   );
 
   const getSalesQuotationDryRunData = useCallback(async () => {

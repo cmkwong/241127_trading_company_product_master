@@ -16,7 +16,7 @@ import {
   normalizeStructuredTableResponse,
   buildNestedChangedData,
   cleanupNestedInternalFlags,
-  canProceedWithRecordSwitch,
+  canProceedAndDiscardUnsavedChanges,
   getEffectiveComparisonKeys,
   validateNestedDataObject,
   mergeEntityIntoStateList,
@@ -195,6 +195,19 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
     return getChangedData() === null;
   }, [getChangedData]);
 
+  const discardCurrentSupplierUnsavedChanges = useCallback(() => {
+    if (
+      originalPageData &&
+      String(originalPageData?.id || '').trim() ===
+        String(pageData?.id || '').trim()
+    ) {
+      setPageData(JSON.parse(JSON.stringify(originalPageData)));
+      return;
+    }
+
+    setPageData({});
+  }, [originalPageData, pageData]);
+
   const getSupplierSaveDryRunData = useCallback(() => {
     const changesResult = getChangedData();
     const preview = {
@@ -233,12 +246,13 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
 
   const getSupplierData = useCallback(
     (id) => {
-      if (
-        !canProceedWithRecordSwitch({
-          hasRecordId: !!pageData.id,
-          isDataUnchanged: isDataUnchanged(),
-        })
-      ) {
+      const canSwitch = canProceedAndDiscardUnsavedChanges({
+        hasRecordId: !!pageData.id,
+        isDataUnchanged: isDataUnchanged(),
+        onDiscard: discardCurrentSupplierUnsavedChanges,
+      });
+
+      if (!canSwitch) {
         return false;
       }
 
@@ -297,7 +311,13 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
 
       return true;
     },
-    [pageData, isDataUnchanged, token, supplierBase64Config],
+    [
+      pageData,
+      isDataUnchanged,
+      token,
+      supplierBase64Config,
+      discardCurrentSupplierUnsavedChanges,
+    ],
   );
 
   const upsertSupplierPageData = useCallback((nestedData) => {
@@ -415,12 +435,13 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
   }, [suppliers]);
 
   const createNewSupplier = useCallback(() => {
-    if (
-      !canProceedWithRecordSwitch({
-        hasRecordId: !!pageData.id,
-        isDataUnchanged: isDataUnchanged(),
-      })
-    ) {
+    const canCreate = canProceedAndDiscardUnsavedChanges({
+      hasRecordId: !!pageData.id,
+      isDataUnchanged: isDataUnchanged(),
+      onDiscard: discardCurrentSupplierUnsavedChanges,
+    });
+
+    if (!canCreate) {
       return false;
     }
 
@@ -441,7 +462,12 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
     setSelectedSupplierId(newSupplierId);
 
     return true;
-  }, [pageData, isDataUnchanged, generateNextSupplierCode]);
+  }, [
+    pageData,
+    isDataUnchanged,
+    generateNextSupplierCode,
+    discardCurrentSupplierUnsavedChanges,
+  ]);
 
   const getAllData = useCallback(() => {
     return pageData;

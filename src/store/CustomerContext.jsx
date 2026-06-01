@@ -16,7 +16,7 @@ import {
 } from '../utils/objectUrlUtils';
 import {
   buildNestedChangedData,
-  canProceedWithRecordSwitch,
+  canProceedAndDiscardUnsavedChanges,
   cleanupNestedInternalFlags,
   ensureContextAvailable,
   generateNextSegmentedCode,
@@ -194,6 +194,19 @@ export const CustomerContext_Provider = ({ children, initialData = {} }) => {
     return getChangedData() === null;
   }, [getChangedData]);
 
+  const discardCurrentCustomerUnsavedChanges = useCallback(() => {
+    if (
+      originalPageData &&
+      String(originalPageData?.id || '').trim() ===
+        String(pageData?.id || '').trim()
+    ) {
+      setPageData(JSON.parse(JSON.stringify(originalPageData)));
+      return;
+    }
+
+    setPageData({});
+  }, [originalPageData, pageData]);
+
   const getCustomerSaveDryRunData = useCallback(() => {
     const changesResult = getChangedData();
     const preview = {
@@ -231,12 +244,13 @@ export const CustomerContext_Provider = ({ children, initialData = {} }) => {
 
   const getCustomerData = useCallback(
     (id) => {
-      if (
-        !canProceedWithRecordSwitch({
-          hasRecordId: !!pageData.id,
-          isDataUnchanged: isDataUnchanged(),
-        })
-      ) {
+      const canSwitch = canProceedAndDiscardUnsavedChanges({
+        hasRecordId: !!pageData.id,
+        isDataUnchanged: isDataUnchanged(),
+        onDiscard: discardCurrentCustomerUnsavedChanges,
+      });
+
+      if (!canSwitch) {
         return false;
       }
 
@@ -288,7 +302,13 @@ export const CustomerContext_Provider = ({ children, initialData = {} }) => {
 
       return true;
     },
-    [pageData, isDataUnchanged, token, customerBase64Config],
+    [
+      pageData,
+      isDataUnchanged,
+      token,
+      customerBase64Config,
+      discardCurrentCustomerUnsavedChanges,
+    ],
   );
 
   const upsertCustomerPageData = useCallback((nestedData) => {
@@ -404,12 +424,13 @@ export const CustomerContext_Provider = ({ children, initialData = {} }) => {
   }, [customers]);
 
   const createNewCustomer = useCallback(() => {
-    if (
-      !canProceedWithRecordSwitch({
-        hasRecordId: !!pageData.id,
-        isDataUnchanged: isDataUnchanged(),
-      })
-    ) {
+    const canCreate = canProceedAndDiscardUnsavedChanges({
+      hasRecordId: !!pageData.id,
+      isDataUnchanged: isDataUnchanged(),
+      onDiscard: discardCurrentCustomerUnsavedChanges,
+    });
+
+    if (!canCreate) {
       return false;
     }
 
@@ -429,7 +450,12 @@ export const CustomerContext_Provider = ({ children, initialData = {} }) => {
     setSelectedCustomerId(newCustomerId);
 
     return true;
-  }, [pageData, isDataUnchanged, generateNextCustomerCode]);
+  }, [
+    pageData,
+    isDataUnchanged,
+    generateNextCustomerCode,
+    discardCurrentCustomerUnsavedChanges,
+  ]);
 
   const getAllData = useCallback(() => {
     return pageData;

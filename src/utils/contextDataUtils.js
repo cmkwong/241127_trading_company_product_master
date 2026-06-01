@@ -219,6 +219,33 @@ export const canProceedWithRecordSwitch = ({
 };
 
 /**
+ * Shared guard + discard helper for switching records/modules.
+ * If unsaved changes exist and user confirms, `onDiscard` will run before proceeding.
+ */
+export const canProceedAndDiscardUnsavedChanges = ({
+  hasRecordId,
+  isDataUnchanged,
+  onDiscard,
+  message = 'You have unsaved changes. Do you want to continue without saving?',
+}) => {
+  const canProceed = canProceedWithRecordSwitch({
+    hasRecordId,
+    isDataUnchanged,
+    message,
+  });
+
+  if (!canProceed) {
+    return false;
+  }
+
+  if (hasRecordId && !isDataUnchanged && typeof onDiscard === 'function') {
+    onDiscard();
+  }
+
+  return true;
+};
+
+/**
  * Return comparison keys from server when available; otherwise derive from pageData.
  */
 export const getEffectiveComparisonKeys = ({

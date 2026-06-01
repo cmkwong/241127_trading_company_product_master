@@ -27,6 +27,7 @@ import {
   normalizePendingMasterServiceImages,
   resolveMasterServiceImageRelationField,
 } from './utils/masterServiceUtils';
+import { canProceedAndDiscardUnsavedChanges } from '../../../utils/contextDataUtils';
 import styles from './Main_MasterControl.module.css';
 
 const MasterControlContent = () => {
@@ -754,6 +755,67 @@ const MasterControlContent = () => {
     [schemaFieldByColumn],
   );
 
+  const hasUnsavedMasterTableChanges = useMemo(() => {
+    const sanitizedOriginalRows = (originalRows || []).map((row) =>
+      sanitizeRowForSave(row),
+    );
+    const sanitizedDraftRows = (draftRows || []).map((row) =>
+      sanitizeRowForSave(row),
+    );
+
+    const hasRowChanges =
+      JSON.stringify(sanitizedOriginalRows) !==
+      JSON.stringify(sanitizedDraftRows);
+    const hasPendingServiceImageChanges =
+      selectedTable === 'master_services' &&
+      Object.keys(pendingServiceImagesByServiceId || {}).length > 0;
+
+    return hasRowChanges || hasPendingServiceImageChanges;
+  }, [
+    draftRows,
+    originalRows,
+    pendingServiceImagesByServiceId,
+    sanitizeRowForSave,
+    selectedTable,
+  ]);
+
+  const discardMasterTableUnsavedChanges = useCallback(() => {
+    const restoredRows = JSON.parse(JSON.stringify(originalRows || []));
+    setDraftRows(restoredRows);
+    setPendingServiceImagesByServiceId({});
+    setSaveSuccess(false);
+    setSaveError('');
+    setError('');
+  }, [originalRows]);
+
+  const handleSelectTable = useCallback(
+    (nextTableName) => {
+      const nextTable = String(nextTableName || '').trim();
+      if (!nextTable || nextTable === selectedTable) {
+        return;
+      }
+
+      const canSwitch = canProceedAndDiscardUnsavedChanges({
+        hasRecordId: Boolean(selectedTable),
+        isDataUnchanged: !hasUnsavedMasterTableChanges,
+        onDiscard: discardMasterTableUnsavedChanges,
+        message:
+          'You have unsaved changes in the current table. Click OK to discard them and switch table.',
+      });
+
+      if (!canSwitch) {
+        return;
+      }
+
+      setSelectedTable(nextTable);
+    },
+    [
+      selectedTable,
+      hasUnsavedMasterTableChanges,
+      discardMasterTableUnsavedChanges,
+    ],
+  );
+
   const getMasterControlDryRunData = useCallback(async () => {
     const originalById = new Map();
     const draftById = new Map();
@@ -924,7 +986,7 @@ const MasterControlContent = () => {
           <MasterControlSidebar
             tableNames={tableNames}
             selectedTable={selectedTable}
-            onSelect={setSelectedTable}
+            onSelect={handleSelectTable}
           />
 
           <MasterControlTablePanel

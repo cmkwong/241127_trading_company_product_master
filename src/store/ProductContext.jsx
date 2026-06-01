@@ -16,7 +16,7 @@ import {
   normalizeStructuredTableResponse,
   buildNestedChangedData,
   cleanupNestedInternalFlags,
-  canProceedWithRecordSwitch,
+  canProceedAndDiscardUnsavedChanges,
   getEffectiveComparisonKeys,
   validateNestedDataObject,
   mergeEntityIntoStateList,
@@ -403,6 +403,19 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
     return getChangedData() === null;
   }, [getChangedData]);
 
+  const discardCurrentProductUnsavedChanges = useCallback(() => {
+    if (
+      originalPageData &&
+      String(originalPageData?.id || '').trim() ===
+        String(pageData?.id || '').trim()
+    ) {
+      setPageData(JSON.parse(JSON.stringify(originalPageData)));
+      return;
+    }
+
+    setPageData({});
+  }, [originalPageData, pageData]);
+
   const getProductSaveDryRunData = useCallback(async () => {
     const changesResult = getChangedData();
     const preview = {
@@ -455,13 +468,13 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
    */
   const getProductData = useCallback(
     (id) => {
-      // Check if there are unsaved changes in the current product
-      if (
-        !canProceedWithRecordSwitch({
-          hasRecordId: !!pageData.id,
-          isDataUnchanged: isDataUnchanged(),
-        })
-      ) {
+      const canSwitch = canProceedAndDiscardUnsavedChanges({
+        hasRecordId: !!pageData.id,
+        isDataUnchanged: isDataUnchanged(),
+        onDiscard: discardCurrentProductUnsavedChanges,
+      });
+
+      if (!canSwitch) {
         return false;
       }
 
@@ -528,7 +541,13 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
       // Return synchronously so callers can use immediate boolean result (e.g., cancelled by user)
       return true;
     },
-    [pageData, isDataUnchanged, token, productBase64Config],
+    [
+      pageData,
+      isDataUnchanged,
+      token,
+      productBase64Config,
+      discardCurrentProductUnsavedChanges,
+    ],
   );
 
   /**
@@ -754,13 +773,13 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
 
   // Create a new product (clear page data)
   const createNewProduct = useCallback(() => {
-    // Check if there are unsaved changes in the current product
-    if (
-      !canProceedWithRecordSwitch({
-        hasRecordId: !!pageData.id,
-        isDataUnchanged: isDataUnchanged(),
-      })
-    ) {
+    const canCreate = canProceedAndDiscardUnsavedChanges({
+      hasRecordId: !!pageData.id,
+      isDataUnchanged: isDataUnchanged(),
+      onDiscard: discardCurrentProductUnsavedChanges,
+    });
+
+    if (!canCreate) {
       return false;
     }
 
@@ -768,7 +787,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
     setSelectedProductId(newProductId);
     setPageData({ id: newProductId }); // Start with a new product with a generated ID
     return true;
-  }, [pageData, isDataUnchanged]);
+  }, [pageData, isDataUnchanged, discardCurrentProductUnsavedChanges]);
 
   // Get all collected data
   const getAllData = useCallback(() => {

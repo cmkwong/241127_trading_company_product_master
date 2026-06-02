@@ -68,7 +68,7 @@ const SALES_CHILD_TABLE_RENEST_CONFIG = [
   },
 ];
 
-const DEFAULT_INCOTERM_OPTIONS = [
+const FALLBACK_INCOTERM_OPTIONS = [
   { id: 'EXW', name: 'EXW' },
   { id: 'FOB', name: 'FOB' },
   { id: 'CIF', name: 'CIF' },
@@ -390,7 +390,8 @@ const renestSalesPayloadForApi = (
 export const SalesQuotationContext_Provider = ({ children }) => {
   const { token } = useAuthContext();
   const { fileMappings } = useGeneralContext();
-  const { services, currencies, category, supplierType } = useMasterContext();
+  const { services, currencies, incoterms, category, supplierType } =
+    useMasterContext();
 
   const [quotations, setQuotations] = useState([]);
   const [originalQuotationMap, setOriginalQuotationMap] = useState({});
@@ -1331,6 +1332,23 @@ export const SalesQuotationContext_Provider = ({ children }) => {
       .filter(Boolean);
   }, [currencies]);
 
+  const incotermOptions = useMemo(() => {
+    const mappedOptions = toArray(incoterms)
+      .map((item) => {
+        const code = pickFirstLabel(item, ['code', 'name', 'label', 'id']);
+        const name = pickFirstLabel(item, ['name', 'code', 'label', 'id']);
+
+        return toOption(code, name);
+      })
+      .filter(Boolean);
+
+    if (mappedOptions.length > 0) {
+      return mappedOptions;
+    }
+
+    return FALLBACK_INCOTERM_OPTIONS;
+  }, [incoterms]);
+
   const contextValue = {
     quotations,
     selectedQuotationId,
@@ -1344,7 +1362,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
     productOptions,
     serviceOptions,
     currencyOptions,
-    incotermOptions: DEFAULT_INCOTERM_OPTIONS,
+    incotermOptions,
     saveError,
     isDataUnchanged,
     getChangedData,

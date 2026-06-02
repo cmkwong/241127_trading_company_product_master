@@ -36,6 +36,7 @@ const DEFAULT_TABLE_NAMES = [
   'master_customer_image_types',
   'master_customer_name_types',
   'master_currencies',
+  'master_incoterms',
 ];
 
 const TABLE_INITIAL_DATA = {
@@ -60,6 +61,7 @@ const TABLE_INITIAL_DATA = {
   master_customer_image_types: [],
   master_customer_name_types: [],
   master_currencies: [],
+  master_incoterms: [],
 };
 
 const LEGACY_TABLE_BINDINGS = [
@@ -210,11 +212,25 @@ const LEGACY_TABLE_BINDINGS = [
     addName: 'addCurrency',
     removeName: 'removeCurrency',
   },
+  {
+    tableName: 'master_incoterms',
+    getName: 'getIncoterms',
+    updateName: 'updateIncoterms',
+    addName: 'addIncoterm',
+    removeName: 'removeIncoterm',
+  },
 ];
 
 export const MasterContext_Provider = ({ children }) => {
   const { token } = useAuthContext();
   const [masterDataMap, setMasterDataMap] = useState(TABLE_INITIAL_DATA);
+
+  const isMissingTableError = useCallback((error) => {
+    const message = String(error?.message || '');
+    return (
+      /ER_NO_SUCH_TABLE/i.test(message) || /doesn't\s+exist/i.test(message)
+    );
+  }, []);
 
   const category = masterDataMap.master_categories || [];
   const productKeywords = masterDataMap.master_keywords || [];
@@ -237,6 +253,7 @@ export const MasterContext_Provider = ({ children }) => {
   const customerType = masterDataMap.master_customer_types || [];
   const packType = masterDataMap.master_packing_types || [];
   const currencies = masterDataMap.master_currencies || [];
+  const incoterms = masterDataMap.master_incoterms || [];
   const productImageType = masterDataMap.master_product_image_types || [];
 
   const getMasterTableData = useCallback(
@@ -274,10 +291,37 @@ export const MasterContext_Provider = ({ children }) => {
 
   const fetchMasterData = useCallback(
     async (tableName) => {
-      const endpoint = `${DEFAULT_MASTER_API_BASE}/${tableName}`;
-      const response = await apiGet(endpoint, {
-        ...(token ? { token } : {}),
-      });
+      const endpointCandidates =
+        tableName === 'master_incoterms'
+          ? [
+              `${DEFAULT_MASTER_API_BASE}/incoterms`,
+              `${DEFAULT_MASTER_API_BASE}/${tableName}`,
+            ]
+          : [`${DEFAULT_MASTER_API_BASE}/${tableName}`];
+
+      let lastError = null;
+      let response = null;
+
+      for (const endpoint of endpointCandidates) {
+        try {
+          response = await apiGet(endpoint, {
+            ...(token ? { token } : {}),
+          });
+          lastError = null;
+          break;
+        } catch (error) {
+          lastError = error;
+        }
+      }
+
+      if (lastError) {
+        if (isMissingTableError(lastError)) {
+          updateLocalMasterTableData(tableName, []);
+          return [];
+        }
+
+        throw lastError;
+      }
 
       const payload = response?.results ?? response?.data?.results ?? [];
 
@@ -287,7 +331,7 @@ export const MasterContext_Provider = ({ children }) => {
 
       return normalizedData;
     },
-    [token, updateLocalMasterTableData],
+    [isMissingTableError, token, updateLocalMasterTableData],
   );
 
   const updateMasterTableData = useCallback(
@@ -386,10 +430,26 @@ export const MasterContext_Provider = ({ children }) => {
   );
 
   const refreshAllMasterData = useCallback(async () => {
-    await Promise.all(
+    const results = await Promise.allSettled(
       DEFAULT_TABLE_NAMES.map((tableName) => fetchMasterData(tableName)),
     );
-  }, [fetchMasterData]);
+
+    results.forEach((result, index) => {
+      if (result.status !== 'rejected') {
+        return;
+      }
+
+      const tableName = DEFAULT_TABLE_NAMES[index];
+      if (isMissingTableError(result.reason)) {
+        return;
+      }
+
+      console.error(
+        `Failed to refresh master table ${tableName}:`,
+        result.reason,
+      );
+    });
+  }, [fetchMasterData, isMissingTableError]);
 
   useEffect(() => {
     refreshAllMasterData();
@@ -468,6 +528,7 @@ export const MasterContext_Provider = ({ children }) => {
     services,
     sizeType,
     currencies,
+    incoterms,
     masterDataMap,
     masterTableNames: DEFAULT_TABLE_NAMES,
     fetchMasterData,

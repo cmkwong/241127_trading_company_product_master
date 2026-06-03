@@ -9,6 +9,7 @@ import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_File
 import AddNewBtn from '../../../common/Buttons/AddNewBtn';
 import DeleteBtn from '../../../common/Buttons/DeleteBtn';
 import EditableDataTable from '../../../common/Table/EditableDataTable';
+import { isSelectedFlag } from '../utils/quotationTotals';
 import styles from './Main_SalesServiceDetails.module.css';
 
 const FILE_SERVER_BASE_URL = 'http://localhost:3001';
@@ -64,6 +65,7 @@ const Main_SalesServiceDetails = ({
         currency_id: '',
         price: '',
         details: '',
+        selected: true,
         ...row,
         ...patch,
       };
@@ -108,6 +110,7 @@ const Main_SalesServiceDetails = ({
         currency_id: currencyOptions[0]?.id || '',
         price: '',
         details: '',
+        selected: true,
       },
     ]);
   }, [
@@ -289,6 +292,24 @@ const Main_SalesServiceDetails = ({
               handleUpsertServiceDetail(row, { price: toNumber(nv) })
             }
           />
+        ),
+      },
+      {
+        key: 'selected',
+        label: 'Selected',
+        sortType: 'string',
+        renderCell: (row) => (
+          <div className={styles.checkboxCell}>
+            <input
+              type="checkbox"
+              checked={isSelectedFlag(row?.selected, true)}
+              onChange={(event) =>
+                handleUpsertServiceDetail(row, {
+                  selected: event.target.checked,
+                })
+              }
+            />
+          </div>
         ),
       },
       {

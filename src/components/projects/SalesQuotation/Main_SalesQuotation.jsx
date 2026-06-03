@@ -222,14 +222,18 @@ const Main_SalesQuotation = () => {
                       </span>
                     </div>
                     <div className={styles.totalCard}>
-                      <span className={styles.totalLabel}>Product Total</span>
+                      <span className={styles.totalLabel}>
+                        Product (Selected)
+                      </span>
                       <span className={styles.totalValue}>
                         {totalsSummary.baseCurrencyCode}{' '}
                         {formatMoney(totalsSummary.product)}
                       </span>
                     </div>
                     <div className={styles.totalCard}>
-                      <span className={styles.totalLabel}>Service Total</span>
+                      <span className={styles.totalLabel}>
+                        Service (Selected)
+                      </span>
                       <span className={styles.totalValue}>
                         {totalsSummary.baseCurrencyCode}{' '}
                         {formatMoney(totalsSummary.service)}

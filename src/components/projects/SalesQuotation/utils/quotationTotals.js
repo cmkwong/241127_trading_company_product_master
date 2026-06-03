@@ -17,6 +17,35 @@ export const formatMoney = (value) => {
   });
 };
 
+export const isSelectedFlag = (value, defaultWhenMissing = true) => {
+  if (value === undefined || value === null || value === '') {
+    return defaultWhenMissing;
+  }
+
+  if (typeof value === 'boolean') {
+    return value;
+  }
+
+  if (typeof value === 'number') {
+    return value !== 0;
+  }
+
+  const normalized = toSafeString(value).toLowerCase();
+  if (!normalized) {
+    return defaultWhenMissing;
+  }
+
+  if (['false', '0', 'no', 'n', 'off'].includes(normalized)) {
+    return false;
+  }
+
+  if (['true', '1', 'yes', 'y', 'on'].includes(normalized)) {
+    return true;
+  }
+
+  return defaultWhenMissing;
+};
+
 const EXCHANGE_RATE_META_KEYS = new Set([
   'id',
   'Date',
@@ -184,7 +213,13 @@ export const computeQuotationTotals = (
   };
 
   const shippingSelectedRows = shippingRows.filter((row) =>
-    Boolean(row?.selected),
+    isSelectedFlag(row?.selected, false),
+  );
+  const productSelectedRows = productRows.filter((row) =>
+    isSelectedFlag(row?.selected, true),
+  );
+  const serviceSelectedRows = serviceRows.filter((row) =>
+    isSelectedFlag(row?.selected, true),
   );
 
   const shippingSummary = sumConvertedRows(
@@ -194,7 +229,7 @@ export const computeQuotationTotals = (
   );
 
   const productSummary = sumConvertedRows(
-    productRows,
+    productSelectedRows,
     (row) => {
       const qty = toNumber(row?.qty);
       const price = toNumber(row?.price);
@@ -209,7 +244,7 @@ export const computeQuotationTotals = (
   );
 
   const serviceSummary = sumConvertedRows(
-    serviceRows,
+    serviceSelectedRows,
     (row) => {
       const qty = toNumber(row?.qty);
       const price = toNumber(row?.price);

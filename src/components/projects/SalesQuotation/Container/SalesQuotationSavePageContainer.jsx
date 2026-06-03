@@ -9,6 +9,7 @@ const SalesQuotationSavePageContainer = ({
   successMessage = 'Sales quotation saved successfully!',
   showSaveButton = true,
   className,
+  leftBottomAction,
 }) => {
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -48,6 +49,7 @@ const SalesQuotationSavePageContainer = ({
       saveSuccess={saveSuccess}
       saveError={saveError}
       className={className}
+      leftBottomAction={leftBottomAction}
     >
       {children}
     </Main_SavePage>

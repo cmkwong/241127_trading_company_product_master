@@ -410,6 +410,47 @@ export const CustomerContext_Provider = ({ children, initialData = {} }) => {
     [pageData, getChangedData, token, cleanupFlags, customerBase64Config],
   );
 
+  const deleteCustomerById = useCallback(
+    async (id) => {
+      const customerId = String(id || '').trim();
+      if (!customerId) {
+        throw new Error('Customer ID is required for deletion');
+      }
+
+      await apiDelete(`${CUSTOMERS_API_BASE}/data/ids`, {
+        token,
+        body: {
+          data: {
+            customers: [{ id: customerId }],
+          },
+        },
+      });
+
+      setCustomers((prevState) => ({
+        ...prevState,
+        customers: (prevState?.customers || []).filter(
+          (item) => String(item?.id || '').trim() !== customerId,
+        ),
+      }));
+
+      setSelectedCustomerId((prevSelectedId) => {
+        return String(prevSelectedId || '').trim() === customerId
+          ? null
+          : prevSelectedId;
+      });
+
+      if (String(pageData?.id || '').trim() === customerId) {
+        releaseObjectUrls(pageDataUrlRegistryRef.current);
+        pageDataUrlRegistryRef.current = [];
+        setPageData({});
+        setOriginalPageData({});
+      }
+
+      return true;
+    },
+    [token, pageData?.id],
+  );
+
   const generateNextCustomerCode = useCallback(() => {
     const customerList = Array.isArray(customers?.customers)
       ? customers.customers
@@ -473,6 +514,7 @@ export const CustomerContext_Provider = ({ children, initialData = {} }) => {
         refreshCustomerList,
         handleCustomerSave,
         createNewCustomer,
+        deleteCustomerById,
         getAllData,
         isSaving,
         saveSuccess,

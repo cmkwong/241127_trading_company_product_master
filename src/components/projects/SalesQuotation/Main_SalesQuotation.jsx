@@ -9,6 +9,7 @@ import Main_SalesServiceDetails from './ServiceDetails/Main_SalesServiceDetails'
 import { useSalesQuotationContext } from '../../../store/SalesQuotationContext';
 import { useMasterContext } from '../../../store/MasterContext';
 import DeleteBtn from '../../common/Buttons/DeleteBtn';
+import bottomBarDeleteStyles from '../../common/Buttons/BottomBarDeleteAction.module.css';
 import Main_Dropdown from '../../common/InputOptions/Dropdown/Main_Dropdown';
 import {
   buildBaseCurrencyOptions,
@@ -166,6 +167,16 @@ const Main_SalesQuotation = () => {
       dryRunAction={getSalesQuotationDryRunData}
       saveButtonText="Save Sales Quotation"
       successMessage="Sales quotation saved successfully!"
+      leftBottomAction={
+        <DeleteBtn
+          text={isDeleting ? 'Deleting...' : 'Delete Quotation'}
+          onClick={handleDeleteQuotation}
+          disabled={!selectedQuotation || isDeleting}
+          title="Delete selected sales quotation"
+          ariaLabel="Delete selected sales quotation"
+          className={bottomBarDeleteStyles.bottomBarDeleteAction}
+        />
+      }
     >
       <div className={styles.masterContainer}>
         <SalesQuotationSidebar
@@ -256,16 +267,6 @@ const Main_SalesQuotation = () => {
                       currency or exchange rate.
                     </div>
                   ) : null}
-                </div>
-
-                <div className={styles.quotationActions}>
-                  <DeleteBtn
-                    text={isDeleting ? 'Deleting...' : 'Delete Quotation'}
-                    onClick={handleDeleteQuotation}
-                    disabled={isDeleting}
-                    title="Delete selected sales quotation"
-                    ariaLabel="Delete selected sales quotation"
-                  />
                 </div>
 
                 <Main_SalesBasicInfo

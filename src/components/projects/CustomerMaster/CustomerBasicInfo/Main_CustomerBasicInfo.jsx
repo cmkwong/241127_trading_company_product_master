@@ -21,7 +21,6 @@ const Main_CustomerBasicInfo = () => {
     pageData?.name ||
     pageData?.customer_code ||
     '';
-
   return (
     <Main_InputContainer label="Customer Basic Info">
       <SplitLayout>

@@ -421,6 +421,50 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
     [pageData, getChangedData, token, _cleanupFlags, supplierBase64Config],
   );
 
+  const deleteSupplierById = useCallback(
+    async (id) => {
+      const supplierId = String(id || '').trim();
+      if (!supplierId) {
+        throw new Error('Supplier ID is required for deletion');
+      }
+
+      await apiDelete(
+        'http://localhost:3001/api/v1/trade_business/suppliers/data/ids',
+        {
+          token,
+          body: {
+            data: {
+              suppliers: [{ id: supplierId }],
+            },
+          },
+        },
+      );
+
+      setSuppliers((prevState) => ({
+        ...prevState,
+        suppliers: (prevState?.suppliers || []).filter(
+          (item) => String(item?.id || '').trim() !== supplierId,
+        ),
+      }));
+
+      setSelectedSupplierId((prevSelectedId) => {
+        return String(prevSelectedId || '').trim() === supplierId
+          ? null
+          : prevSelectedId;
+      });
+
+      if (String(pageData?.id || '').trim() === supplierId) {
+        releaseObjectUrls(pageDataUrlRegistryRef.current);
+        pageDataUrlRegistryRef.current = [];
+        setPageData({});
+        setOriginalPageData({});
+      }
+
+      return true;
+    },
+    [token, pageData?.id],
+  );
+
   const generateNextSupplierCode = useCallback(() => {
     const supplierList = Array.isArray(suppliers?.suppliers)
       ? suppliers.suppliers
@@ -485,6 +529,7 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
         refreshSupplierList,
         handleSupplierSave,
         createNewSupplier,
+        deleteSupplierById,
         getAllData,
         isSaving,
         saveSuccess,

@@ -10,6 +10,7 @@ const SavePageContextBridge = ({
   showSaveButton,
   customSaveAction,
   className,
+  leftBottomAction,
 }) => {
   const {
     handleCustomerSave,
@@ -32,6 +33,7 @@ const SavePageContextBridge = ({
       saveSuccess={saveSuccess}
       saveError={saveError}
       className={className}
+      leftBottomAction={leftBottomAction}
     >
       {children}
     </Main_SavePage>
@@ -46,6 +48,7 @@ const CustomerMasterSavePageContainer = ({
   showSaveButton,
   customSaveAction,
   className,
+  leftBottomAction,
 }) => {
   return (
     <MasterContext_Provider>
@@ -56,6 +59,7 @@ const CustomerMasterSavePageContainer = ({
         showSaveButton={showSaveButton}
         customSaveAction={customSaveAction}
         className={className}
+        leftBottomAction={leftBottomAction}
       >
         {children}
       </SavePageContextBridge>

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import Main_Pack from './Packing/Main_Pack';
 import styles from './Main_ProductMaster.module.css';
 import Main_ProductName from './ProductName/Main_ProductName';
@@ -16,12 +16,46 @@ import ProductMasterSavePageContainer from './Container/ProductMasterSavePageCon
 import Main_ProductCosts from './ProductCosts/Main_ProductCosts';
 import VerticalLayout from '../../common/Layouts/VerticalLayout';
 import SplitLayout from '../../common/Layouts/SplitLayout';
+import DeleteBtn from '../../common/Buttons/DeleteBtn';
+import bottomBarDeleteStyles from '../../common/Buttons/BottomBarDeleteAction.module.css';
+import { useProductContext } from '../../../store/ProductContext';
 
 const Main_ProductMaster = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showIconPanel, setShowIconPanel] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const iconOverlayRef = useRef(null);
   const iconToggleBtnRef = useRef(null);
+  const { pageData, getAllProducts, deleteProductById } = useProductContext();
+
+  const productId = String(pageData?.id || '').trim();
+  const hasPersistedProduct = (getAllProducts() || []).some(
+    (item) => String(item?.id || '').trim() === productId,
+  );
+
+  const handleDeleteProduct = useCallback(async () => {
+    if (!productId || !hasPersistedProduct || isDeleting) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      'Delete this product? This action cannot be undone.',
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      await deleteProductById(productId);
+      alert('Product deleted successfully.');
+    } catch (error) {
+      console.error('Failed to delete product:', error);
+      alert(error?.message || 'Failed to delete product.');
+    } finally {
+      setIsDeleting(false);
+    }
+  }, [deleteProductById, hasPersistedProduct, isDeleting, productId]);
 
   useEffect(() => {
     if (!showIconPanel) return;
@@ -67,6 +101,16 @@ const Main_ProductMaster = () => {
       onSave={onSaveProduct}
       saveButtonText="Save Product"
       successMessage="Product saved successfully!"
+      leftBottomAction={
+        <DeleteBtn
+          text={isDeleting ? 'Deleting...' : 'Delete Product'}
+          onClick={handleDeleteProduct}
+          disabled={!productId || !hasPersistedProduct || isDeleting}
+          title="Delete product"
+          ariaLabel="Delete product"
+          className={bottomBarDeleteStyles.bottomBarDeleteAction}
+        />
+      }
     >
       <div className={styles.masterContainer}>
         <ProductSidebar

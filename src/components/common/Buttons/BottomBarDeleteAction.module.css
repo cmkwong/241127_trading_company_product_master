@@ -1,0 +1,8 @@
+.bottomBarDeleteAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 172px;
+  min-width: 172px;
+  padding: 0.42rem 0.9rem;
+}

@@ -72,6 +72,7 @@ const Main_SavePage = ({
   saveSuccess = false,
   saveError = null,
   className = '',
+  leftBottomAction = null,
 }) => {
   const [isDryRunning, setIsDryRunning] = useState(false);
   const [dryRunError, setDryRunError] = useState('');
@@ -115,6 +116,7 @@ const Main_SavePage = ({
       <div className={styles.content}>{children}</div>
       {showSaveButton && (
         <div className={styles.saveActions}>
+          <div className={styles.leftActionContainer}>{leftBottomAction}</div>
           <div className={styles.messageContainer}>
             {saveSuccess && (
               <div className={styles.successMessage}>{successMessage}</div>

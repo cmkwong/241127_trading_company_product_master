@@ -8,6 +8,8 @@ const MasterControlHeader = ({
   canEdit,
   onReload,
   onAddRow,
+  showCopyDateRangeAction = false,
+  onCopyDateRange,
 }) => {
   return (
     <div className={styles.header}>
@@ -21,6 +23,16 @@ const MasterControlHeader = ({
         >
           {isLoading ? 'Reloading...' : 'Reload'}
         </button>
+        {showCopyDateRangeAction ? (
+          <button
+            type="button"
+            className={styles.secondaryBtn}
+            onClick={onCopyDateRange}
+            disabled={!selectedTable || isLoading || isSaving || !canEdit}
+          >
+            Copy Date Range
+          </button>
+        ) : null}
         <AddNewBtn
           onClick={onAddRow}
           text="Add Row"

@@ -6,6 +6,7 @@ import { useMasterContext } from '../../../store/MasterContext';
 import AddNewBtn from '../../common/Buttons/AddNewBtn';
 import DeleteBtn from '../../common/Buttons/DeleteBtn';
 import Main_Dropdown from '../../common/InputOptions/Dropdown/Main_Dropdown';
+import Main_DateSelector from '../../common/InputOptions/Date/Main_DateSelector';
 import Main_FileUploads from '../../common/InputOptions/FileUploads/Main_FileUploads';
 import Main_Suggest from '../../common/InputOptions/Suggest/Main_Suggest';
 import Main_TextField from '../../common/InputOptions/TextField/Main_TextField';
@@ -29,6 +30,75 @@ import {
 } from './utils/masterServiceUtils';
 import { canProceedAndDiscardUnsavedChanges } from '../../../utils/contextDataUtils';
 import styles from './Main_MasterControl.module.css';
+
+const parseIsoDateString = (value) => {
+  const text = String(value || '').trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) {
+    return null;
+  }
+
+  const [year, month, day] = text.split('-').map(Number);
+  const utcDate = new Date(Date.UTC(year, month - 1, day));
+
+  if (
+    utcDate.getUTCFullYear() !== year ||
+    utcDate.getUTCMonth() !== month - 1 ||
+    utcDate.getUTCDate() !== day
+  ) {
+    return null;
+  }
+
+  return utcDate;
+};
+
+const formatIsoDateString = (date) => {
+  return date.toISOString().slice(0, 10);
+};
+
+const formatLocalIsoDateString = (date) => {
+  if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
+    return '';
+  }
+
+  const year = String(date.getFullYear());
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const normalizeDateOnlyValue = (value) => {
+  const text = String(value || '').trim();
+  if (!text) return '';
+
+  const exactIso = parseIsoDateString(text);
+  if (exactIso) {
+    return text;
+  }
+
+  const datePrefixMatch = text.match(/^(\d{4}-\d{2}-\d{2})(?:[ T].*)?$/);
+  if (datePrefixMatch?.[1]) {
+    return datePrefixMatch[1];
+  }
+
+  return '';
+};
+
+const isDateType = (type = '') => {
+  const normalized = String(type || '').toLowerCase();
+  return normalized === 'date' || normalized.endsWith(' date');
+};
+
+const buildDateRange = (startDate, endDate) => {
+  const dates = [];
+  const cursor = new Date(startDate.getTime());
+
+  while (cursor.getTime() <= endDate.getTime()) {
+    dates.push(formatIsoDateString(cursor));
+    cursor.setUTCDate(cursor.getUTCDate() + 1);
+  }
+
+  return dates;
+};
 
 const MasterControlContent = () => {
   const { token } = useAuthContext();
@@ -370,6 +440,146 @@ const MasterControlContent = () => {
     setSaveError('');
   }, [buildBlankRow]);
 
+  const handleCopyExchangeRateDateRange = useCallback(() => {
+    if (!canEdit || selectedTable !== 'master_exchange_rate_hkd') {
+      return;
+    }
+
+    if (!Array.isArray(draftRows) || draftRows.length === 0) {
+      window.alert('No exchange-rate rows available to copy from.');
+      return;
+    }
+
+    const validDateStrings = draftRows
+      .map((row) => normalizeDateOnlyValue(row?.Date))
+      .filter((dateText) => parseIsoDateString(dateText));
+
+    if (validDateStrings.length === 0) {
+      window.alert(
+        'No valid Date values found. Please fill one source row first.',
+      );
+      return;
+    }
+
+    const defaultSourceDate = [...validDateStrings].sort((a, b) =>
+      b.localeCompare(a),
+    )[0];
+
+    const sourceDateInput = window.prompt(
+      'Source date (YYYY-MM-DD) to copy from:',
+      defaultSourceDate,
+    );
+    if (sourceDateInput === null) return;
+
+    const sourceDate = String(sourceDateInput || '').trim();
+    if (!parseIsoDateString(sourceDate)) {
+      window.alert('Invalid source date format. Please use YYYY-MM-DD.');
+      return;
+    }
+
+    const sourceRow = draftRows.find(
+      (row) => normalizeDateOnlyValue(row?.Date) === sourceDate,
+    );
+
+    if (!sourceRow) {
+      window.alert(`Source date ${sourceDate} not found in current rows.`);
+      return;
+    }
+
+    const startDateInput = window.prompt(
+      'Start date (YYYY-MM-DD):',
+      sourceDate,
+    );
+    if (startDateInput === null) return;
+
+    const endDateInput = window.prompt('End date (YYYY-MM-DD):', sourceDate);
+    if (endDateInput === null) return;
+
+    const startDate = parseIsoDateString(startDateInput);
+    const endDate = parseIsoDateString(endDateInput);
+
+    if (!startDate || !endDate) {
+      window.alert('Invalid start/end date format. Please use YYYY-MM-DD.');
+      return;
+    }
+
+    if (endDate.getTime() < startDate.getTime()) {
+      window.alert('End date must be on or after start date.');
+      return;
+    }
+
+    const targetDates = buildDateRange(startDate, endDate);
+    if (targetDates.length > 366) {
+      const confirmed = window.confirm(
+        `You are about to copy rates to ${targetDates.length} days. Continue?`,
+      );
+      if (!confirmed) return;
+    }
+
+    const overrideChoice = window.prompt(
+      'Override existing rows in this date range? (yes/no)',
+      'yes',
+    );
+    if (overrideChoice === null) return;
+
+    const shouldOverrideExisting = !String(overrideChoice || '')
+      .trim()
+      .toLowerCase()
+      .startsWith('n');
+
+    const copyFieldKeys = columns.filter((column) => {
+      if (String(column).startsWith('_')) return false;
+      if (column === 'id' || column === 'Date') return false;
+      if (column === 'created_at' || column === 'updated_at') return false;
+      return true;
+    });
+
+    const sourceValues = copyFieldKeys.reduce((acc, key) => {
+      acc[key] = sourceRow?.[key] ?? '';
+      return acc;
+    }, {});
+
+    setDraftRows((prevRows) => {
+      const nextRows = [...prevRows];
+
+      targetDates.forEach((dateText) => {
+        const existingIndex = nextRows.findIndex(
+          (row) => normalizeDateOnlyValue(row?.Date) === dateText,
+        );
+
+        if (existingIndex >= 0) {
+          if (!shouldOverrideExisting) {
+            return;
+          }
+
+          nextRows[existingIndex] = {
+            ...nextRows[existingIndex],
+            ...sourceValues,
+            Date: dateText,
+          };
+          return;
+        }
+
+        nextRows.push({
+          ...sourceValues,
+          id: uuidv4(),
+          Date: dateText,
+          _isNew: true,
+        });
+      });
+
+      return nextRows.sort((a, b) => {
+        const aDate = normalizeDateOnlyValue(a?.Date);
+        const bDate = normalizeDateOnlyValue(b?.Date);
+        return bDate.localeCompare(aDate);
+      });
+    });
+
+    setSaveSuccess(false);
+    setSaveError('');
+    setError('');
+  }, [canEdit, columns, draftRows, selectedTable]);
+
   const handleInsertRowAfter = useCallback(
     (row) => {
       const targetKey = row?.id || row?._localId;
@@ -584,6 +794,18 @@ const MasterControlContent = () => {
               checked={Boolean(row?.[column])}
               onChange={(event) =>
                 handleCellChange(rowIndex, column, event.target.checked)
+              }
+              disabled={isReadonly || !canEdit}
+            />
+          );
+        }
+
+        if (isDateType(schemaFieldByColumn[column]?.type)) {
+          return (
+            <Main_DateSelector
+              defaultValue={normalizeDateOnlyValue(row?.[column])}
+              onChange={(ov, nv) =>
+                handleCellChange(rowIndex, column, formatLocalIsoDateString(nv))
               }
               disabled={isReadonly || !canEdit}
             />
@@ -974,6 +1196,10 @@ const MasterControlContent = () => {
           canEdit={canEdit}
           onReload={handleReload}
           onAddRow={handleAddRow}
+          showCopyDateRangeAction={
+            selectedTable === 'master_exchange_rate_hkd' && canEdit
+          }
+          onCopyDateRange={handleCopyExchangeRateDateRange}
         />
 
         {!canEdit ? (

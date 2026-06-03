@@ -37,6 +37,7 @@ const DEFAULT_TABLE_NAMES = [
   'master_customer_name_types',
   'master_currencies',
   'master_incoterms',
+  'master_exchange_rate_hkd',
 ];
 
 const TABLE_INITIAL_DATA = {
@@ -62,6 +63,7 @@ const TABLE_INITIAL_DATA = {
   master_customer_name_types: [],
   master_currencies: [],
   master_incoterms: [],
+  master_exchange_rate_hkd: [],
 };
 
 const LEGACY_TABLE_BINDINGS = [
@@ -219,6 +221,13 @@ const LEGACY_TABLE_BINDINGS = [
     addName: 'addIncoterm',
     removeName: 'removeIncoterm',
   },
+  {
+    tableName: 'master_exchange_rate_hkd',
+    getName: 'getExchangeRateHkd',
+    updateName: 'updateExchangeRateHkd',
+    addName: 'addExchangeRateHkd',
+    removeName: 'removeExchangeRateHkd',
+  },
 ];
 
 export const MasterContext_Provider = ({ children }) => {
@@ -254,6 +263,7 @@ export const MasterContext_Provider = ({ children }) => {
   const packType = masterDataMap.master_packing_types || [];
   const currencies = masterDataMap.master_currencies || [];
   const incoterms = masterDataMap.master_incoterms || [];
+  const exchangeRateHkd = masterDataMap.master_exchange_rate_hkd || [];
   const productImageType = masterDataMap.master_product_image_types || [];
 
   const getMasterTableData = useCallback(
@@ -291,13 +301,17 @@ export const MasterContext_Provider = ({ children }) => {
 
   const fetchMasterData = useCallback(
     async (tableName) => {
-      const endpointCandidates =
-        tableName === 'master_incoterms'
-          ? [
-              `${DEFAULT_MASTER_API_BASE}/incoterms`,
-              `${DEFAULT_MASTER_API_BASE}/${tableName}`,
-            ]
-          : [`${DEFAULT_MASTER_API_BASE}/${tableName}`];
+      const dedicatedEndpointMap = {
+        master_incoterms: `${DEFAULT_MASTER_API_BASE}/incoterms`,
+        master_exchange_rate_hkd: `${DEFAULT_MASTER_API_BASE}/exchange_rate_hkd`,
+      };
+
+      const endpointCandidates = dedicatedEndpointMap[tableName]
+        ? [
+            dedicatedEndpointMap[tableName],
+            `${DEFAULT_MASTER_API_BASE}/${tableName}`,
+          ]
+        : [`${DEFAULT_MASTER_API_BASE}/${tableName}`];
 
       let lastError = null;
       let response = null;
@@ -529,6 +543,7 @@ export const MasterContext_Provider = ({ children }) => {
     sizeType,
     currencies,
     incoterms,
+    exchangeRateHkd,
     masterDataMap,
     masterTableNames: DEFAULT_TABLE_NAMES,
     fetchMasterData,

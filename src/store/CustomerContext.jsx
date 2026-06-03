@@ -230,12 +230,14 @@ export const CustomerContext_Provider = ({ children, initialData = {} }) => {
     if (changesResult?.changes?.customers) {
       if (isRootCreate) {
         preview.create.customers = changesResult.changes.customers;
+        preview.endpoint = `${CUSTOMERS_API_BASE}/data`;
+        preview.method = 'POST';
       } else {
         preview.update.customers = changesResult.changes.customers;
       }
     }
 
-    if (changesResult?.deletions) {
+    if (!isRootCreate && changesResult?.deletions) {
       preview.delete = changesResult.deletions;
     }
 
@@ -348,11 +350,15 @@ export const CustomerContext_Provider = ({ children, initialData = {} }) => {
 
       try {
         const changesResult = getChangedData();
+        const currentCustomerId = String(pageData?.id || '').trim();
+        const originalCustomerId = String(originalPageData?.id || '').trim();
+        const isRootCreate =
+          !!currentCustomerId && currentCustomerId !== originalCustomerId;
 
         if (changesResult) {
           const { changes, deletions } = changesResult;
 
-          if (deletions) {
+          if (!isRootCreate && deletions) {
             await apiDelete(`${CUSTOMERS_API_BASE}/data/ids`, {
               token,
               body: { data: deletions },
@@ -365,11 +371,19 @@ export const CustomerContext_Provider = ({ children, initialData = {} }) => {
               customerBase64Config,
             );
 
-            await apiPatch(
-              `${CUSTOMERS_API_BASE}/data/ids`,
-              { data: processedChanges },
-              { token },
-            );
+            if (isRootCreate) {
+              await apiPost(
+                `${CUSTOMERS_API_BASE}/data`,
+                { data: processedChanges },
+                { token },
+              );
+            } else {
+              await apiPatch(
+                `${CUSTOMERS_API_BASE}/data/ids`,
+                { data: processedChanges },
+                { token },
+              );
+            }
           }
         }
 
@@ -407,7 +421,14 @@ export const CustomerContext_Provider = ({ children, initialData = {} }) => {
         setIsSaving(false);
       }
     },
-    [pageData, getChangedData, token, cleanupFlags, customerBase64Config],
+    [
+      pageData,
+      originalPageData?.id,
+      getChangedData,
+      token,
+      cleanupFlags,
+      customerBase64Config,
+    ],
   );
 
   const deleteCustomerById = useCallback(
@@ -417,14 +438,93 @@ export const CustomerContext_Provider = ({ children, initialData = {} }) => {
         throw new Error('Customer ID is required for deletion');
       }
 
-      await apiDelete(`${CUSTOMERS_API_BASE}/data/ids`, {
-        token,
-        body: {
-          data: {
-            customers: [{ id: customerId }],
-          },
+      const requestBody = {
+        data: {
+          customers: [{ id: customerId }],
         },
-      });
+      };
+
+      const mapDeleteError = (error) => {
+        const message = String(error?.message || '');
+        const isForeignKeyBlocked =
+          /ER_ROW_IS_REFERENCED|foreign key constraint fails/i.test(message);
+
+        if (isForeignKeyBlocked) {
+          if (/ar_invoices/i.test(message)) {
+            return new Error(
+              'Cannot delete this customer because AR invoices reference it. Please reassign or remove related invoices first.',
+            );
+          }
+
+          if (/sales_quotations/i.test(message)) {
+            return new Error(
+              'Cannot delete this customer because sales quotations reference it. Please reassign or remove related quotations first.',
+            );
+          }
+
+          return new Error(
+            'Cannot delete this customer because it is referenced by other records. Please remove or reassign dependent records first.',
+          );
+        }
+
+        return error;
+      };
+
+      const getDeleteFailureMessage = (response) => {
+        const entries = response?.structuredData?.deleteData?.customers;
+        if (!Array.isArray(entries)) {
+          return 'Delete request did not return a valid customer delete result.';
+        }
+
+        const targetEntry = entries.find(
+          (entry) => String(entry?.id || '').trim() === customerId,
+        );
+
+        if (!targetEntry) {
+          return 'Delete request completed but no result was returned for the selected customer.';
+        }
+
+        if (String(targetEntry?.status || '').trim() === 'deleted') {
+          return '';
+        }
+
+        if (targetEntry?.error) {
+          return String(targetEntry.error);
+        }
+
+        if (String(targetEntry?.status || '').trim() === 'not_found') {
+          return 'Customer was not found. It may have been deleted already.';
+        }
+
+        return 'Customer delete did not complete successfully.';
+      };
+
+      let deleteResponse = null;
+      try {
+        deleteResponse = await apiDelete(`${CUSTOMERS_API_BASE}/data/ids`, {
+          token,
+          body: requestBody,
+        });
+      } catch (error) {
+        const mappedError = mapDeleteError(error);
+        if (mappedError !== error) {
+          throw mappedError;
+        }
+
+        try {
+          deleteResponse = await apiDelete(`${CUSTOMERS_API_BASE}/data`, {
+            token,
+            body: requestBody,
+          });
+        } catch (fallbackError) {
+          throw mapDeleteError(fallbackError);
+        }
+      }
+
+      const deleteFailureMessage = getDeleteFailureMessage(deleteResponse);
+      if (deleteFailureMessage) {
+        throw mapDeleteError(new Error(deleteFailureMessage));
+      }
 
       setCustomers((prevState) => ({
         ...prevState,
@@ -488,7 +588,10 @@ export const CustomerContext_Provider = ({ children, initialData = {} }) => {
       customer_contacts: [],
       customer_images: [],
     });
+    setOriginalPageData({});
     setSelectedCustomerId(newCustomerId);
+    setSaveError(null);
+    setSaveSuccess(false);
 
     return true;
   }, [

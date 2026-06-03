@@ -198,14 +198,15 @@ const Main_SalesProductDetails = ({
               getSuggestionLabel={(suggestion) => suggestion?.name || ''}
               getSuggestionSearchText={(suggestion) =>
                 String(
-                  suggestion?.searchText ||
-                    [
-                      suggestion?.name,
-                      suggestion?.category_name,
-                      suggestion?.alibaba_id_value,
-                    ]
-                      .filter(Boolean)
-                      .join(' '),
+                  [
+                    suggestion?.searchText,
+                    suggestion?.id,
+                    suggestion?.name,
+                    suggestion?.category_name,
+                    suggestion?.alibaba_id_value,
+                  ]
+                    .filter(Boolean)
+                    .join(' '),
                 )
               }
               renderSuggestion={(suggestion) => (

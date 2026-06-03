@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import styles from './Main_SalesQuotation.module.css';
 import SalesQuotationSavePageContainer from './Container/SalesQuotationSavePageContainer';
 import SalesQuotationSidebar from './AllSalesQuotationList/SalesQuotationSidebar';
@@ -7,11 +7,24 @@ import Main_SalesShippingDetails from './ShippingDetails/Main_SalesShippingDetai
 import Main_SalesProductDetails from './ProductDetails/Main_SalesProductDetails';
 import Main_SalesServiceDetails from './ServiceDetails/Main_SalesServiceDetails';
 import { useSalesQuotationContext } from '../../../store/SalesQuotationContext';
+import { useMasterContext } from '../../../store/MasterContext';
 import DeleteBtn from '../../common/Buttons/DeleteBtn';
+import Main_Dropdown from '../../common/InputOptions/Dropdown/Main_Dropdown';
+import {
+  buildBaseCurrencyOptions,
+  buildCurrencyCodeById,
+  buildExchangeRateMap,
+  buildNormalizedCurrencies,
+  computeQuotationTotals,
+  formatMoney,
+  getLatestExchangeRateRow,
+  toSafeString,
+} from './utils/quotationTotals';
 
 const Main_SalesQuotation = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [baseCurrencyCode, setBaseCurrencyCode] = useState('HKD');
   const {
     quotations,
     selectedQuotationId,
@@ -32,21 +45,71 @@ const Main_SalesQuotation = () => {
     getSalesQuotationDryRunData,
     refreshReferenceOptions,
   } = useSalesQuotationContext();
+  const { currencies, exchangeRateHkd, fetchMasterData } = useMasterContext();
 
   useEffect(() => {
     refreshReferenceOptions();
-  }, [refreshReferenceOptions]);
+    fetchMasterData('master_exchange_rate_hkd');
+    fetchMasterData('master_currencies');
+  }, [fetchMasterData, refreshReferenceOptions]);
 
   useEffect(() => {
     const handleWindowFocus = () => {
       refreshReferenceOptions();
+      fetchMasterData('master_exchange_rate_hkd');
+      fetchMasterData('master_currencies');
     };
 
     window.addEventListener('focus', handleWindowFocus);
     return () => {
       window.removeEventListener('focus', handleWindowFocus);
     };
-  }, [refreshReferenceOptions]);
+  }, [fetchMasterData, refreshReferenceOptions]);
+
+  const normalizedCurrencies = useMemo(() => {
+    return buildNormalizedCurrencies(currencies);
+  }, [currencies]);
+
+  const currencyCodeById = useMemo(() => {
+    return buildCurrencyCodeById(normalizedCurrencies);
+  }, [normalizedCurrencies]);
+
+  const baseCurrencyOptions = useMemo(() => {
+    return buildBaseCurrencyOptions(normalizedCurrencies);
+  }, [normalizedCurrencies]);
+
+  useEffect(() => {
+    if (baseCurrencyOptions.length === 0) {
+      if (baseCurrencyCode !== 'HKD') {
+        setBaseCurrencyCode('HKD');
+      }
+      return;
+    }
+
+    const exists = baseCurrencyOptions.some(
+      (item) => toSafeString(item?.id) === toSafeString(baseCurrencyCode),
+    );
+
+    if (!exists) {
+      setBaseCurrencyCode(toSafeString(baseCurrencyOptions[0]?.id) || 'HKD');
+    }
+  }, [baseCurrencyCode, baseCurrencyOptions]);
+
+  const latestExchangeRateRow = useMemo(() => {
+    return getLatestExchangeRateRow(exchangeRateHkd);
+  }, [exchangeRateHkd]);
+
+  const exchangeRateMap = useMemo(() => {
+    return buildExchangeRateMap(latestExchangeRateRow || {});
+  }, [latestExchangeRateRow]);
+
+  const totalsSummary = useMemo(() => {
+    return computeQuotationTotals(selectedQuotation, {
+      baseCurrencyCode,
+      currencyCodeById,
+      exchangeRateMap,
+    });
+  }, [baseCurrencyCode, currencyCodeById, exchangeRateMap, selectedQuotation]);
 
   const patchSelectedQuotation = useCallback(
     (patch) => {
@@ -113,6 +176,10 @@ const Main_SalesQuotation = () => {
           isCollapsed={sidebarCollapsed}
           onToggleCollapse={setSidebarCollapsed}
           customerOptions={customerOptions}
+          productOptions={productOptions}
+          baseCurrencyCode={baseCurrencyCode}
+          currencyCodeById={currencyCodeById}
+          exchangeRateMap={exchangeRateMap}
         />
 
         <div
@@ -123,6 +190,70 @@ const Main_SalesQuotation = () => {
           <div className={styles.inputSide}>
             {selectedQuotation ? (
               <>
+                <div className={styles.currencySummaryBar}>
+                  <div className={styles.baseCurrencyPicker}>
+                    <span className={styles.baseCurrencyLabel}>
+                      Base Currency
+                    </span>
+                    <Main_Dropdown
+                      defaultOptions={baseCurrencyOptions}
+                      defaultSelectedOption={baseCurrencyCode}
+                      onChange={(ov, nv) =>
+                        setBaseCurrencyCode(
+                          toSafeString(nv).toUpperCase() || 'HKD',
+                        )
+                      }
+                      size="S"
+                    />
+                    <span className={styles.rateMetaText}>
+                      Rate Date:{' '}
+                      {toSafeString(latestExchangeRateRow?.Date) || '-'}
+                    </span>
+                  </div>
+
+                  <div className={styles.totalsSummaryGrid}>
+                    <div className={styles.totalCard}>
+                      <span className={styles.totalLabel}>
+                        Shipping (Selected)
+                      </span>
+                      <span className={styles.totalValue}>
+                        {totalsSummary.baseCurrencyCode}{' '}
+                        {formatMoney(totalsSummary.shipping)}
+                      </span>
+                    </div>
+                    <div className={styles.totalCard}>
+                      <span className={styles.totalLabel}>Product Total</span>
+                      <span className={styles.totalValue}>
+                        {totalsSummary.baseCurrencyCode}{' '}
+                        {formatMoney(totalsSummary.product)}
+                      </span>
+                    </div>
+                    <div className={styles.totalCard}>
+                      <span className={styles.totalLabel}>Service Total</span>
+                      <span className={styles.totalValue}>
+                        {totalsSummary.baseCurrencyCode}{' '}
+                        {formatMoney(totalsSummary.service)}
+                      </span>
+                    </div>
+                    <div
+                      className={`${styles.totalCard} ${styles.totalCardHighlight}`}
+                    >
+                      <span className={styles.totalLabel}>Quotation Total</span>
+                      <span className={styles.totalValueStrong}>
+                        {totalsSummary.baseCurrencyCode}{' '}
+                        {formatMoney(totalsSummary.grandTotal)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {totalsSummary.missingCount > 0 ? (
+                    <div className={styles.totalWarningText}>
+                      {totalsSummary.missingCount} row(s) skipped due to missing
+                      currency or exchange rate.
+                    </div>
+                  ) : null}
+                </div>
+
                 <div className={styles.quotationActions}>
                   <DeleteBtn
                     text={isDeleting ? 'Deleting...' : 'Delete Quotation'}

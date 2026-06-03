@@ -1326,9 +1326,24 @@ export const SalesQuotationContext_Provider = ({ children }) => {
 
   const currencyOptions = useMemo(() => {
     return toArray(currencies)
-      .map((item) =>
-        toOption(item?.id, pickFirstLabel(item, ['label', 'name', 'id'])),
-      )
+      .map((item) => {
+        const id = toSafeString(item?.id);
+        const code = toSafeString(item?.code).toUpperCase();
+        const name = pickFirstLabel(item, ['name', 'label']);
+
+        if (!id || !code) {
+          return null;
+        }
+
+        return {
+          id,
+          code,
+          name:
+            name && name.toLowerCase() !== code.toLowerCase()
+              ? `${code} - ${name}`
+              : code,
+        };
+      })
       .filter(Boolean);
   }, [currencies]);
 

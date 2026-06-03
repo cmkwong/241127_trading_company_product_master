@@ -36,6 +36,77 @@
   margin-bottom: 0.25rem;
 }
 
+.currencySummaryBar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  border: 1px solid #dbe3ef;
+  border-radius: 10px;
+  padding: 0.75rem;
+  background: #f9fbff;
+}
+
+.baseCurrencyPicker {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.baseCurrencyLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.rateMetaText {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.totalsSummaryGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(160px, 1fr));
+  gap: 0.6rem;
+}
+
+.totalCard {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.55rem 0.7rem;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.totalCardHighlight {
+  border-color: #93c5fd;
+  background: #eff6ff;
+}
+
+.totalLabel {
+  font-size: 12px;
+  color: #475569;
+}
+
+.totalValue {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.totalValueStrong {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0b3b91;
+}
+
+.totalWarningText {
+  font-size: 12px;
+  color: #b45309;
+}
+
 .emptyState {
   border: 1px dashed #cbd5e1;
   border-radius: 10px;
@@ -60,5 +131,9 @@
 
   .quotationActions {
     justify-content: stretch;
+  }
+
+  .totalsSummaryGrid {
+    grid-template-columns: repeat(2, minmax(140px, 1fr));
   }
 }

@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import SearchSideBarList from '../../../common/SearchSideBarList/SearchSideBarList';
 import styles from './SalesQuotationSidebar.module.css';
+import { computeQuotationTotals, formatMoney } from '../utils/quotationTotals';
 
 const SALES_QUOTATION_SEARCH_HISTORY_KEY =
   'sales_quotation_sidebar_search_history';
@@ -27,6 +28,25 @@ const normalizeHistoryEntry = (entry) => {
   return { id, title };
 };
 
+const FILE_SERVER_BASE_URL = 'http://localhost:3001';
+
+const resolveIconUrl = (iconUrl) => {
+  const normalized = String(iconUrl || '').trim();
+  if (!normalized) {
+    return '';
+  }
+
+  if (/^(blob:|data:|https?:\/\/)/i.test(normalized)) {
+    return normalized;
+  }
+
+  if (normalized.startsWith('/')) {
+    return `${FILE_SERVER_BASE_URL}${normalized}`;
+  }
+
+  return `${FILE_SERVER_BASE_URL}/${normalized}`;
+};
+
 const SalesQuotationSidebar = ({
   quotations = [],
   selectedQuotationId,
@@ -35,6 +55,10 @@ const SalesQuotationSidebar = ({
   isCollapsed,
   onToggleCollapse,
   customerOptions = [],
+  productOptions = [],
+  baseCurrencyCode = 'HKD',
+  currencyCodeById = {},
+  exchangeRateMap = { HKD: 1 },
 }) => {
   const [windowWidth, setWindowWidth] = useState(
     typeof window !== 'undefined' ? window.innerWidth : 1024,
@@ -62,6 +86,21 @@ const SalesQuotationSidebar = ({
     });
     return map;
   }, [customerOptions]);
+
+  const productOptionById = useMemo(() => {
+    const map = new Map();
+
+    (productOptions || []).forEach((item) => {
+      const id = String(item?.id || '').trim();
+      if (!id || map.has(id)) {
+        return;
+      }
+
+      map.set(id, item);
+    });
+
+    return map;
+  }, [productOptions]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -203,35 +242,69 @@ const SalesQuotationSidebar = ({
   );
 
   const getQuotationRows = useCallback(
-    (quotation) => [
-      {
-        label: 'Status:',
-        value: quotation?.to_order ? 'Ordered' : 'Open Quotation',
-      },
-      {
-        label: 'Customer:',
-        value:
-          customerNameById.get(String(quotation?.customer_id || '').trim()) ||
-          '',
-      },
-      {
-        label: 'Shipping:',
-        value: String(quotation?.sales_shipping_details?.length || 0),
-      },
-      {
-        label: 'Products:',
-        value: String(quotation?.sales_product_details?.length || 0),
-      },
-      {
-        label: 'Services:',
-        value: String(quotation?.sales_service_details?.length || 0),
-      },
-      {
-        label: 'Updated At:',
-        value: formatDateTime(quotation?.updated_at),
-      },
+    (quotation) => {
+      const summary = computeQuotationTotals(quotation, {
+        baseCurrencyCode,
+        currencyCodeById,
+        exchangeRateMap,
+      });
+
+      return [
+        {
+          label: 'Status:',
+          value: quotation?.to_order ? 'Ordered' : 'Open Quotation',
+        },
+        {
+          label: 'Customer:',
+          value:
+            customerNameById.get(String(quotation?.customer_id || '').trim()) ||
+            '',
+        },
+        {
+          label: 'Shipping:',
+          value: String(quotation?.sales_shipping_details?.length || 0),
+        },
+        {
+          label: 'Products:',
+          value: String(quotation?.sales_product_details?.length || 0),
+        },
+        {
+          label: 'Services:',
+          value: String(quotation?.sales_service_details?.length || 0),
+        },
+        {
+          label: 'Total:',
+          value: `${summary.baseCurrencyCode} ${formatMoney(summary.grandTotal)}`,
+        },
+        {
+          label: 'Updated At:',
+          value: formatDateTime(quotation?.updated_at),
+        },
+      ];
+    },
+    [
+      baseCurrencyCode,
+      currencyCodeById,
+      customerNameById,
+      exchangeRateMap,
+      formatDateTime,
     ],
-    [customerNameById, formatDateTime],
+  );
+
+  const getQuotationIconUrl = useCallback(
+    (quotation) => {
+      const firstProductId = String(
+        quotation?.sales_product_details?.[0]?.product_id || '',
+      ).trim();
+
+      if (!firstProductId) {
+        return '';
+      }
+
+      const product = productOptionById.get(firstProductId);
+      return resolveIconUrl(product?.icon_url);
+    },
+    [productOptionById],
   );
 
   useEffect(() => {
@@ -269,6 +342,11 @@ const SalesQuotationSidebar = ({
           getItemId={(quotation) => quotation.id}
           getItemTitle={getQuotationTitle}
           getItemRows={getQuotationRows}
+          getItemIconUrl={getQuotationIconUrl}
+          getItemIconAlt={(quotation) => {
+            const customerName = getQuotationTitle(quotation);
+            return customerName ? `${customerName} product` : 'Product';
+          }}
           exportFileName="sales_quotations_filtered_list"
           exportSheetName="Sales Quotations"
         />

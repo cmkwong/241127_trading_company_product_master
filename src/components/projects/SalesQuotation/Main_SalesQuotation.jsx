@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import styles from './Main_SalesQuotation.module.css';
 import SalesQuotationSavePageContainer from './Container/SalesQuotationSavePageContainer';
 import SalesQuotationSidebar from './AllSalesQuotationList/SalesQuotationSidebar';
@@ -30,7 +30,23 @@ const Main_SalesQuotation = () => {
     createSalesQuotation,
     deleteSalesQuotation,
     getSalesQuotationDryRunData,
+    refreshReferenceOptions,
   } = useSalesQuotationContext();
+
+  useEffect(() => {
+    refreshReferenceOptions();
+  }, [refreshReferenceOptions]);
+
+  useEffect(() => {
+    const handleWindowFocus = () => {
+      refreshReferenceOptions();
+    };
+
+    window.addEventListener('focus', handleWindowFocus);
+    return () => {
+      window.removeEventListener('focus', handleWindowFocus);
+    };
+  }, [refreshReferenceOptions]);
 
   const patchSelectedQuotation = useCallback(
     (patch) => {

@@ -273,8 +273,18 @@ const SalesQuotationSidebar = ({
           value: String(quotation?.sales_service_details?.length || 0),
         },
         {
-          label: 'Total:',
+          label: 'Sales:',
           value: `${summary.baseCurrencyCode} ${formatMoney(summary.grandTotal)}`,
+        },
+        {
+          label: 'Cost:',
+          value: `${summary.baseCurrencyCode} ${formatMoney(summary.costGrandTotal)}`,
+        },
+        {
+          label: 'Profit %:',
+          value: Number.isFinite(summary.profitPercent)
+            ? `${summary.profitPercent.toFixed(2)}%`
+            : '-',
         },
         {
           label: 'Updated At:',

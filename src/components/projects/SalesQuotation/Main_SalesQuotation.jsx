@@ -22,6 +22,14 @@ import {
   toSafeString,
 } from './utils/quotationTotals';
 
+const formatPercent = (value) => {
+  if (!Number.isFinite(value)) {
+    return '-';
+  }
+
+  return `${value.toFixed(2)}%`;
+};
+
 const Main_SalesQuotation = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -225,7 +233,7 @@ const Main_SalesQuotation = () => {
                   <div className={styles.totalsSummaryGrid}>
                     <div className={styles.totalCard}>
                       <span className={styles.totalLabel}>
-                        Shipping (Selected)
+                        Shipping Sales (Selected)
                       </span>
                       <span className={styles.totalValue}>
                         {totalsSummary.baseCurrencyCode}{' '}
@@ -234,7 +242,7 @@ const Main_SalesQuotation = () => {
                     </div>
                     <div className={styles.totalCard}>
                       <span className={styles.totalLabel}>
-                        Product (Selected)
+                        Product Sales (Selected)
                       </span>
                       <span className={styles.totalValue}>
                         {totalsSummary.baseCurrencyCode}{' '}
@@ -243,7 +251,7 @@ const Main_SalesQuotation = () => {
                     </div>
                     <div className={styles.totalCard}>
                       <span className={styles.totalLabel}>
-                        Service (Selected)
+                        Service Sales (Selected)
                       </span>
                       <span className={styles.totalValue}>
                         {totalsSummary.baseCurrencyCode}{' '}
@@ -253,18 +261,41 @@ const Main_SalesQuotation = () => {
                     <div
                       className={`${styles.totalCard} ${styles.totalCardHighlight}`}
                     >
-                      <span className={styles.totalLabel}>Quotation Total</span>
+                      <span className={styles.totalLabel}>Total Sales</span>
                       <span className={styles.totalValueStrong}>
                         {totalsSummary.baseCurrencyCode}{' '}
                         {formatMoney(totalsSummary.grandTotal)}
+                      </span>
+                    </div>
+                    <div className={styles.totalCard}>
+                      <span className={styles.totalLabel}>Total Cost</span>
+                      <span className={styles.totalValue}>
+                        {totalsSummary.baseCurrencyCode}{' '}
+                        {formatMoney(totalsSummary.costGrandTotal)}
+                      </span>
+                    </div>
+                    <div className={styles.totalCard}>
+                      <span className={styles.totalLabel}>Profit</span>
+                      <span className={styles.totalValue}>
+                        {totalsSummary.baseCurrencyCode}{' '}
+                        {formatMoney(totalsSummary.profitAmount)}
+                      </span>
+                    </div>
+                    <div className={styles.totalCard}>
+                      <span className={styles.totalLabel}>
+                        Profit % (vs Cost)
+                      </span>
+                      <span className={styles.totalValue}>
+                        {formatPercent(totalsSummary.profitPercent)}
                       </span>
                     </div>
                   </div>
 
                   {totalsSummary.missingCount > 0 ? (
                     <div className={styles.totalWarningText}>
-                      {totalsSummary.missingCount} row(s) skipped due to missing
-                      currency or exchange rate.
+                      Sales skipped: {totalsSummary.salesMissingCount} row(s),
+                      Cost skipped: {totalsSummary.costMissingCount} row(s) due
+                      to missing currency or exchange rate.
                     </div>
                   ) : null}
                 </div>

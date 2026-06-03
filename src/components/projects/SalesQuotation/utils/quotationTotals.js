@@ -228,6 +228,12 @@ export const computeQuotationTotals = (
     (row) => row?.currency_id,
   );
 
+  const shippingCostSummary = sumConvertedRows(
+    shippingSelectedRows,
+    (row) => row?.cost_price,
+    (row) => row?.cost_currency_id,
+  );
+
   const productSummary = sumConvertedRows(
     productSelectedRows,
     (row) => {
@@ -241,6 +247,21 @@ export const computeQuotationTotals = (
       return (Number.isFinite(qty) ? qty : 1) * price;
     },
     (row) => row?.currency_id,
+  );
+
+  const productCostSummary = sumConvertedRows(
+    productSelectedRows,
+    (row) => {
+      const qty = toNumber(row?.qty);
+      const costPrice = toNumber(row?.cost_price);
+
+      if (!Number.isFinite(costPrice)) {
+        return NaN;
+      }
+
+      return (Number.isFinite(qty) ? qty : 1) * costPrice;
+    },
+    (row) => row?.cost_currency_id,
   );
 
   const serviceSummary = sumConvertedRows(
@@ -258,18 +279,54 @@ export const computeQuotationTotals = (
     (row) => row?.currency_id,
   );
 
-  const grandTotal =
+  const serviceCostSummary = sumConvertedRows(
+    serviceSelectedRows,
+    (row) => {
+      const qty = toNumber(row?.qty);
+      const costPrice = toNumber(row?.cost_price);
+
+      if (!Number.isFinite(costPrice)) {
+        return NaN;
+      }
+
+      return (Number.isFinite(qty) ? qty : 1) * costPrice;
+    },
+    (row) => row?.cost_currency_id,
+  );
+
+  const salesGrandTotal =
     shippingSummary.total + productSummary.total + serviceSummary.total;
-  const missingCount =
+  const costGrandTotal =
+    shippingCostSummary.total +
+    productCostSummary.total +
+    serviceCostSummary.total;
+  const profitAmount = salesGrandTotal - costGrandTotal;
+  const profitPercent =
+    costGrandTotal > 0 ? (profitAmount / costGrandTotal) * 100 : null;
+
+  const salesMissingCount =
     shippingSummary.missingCount +
     productSummary.missingCount +
     serviceSummary.missingCount;
+  const costMissingCount =
+    shippingCostSummary.missingCount +
+    productCostSummary.missingCount +
+    serviceCostSummary.missingCount;
+  const missingCount = salesMissingCount + costMissingCount;
 
   return {
     shipping: shippingSummary.total,
     product: productSummary.total,
     service: serviceSummary.total,
-    grandTotal,
+    grandTotal: salesGrandTotal,
+    costShipping: shippingCostSummary.total,
+    costProduct: productCostSummary.total,
+    costService: serviceCostSummary.total,
+    costGrandTotal,
+    profitAmount,
+    profitPercent,
+    salesMissingCount,
+    costMissingCount,
     missingCount,
     baseCurrencyCode: toSafeString(baseCurrencyCode).toUpperCase() || 'HKD',
   };

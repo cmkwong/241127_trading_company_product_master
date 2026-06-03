@@ -63,7 +63,9 @@ const Main_SalesServiceDetails = ({
         service_id: '',
         qty: 1,
         currency_id: '',
+        cost_currency_id: '',
         price: '',
+        cost_price: '',
         details: '',
         selected: true,
         ...row,
@@ -108,7 +110,9 @@ const Main_SalesServiceDetails = ({
         service_id: serviceOptions[0]?.id || '',
         qty: 1,
         currency_id: currencyOptions[0]?.id || '',
+        cost_currency_id: currencyOptions[0]?.id || '',
         price: '',
+        cost_price: '',
         details: '',
         selected: true,
       },
@@ -280,7 +284,7 @@ const Main_SalesServiceDetails = ({
       },
       {
         key: 'price',
-        label: 'Price',
+        label: 'Sales Price',
         sortType: 'number',
         renderCell: (row) => (
           <Main_TextField
@@ -290,6 +294,36 @@ const Main_SalesServiceDetails = ({
             placeholder="Price"
             onChange={(ov, nv) =>
               handleUpsertServiceDetail(row, { price: toNumber(nv) })
+            }
+          />
+        ),
+      },
+      {
+        key: 'cost_currency_id',
+        label: 'Cost Currency',
+        sortType: 'string',
+        renderCell: (row) => (
+          <Main_Dropdown
+            defaultOptions={currencyDropdownOptions}
+            defaultSelectedOption={row.cost_currency_id || ''}
+            onChange={(ov, nv) =>
+              handleUpsertServiceDetail(row, { cost_currency_id: nv })
+            }
+          />
+        ),
+      },
+      {
+        key: 'cost_price',
+        label: 'Cost Price',
+        sortType: 'number',
+        renderCell: (row) => (
+          <Main_TextField
+            className={styles.cellInput}
+            type="number"
+            defaultValue={String(row.cost_price ?? '')}
+            placeholder="Cost Price"
+            onChange={(ov, nv) =>
+              handleUpsertServiceDetail(row, { cost_price: toNumber(nv) })
             }
           />
         ),

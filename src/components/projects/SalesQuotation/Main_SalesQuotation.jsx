@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import styles from './Main_SalesQuotation.module.css';
 import SalesQuotationSavePageContainer from './Container/SalesQuotationSavePageContainer';
 import SalesQuotationSidebar from './AllSalesQuotationList/SalesQuotationSidebar';
@@ -21,6 +21,7 @@ import {
   getLatestExchangeRateRow,
   toSafeString,
 } from './utils/quotationTotals';
+import { buildQuotationDocumentA4Html } from './utils/quotationPrint';
 
 const formatPercent = (value) => {
   if (!Number.isFinite(value)) {
@@ -33,7 +34,11 @@ const formatPercent = (value) => {
 const Main_SalesQuotation = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [previewHtml, setPreviewHtml] = useState('');
+  const [isPreparingPreview, setIsPreparingPreview] = useState(false);
   const [baseCurrencyCode, setBaseCurrencyCode] = useState('HKD');
+  const previewIframeRef = useRef(null);
   const {
     quotations,
     selectedQuotationId,
@@ -169,6 +174,63 @@ const Main_SalesQuotation = () => {
     }
   }, [deleteSalesQuotation, isDeleting, selectedQuotation]);
 
+  const handlePreviewQuotation = useCallback(() => {
+    if (!selectedQuotation || isPreparingPreview) {
+      return;
+    }
+
+    try {
+      setIsPreparingPreview(true);
+      const html = buildQuotationDocumentA4Html({
+        quotation: selectedQuotation,
+        customerOptions,
+        customerAddressOptions,
+        supplierOptions,
+        productOptions,
+        serviceOptions,
+        currencyCodeById,
+        baseCurrencyCode,
+        exchangeRateMap,
+      });
+
+      setPreviewHtml(html);
+      setIsPreviewOpen(true);
+    } catch (error) {
+      console.error('Failed to prepare quotation preview:', error);
+      alert(error?.message || 'Failed to prepare quotation preview.');
+    } finally {
+      setIsPreparingPreview(false);
+    }
+  }, [
+    baseCurrencyCode,
+    currencyCodeById,
+    customerAddressOptions,
+    customerOptions,
+    exchangeRateMap,
+    isPreparingPreview,
+    productOptions,
+    selectedQuotation,
+    serviceOptions,
+    supplierOptions,
+  ]);
+
+  const handlePrintFromPreview = useCallback(() => {
+    const iframe = previewIframeRef.current;
+    const iframeWindow = iframe?.contentWindow;
+
+    if (!iframeWindow) {
+      alert('Preview is not ready yet. Please try again.');
+      return;
+    }
+
+    iframeWindow.focus();
+    iframeWindow.print();
+  }, []);
+
+  const handleClosePreview = useCallback(() => {
+    setIsPreviewOpen(false);
+  }, []);
+
   return (
     <SalesQuotationSavePageContainer
       onSave={handleSaveQuotation}
@@ -209,6 +271,19 @@ const Main_SalesQuotation = () => {
           <div className={styles.inputSide}>
             {selectedQuotation ? (
               <>
+                <div className={styles.quotationActions}>
+                  <button
+                    type="button"
+                    className={styles.printButton}
+                    onClick={handlePreviewQuotation}
+                    disabled={isPreparingPreview}
+                  >
+                    {isPreparingPreview
+                      ? 'Preparing Preview...'
+                      : 'Preview / Print Quotation (A4 PDF)'}
+                  </button>
+                </div>
+
                 <div className={styles.currencySummaryBar}>
                   <div className={styles.baseCurrencyPicker}>
                     <span className={styles.baseCurrencyLabel}>
@@ -341,6 +416,49 @@ const Main_SalesQuotation = () => {
           </div>
         </div>
       </div>
+
+      {isPreviewOpen ? (
+        <div
+          className={styles.previewModalBackdrop}
+          onClick={handleClosePreview}
+        >
+          <div
+            className={styles.previewModalWindow}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className={styles.previewModalHeader}>
+              <div className={styles.previewModalTitle}>
+                Quotation A4 Preview
+              </div>
+              <div className={styles.previewModalActions}>
+                <button
+                  type="button"
+                  className={styles.previewActionBtn}
+                  onClick={handlePrintFromPreview}
+                >
+                  Print / Save PDF
+                </button>
+                <button
+                  type="button"
+                  className={styles.previewCloseBtn}
+                  onClick={handleClosePreview}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+
+            <div className={styles.previewFrameWrap}>
+              <iframe
+                ref={previewIframeRef}
+                title="Quotation Preview"
+                className={styles.previewFrame}
+                srcDoc={previewHtml}
+              />
+            </div>
+          </div>
+        </div>
+      ) : null}
     </SalesQuotationSavePageContainer>
   );
 };

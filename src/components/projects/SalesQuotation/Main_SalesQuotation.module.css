@@ -36,6 +36,27 @@
   margin-bottom: 0.25rem;
 }
 
+.printButton {
+  border: 1px solid #0b66a7;
+  border-radius: 6px;
+  padding: 0.42rem 0.9rem;
+  background: #1177bf;
+  color: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.16s ease;
+}
+
+.printButton:hover {
+  background: #0d5f99;
+}
+
+.printButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
 .currencySummaryBar {
   display: flex;
   flex-direction: column;
@@ -116,6 +137,90 @@
   background: #f8fafc;
 }
 
+.previewModalBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+}
+
+.previewModalWindow {
+  width: min(1100px, 96vw);
+  height: min(92vh, 960px);
+  background: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 24px 60px rgba(2, 6, 23, 0.4);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.previewModalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+  border-bottom: 1px solid #dbe3ef;
+  background: #f8fbff;
+}
+
+.previewModalTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.previewModalActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.previewActionBtn,
+.previewCloseBtn {
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 0.36rem 0.75rem;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.previewActionBtn {
+  border-color: #0b66a7;
+  background: #1177bf;
+  color: #ffffff;
+}
+
+.previewActionBtn:hover {
+  background: #0d5f99;
+}
+
+.previewCloseBtn:hover {
+  background: #f1f5f9;
+}
+
+.previewFrameWrap {
+  flex: 1;
+  background: #e2e8f0;
+  padding: 10px;
+}
+
+.previewFrame {
+  width: 100%;
+  height: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
 @media (max-width: 768px) {
   .masterContainer {
     flex-direction: column;
@@ -135,5 +240,19 @@
 
   .totalsSummaryGrid {
     grid-template-columns: repeat(2, minmax(140px, 1fr));
+  }
+
+  .previewModalWindow {
+    width: 100%;
+    height: 95vh;
+  }
+
+  .previewModalHeader {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .previewModalActions {
+    justify-content: flex-end;
   }
 }

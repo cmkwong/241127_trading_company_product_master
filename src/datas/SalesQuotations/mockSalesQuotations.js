@@ -113,6 +113,7 @@ export const mockSalesQuotations = [
         qty: 120,
         weight: 310,
         details: 'Master carton shipment for launch batch.',
+        remark: 'Internal: queue export docs one day earlier.',
       },
       {
         id: shippingDetailIdA2,
@@ -124,6 +125,7 @@ export const mockSalesQuotations = [
         qty: 80,
         weight: 170,
         details: 'Backup lot to CN consolidation location.',
+        remark: 'Internal: fragile handling stickers needed.',
       },
     ],
     sales_shipping_prices: [
@@ -135,6 +137,7 @@ export const mockSalesQuotations = [
         currency_id: 'USD',
         price: 1450,
         details: 'Ocean freight incl. docs.',
+        remark: 'Internal: request earliest carrier cutoff slot.',
         selected: true,
       },
       {
@@ -145,6 +148,7 @@ export const mockSalesQuotations = [
         currency_id: 'USD',
         price: 680,
         details: 'Truck transfer to consolidation point.',
+        remark: 'Internal: coordinate with CN warehouse gate schedule.',
         selected: false,
       },
     ],
@@ -158,6 +162,7 @@ export const mockSalesQuotations = [
         currency_id: 'USD',
         price: 2.65,
         details: 'Main item with anti-slip base upgrade.',
+        remark: 'Internal: keep mold cavity traceability.',
       },
     ],
     sales_product_detail_images: [],
@@ -171,6 +176,7 @@ export const mockSalesQuotations = [
         currency_id: 'USD',
         price: 120,
         details: 'AQL inspection before loading.',
+        remark: 'Internal: include random drop test photos.',
       },
     ],
     sales_service_detail_images: [],

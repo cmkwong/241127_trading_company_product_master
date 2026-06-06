@@ -390,8 +390,14 @@ const renestSalesPayloadForApi = (
 export const SalesQuotationContext_Provider = ({ children }) => {
   const { token } = useAuthContext();
   const { fileMappings } = useGeneralContext();
-  const { services, currencies, incoterms, category, supplierType } =
-    useMasterContext();
+  const {
+    services,
+    currencies,
+    incoterms,
+    shippingMethods,
+    category,
+    supplierType,
+  } = useMasterContext();
 
   const [quotations, setQuotations] = useState([]);
   const [originalQuotationMap, setOriginalQuotationMap] = useState({});
@@ -1364,6 +1370,14 @@ export const SalesQuotationContext_Provider = ({ children }) => {
     return FALLBACK_INCOTERM_OPTIONS;
   }, [incoterms]);
 
+  const shippingMethodOptions = useMemo(() => {
+    return toArray(shippingMethods)
+      .map((item) =>
+        toOption(item?.id, pickFirstLabel(item, ['name', 'label', 'id'])),
+      )
+      .filter(Boolean);
+  }, [shippingMethods]);
+
   const contextValue = {
     quotations,
     selectedQuotationId,
@@ -1378,6 +1392,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
     serviceOptions,
     currencyOptions,
     incotermOptions,
+    shippingMethodOptions,
     saveError,
     isDataUnchanged,
     getChangedData,

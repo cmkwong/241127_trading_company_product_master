@@ -37,6 +37,7 @@ const DEFAULT_TABLE_NAMES = [
   'master_customer_name_types',
   'master_currencies',
   'master_incoterms',
+  'master_shipping_method',
   'master_exchange_rate_hkd',
 ];
 
@@ -63,6 +64,7 @@ const TABLE_INITIAL_DATA = {
   master_customer_name_types: [],
   master_currencies: [],
   master_incoterms: [],
+  master_shipping_method: [],
   master_exchange_rate_hkd: [],
 };
 
@@ -222,6 +224,13 @@ const LEGACY_TABLE_BINDINGS = [
     removeName: 'removeIncoterm',
   },
   {
+    tableName: 'master_shipping_method',
+    getName: 'getShippingMethods',
+    updateName: 'updateShippingMethods',
+    addName: 'addShippingMethod',
+    removeName: 'removeShippingMethod',
+  },
+  {
     tableName: 'master_exchange_rate_hkd',
     getName: 'getExchangeRateHkd',
     updateName: 'updateExchangeRateHkd',
@@ -263,6 +272,7 @@ export const MasterContext_Provider = ({ children }) => {
   const packType = masterDataMap.master_packing_types || [];
   const currencies = masterDataMap.master_currencies || [];
   const incoterms = masterDataMap.master_incoterms || [];
+  const shippingMethods = masterDataMap.master_shipping_method || [];
   const exchangeRateHkd = masterDataMap.master_exchange_rate_hkd || [];
   const productImageType = masterDataMap.master_product_image_types || [];
 
@@ -543,6 +553,7 @@ export const MasterContext_Provider = ({ children }) => {
     sizeType,
     currencies,
     incoterms,
+    shippingMethods,
     exchangeRateHkd,
     masterDataMap,
     masterTableNames: DEFAULT_TABLE_NAMES,

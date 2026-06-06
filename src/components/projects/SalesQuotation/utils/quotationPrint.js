@@ -194,6 +194,7 @@ const buildServiceLineItems = ({
 
 const buildShippingLineItems = ({
   quotation,
+  shippingMethodById,
   supplierById,
   addressById,
   currencyCodeById,
@@ -214,6 +215,9 @@ const buildShippingLineItems = ({
       const detail = detailById.get(
         toSafeString(row?.sales_shipping_detail_id),
       );
+      const shippingMethod = shippingMethodById.get(
+        toSafeString(row?.shipping_method_id),
+      );
       const supplier = supplierById.get(toSafeString(row?.supplier_id));
       const rate = toNumber(row?.price);
       const currencyCode =
@@ -221,15 +225,31 @@ const buildShippingLineItems = ({
       const deliveryAddress = addressById.get(
         toSafeString(detail?.customer_address_id),
       );
+      const leadTimeFrom = toNumber(row?.delivery_lead_time_from);
+      const leadTimeTo = toNumber(row?.delivery_lead_time_to);
+      const hasLeadTimeFrom = Number.isFinite(leadTimeFrom);
+      const hasLeadTimeTo = Number.isFinite(leadTimeTo);
 
       return {
-        itemName: toSafeString(supplier?.name) || 'Delivery Service',
+        itemName:
+          toSafeString(shippingMethod?.name) ||
+          toSafeString(supplier?.name) ||
+          'Delivery Service',
         details: [
           toSafeString(row?.details),
           toSafeString(detail?.details),
           toSafeString(row?.incoterms)
             ? `Incoterms: ${toSafeString(row?.incoterms)}`
             : '',
+          hasLeadTimeFrom && hasLeadTimeTo
+            ? `Delivery lead time: ${String(leadTimeFrom)} - ${String(
+                leadTimeTo,
+              )} days`
+            : hasLeadTimeFrom
+              ? `Delivery lead time from: ${String(leadTimeFrom)} days`
+              : hasLeadTimeTo
+                ? `Delivery lead time to: ${String(leadTimeTo)} days`
+                : '',
           pickAddressLine(deliveryAddress)
             ? `Delivery address: ${pickAddressLine(deliveryAddress)}`
             : '',
@@ -549,6 +569,7 @@ export const buildQuotationDocumentA4Html = ({
   customerOptions = [],
   customerAddressOptions = [],
   supplierOptions = [],
+  shippingMethodOptions = [],
   productOptions = [],
   serviceOptions = [],
   currencyCodeById = {},
@@ -562,6 +583,7 @@ export const buildQuotationDocumentA4Html = ({
   const customerById = buildLookupMap(customerOptions);
   const addressById = buildLookupMap(customerAddressOptions);
   const supplierById = buildLookupMap(supplierOptions);
+  const shippingMethodById = buildLookupMap(shippingMethodOptions);
   const productById = buildLookupMap(productOptions);
   const serviceById = buildLookupMap(serviceOptions);
 
@@ -579,6 +601,7 @@ export const buildQuotationDocumentA4Html = ({
     }),
     ...buildShippingLineItems({
       quotation,
+      shippingMethodById,
       supplierById,
       addressById,
       currencyCodeById,

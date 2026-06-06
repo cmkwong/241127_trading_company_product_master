@@ -22,6 +22,15 @@ const toNumber = (value, fallback = '') => {
   return Number.isNaN(parsed) ? fallback : parsed;
 };
 
+const toInteger = (value, fallback = '') => {
+  if (value === '' || value === null || value === undefined) {
+    return fallback;
+  }
+
+  const parsed = parseInt(value, 10);
+  return Number.isNaN(parsed) ? fallback : parsed;
+};
+
 const buildAddressPreview = (address) => {
   const detail = String(address?.address_detail || '').trim();
   if (detail) {
@@ -51,6 +60,7 @@ const Main_SalesShippingDetails = ({
   quotation,
   customerAddressOptions = [],
   supplierOptions = [],
+  shippingMethodOptions = [],
   currencyOptions = [],
   incotermOptions = [],
   onPatchQuotation,
@@ -96,6 +106,7 @@ const Main_SalesShippingDetails = ({
       const nextRow = {
         id: rowId,
         sales_quotation_id: quotation?.id,
+        remark: '',
         ...row,
         ...patch,
       };
@@ -154,6 +165,7 @@ const Main_SalesShippingDetails = ({
         qty: 0,
         weight: '',
         details: '',
+        remark: '',
       },
     ]);
   }, [
@@ -192,12 +204,16 @@ const Main_SalesShippingDetails = ({
         id: rowId,
         sales_shipping_detail_id: row?.sales_shipping_detail_id || '',
         supplier_id: '',
+        shipping_method_id: '',
         incoterms: '',
         currency_id: '',
         cost_currency_id: '',
         price: '',
         cost_price: '',
+        delivery_lead_time_from: '',
+        delivery_lead_time_to: '',
         details: '',
+        remark: '',
         selected: false,
         ...row,
         ...patch,
@@ -237,17 +253,27 @@ const Main_SalesShippingDetails = ({
           id: uuidv4(),
           sales_shipping_detail_id: detailId,
           supplier_id: '',
+          shipping_method_id: shippingMethodOptions[0]?.id || '',
           incoterms: incotermOptions[0]?.id || '',
           currency_id: currencyOptions[0]?.id || '',
           cost_currency_id: currencyOptions[0]?.id || '',
           price: '',
           cost_price: '',
+          delivery_lead_time_from: '',
+          delivery_lead_time_to: '',
           details: '',
+          remark: '',
           selected: false,
         },
       ]);
     },
-    [shippingPrices, incotermOptions, currencyOptions, setShippingPrices],
+    [
+      shippingPrices,
+      shippingMethodOptions,
+      incotermOptions,
+      currencyOptions,
+      setShippingPrices,
+    ],
   );
 
   const handleToggleShippingPriceSelected = useCallback(
@@ -318,6 +344,18 @@ const Main_SalesShippingDetails = ({
         searchText: String(item?.searchText || '').trim(),
       })),
     [supplierOptions],
+  );
+
+  const shippingMethodSuggestionOptions = useMemo(
+    () =>
+      (shippingMethodOptions || []).map((item) => ({
+        id: String(item?.id || '').trim(),
+        name: String(item?.name || item?.label || item?.id || '').trim(),
+        searchText: String(
+          item?.searchText || item?.name || item?.label || item?.id || '',
+        ).trim(),
+      })),
+    [shippingMethodOptions],
   );
 
   const currencyDropdownOptions = useMemo(
@@ -494,6 +532,21 @@ const Main_SalesShippingDetails = ({
         ),
       },
       {
+        key: 'remark',
+        label: 'Internal Remark',
+        sortType: 'string',
+        renderCell: (row) => (
+          <Main_TextArea
+            defaultValue={row.remark || ''}
+            placeholder="Internal remark (not printed)"
+            rows={2}
+            onChange={(ov, nv) =>
+              handleUpsertShippingDetail(row, { remark: nv })
+            }
+          />
+        ),
+      },
+      {
         key: 'images',
         label: 'Images',
         sortable: false,
@@ -612,6 +665,40 @@ const Main_SalesShippingDetails = ({
         ),
       },
       {
+        key: 'shipping_method_id',
+        label: 'Shipping Method',
+        sortType: 'string',
+        getSortValue: (row) =>
+          shippingMethodSuggestionOptions.find(
+            (item) => item.id === row.shipping_method_id,
+          )?.name || '',
+        renderCell: (row) => (
+          <Main_Suggest
+            defaultSuggestions={shippingMethodSuggestionOptions}
+            defaultValue={
+              shippingMethodSuggestionOptions.find(
+                (item) => item.id === row.shipping_method_id,
+              )?.name || ''
+            }
+            placeholder="Search shipping method"
+            getSuggestionLabel={(suggestion) => suggestion?.name || ''}
+            getSuggestionSearchText={(suggestion) =>
+              String(suggestion?.searchText || suggestion?.name || '')
+            }
+            onChange={(ov, nv) => {
+              if (!String(nv || '').trim()) {
+                handleUpsertShippingPrice(row, { shipping_method_id: '' });
+              }
+            }}
+            onSelectSuggestion={(suggestion) =>
+              handleUpsertShippingPrice(row, {
+                shipping_method_id: String(suggestion?.id || '').trim(),
+              })
+            }
+          />
+        ),
+      },
+      {
         key: 'incoterms',
         label: 'Incoterms',
         sortType: 'string',
@@ -686,6 +773,42 @@ const Main_SalesShippingDetails = ({
         ),
       },
       {
+        key: 'delivery_lead_time_from',
+        label: 'Lead Time From (Days)',
+        sortType: 'number',
+        renderCell: (row) => (
+          <Main_TextField
+            className={styles.cellInput}
+            type="number"
+            defaultValue={String(row.delivery_lead_time_from ?? '')}
+            placeholder="From"
+            onChange={(ov, nv) =>
+              handleUpsertShippingPrice(row, {
+                delivery_lead_time_from: toInteger(nv),
+              })
+            }
+          />
+        ),
+      },
+      {
+        key: 'delivery_lead_time_to',
+        label: 'Lead Time To (Days)',
+        sortType: 'number',
+        renderCell: (row) => (
+          <Main_TextField
+            className={styles.cellInput}
+            type="number"
+            defaultValue={String(row.delivery_lead_time_to ?? '')}
+            placeholder="To"
+            onChange={(ov, nv) =>
+              handleUpsertShippingPrice(row, {
+                delivery_lead_time_to: toInteger(nv),
+              })
+            }
+          />
+        ),
+      },
+      {
         key: 'selected',
         label: 'Selected',
         sortType: 'string',
@@ -717,6 +840,21 @@ const Main_SalesShippingDetails = ({
         ),
       },
       {
+        key: 'remark',
+        label: 'Internal Remark',
+        sortType: 'string',
+        renderCell: (row) => (
+          <Main_TextArea
+            defaultValue={row.remark || ''}
+            placeholder="Internal remark (not printed)"
+            rows={2}
+            onChange={(ov, nv) =>
+              handleUpsertShippingPrice(row, { remark: nv })
+            }
+          />
+        ),
+      },
+      {
         key: 'actions',
         label: 'Actions',
         sortable: false,
@@ -727,6 +865,7 @@ const Main_SalesShippingDetails = ({
     ],
     [
       supplierDropdownOptions,
+      shippingMethodSuggestionOptions,
       incotermDropdownOptions,
       currencyDropdownOptions,
       handleUpsertShippingPrice,

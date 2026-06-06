@@ -52,6 +52,7 @@ const Main_SalesQuotation = () => {
     serviceOptions,
     currencyOptions,
     incotermOptions,
+    shippingMethodOptions,
     patchSelectedQuotation: patchSalesQuotationInContext,
     saveSelectedQuotation,
     createSalesQuotation,
@@ -63,6 +64,7 @@ const Main_SalesQuotation = () => {
 
   useEffect(() => {
     refreshReferenceOptions();
+    fetchMasterData('master_shipping_method');
     fetchMasterData('master_exchange_rate_hkd');
     fetchMasterData('master_currencies');
   }, [fetchMasterData, refreshReferenceOptions]);
@@ -70,6 +72,7 @@ const Main_SalesQuotation = () => {
   useEffect(() => {
     const handleWindowFocus = () => {
       refreshReferenceOptions();
+      fetchMasterData('master_shipping_method');
       fetchMasterData('master_exchange_rate_hkd');
       fetchMasterData('master_currencies');
     };
@@ -186,6 +189,7 @@ const Main_SalesQuotation = () => {
         customerOptions,
         customerAddressOptions,
         supplierOptions,
+        shippingMethodOptions,
         productOptions,
         serviceOptions,
         currencyCodeById,
@@ -211,6 +215,7 @@ const Main_SalesQuotation = () => {
     productOptions,
     selectedQuotation,
     serviceOptions,
+    shippingMethodOptions,
     supplierOptions,
   ]);
 
@@ -386,6 +391,7 @@ const Main_SalesQuotation = () => {
                   quotation={selectedQuotation}
                   customerAddressOptions={customerAddressOptions}
                   supplierOptions={supplierOptions}
+                  shippingMethodOptions={shippingMethodOptions}
                   currencyOptions={currencyOptions}
                   incotermOptions={incotermOptions}
                   onPatchQuotation={patchSelectedQuotation}

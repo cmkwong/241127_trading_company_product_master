@@ -82,6 +82,7 @@ const Main_SalesProductDetails = ({
         price: '',
         cost_price: '',
         details: '',
+        remark: '',
         selected: true,
         ...row,
         ...patch,
@@ -128,6 +129,7 @@ const Main_SalesProductDetails = ({
         price: '',
         cost_price: '',
         details: '',
+        remark: '',
         selected: true,
       },
     ]);
@@ -364,6 +366,21 @@ const Main_SalesProductDetails = ({
             rows={2}
             onChange={(ov, nv) =>
               handleUpsertProductDetail(row, { details: nv })
+            }
+          />
+        ),
+      },
+      {
+        key: 'remark',
+        label: 'Internal Remark',
+        sortType: 'string',
+        renderCell: (row) => (
+          <Main_TextArea
+            defaultValue={row.remark || ''}
+            placeholder="Internal remark (not printed)"
+            rows={2}
+            onChange={(ov, nv) =>
+              handleUpsertProductDetail(row, { remark: nv })
             }
           />
         ),

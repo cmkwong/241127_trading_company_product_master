@@ -13,23 +13,16 @@
   min-width: 140px;
 }
 
-.detailedAddressCell {
-  min-width: 360px;
+.detailedAddressInlineRow {
+  min-width: 760px;
   display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.addressBlock {
-  display: flex;
-  flex-direction: column;
-  gap: 0.45rem;
-}
-
-.blockLabel {
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: #374151;
+.inlineTextareaWrap {
+  flex: 1 1 260px;
+  min-width: 260px;
 }
 
 .actionRow {
@@ -38,7 +31,6 @@
 }
 
 .parseButton {
-  align-self: flex-start;
   border: 1px solid #1f4b99;
   background: #f3f7ff;
   color: #16386f;
@@ -54,7 +46,6 @@
 }
 
 .copyButton {
-  align-self: flex-start;
   border: 1px solid #2f6f2f;
   background: #f2fbf2;
   color: #1f531f;

@@ -75,14 +75,14 @@ const buildStandardAddressPreview = (row) => {
   return [
     addressLine1,
     addressLine2,
-    addressLine3 ? `Address Line 3: ${addressLine3}` : '',
-    city ? `City: ${city}` : '',
-    state ? `State: ${state}` : '',
-    zipCode ? `Zip Code: ${zipCode}` : '',
-    country ? `Country: ${country}` : '',
+    addressLine3,
+    city,
+    state,
+    zipCode,
+    country,
   ]
     .filter(Boolean)
-    .join('\n');
+    .join(', ');
 };
 
 const Main_CustomerAddresses = () => {
@@ -211,52 +211,43 @@ const Main_CustomerAddresses = () => {
           const standardPreview = buildStandardAddressPreview(row);
 
           return (
-            <div className={styles.detailedAddressCell}>
-              <div className={styles.addressBlock}>
-                <span className={styles.blockLabel}>
-                  Detailed Address Input
-                </span>
+            <div className={styles.detailedAddressInlineRow}>
+              <div className={styles.inlineTextareaWrap}>
                 <Main_TextArea
                   defaultValue={detailedAddressDrafts[row.id] || ''}
-                  placeholder="Paste full address, then click Fill Fields"
-                  rows={3}
+                  placeholder="Paste full address"
+                  rows={1}
+                  resize="none"
                   onChange={(ov, nv) => {
                     setDetailedAddressDraft(row.id, nv);
                   }}
                 />
-                <div className={styles.actionRow}>
-                  <button
-                    type="button"
-                    className={styles.parseButton}
-                    onClick={() => handleParseDetailedAddress(row)}
-                  >
-                    Fill Fields
-                  </button>
-                </div>
               </div>
-
-              <div className={styles.addressBlock}>
-                <span className={styles.blockLabel}>
-                  Standard Address Preview
-                </span>
+              <button
+                type="button"
+                className={styles.parseButton}
+                onClick={() => handleParseDetailedAddress(row)}
+              >
+                Fill Fields
+              </button>
+              <div className={styles.inlineTextareaWrap}>
                 <Main_TextArea
                   defaultValue={standardPreview}
                   placeholder="Standard address preview"
-                  rows={3}
+                  rows={1}
+                  resize="none"
                   readOnly
                 />
-                <div className={styles.actionRow}>
-                  <button
-                    type="button"
-                    className={styles.copyButton}
-                    onClick={() => handleCopyStandardAddress(row)}
-                  >
-                    {copiedRowId === String(row?.id || '')
-                      ? 'Copied'
-                      : 'Copy Standard'}
-                  </button>
-                </div>
               </div>
+              <button
+                type="button"
+                className={styles.copyButton}
+                onClick={() => handleCopyStandardAddress(row)}
+              >
+                {copiedRowId === String(row?.id || '')
+                  ? 'Copied'
+                  : 'Copy Standard'}
+              </button>
             </div>
           );
         },

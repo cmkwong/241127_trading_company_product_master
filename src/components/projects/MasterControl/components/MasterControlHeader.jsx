@@ -8,6 +8,7 @@ const MasterControlHeader = ({
   canEdit,
   onReload,
   onAddRow,
+  showAddRowAction = true,
   showCopyDateRangeAction = false,
   onCopyDateRange,
 }) => {
@@ -33,12 +34,14 @@ const MasterControlHeader = ({
             Copy Date Range
           </button>
         ) : null}
-        <AddNewBtn
-          onClick={onAddRow}
-          text="Add Row"
-          className={styles.inlineAddBtn}
-          disabled={!selectedTable || isSaving || !canEdit}
-        />
+        {showAddRowAction ? (
+          <AddNewBtn
+            onClick={onAddRow}
+            text="Add Row"
+            className={styles.inlineAddBtn}
+            disabled={!selectedTable || isSaving || !canEdit}
+          />
+        ) : null}
       </div>
     </div>
   );

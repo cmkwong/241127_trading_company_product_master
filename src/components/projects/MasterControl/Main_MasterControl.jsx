@@ -10,7 +10,9 @@ import Main_DateSelector from '../../common/InputOptions/Date/Main_DateSelector'
 import Main_FileUploads from '../../common/InputOptions/FileUploads/Main_FileUploads';
 import Main_Suggest from '../../common/InputOptions/Suggest/Main_Suggest';
 import Main_TextField from '../../common/InputOptions/TextField/Main_TextField';
+import Main_TextArea from '../../common/InputOptions/Textarea/Main_TextArea';
 import { sortByDisplayOrder } from '../../../utils/arr';
+import { objectUrlToDataUri } from '../../../utils/objectUrlUtils';
 import MasterControlHeader from './components/MasterControlHeader';
 import MasterControlSidebar from './components/MasterControlSidebar';
 import MasterControlTablePanel from './components/MasterControlTablePanel';
@@ -30,6 +32,9 @@ import {
 } from './utils/masterServiceUtils';
 import { canProceedAndDiscardUnsavedChanges } from '../../../utils/contextDataUtils';
 import styles from './Main_MasterControl.module.css';
+
+const COMPANY_INFO_TABLE_NAME = 'master_company_info';
+const FILE_SERVER_BASE_URL = 'http://localhost:3001';
 
 const parseIsoDateString = (value) => {
   const text = String(value || '').trim();
@@ -131,6 +136,7 @@ const MasterControlContent = () => {
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState('');
   const canEdit = Boolean(token);
+  const isCompanyInfoTable = selectedTable === COMPANY_INFO_TABLE_NAME;
 
   useEffect(() => {
     if (!selectedTable && tableNames.length > 0) {
@@ -439,6 +445,125 @@ const MasterControlContent = () => {
     setSaveSuccess(false);
     setSaveError('');
   }, [buildBlankRow]);
+
+  const companyInfoDraftRow = useMemo(() => {
+    if (Array.isArray(draftRows) && draftRows.length > 0) {
+      return draftRows[0];
+    }
+
+    return {
+      id: '',
+      logo_icon_url: '',
+      logo_icon_name: '',
+      base64_image: '',
+      company_name: '',
+      company_address: '',
+      contact_person: '',
+    };
+  }, [draftRows]);
+
+  const companyInfoLogoDefaults = useMemo(() => {
+    const logoUrl = String(companyInfoDraftRow?.logo_icon_url || '').trim();
+    if (!logoUrl) {
+      return [];
+    }
+
+    return [
+      {
+        id: String(companyInfoDraftRow?.id || 'master-company-logo').trim(),
+        name: String(companyInfoDraftRow?.logo_icon_name || 'logo').trim(),
+        url: logoUrl,
+        display_order: 1,
+      },
+    ];
+  }, [companyInfoDraftRow]);
+
+  const upsertCompanyInfoDraftRow = useCallback((patch = {}) => {
+    setDraftRows((prev) => {
+      const currentRow =
+        Array.isArray(prev) && prev.length > 0
+          ? prev[0]
+          : {
+              id: uuidv4(),
+              _isNew: true,
+              logo_icon_url: '',
+              logo_icon_name: '',
+              base64_image: '',
+              company_name: '',
+              company_address: '',
+              contact_person: '',
+            };
+
+      const nextRow = {
+        ...currentRow,
+        ...patch,
+      };
+
+      if (!String(nextRow?.id || '').trim()) {
+        nextRow.id = uuidv4();
+      }
+
+      if (!Array.isArray(prev) || prev.length === 0) {
+        return [nextRow];
+      }
+
+      const nextRows = [...prev];
+      nextRows[0] = nextRow;
+      return nextRows;
+    });
+
+    setSaveSuccess(false);
+    setSaveError('');
+    setError('');
+  }, []);
+
+  const handleCompanyInfoLogoChange = useCallback(
+    async (newFiles = []) => {
+      if (!canEdit) return;
+
+      const nextLogo =
+        Array.isArray(newFiles) && newFiles.length > 0 ? newFiles[0] : null;
+
+      if (!nextLogo) {
+        upsertCompanyInfoDraftRow({
+          logo_icon_url: '',
+          logo_icon_name: '',
+          base64_image: '',
+        });
+        return;
+      }
+
+      const nextLogoName = String(nextLogo?.name || '').trim();
+      const nextLogoUrl = String(nextLogo?.url || '').trim();
+
+      let base64Image = '';
+      if (nextLogoUrl.startsWith('data:')) {
+        base64Image = nextLogoUrl;
+      } else if (nextLogo?.file instanceof Blob) {
+        try {
+          base64Image = await objectUrlToDataUri(nextLogo.file);
+        } catch (conversionError) {
+          const message =
+            conversionError?.message ||
+            'Failed to process the selected logo image.';
+          setError(message);
+          return;
+        }
+      } else {
+        const existingBase64 = String(nextLogo?.base64_image || '').trim();
+        if (existingBase64.startsWith('data:')) {
+          base64Image = existingBase64;
+        }
+      }
+
+      upsertCompanyInfoDraftRow({
+        logo_icon_url: base64Image || nextLogoUrl,
+        logo_icon_name: nextLogoName,
+        base64_image: base64Image,
+      });
+    },
+    [canEdit, setError, upsertCompanyInfoDraftRow],
+  );
 
   const handleCopyExchangeRateDateRange = useCallback(() => {
     if (!canEdit || selectedTable !== 'master_exchange_rate_hkd') {
@@ -1196,6 +1321,7 @@ const MasterControlContent = () => {
           canEdit={canEdit}
           onReload={handleReload}
           onAddRow={handleAddRow}
+          showAddRowAction={!isCompanyInfoTable}
           showCopyDateRangeAction={
             selectedTable === 'master_exchange_rate_hkd' && canEdit
           }
@@ -1215,12 +1341,96 @@ const MasterControlContent = () => {
             onSelect={handleSelectTable}
           />
 
-          <MasterControlTablePanel
-            error={error}
-            rows={draftRows}
-            columns={tableColumns}
-            rowKey={(row, rowIndex) => row.id || row._localId || rowIndex}
-          />
+          {isCompanyInfoTable ? (
+            <section className={styles.tableSection}>
+              {error ? <div className={styles.error}>{error}</div> : null}
+
+              <div className={styles.companyInfoForm}>
+                <div className={styles.companyInfoLogoCard}>
+                  <div className={styles.companyInfoFieldLabel}>Logo Icon</div>
+                  <Main_FileUploads
+                    mode="image"
+                    label=""
+                    compact
+                    compactButtonText="Upload Logo"
+                    defaultImages={companyInfoLogoDefaults}
+                    maxFiles={1}
+                    multiple={false}
+                    disabled={!canEdit || isSaving}
+                    fileUrlBase={FILE_SERVER_BASE_URL}
+                    onChange={(oldFiles, newFiles) =>
+                      handleCompanyInfoLogoChange(newFiles)
+                    }
+                    onError={(uploadError) => {
+                      console.error('Company logo upload error:', uploadError);
+                      setError(
+                        uploadError?.message ||
+                          'Failed to upload company logo.',
+                      );
+                    }}
+                  />
+                </div>
+
+                <div className={styles.companyInfoFieldsGrid}>
+                  <div className={styles.companyInfoFieldBlock}>
+                    <label className={styles.companyInfoFieldLabel}>
+                      Company Name
+                    </label>
+                    <Main_TextField
+                      defaultValue={asInputValue(
+                        companyInfoDraftRow.company_name,
+                      )}
+                      placeholder="Company name"
+                      onChange={(ov, nv) =>
+                        upsertCompanyInfoDraftRow({ company_name: nv })
+                      }
+                      disabled={!canEdit || isSaving}
+                    />
+                  </div>
+
+                  <div className={styles.companyInfoFieldBlock}>
+                    <label className={styles.companyInfoFieldLabel}>
+                      Contact Person
+                    </label>
+                    <Main_TextField
+                      defaultValue={asInputValue(
+                        companyInfoDraftRow.contact_person,
+                      )}
+                      placeholder="Contact person"
+                      onChange={(ov, nv) =>
+                        upsertCompanyInfoDraftRow({ contact_person: nv })
+                      }
+                      disabled={!canEdit || isSaving}
+                    />
+                  </div>
+
+                  <div className={styles.companyInfoFieldBlockFull}>
+                    <label className={styles.companyInfoFieldLabel}>
+                      Company Address
+                    </label>
+                    <Main_TextArea
+                      defaultValue={asInputValue(
+                        companyInfoDraftRow.company_address,
+                      )}
+                      placeholder="Company address"
+                      rows={3}
+                      onChange={(ov, nv) =>
+                        upsertCompanyInfoDraftRow({ company_address: nv })
+                      }
+                      disabled={!canEdit || isSaving}
+                    />
+                  </div>
+                </div>
+              </div>
+            </section>
+          ) : (
+            <MasterControlTablePanel
+              error={error}
+              rows={draftRows}
+              columns={tableColumns}
+              rowKey={(row, rowIndex) => row.id || row._localId || rowIndex}
+            />
+          )}
         </div>
       </div>
     </MasterControlSavePageContainer>

@@ -60,10 +60,12 @@ const Main_SalesQuotation = () => {
     getSalesQuotationDryRunData,
     refreshReferenceOptions,
   } = useSalesQuotationContext();
-  const { currencies, exchangeRateHkd, fetchMasterData } = useMasterContext();
+  const { companyInfo, currencies, exchangeRateHkd, fetchMasterData } =
+    useMasterContext();
 
   useEffect(() => {
     refreshReferenceOptions();
+    fetchMasterData('master_company_info');
     fetchMasterData('master_shipping_method');
     fetchMasterData('master_exchange_rate_hkd');
     fetchMasterData('master_currencies');
@@ -72,6 +74,7 @@ const Main_SalesQuotation = () => {
   useEffect(() => {
     const handleWindowFocus = () => {
       refreshReferenceOptions();
+      fetchMasterData('master_company_info');
       fetchMasterData('master_shipping_method');
       fetchMasterData('master_exchange_rate_hkd');
       fetchMasterData('master_currencies');
@@ -186,6 +189,7 @@ const Main_SalesQuotation = () => {
       setIsPreparingPreview(true);
       const html = buildQuotationDocumentA4Html({
         quotation: selectedQuotation,
+        companyInfo: Array.isArray(companyInfo) ? companyInfo[0] : null,
         customerOptions,
         customerAddressOptions,
         supplierOptions,
@@ -207,6 +211,7 @@ const Main_SalesQuotation = () => {
     }
   }, [
     baseCurrencyCode,
+    companyInfo,
     currencyCodeById,
     customerAddressOptions,
     customerOptions,
@@ -228,9 +233,40 @@ const Main_SalesQuotation = () => {
       return;
     }
 
+    const titleMatch = String(previewHtml || '').match(
+      /<title>([^<]+)<\/title>/i,
+    );
+    const desiredTitle = String(titleMatch?.[1] || '')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .trim();
+
+    const originalTitle = document.title;
+    if (desiredTitle) {
+      document.title = desiredTitle;
+      try {
+        iframeWindow.document.title = desiredTitle;
+      } catch (error) {
+        console.warn('Unable to set iframe print title:', error);
+      }
+    }
+
+    let restored = false;
+    const restoreTitle = () => {
+      if (restored) return;
+      restored = true;
+      document.title = originalTitle;
+    };
+
+    window.addEventListener('afterprint', restoreTitle, { once: true });
+    setTimeout(restoreTitle, 2000);
+
     iframeWindow.focus();
     iframeWindow.print();
-  }, []);
+  }, [previewHtml]);
 
   const handleClosePreview = useCallback(() => {
     setIsPreviewOpen(false);

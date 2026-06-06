@@ -4,6 +4,25 @@ import EditableDataTableHeader from './EditableDataTableHeader';
 import styles from './EditableDataTable.module.css';
 
 const getDefaultRowKey = (row, index) => row?.id || index;
+const COLUMN_SIZE_MAP = {
+  S: 90,
+  M: 130,
+  L: 170,
+  XL: 220,
+  XXL: 300,
+};
+
+const toCssWidth = (value) => {
+  if (value === null || value === undefined || value === '') {
+    return undefined;
+  }
+
+  if (typeof value === 'number') {
+    return `${value}px`;
+  }
+
+  return String(value);
+};
 
 const EditableDataTable = ({
   rows = [],
@@ -18,6 +37,32 @@ const EditableDataTable = ({
   const [fillDrag, setFillDrag] = useState(null);
   const [fillHoverIndex, setFillHoverIndex] = useState(null);
 
+  const normalizedColumns = useMemo(() => {
+    return columns.map((column) => {
+      const normalizedSizeKey = String(column?.size || '')
+        .trim()
+        .toUpperCase();
+      const mappedSize = COLUMN_SIZE_MAP[normalizedSizeKey];
+
+      const resolvedWidth =
+        toCssWidth(column?.width) ||
+        (mappedSize ? `${mappedSize}px` : undefined);
+      const resolvedMinWidth =
+        toCssWidth(column?.minWidth) ||
+        (mappedSize ? `${mappedSize}px` : undefined);
+      const resolvedMaxWidth =
+        toCssWidth(column?.maxWidth) ||
+        (mappedSize ? `${mappedSize}px` : undefined);
+
+      return {
+        ...column,
+        width: resolvedWidth,
+        minWidth: resolvedMinWidth,
+        maxWidth: resolvedMaxWidth,
+      };
+    });
+  }, [columns]);
+
   const filteredRows = useMemo(() => {
     const activeFilters = Object.entries(columnFilters).filter(([, value]) =>
       String(value || '').trim(),
@@ -29,7 +74,7 @@ const EditableDataTable = ({
 
     return rows.filter((row) => {
       return activeFilters.every(([columnKey, query]) => {
-        const column = columns.find((item) => item.key === columnKey);
+        const column = normalizedColumns.find((item) => item.key === columnKey);
         if (!column) {
           return true;
         }
@@ -45,12 +90,14 @@ const EditableDataTable = ({
           .includes(String(query).trim().toLowerCase());
       });
     });
-  }, [rows, columns, columnFilters]);
+  }, [rows, normalizedColumns, columnFilters]);
 
   const sortedRows = useMemo(() => {
     if (!sortConfig.key) return filteredRows;
 
-    const column = columns.find((item) => item.key === sortConfig.key);
+    const column = normalizedColumns.find(
+      (item) => item.key === sortConfig.key,
+    );
     if (!column) return filteredRows;
 
     const dir = sortConfig.direction === 'asc' ? 1 : -1;
@@ -76,7 +123,7 @@ const EditableDataTable = ({
 
       return String(aValue ?? '').localeCompare(String(bValue ?? '')) * dir;
     });
-  }, [filteredRows, columns, sortConfig]);
+  }, [filteredRows, normalizedColumns, sortConfig]);
 
   const applyFill = useCallback(() => {
     if (
@@ -217,7 +264,7 @@ const EditableDataTable = ({
 
       <table className={styles.dataTable}>
         <EditableDataTableHeader
-          columns={columns}
+          columns={normalizedColumns}
           sortConfig={sortConfig}
           onSort={handleSort}
           filters={columnFilters}
@@ -226,7 +273,7 @@ const EditableDataTable = ({
         />
         <EditableDataTableBody
           rows={sortedRows}
-          columns={columns}
+          columns={normalizedColumns}
           rowKey={rowKey}
           emptyMessage={emptyMessage}
           getFillCellClassName={getFillCellClassName}

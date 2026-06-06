@@ -73,6 +73,7 @@ const Main_SavePage = ({
   saveError = null,
   className = '',
   leftBottomAction = null,
+  leftOfDryRunAction = null,
 }) => {
   const [isDryRunning, setIsDryRunning] = useState(false);
   const [dryRunError, setDryRunError] = useState('');
@@ -126,6 +127,7 @@ const Main_SavePage = ({
             )}
           </div>
           <div className={styles.buttonContainer}>
+            {leftOfDryRunAction}
             {typeof dryRunAction === 'function' && (
               <Button
                 text={isDryRunning ? 'Running...' : dryRunButtonText}

@@ -37,11 +37,37 @@ const SALES_TABLE_NAME = 'sales_quotations';
 
 const DEFAULT_QUOTATION_FILE_MAPPINGS = {
   sales_shipping_images: { url: 'image_url', base64: 'base64_image' },
+  sales_shipping_internal_images: { url: 'image_url', base64: 'base64_image' },
+  sales_shipping_price_images: { url: 'image_url', base64: 'base64_image' },
+  sales_shipping_price_internal_images: {
+    url: 'image_url',
+    base64: 'base64_image',
+  },
   sales_product_detail_images: { url: 'image_url', base64: 'base64_image' },
+  sales_product_detail_internal_images: {
+    url: 'image_url',
+    base64: 'base64_image',
+  },
   sales_service_detail_images: { url: 'image_url', base64: 'base64_image' },
+  sales_service_detail_internal_images: {
+    url: 'image_url',
+    base64: 'base64_image',
+  },
 };
 
 const SALES_CHILD_TABLE_RENEST_CONFIG = [
+  {
+    rootChildKey: 'sales_shipping_price_images',
+    detailKey: 'sales_shipping_prices',
+    parentField: 'sales_shipping_price_id',
+    nestedChildKey: 'sales_shipping_price_images',
+  },
+  {
+    rootChildKey: 'sales_shipping_price_internal_images',
+    detailKey: 'sales_shipping_prices',
+    parentField: 'sales_shipping_price_id',
+    nestedChildKey: 'sales_shipping_price_internal_images',
+  },
   {
     rootChildKey: 'sales_shipping_prices',
     detailKey: 'sales_shipping_details',
@@ -55,16 +81,34 @@ const SALES_CHILD_TABLE_RENEST_CONFIG = [
     nestedChildKey: 'sales_shipping_images',
   },
   {
+    rootChildKey: 'sales_shipping_internal_images',
+    detailKey: 'sales_shipping_details',
+    parentField: 'sales_shipping_detail_id',
+    nestedChildKey: 'sales_shipping_internal_images',
+  },
+  {
     rootChildKey: 'sales_product_detail_images',
     detailKey: 'sales_product_details',
     parentField: 'sales_product_detail_id',
     nestedChildKey: 'sales_product_detail_images',
   },
   {
+    rootChildKey: 'sales_product_detail_internal_images',
+    detailKey: 'sales_product_details',
+    parentField: 'sales_product_detail_id',
+    nestedChildKey: 'sales_product_detail_internal_images',
+  },
+  {
     rootChildKey: 'sales_service_detail_images',
     detailKey: 'sales_service_details',
     parentField: 'sales_service_detail_id',
     nestedChildKey: 'sales_service_detail_images',
+  },
+  {
+    rootChildKey: 'sales_service_detail_internal_images',
+    detailKey: 'sales_service_details',
+    parentField: 'sales_service_detail_id',
+    nestedChildKey: 'sales_service_detail_internal_images',
   },
 ];
 
@@ -227,6 +271,36 @@ const normalizeSalesQuotation = (row = {}) => {
           'shipping_detail_id',
         );
 
+  const shippingInternalImages =
+    toArray(row?.sales_shipping_internal_images).length > 0
+      ? toArray(row?.sales_shipping_internal_images)
+      : flattenNestedRows(
+          shippingDetails,
+          'sales_shipping_internal_images',
+          'sales_shipping_detail_id',
+          'shipping_detail_id',
+        );
+
+  const shippingPriceImages =
+    toArray(row?.sales_shipping_price_images).length > 0
+      ? toArray(row?.sales_shipping_price_images)
+      : flattenNestedRows(
+          shippingPrices,
+          'sales_shipping_price_images',
+          'sales_shipping_price_id',
+          'shipping_price_id',
+        );
+
+  const shippingPriceInternalImages =
+    toArray(row?.sales_shipping_price_internal_images).length > 0
+      ? toArray(row?.sales_shipping_price_internal_images)
+      : flattenNestedRows(
+          shippingPrices,
+          'sales_shipping_price_internal_images',
+          'sales_shipping_price_id',
+          'shipping_price_id',
+        );
+
   const productImages =
     toArray(row?.sales_product_detail_images).length > 0
       ? toArray(row?.sales_product_detail_images)
@@ -237,12 +311,32 @@ const normalizeSalesQuotation = (row = {}) => {
           'product_detail_id',
         );
 
+  const productInternalImages =
+    toArray(row?.sales_product_detail_internal_images).length > 0
+      ? toArray(row?.sales_product_detail_internal_images)
+      : flattenNestedRows(
+          productDetails,
+          'sales_product_detail_internal_images',
+          'sales_product_detail_id',
+          'product_detail_id',
+        );
+
   const serviceImages =
     toArray(row?.sales_service_detail_images).length > 0
       ? toArray(row?.sales_service_detail_images)
       : flattenNestedRows(
           serviceDetails,
           'sales_service_detail_images',
+          'sales_service_detail_id',
+          'service_detail_id',
+        );
+
+  const serviceInternalImages =
+    toArray(row?.sales_service_detail_internal_images).length > 0
+      ? toArray(row?.sales_service_detail_internal_images)
+      : flattenNestedRows(
+          serviceDetails,
+          'sales_service_detail_internal_images',
           'sales_service_detail_id',
           'service_detail_id',
         );
@@ -259,10 +353,15 @@ const normalizeSalesQuotation = (row = {}) => {
     sales_shipping_details: shippingDetails,
     sales_shipping_prices: shippingPrices,
     sales_shipping_images: shippingImages,
+    sales_shipping_internal_images: shippingInternalImages,
+    sales_shipping_price_images: shippingPriceImages,
+    sales_shipping_price_internal_images: shippingPriceInternalImages,
     sales_product_details: productDetails,
     sales_product_detail_images: productImages,
+    sales_product_detail_internal_images: productInternalImages,
     sales_service_details: serviceDetails,
     sales_service_detail_images: serviceImages,
+    sales_service_detail_internal_images: serviceInternalImages,
   };
 };
 

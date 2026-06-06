@@ -10,6 +10,7 @@ const SalesQuotationSavePageContainer = ({
   showSaveButton = true,
   className,
   leftBottomAction,
+  leftOfDryRunAction,
 }) => {
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -50,6 +51,7 @@ const SalesQuotationSavePageContainer = ({
       saveError={saveError}
       className={className}
       leftBottomAction={leftBottomAction}
+      leftOfDryRunAction={leftOfDryRunAction}
     >
       {children}
     </Main_SavePage>

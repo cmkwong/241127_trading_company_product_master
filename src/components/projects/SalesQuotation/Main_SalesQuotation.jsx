@@ -192,7 +192,6 @@ const Main_SalesQuotation = () => {
         companyInfo: Array.isArray(companyInfo) ? companyInfo[0] : null,
         customerOptions,
         customerAddressOptions,
-        supplierOptions,
         shippingMethodOptions,
         productOptions,
         serviceOptions,
@@ -221,7 +220,6 @@ const Main_SalesQuotation = () => {
     selectedQuotation,
     serviceOptions,
     shippingMethodOptions,
-    supplierOptions,
   ]);
 
   const handlePrintFromPreview = useCallback(() => {
@@ -278,6 +276,18 @@ const Main_SalesQuotation = () => {
       dryRunAction={getSalesQuotationDryRunData}
       saveButtonText="Save Sales Quotation"
       successMessage="Sales quotation saved successfully!"
+      leftOfDryRunAction={
+        <button
+          type="button"
+          className={styles.printButton}
+          onClick={handlePreviewQuotation}
+          disabled={!selectedQuotation || isPreparingPreview}
+        >
+          {isPreparingPreview
+            ? 'Preparing Preview...'
+            : 'Preview / Print Quotation (A4 PDF)'}
+        </button>
+      }
       leftBottomAction={
         <DeleteBtn
           text={isDeleting ? 'Deleting...' : 'Delete Quotation'}
@@ -312,19 +322,6 @@ const Main_SalesQuotation = () => {
           <div className={styles.inputSide}>
             {selectedQuotation ? (
               <>
-                <div className={styles.quotationActions}>
-                  <button
-                    type="button"
-                    className={styles.printButton}
-                    onClick={handlePreviewQuotation}
-                    disabled={isPreparingPreview}
-                  >
-                    {isPreparingPreview
-                      ? 'Preparing Preview...'
-                      : 'Preview / Print Quotation (A4 PDF)'}
-                  </button>
-                </div>
-
                 <div className={styles.currencySummaryBar}>
                   <div className={styles.baseCurrencyPicker}>
                     <span className={styles.baseCurrencyLabel}>

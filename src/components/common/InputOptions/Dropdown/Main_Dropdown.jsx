@@ -28,6 +28,7 @@ const Main_Dropdown = (props) => {
     dropdownId,
     size = 'M',
     disabled = false,
+    matchParentWidth = false,
   } = props;
 
   const normalizedSize = useMemo(() => {
@@ -48,6 +49,21 @@ const Main_Dropdown = (props) => {
     if (normalizedSize === 'XL') return 320;
     return 200;
   }, [normalizedSize]);
+
+  const resolvedButtonStyle = useMemo(() => {
+    if (matchParentWidth) {
+      return {
+        width: '100%',
+        minWidth: 0,
+        maxWidth: '100%',
+      };
+    }
+
+    return {
+      width: `${sizeWidth}px`,
+      maxWidth: '100%',
+    };
+  }, [matchParentWidth, sizeWidth]);
 
   // Simple helper keeps ids unique per render without relying on external state
   const makeId = (prefix = 'input-list') =>
@@ -90,7 +106,7 @@ const Main_Dropdown = (props) => {
       buttonAltText: 'Select an option',
       placeholder: 'Select an option',
       buttonClassName: sizeClassName,
-      buttonStyle: { width: `${sizeWidth}px` },
+      buttonStyle: resolvedButtonStyle,
       disabled,
     }),
     [
@@ -99,13 +115,18 @@ const Main_Dropdown = (props) => {
       selected,
       setSelected,
       sizeClassName,
-      sizeWidth,
+      resolvedButtonStyle,
       disabled,
     ],
   );
 
   return (
-    <div className={styles.inputList} data-testid="input-list-container">
+    <div
+      className={`${styles.inputList} ${
+        matchParentWidth ? styles.inputListFullWidth : ''
+      }`.trim()}
+      data-testid="input-list-container"
+    >
       {label && (
         <label htmlFor={dropdownId} className={styles.label}>
           {label}
@@ -132,6 +153,7 @@ Main_Dropdown.propTypes = {
   dropdownId: PropTypes.string,
   size: PropTypes.oneOf(['S', 'M', 'L', 'XL', 's', 'm', 'l', 'xl']),
   disabled: PropTypes.bool,
+  matchParentWidth: PropTypes.bool,
 };
 
 export default Main_Dropdown;

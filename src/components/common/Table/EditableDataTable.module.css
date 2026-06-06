@@ -1,5 +1,6 @@
 .tableWrap {
-  overflow: auto;
+  overflow-x: auto;
+  overflow-y: auto;
   border: 1px solid #e5e7eb;
   border-radius: 6px;
 }
@@ -32,8 +33,9 @@
 }
 
 .dataTable {
-  width: 100%;
+  width: max-content;
   min-width: 780px;
+  max-width: none;
   border-collapse: collapse;
   font-size: 12px;
   background: #fff;

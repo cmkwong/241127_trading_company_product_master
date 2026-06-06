@@ -85,6 +85,31 @@ const buildLookupMap = (rows = [], getId = (item) => item?.id) => {
   return map;
 };
 
+const sortByDisplayOrder = (rows = []) => {
+  return [...(Array.isArray(rows) ? rows : [])].sort(
+    (a, b) => Number(a?.display_order || 0) - Number(b?.display_order || 0),
+  );
+};
+
+const buildImageUrlsByParent = (rows = [], parentField) => {
+  const grouped = new Map();
+
+  sortByDisplayOrder(rows).forEach((row) => {
+    const parentId = toSafeString(row?.[parentField]);
+    if (!parentId) return;
+
+    const imageUrl = normalizeUrl(row?.image_url);
+    if (!imageUrl) return;
+
+    const current = grouped.get(parentId) || [];
+    if (!current.includes(imageUrl)) {
+      grouped.set(parentId, [...current, imageUrl]);
+    }
+  });
+
+  return grouped;
+};
+
 const resolveCompanyInfo = (companyInfo = null) => {
   const record =
     companyInfo && typeof companyInfo === 'object' ? companyInfo : {};
@@ -171,6 +196,11 @@ const buildProductLineItems = ({
   currencyCodeById,
   baseCurrencyCode,
 }) => {
+  const productImageUrlsByDetail = buildImageUrlsByParent(
+    quotation?.sales_product_detail_images,
+    'sales_product_detail_id',
+  );
+
   return (
     Array.isArray(quotation?.sales_product_details)
       ? quotation.sales_product_details
@@ -184,6 +214,11 @@ const buildProductLineItems = ({
       const amount = Number.isFinite(rate) ? qty * rate : NaN;
       const currencyCode =
         currencyCodeById[toSafeString(row?.currency_id)] || baseCurrencyCode;
+      const detailId = toSafeString(row?.id);
+      const uploadedImageUrls = productImageUrlsByDetail.get(detailId) || [];
+      const iconUrl = normalizeUrl(product?.icon_url);
+      const imageUrls = [iconUrl, ...uploadedImageUrls].filter(Boolean);
+      const uniqueImageUrls = [...new Set(imageUrls)];
 
       return {
         itemName:
@@ -195,18 +230,22 @@ const buildProductLineItems = ({
         rate,
         amount,
         currencyCode,
-        imageUrl: normalizeUrl(product?.icon_url),
+        imageUrls: uniqueImageUrls,
       };
     });
 };
 
 const buildServiceLineItems = ({
   quotation,
-  supplierById,
   serviceById,
   currencyCodeById,
   baseCurrencyCode,
 }) => {
+  const serviceImageUrlsByDetail = buildImageUrlsByParent(
+    quotation?.sales_service_detail_images,
+    'sales_service_detail_id',
+  );
+
   return (
     Array.isArray(quotation?.sales_service_details)
       ? quotation.sales_service_details
@@ -214,27 +253,23 @@ const buildServiceLineItems = ({
   )
     .filter((row) => isSelectedFlag(row?.selected, true))
     .map((row) => {
-      const supplier = supplierById.get(toSafeString(row?.supplier_id));
       const service = serviceById.get(toSafeString(row?.service_id));
       const qty = Number.isFinite(toNumber(row?.qty)) ? toNumber(row?.qty) : 1;
       const rate = toNumber(row?.price);
       const amount = Number.isFinite(rate) ? qty * rate : NaN;
       const currencyCode =
         currencyCodeById[toSafeString(row?.currency_id)] || baseCurrencyCode;
-
-      const titleParts = [
-        toSafeString(service?.name),
-        toSafeString(supplier?.name),
-      ].filter(Boolean);
+      const detailId = toSafeString(row?.id);
+      const imageUrls = serviceImageUrlsByDetail.get(detailId) || [];
 
       return {
-        itemName: titleParts.join(' - ') || 'Service Item',
+        itemName: toSafeString(service?.name) || 'Service Item',
         details: [toSafeString(row?.details)].filter(Boolean),
         qty,
         rate,
         amount,
         currencyCode,
-        imageUrl: '',
+        imageUrls,
       };
     });
 };
@@ -242,7 +277,6 @@ const buildServiceLineItems = ({
 const buildShippingLineItems = ({
   quotation,
   shippingMethodById,
-  supplierById,
   addressById,
   currencyCodeById,
   baseCurrencyCode,
@@ -251,6 +285,14 @@ const buildShippingLineItems = ({
     ? quotation.sales_shipping_details
     : [];
   const detailById = buildLookupMap(shippingDetails);
+  const shippingDetailImageUrlsByDetail = buildImageUrlsByParent(
+    quotation?.sales_shipping_images,
+    'sales_shipping_detail_id',
+  );
+  const shippingPriceImageUrlsByPrice = buildImageUrlsByParent(
+    quotation?.sales_shipping_price_images,
+    'sales_shipping_price_id',
+  );
 
   return (
     Array.isArray(quotation?.sales_shipping_prices)
@@ -265,7 +307,6 @@ const buildShippingLineItems = ({
       const shippingMethod = shippingMethodById.get(
         toSafeString(row?.shipping_method_id),
       );
-      const supplier = supplierById.get(toSafeString(row?.supplier_id));
       const rate = toNumber(row?.price);
       const currencyCode =
         currencyCodeById[toSafeString(row?.currency_id)] || baseCurrencyCode;
@@ -276,12 +317,16 @@ const buildShippingLineItems = ({
       const leadTimeTo = toNumber(row?.delivery_lead_time_to);
       const hasLeadTimeFrom = Number.isFinite(leadTimeFrom);
       const hasLeadTimeTo = Number.isFinite(leadTimeTo);
+      const detailId = toSafeString(row?.sales_shipping_detail_id);
+      const priceId = toSafeString(row?.id);
+      const imageUrls = [
+        ...(shippingDetailImageUrlsByDetail.get(detailId) || []),
+        ...(shippingPriceImageUrlsByPrice.get(priceId) || []),
+      ];
+      const uniqueImageUrls = [...new Set(imageUrls)];
 
       return {
-        itemName:
-          toSafeString(shippingMethod?.name) ||
-          toSafeString(supplier?.name) ||
-          'Delivery Service',
+        itemName: toSafeString(shippingMethod?.name) || 'Delivery Service',
         details: [
           toSafeString(row?.details),
           toSafeString(detail?.details),
@@ -305,7 +350,7 @@ const buildShippingLineItems = ({
         rate,
         amount: rate,
         currencyCode,
-        imageUrl: '',
+        imageUrls: uniqueImageUrls,
       };
     });
 };
@@ -332,8 +377,15 @@ const buildQuotationRowsHtml = (lineItems = [], baseCurrencyCode) => {
       const rowDetails = (item.details || [])
         .map((line) => `<div class="item-detail">${escapeHtml(line)}</div>`)
         .join('');
-      const imageHtml = item.imageUrl
-        ? `<img class="item-image" src="${escapeHtml(item.imageUrl)}" alt="item" />`
+      const imageHtml = (Array.isArray(item.imageUrls) ? item.imageUrls : [])
+        .filter(Boolean)
+        .map(
+          (imageUrl) =>
+            `<img class="item-image" src="${escapeHtml(imageUrl)}" alt="item" />`,
+        )
+        .join('');
+      const imageBlock = imageHtml
+        ? `<div class="item-images">${imageHtml}</div>`
         : '';
       const showCurrencySuffix =
         toSafeString(item.currencyCode).toUpperCase() !==
@@ -348,7 +400,7 @@ const buildQuotationRowsHtml = (lineItems = [], baseCurrencyCode) => {
           <td class="item-col">
             <div class="item-title">${escapeHtml(item.itemName)}</div>
             ${rowDetails}
-            ${imageHtml}
+            ${imageBlock}
           </td>
           <td class="qty-col">${escapeHtml(String(item.qty))}</td>
           <td class="rate-col">${escapeHtml(formatLineMoney(item.rate))}${currencySuffix}</td>
@@ -526,8 +578,15 @@ const buildQuotationHtml = ({
         display: block;
         max-height: 56px;
         max-width: 92px;
+        object-fit: contain;
+      }
+
+      .item-images {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 6px;
         margin-top: 8px;
-        margin-left: auto;
       }
 
       .empty-row {
@@ -652,7 +711,6 @@ export const buildQuotationDocumentA4Html = ({
   companyInfo = null,
   customerOptions = [],
   customerAddressOptions = [],
-  supplierOptions = [],
   shippingMethodOptions = [],
   productOptions = [],
   serviceOptions = [],
@@ -666,7 +724,6 @@ export const buildQuotationDocumentA4Html = ({
 
   const customerById = buildLookupMap(customerOptions);
   const addressById = buildLookupMap(customerAddressOptions);
-  const supplierById = buildLookupMap(supplierOptions);
   const shippingMethodById = buildLookupMap(shippingMethodOptions);
   const productById = buildLookupMap(productOptions);
   const serviceById = buildLookupMap(serviceOptions);
@@ -686,14 +743,12 @@ export const buildQuotationDocumentA4Html = ({
     ...buildShippingLineItems({
       quotation,
       shippingMethodById,
-      supplierById,
       addressById,
       currencyCodeById,
       baseCurrencyCode,
     }),
     ...buildServiceLineItems({
       quotation,
-      supplierById,
       serviceById,
       currencyCodeById,
       baseCurrencyCode,

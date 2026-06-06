@@ -38,6 +38,10 @@ const Main_SalesServiceDetails = ({
     () => quotation?.sales_service_detail_images || [],
     [quotation?.sales_service_detail_images],
   );
+  const serviceInternalImages = useMemo(
+    () => quotation?.sales_service_detail_internal_images || [],
+    [quotation?.sales_service_detail_internal_images],
+  );
 
   const setServiceDetails = useCallback(
     (nextRows) => {
@@ -49,6 +53,13 @@ const Main_SalesServiceDetails = ({
   const setServiceImages = useCallback(
     (nextRows) => {
       onPatchQuotation({ sales_service_detail_images: nextRows });
+    },
+    [onPatchQuotation],
+  );
+
+  const setServiceInternalImages = useCallback(
+    (nextRows) => {
+      onPatchQuotation({ sales_service_detail_internal_images: nextRows });
     },
     [onPatchQuotation],
   );
@@ -97,8 +108,20 @@ const Main_SalesServiceDetails = ({
           (item) => String(item?.sales_service_detail_id || '') !== rowId,
         ),
       );
+      setServiceInternalImages(
+        serviceInternalImages.filter(
+          (item) => String(item?.sales_service_detail_id || '') !== rowId,
+        ),
+      );
     },
-    [serviceDetails, serviceImages, setServiceDetails, setServiceImages],
+    [
+      serviceDetails,
+      serviceImages,
+      serviceInternalImages,
+      setServiceDetails,
+      setServiceImages,
+      setServiceInternalImages,
+    ],
   );
 
   const handleAddServiceDetail = useCallback(() => {
@@ -150,6 +173,28 @@ const Main_SalesServiceDetails = ({
     [serviceImages, setServiceImages],
   );
 
+  const handleServiceInternalImagesChange = useCallback(
+    (salesServiceDetailId, newFiles = []) => {
+      const detailId = String(salesServiceDetailId || '').trim();
+      if (!detailId) return;
+
+      const preservedRows = serviceInternalImages.filter(
+        (item) => String(item?.sales_service_detail_id || '') !== detailId,
+      );
+
+      const mappedRows = (newFiles || []).map((file, index) => ({
+        id: file?.id || uuidv4(),
+        sales_service_detail_id: detailId,
+        image_name: file?.name || `service-internal-${index + 1}.jpg`,
+        image_url: file?.url || '',
+        display_order: index + 1,
+      }));
+
+      setServiceInternalImages([...preservedRows, ...mappedRows]);
+    },
+    [serviceInternalImages, setServiceInternalImages],
+  );
+
   const supplierDropdownOptions = useMemo(
     () =>
       (supplierOptions || []).map((item) => ({
@@ -162,11 +207,15 @@ const Main_SalesServiceDetails = ({
     [supplierOptions],
   );
 
-  const serviceDropdownOptions = useMemo(
+  const serviceSuggestionOptions = useMemo(
     () =>
       (serviceOptions || []).map((item) => ({
         id: String(item?.id || '').trim(),
         name: String(item?.name || item?.label || item?.id || '').trim(),
+        searchText: String(
+          item?.searchText ||
+            [item?.name, item?.label, item?.id].filter(Boolean).join(' '),
+        ).trim(),
       })),
     [serviceOptions],
   );
@@ -185,6 +234,7 @@ const Main_SalesServiceDetails = ({
       {
         key: 'supplier_id',
         label: 'Supplier',
+        size: 'XL',
         sortType: 'string',
         getSortValue: (row) =>
           supplierDropdownOptions.find((item) => item.id === row.supplier_id)
@@ -240,16 +290,36 @@ const Main_SalesServiceDetails = ({
       {
         key: 'service_id',
         label: 'Service',
+        size: 'L',
         sortType: 'string',
         getSortValue: (row) =>
-          serviceDropdownOptions.find((item) => item.id === row.service_id)
+          serviceSuggestionOptions.find((item) => item.id === row.service_id)
             ?.name || '',
         renderCell: (row) => (
-          <Main_Dropdown
-            defaultOptions={serviceDropdownOptions}
-            defaultSelectedOption={row.service_id || ''}
-            onChange={(ov, nv) =>
-              handleUpsertServiceDetail(row, { service_id: nv })
+          <Main_Suggest
+            defaultSuggestions={serviceSuggestionOptions}
+            defaultValue={
+              serviceSuggestionOptions.find(
+                (item) => item.id === row.service_id,
+              )?.name || ''
+            }
+            placeholder="Search service"
+            getSuggestionLabel={(suggestion) => suggestion?.name || ''}
+            getSuggestionSearchText={(suggestion) =>
+              String(
+                suggestion?.searchText ||
+                  [suggestion?.name, suggestion?.id].filter(Boolean).join(' '),
+              )
+            }
+            onChange={(ov, nv) => {
+              if (!String(nv || '').trim()) {
+                handleUpsertServiceDetail(row, { service_id: '' });
+              }
+            }}
+            onSelectSuggestion={(suggestion) =>
+              handleUpsertServiceDetail(row, {
+                service_id: String(suggestion?.id || '').trim(),
+              })
             }
           />
         ),
@@ -257,6 +327,7 @@ const Main_SalesServiceDetails = ({
       {
         key: 'qty',
         label: 'Qty',
+        size: 'M',
         sortType: 'number',
         renderCell: (row) => (
           <Main_TextField
@@ -273,9 +344,11 @@ const Main_SalesServiceDetails = ({
       {
         key: 'currency_id',
         label: 'Currency',
+        size: 'L',
         sortType: 'string',
         renderCell: (row) => (
           <Main_Dropdown
+            matchParentWidth
             defaultOptions={currencyDropdownOptions}
             defaultSelectedOption={row.currency_id || ''}
             onChange={(ov, nv) =>
@@ -287,6 +360,7 @@ const Main_SalesServiceDetails = ({
       {
         key: 'price',
         label: 'Sales Price',
+        size: 'M',
         sortType: 'number',
         renderCell: (row) => (
           <Main_TextField
@@ -303,9 +377,11 @@ const Main_SalesServiceDetails = ({
       {
         key: 'cost_currency_id',
         label: 'Cost Currency',
+        size: 'L',
         sortType: 'string',
         renderCell: (row) => (
           <Main_Dropdown
+            matchParentWidth
             defaultOptions={currencyDropdownOptions}
             defaultSelectedOption={row.cost_currency_id || ''}
             onChange={(ov, nv) =>
@@ -317,6 +393,7 @@ const Main_SalesServiceDetails = ({
       {
         key: 'cost_price',
         label: 'Cost Price',
+        size: 'M',
         sortType: 'number',
         renderCell: (row) => (
           <Main_TextField
@@ -333,6 +410,7 @@ const Main_SalesServiceDetails = ({
       {
         key: 'selected',
         label: 'Selected',
+        size: 'S',
         sortType: 'string',
         renderCell: (row) => (
           <div className={styles.checkboxCell}>
@@ -351,6 +429,7 @@ const Main_SalesServiceDetails = ({
       {
         key: 'details',
         label: 'Details',
+        size: 'XL',
         sortType: 'string',
         renderCell: (row) => (
           <Main_TextArea
@@ -366,6 +445,7 @@ const Main_SalesServiceDetails = ({
       {
         key: 'remark',
         label: 'Internal Remark',
+        size: 'XL',
         sortType: 'string',
         renderCell: (row) => (
           <Main_TextArea
@@ -380,7 +460,8 @@ const Main_SalesServiceDetails = ({
       },
       {
         key: 'images',
-        label: 'Images',
+        label: 'Print Images',
+        size: 'XL',
         sortable: false,
         renderCell: (row) => {
           const defaultImages = serviceImages
@@ -422,8 +503,58 @@ const Main_SalesServiceDetails = ({
         },
       },
       {
+        key: 'internal_images',
+        label: 'Internal Images',
+        size: 'XL',
+        sortable: false,
+        renderCell: (row) => {
+          const defaultImages = serviceInternalImages
+            .filter(
+              (image) =>
+                String(image?.sales_service_detail_id || '') ===
+                String(row?.id || ''),
+            )
+            .sort(
+              (a, b) =>
+                Number(a.display_order || 0) - Number(b.display_order || 0),
+            )
+            .map((image) => ({
+              id: image.id,
+              name: image.image_name,
+              url: image.image_url,
+              display_order: image.display_order,
+            }));
+
+          return (
+            <div className={styles.uploadsCell}>
+              <Main_FileUploads
+                mode="image"
+                label=""
+                compact
+                tableCell
+                hoverPreview
+                showDownloadButton={false}
+                compactButtonText="Upload"
+                defaultImages={defaultImages}
+                onChange={(ov, nv) =>
+                  handleServiceInternalImagesChange(row?.id, nv)
+                }
+                onError={(error) => {
+                  console.error(
+                    'Sales service internal image upload error:',
+                    error,
+                  );
+                }}
+                fileUrlBase={FILE_SERVER_BASE_URL}
+              />
+            </div>
+          );
+        },
+      },
+      {
         key: 'actions',
         label: 'Actions',
+        size: 'S',
         sortable: false,
         renderCell: (row) => (
           <DeleteBtn onClick={() => handleDeleteServiceDetail(row)} />
@@ -432,12 +563,14 @@ const Main_SalesServiceDetails = ({
     ],
     [
       supplierDropdownOptions,
-      serviceDropdownOptions,
+      serviceSuggestionOptions,
       currencyDropdownOptions,
       serviceImages,
+      serviceInternalImages,
       handleUpsertServiceDetail,
       handleDeleteServiceDetail,
       handleServiceImagesChange,
+      handleServiceInternalImagesChange,
     ],
   );
 

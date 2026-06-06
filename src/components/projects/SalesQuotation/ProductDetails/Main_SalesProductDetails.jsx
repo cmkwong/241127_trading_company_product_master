@@ -54,6 +54,10 @@ const Main_SalesProductDetails = ({
     () => quotation?.sales_product_detail_images || [],
     [quotation?.sales_product_detail_images],
   );
+  const productInternalImages = useMemo(
+    () => quotation?.sales_product_detail_internal_images || [],
+    [quotation?.sales_product_detail_internal_images],
+  );
 
   const setProductDetails = useCallback(
     (nextRows) => {
@@ -65,6 +69,13 @@ const Main_SalesProductDetails = ({
   const setProductImages = useCallback(
     (nextRows) => {
       onPatchQuotation({ sales_product_detail_images: nextRows });
+    },
+    [onPatchQuotation],
+  );
+
+  const setProductInternalImages = useCallback(
+    (nextRows) => {
+      onPatchQuotation({ sales_product_detail_internal_images: nextRows });
     },
     [onPatchQuotation],
   );
@@ -112,8 +123,20 @@ const Main_SalesProductDetails = ({
           (item) => String(item?.sales_product_detail_id || '') !== rowId,
         ),
       );
+      setProductInternalImages(
+        productInternalImages.filter(
+          (item) => String(item?.sales_product_detail_id || '') !== rowId,
+        ),
+      );
     },
-    [productDetails, productImages, setProductDetails, setProductImages],
+    [
+      productDetails,
+      productImages,
+      productInternalImages,
+      setProductDetails,
+      setProductImages,
+      setProductInternalImages,
+    ],
   );
 
   const handleAddProductDetail = useCallback(() => {
@@ -163,6 +186,28 @@ const Main_SalesProductDetails = ({
     [productImages, setProductImages],
   );
 
+  const handleProductInternalImagesChange = useCallback(
+    (salesProductDetailId, newFiles = []) => {
+      const detailId = String(salesProductDetailId || '').trim();
+      if (!detailId) return;
+
+      const preservedRows = productInternalImages.filter(
+        (item) => String(item?.sales_product_detail_id || '') !== detailId,
+      );
+
+      const mappedRows = (newFiles || []).map((file, index) => ({
+        id: file?.id || uuidv4(),
+        sales_product_detail_id: detailId,
+        image_name: file?.name || `product-internal-${index + 1}.jpg`,
+        image_url: file?.url || '',
+        display_order: index + 1,
+      }));
+
+      setProductInternalImages([...preservedRows, ...mappedRows]);
+    },
+    [productInternalImages, setProductInternalImages],
+  );
+
   const productDropdownOptions = useMemo(
     () =>
       (productOptions || []).map((item) => ({
@@ -190,6 +235,7 @@ const Main_SalesProductDetails = ({
       {
         key: 'product_id',
         label: 'Product',
+        size: 'XXL',
         sortType: 'string',
         getSortValue: (row) =>
           productDropdownOptions.find((item) => item.id === row.product_id)
@@ -264,6 +310,7 @@ const Main_SalesProductDetails = ({
       {
         key: 'qty',
         label: 'Qty',
+        size: 'M',
         sortType: 'number',
         renderCell: (row) => (
           <Main_TextField
@@ -280,9 +327,11 @@ const Main_SalesProductDetails = ({
       {
         key: 'currency_id',
         label: 'Currency',
+        size: 'L',
         sortType: 'string',
         renderCell: (row) => (
           <Main_Dropdown
+            matchParentWidth
             defaultOptions={currencyDropdownOptions}
             defaultSelectedOption={row.currency_id || ''}
             onChange={(ov, nv) =>
@@ -294,6 +343,7 @@ const Main_SalesProductDetails = ({
       {
         key: 'price',
         label: 'Sales Price',
+        size: 'M',
         sortType: 'number',
         renderCell: (row) => (
           <Main_TextField
@@ -310,9 +360,11 @@ const Main_SalesProductDetails = ({
       {
         key: 'cost_currency_id',
         label: 'Cost Currency',
+        size: 'L',
         sortType: 'string',
         renderCell: (row) => (
           <Main_Dropdown
+            matchParentWidth
             defaultOptions={currencyDropdownOptions}
             defaultSelectedOption={row.cost_currency_id || ''}
             onChange={(ov, nv) =>
@@ -324,6 +376,7 @@ const Main_SalesProductDetails = ({
       {
         key: 'cost_price',
         label: 'Cost Price',
+        size: 'M',
         sortType: 'number',
         renderCell: (row) => (
           <Main_TextField
@@ -340,6 +393,7 @@ const Main_SalesProductDetails = ({
       {
         key: 'selected',
         label: 'Selected',
+        size: 'S',
         sortType: 'string',
         renderCell: (row) => (
           <div className={styles.checkboxCell}>
@@ -358,6 +412,7 @@ const Main_SalesProductDetails = ({
       {
         key: 'details',
         label: 'Details',
+        size: 'XL',
         sortType: 'string',
         renderCell: (row) => (
           <Main_TextArea
@@ -373,6 +428,7 @@ const Main_SalesProductDetails = ({
       {
         key: 'remark',
         label: 'Internal Remark',
+        size: 'XL',
         sortType: 'string',
         renderCell: (row) => (
           <Main_TextArea
@@ -387,7 +443,8 @@ const Main_SalesProductDetails = ({
       },
       {
         key: 'images',
-        label: 'Images',
+        label: 'Print Images',
+        size: 'XL',
         sortable: false,
         renderCell: (row) => {
           const defaultImages = productImages
@@ -429,8 +486,58 @@ const Main_SalesProductDetails = ({
         },
       },
       {
+        key: 'internal_images',
+        label: 'Internal Images',
+        size: 'XL',
+        sortable: false,
+        renderCell: (row) => {
+          const defaultImages = productInternalImages
+            .filter(
+              (image) =>
+                String(image?.sales_product_detail_id || '') ===
+                String(row?.id || ''),
+            )
+            .sort(
+              (a, b) =>
+                Number(a.display_order || 0) - Number(b.display_order || 0),
+            )
+            .map((image) => ({
+              id: image.id,
+              name: image.image_name,
+              url: image.image_url,
+              display_order: image.display_order,
+            }));
+
+          return (
+            <div className={styles.uploadsCell}>
+              <Main_FileUploads
+                mode="image"
+                label=""
+                compact
+                tableCell
+                hoverPreview
+                showDownloadButton={false}
+                compactButtonText="Upload"
+                defaultImages={defaultImages}
+                onChange={(ov, nv) =>
+                  handleProductInternalImagesChange(row?.id, nv)
+                }
+                onError={(error) => {
+                  console.error(
+                    'Sales product internal image upload error:',
+                    error,
+                  );
+                }}
+                fileUrlBase={FILE_SERVER_BASE_URL}
+              />
+            </div>
+          );
+        },
+      },
+      {
         key: 'actions',
         label: 'Actions',
+        size: 'S',
         sortable: false,
         renderCell: (row) => (
           <DeleteBtn onClick={() => handleDeleteProductDetail(row)} />
@@ -441,9 +548,11 @@ const Main_SalesProductDetails = ({
       productDropdownOptions,
       currencyDropdownOptions,
       productImages,
+      productInternalImages,
       handleUpsertProductDetail,
       handleDeleteProductDetail,
       handleProductImagesChange,
+      handleProductInternalImagesChange,
     ],
   );
 

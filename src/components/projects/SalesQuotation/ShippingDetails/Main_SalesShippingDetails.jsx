@@ -77,6 +77,18 @@ const Main_SalesShippingDetails = ({
     () => quotation?.sales_shipping_images || [],
     [quotation?.sales_shipping_images],
   );
+  const shippingInternalImages = useMemo(
+    () => quotation?.sales_shipping_internal_images || [],
+    [quotation?.sales_shipping_internal_images],
+  );
+  const shippingPriceImages = useMemo(
+    () => quotation?.sales_shipping_price_images || [],
+    [quotation?.sales_shipping_price_images],
+  );
+  const shippingPriceInternalImages = useMemo(
+    () => quotation?.sales_shipping_price_internal_images || [],
+    [quotation?.sales_shipping_price_internal_images],
+  );
   const selectedCustomerId = String(quotation?.customer_id || '').trim();
 
   const setShippingDetails = useCallback(
@@ -96,6 +108,27 @@ const Main_SalesShippingDetails = ({
   const setShippingImages = useCallback(
     (nextRows) => {
       onPatchQuotation({ sales_shipping_images: nextRows });
+    },
+    [onPatchQuotation],
+  );
+
+  const setShippingInternalImages = useCallback(
+    (nextRows) => {
+      onPatchQuotation({ sales_shipping_internal_images: nextRows });
+    },
+    [onPatchQuotation],
+  );
+
+  const setShippingPriceImages = useCallback(
+    (nextRows) => {
+      onPatchQuotation({ sales_shipping_price_images: nextRows });
+    },
+    [onPatchQuotation],
+  );
+
+  const setShippingPriceInternalImages = useCallback(
+    (nextRows) => {
+      onPatchQuotation({ sales_shipping_price_internal_images: nextRows });
     },
     [onPatchQuotation],
   );
@@ -129,6 +162,14 @@ const Main_SalesShippingDetails = ({
       const rowId = String(row?.id || '');
       if (!rowId) return;
 
+      const removedPriceIds = shippingPrices
+        .filter(
+          (item) => String(item?.sales_shipping_detail_id || '') === rowId,
+        )
+        .map((item) => String(item?.id || '').trim())
+        .filter(Boolean);
+      const removedPriceIdSet = new Set(removedPriceIds);
+
       setShippingDetails(shippingDetails.filter((item) => item.id !== rowId));
       setShippingPrices(
         shippingPrices.filter(
@@ -140,14 +181,37 @@ const Main_SalesShippingDetails = ({
           (item) => String(item?.sales_shipping_detail_id || '') !== rowId,
         ),
       );
+      setShippingInternalImages(
+        shippingInternalImages.filter(
+          (item) => String(item?.sales_shipping_detail_id || '') !== rowId,
+        ),
+      );
+      setShippingPriceImages(
+        shippingPriceImages.filter(
+          (item) =>
+            !removedPriceIdSet.has(String(item?.sales_shipping_price_id || '')),
+        ),
+      );
+      setShippingPriceInternalImages(
+        shippingPriceInternalImages.filter(
+          (item) =>
+            !removedPriceIdSet.has(String(item?.sales_shipping_price_id || '')),
+        ),
+      );
     },
     [
       shippingDetails,
       shippingPrices,
       shippingImages,
+      shippingInternalImages,
+      shippingPriceImages,
+      shippingPriceInternalImages,
       setShippingDetails,
       setShippingPrices,
       setShippingImages,
+      setShippingInternalImages,
+      setShippingPriceImages,
+      setShippingPriceInternalImages,
     ],
   );
 
@@ -197,6 +261,28 @@ const Main_SalesShippingDetails = ({
     [shippingImages, setShippingImages],
   );
 
+  const handleShippingInternalImagesChange = useCallback(
+    (shippingDetailId, newFiles = []) => {
+      const detailId = String(shippingDetailId || '').trim();
+      if (!detailId) return;
+
+      const preservedRows = shippingInternalImages.filter(
+        (item) => String(item?.sales_shipping_detail_id || '') !== detailId,
+      );
+
+      const mappedRows = (newFiles || []).map((file, index) => ({
+        id: file?.id || uuidv4(),
+        sales_shipping_detail_id: detailId,
+        image_url: file?.url || '',
+        image_name: file?.name || `shipping-internal-${index + 1}.jpg`,
+        display_order: index + 1,
+      }));
+
+      setShippingInternalImages([...preservedRows, ...mappedRows]);
+    },
+    [shippingInternalImages, setShippingInternalImages],
+  );
+
   const handleUpsertShippingPrice = useCallback(
     (row, patch) => {
       const rowId = String(row?.id || uuidv4());
@@ -238,8 +324,69 @@ const Main_SalesShippingDetails = ({
       if (!rowId) return;
 
       setShippingPrices(shippingPrices.filter((item) => item.id !== rowId));
+      setShippingPriceImages(
+        shippingPriceImages.filter(
+          (item) => String(item?.sales_shipping_price_id || '') !== rowId,
+        ),
+      );
+      setShippingPriceInternalImages(
+        shippingPriceInternalImages.filter(
+          (item) => String(item?.sales_shipping_price_id || '') !== rowId,
+        ),
+      );
     },
-    [shippingPrices, setShippingPrices],
+    [
+      shippingPrices,
+      shippingPriceImages,
+      shippingPriceInternalImages,
+      setShippingPrices,
+      setShippingPriceImages,
+      setShippingPriceInternalImages,
+    ],
+  );
+
+  const handleShippingPriceImagesChange = useCallback(
+    (shippingPriceId, newFiles = []) => {
+      const priceId = String(shippingPriceId || '').trim();
+      if (!priceId) return;
+
+      const preservedRows = shippingPriceImages.filter(
+        (item) => String(item?.sales_shipping_price_id || '') !== priceId,
+      );
+
+      const mappedRows = (newFiles || []).map((file, index) => ({
+        id: file?.id || uuidv4(),
+        sales_shipping_price_id: priceId,
+        image_url: file?.url || '',
+        image_name: file?.name || `shipping-price-${index + 1}.jpg`,
+        display_order: index + 1,
+      }));
+
+      setShippingPriceImages([...preservedRows, ...mappedRows]);
+    },
+    [shippingPriceImages, setShippingPriceImages],
+  );
+
+  const handleShippingPriceInternalImagesChange = useCallback(
+    (shippingPriceId, newFiles = []) => {
+      const priceId = String(shippingPriceId || '').trim();
+      if (!priceId) return;
+
+      const preservedRows = shippingPriceInternalImages.filter(
+        (item) => String(item?.sales_shipping_price_id || '') !== priceId,
+      );
+
+      const mappedRows = (newFiles || []).map((file, index) => ({
+        id: file?.id || uuidv4(),
+        sales_shipping_price_id: priceId,
+        image_url: file?.url || '',
+        image_name: file?.name || `shipping-price-internal-${index + 1}.jpg`,
+        display_order: index + 1,
+      }));
+
+      setShippingPriceInternalImages([...preservedRows, ...mappedRows]);
+    },
+    [shippingPriceInternalImages, setShippingPriceInternalImages],
   );
 
   const handleAddShippingPrice = useCallback(
@@ -381,6 +528,7 @@ const Main_SalesShippingDetails = ({
       {
         key: 'customer_address_id',
         label: 'Customer Address',
+        size: 'XXL',
         sortType: 'string',
         getSortValue: (row) =>
           addressSuggestionOptions.find(
@@ -439,6 +587,7 @@ const Main_SalesShippingDetails = ({
       {
         key: 'length',
         label: 'Length',
+        size: 'M',
         sortType: 'number',
         renderCell: (row) => (
           <Main_TextField
@@ -455,6 +604,7 @@ const Main_SalesShippingDetails = ({
       {
         key: 'width',
         label: 'Width',
+        size: 'M',
         sortType: 'number',
         renderCell: (row) => (
           <Main_TextField
@@ -471,6 +621,7 @@ const Main_SalesShippingDetails = ({
       {
         key: 'height',
         label: 'Height',
+        size: 'M',
         sortType: 'number',
         renderCell: (row) => (
           <Main_TextField
@@ -487,6 +638,7 @@ const Main_SalesShippingDetails = ({
       {
         key: 'qty',
         label: 'Qty',
+        size: 'M',
         sortType: 'number',
         renderCell: (row) => (
           <Main_TextField
@@ -503,6 +655,7 @@ const Main_SalesShippingDetails = ({
       {
         key: 'weight',
         label: 'Weight',
+        size: 'M',
         sortType: 'number',
         renderCell: (row) => (
           <Main_TextField
@@ -519,6 +672,7 @@ const Main_SalesShippingDetails = ({
       {
         key: 'details',
         label: 'Details',
+        size: 'XL',
         sortType: 'string',
         renderCell: (row) => (
           <Main_TextArea
@@ -534,6 +688,7 @@ const Main_SalesShippingDetails = ({
       {
         key: 'remark',
         label: 'Internal Remark',
+        size: 'XL',
         sortType: 'string',
         renderCell: (row) => (
           <Main_TextArea
@@ -548,7 +703,8 @@ const Main_SalesShippingDetails = ({
       },
       {
         key: 'images',
-        label: 'Images',
+        label: 'Print Images',
+        size: 'XL',
         sortable: false,
         renderCell: (row) => {
           const defaultImages = shippingImages
@@ -590,8 +746,55 @@ const Main_SalesShippingDetails = ({
         },
       },
       {
+        key: 'internal_images',
+        label: 'Internal Images',
+        size: 'XL',
+        sortable: false,
+        renderCell: (row) => {
+          const defaultImages = shippingInternalImages
+            .filter(
+              (image) =>
+                String(image?.sales_shipping_detail_id || '') ===
+                String(row?.id || ''),
+            )
+            .sort(
+              (a, b) =>
+                Number(a.display_order || 0) - Number(b.display_order || 0),
+            )
+            .map((image) => ({
+              id: image.id,
+              name: image.image_name,
+              url: image.image_url,
+              display_order: image.display_order,
+            }));
+
+          return (
+            <div className={styles.uploadsCell}>
+              <Main_FileUploads
+                mode="image"
+                label=""
+                compact
+                tableCell
+                hoverPreview
+                showDownloadButton={false}
+                compactButtonText="Upload"
+                fileUrlBase={FILE_SERVER_BASE_URL}
+                defaultImages={defaultImages}
+                onChange={(ov, nv) =>
+                  handleShippingInternalImagesChange(row?.id, nv)
+                }
+                onError={(error) => {
+                  console.error('Shipping internal image upload error:', error);
+                }}
+              />
+            </div>
+          );
+        },
+      },
+      {
         key: 'actions',
         label: 'Actions',
+        size: 'S',
         sortable: false,
         renderCell: (row) => (
           <DeleteBtn onClick={() => handleDeleteShippingDetail(row)} />
@@ -601,7 +804,9 @@ const Main_SalesShippingDetails = ({
     [
       addressSuggestionOptions,
       shippingImages,
+      shippingInternalImages,
       handleShippingImagesChange,
+      handleShippingInternalImagesChange,
       handleUpsertShippingDetail,
       handleDeleteShippingDetail,
     ],
@@ -612,6 +817,7 @@ const Main_SalesShippingDetails = ({
       {
         key: 'supplier_id',
         label: 'Supplier',
+        size: 'L',
         sortType: 'string',
         getSortValue: (row) =>
           supplierDropdownOptions.find((item) => item.id === row.supplier_id)
@@ -667,6 +873,7 @@ const Main_SalesShippingDetails = ({
       {
         key: 'shipping_method_id',
         label: 'Shipping Method',
+        size: 'L',
         sortType: 'string',
         getSortValue: (row) =>
           shippingMethodSuggestionOptions.find(
@@ -701,9 +908,11 @@ const Main_SalesShippingDetails = ({
       {
         key: 'incoterms',
         label: 'Incoterms',
+        size: 'M',
         sortType: 'string',
         renderCell: (row) => (
           <Main_Dropdown
+            matchParentWidth
             defaultOptions={incotermDropdownOptions}
             defaultSelectedOption={row.incoterms || ''}
             onChange={(ov, nv) =>
@@ -715,9 +924,11 @@ const Main_SalesShippingDetails = ({
       {
         key: 'currency_id',
         label: 'Currency',
+        size: 'L',
         sortType: 'string',
         renderCell: (row) => (
           <Main_Dropdown
+            matchParentWidth
             defaultOptions={currencyDropdownOptions}
             defaultSelectedOption={row.currency_id || ''}
             onChange={(ov, nv) =>
@@ -729,6 +940,7 @@ const Main_SalesShippingDetails = ({
       {
         key: 'price',
         label: 'Sales Price',
+        size: 'M',
         sortType: 'number',
         renderCell: (row) => (
           <Main_TextField
@@ -745,9 +957,11 @@ const Main_SalesShippingDetails = ({
       {
         key: 'cost_currency_id',
         label: 'Cost Currency',
+        size: 'L',
         sortType: 'string',
         renderCell: (row) => (
           <Main_Dropdown
+            matchParentWidth
             defaultOptions={currencyDropdownOptions}
             defaultSelectedOption={row.cost_currency_id || ''}
             onChange={(ov, nv) =>
@@ -759,6 +973,7 @@ const Main_SalesShippingDetails = ({
       {
         key: 'cost_price',
         label: 'Cost Price',
+        size: 'M',
         sortType: 'number',
         renderCell: (row) => (
           <Main_TextField
@@ -775,6 +990,7 @@ const Main_SalesShippingDetails = ({
       {
         key: 'delivery_lead_time_from',
         label: 'Lead Time From (Days)',
+        size: 'M',
         sortType: 'number',
         renderCell: (row) => (
           <Main_TextField
@@ -793,6 +1009,7 @@ const Main_SalesShippingDetails = ({
       {
         key: 'delivery_lead_time_to',
         label: 'Lead Time To (Days)',
+        size: 'M',
         sortType: 'number',
         renderCell: (row) => (
           <Main_TextField
@@ -811,6 +1028,7 @@ const Main_SalesShippingDetails = ({
       {
         key: 'selected',
         label: 'Selected',
+        size: 'S',
         sortType: 'string',
         renderCell: (row) => (
           <div className={styles.checkboxCell}>
@@ -827,6 +1045,7 @@ const Main_SalesShippingDetails = ({
       {
         key: 'details',
         label: 'Details',
+        size: 'XL',
         sortType: 'string',
         renderCell: (row) => (
           <Main_TextArea
@@ -842,6 +1061,7 @@ const Main_SalesShippingDetails = ({
       {
         key: 'remark',
         label: 'Internal Remark',
+        size: 'XL',
         sortType: 'string',
         renderCell: (row) => (
           <Main_TextArea
@@ -855,8 +1075,104 @@ const Main_SalesShippingDetails = ({
         ),
       },
       {
+        key: 'images',
+        label: 'Print Images',
+        size: 'XL',
+        sortable: false,
+        renderCell: (row) => {
+          const defaultImages = shippingPriceImages
+            .filter(
+              (image) =>
+                String(image?.sales_shipping_price_id || '') ===
+                String(row?.id || ''),
+            )
+            .sort(
+              (a, b) =>
+                Number(a.display_order || 0) - Number(b.display_order || 0),
+            )
+            .map((image) => ({
+              id: image.id,
+              name: image.image_name,
+              url: image.image_url,
+              display_order: image.display_order,
+            }));
+
+          return (
+            <div className={styles.uploadsCell}>
+              <Main_FileUploads
+                mode="image"
+                label=""
+                compact
+                tableCell
+                hoverPreview
+                showDownloadButton={false}
+                compactButtonText="Upload"
+                fileUrlBase={FILE_SERVER_BASE_URL}
+                defaultImages={defaultImages}
+                onChange={(ov, nv) =>
+                  handleShippingPriceImagesChange(row?.id, nv)
+                }
+                onError={(error) => {
+                  console.error('Shipping price image upload error:', error);
+                }}
+              />
+            </div>
+          );
+        },
+      },
+      {
+        key: 'internal_images',
+        label: 'Internal Images',
+        size: 'XL',
+        sortable: false,
+        renderCell: (row) => {
+          const defaultImages = shippingPriceInternalImages
+            .filter(
+              (image) =>
+                String(image?.sales_shipping_price_id || '') ===
+                String(row?.id || ''),
+            )
+            .sort(
+              (a, b) =>
+                Number(a.display_order || 0) - Number(b.display_order || 0),
+            )
+            .map((image) => ({
+              id: image.id,
+              name: image.image_name,
+              url: image.image_url,
+              display_order: image.display_order,
+            }));
+
+          return (
+            <div className={styles.uploadsCell}>
+              <Main_FileUploads
+                mode="image"
+                label=""
+                compact
+                tableCell
+                hoverPreview
+                showDownloadButton={false}
+                compactButtonText="Upload"
+                fileUrlBase={FILE_SERVER_BASE_URL}
+                defaultImages={defaultImages}
+                onChange={(ov, nv) =>
+                  handleShippingPriceInternalImagesChange(row?.id, nv)
+                }
+                onError={(error) => {
+                  console.error(
+                    'Shipping price internal image upload error:',
+                    error,
+                  );
+                }}
+              />
+            </div>
+          );
+        },
+      },
+      {
         key: 'actions',
         label: 'Actions',
+        size: 'S',
         sortable: false,
         renderCell: (row) => (
           <DeleteBtn onClick={() => handleDeleteShippingPrice(row)} />
@@ -868,8 +1184,12 @@ const Main_SalesShippingDetails = ({
       shippingMethodSuggestionOptions,
       incotermDropdownOptions,
       currencyDropdownOptions,
+      shippingPriceImages,
+      shippingPriceInternalImages,
       handleUpsertShippingPrice,
       handleToggleShippingPriceSelected,
+      handleShippingPriceImagesChange,
+      handleShippingPriceInternalImagesChange,
       handleDeleteShippingPrice,
     ],
   );

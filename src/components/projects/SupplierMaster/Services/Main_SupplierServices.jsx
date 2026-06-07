@@ -168,6 +168,7 @@ const Main_SupplierServices = () => {
         key: 'remark',
         label: 'Remark',
         sortType: 'string',
+        size: 'XL',
         renderCell: (row) => (
           <Main_TextArea
             defaultValue={row.remark || ''}

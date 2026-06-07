@@ -23,3 +23,9 @@
   min-width: 280px;
   max-width: 380px;
 }
+
+.remarkColumn {
+  width: 300px !important;
+  min-width: 300px !important;
+  max-width: 300px !important;
+}

@@ -431,6 +431,7 @@ const Main_SalesServiceDetails = ({
         label: 'Details',
         size: 'XL',
         sortType: 'string',
+        nextRow: true,
         renderCell: (row) => (
           <Main_TextArea
             defaultValue={row.details || ''}
@@ -447,6 +448,7 @@ const Main_SalesServiceDetails = ({
         label: 'Internal Remark',
         size: 'XL',
         sortType: 'string',
+        nextRow: true,
         renderCell: (row) => (
           <Main_TextArea
             defaultValue={row.remark || ''}
@@ -463,6 +465,7 @@ const Main_SalesServiceDetails = ({
         label: 'Print Images',
         size: 'XL',
         sortable: false,
+        nextRow: true,
         renderCell: (row) => {
           const defaultImages = serviceImages
             .filter(
@@ -507,6 +510,7 @@ const Main_SalesServiceDetails = ({
         label: 'Internal Images',
         size: 'XL',
         sortable: false,
+        nextRow: true,
         renderCell: (row) => {
           const defaultImages = serviceInternalImages
             .filter(

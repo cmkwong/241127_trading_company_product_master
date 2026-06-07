@@ -414,6 +414,7 @@ const Main_SalesProductDetails = ({
         label: 'Details',
         size: 'XL',
         sortType: 'string',
+        nextRow: true,
         renderCell: (row) => (
           <Main_TextArea
             defaultValue={row.details || ''}
@@ -430,6 +431,7 @@ const Main_SalesProductDetails = ({
         label: 'Internal Remark',
         size: 'XL',
         sortType: 'string',
+        nextRow: true,
         renderCell: (row) => (
           <Main_TextArea
             defaultValue={row.remark || ''}
@@ -446,6 +448,7 @@ const Main_SalesProductDetails = ({
         label: 'Print Images',
         size: 'XL',
         sortable: false,
+        nextRow: true,
         renderCell: (row) => {
           const defaultImages = productImages
             .filter(
@@ -490,6 +493,7 @@ const Main_SalesProductDetails = ({
         label: 'Internal Images',
         size: 'XL',
         sortable: false,
+        nextRow: true,
         renderCell: (row) => {
           const defaultImages = productInternalImages
             .filter(

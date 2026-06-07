@@ -7,9 +7,9 @@ const getDefaultRowKey = (row, index) => row?.id || index;
 const COLUMN_SIZE_MAP = {
   S: 90,
   M: 130,
-  L: 170,
-  XL: 220,
-  XXL: 300,
+  L: 350,
+  XL: 600,
+  XXL: 800,
 };
 
 const toCssWidth = (value) => {
@@ -62,6 +62,15 @@ const EditableDataTable = ({
       };
     });
   }, [columns]);
+
+  const primaryColumns = useMemo(() => {
+    const rows = normalizedColumns.filter((column) => !column?.nextRow);
+    return rows.length > 0 ? rows : normalizedColumns;
+  }, [normalizedColumns]);
+
+  const tailColumns = useMemo(() => {
+    return normalizedColumns.filter((column) => column?.nextRow);
+  }, [normalizedColumns]);
 
   const filteredRows = useMemo(() => {
     const activeFilters = Object.entries(columnFilters).filter(([, value]) =>
@@ -264,7 +273,7 @@ const EditableDataTable = ({
 
       <table className={styles.dataTable}>
         <EditableDataTableHeader
-          columns={normalizedColumns}
+          columns={primaryColumns}
           sortConfig={sortConfig}
           onSort={handleSort}
           filters={columnFilters}
@@ -273,7 +282,8 @@ const EditableDataTable = ({
         />
         <EditableDataTableBody
           rows={sortedRows}
-          columns={normalizedColumns}
+          columns={primaryColumns}
+          tailColumns={tailColumns}
           rowKey={rowKey}
           emptyMessage={emptyMessage}
           getFillCellClassName={getFillCellClassName}

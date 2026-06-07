@@ -146,3 +146,50 @@
   color: #888;
   padding: 20px 10px !important;
 }
+
+.nextRowTr td {
+  border-top: none;
+}
+
+.nextRowCell {
+  padding-top: 6px !important;
+  padding-bottom: 10px !important;
+  background: #fcfcfd;
+}
+
+.nextRowGrid {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 8px 12px;
+  width: 100%;
+}
+
+.nextRowItem {
+  display: block;
+  flex: 1 1 var(--next-row-item-min-width, 220px);
+  min-width: min(var(--next-row-item-min-width, 220px), 100%);
+  max-width: var(--next-row-item-max-width, 100%);
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.nextRowLabel {
+  font-size: 11px;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+.nextRowValue {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.nextRowValue > * {
+  max-width: 100%;
+  min-width: 0;
+}

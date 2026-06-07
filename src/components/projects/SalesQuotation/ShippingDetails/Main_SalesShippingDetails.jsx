@@ -673,6 +673,7 @@ const Main_SalesShippingDetails = ({
         key: 'details',
         label: 'Details',
         size: 'XL',
+        nextRow: true,
         sortType: 'string',
         renderCell: (row) => (
           <Main_TextArea
@@ -689,6 +690,7 @@ const Main_SalesShippingDetails = ({
         key: 'remark',
         label: 'Internal Remark',
         size: 'XL',
+        nextRow: true,
         sortType: 'string',
         renderCell: (row) => (
           <Main_TextArea
@@ -705,6 +707,7 @@ const Main_SalesShippingDetails = ({
         key: 'images',
         label: 'Print Images',
         size: 'XL',
+        nextRow: true,
         sortable: false,
         renderCell: (row) => {
           const defaultImages = shippingImages
@@ -749,6 +752,7 @@ const Main_SalesShippingDetails = ({
         key: 'internal_images',
         label: 'Internal Images',
         size: 'XL',
+        nextRow: true,
         sortable: false,
         renderCell: (row) => {
           const defaultImages = shippingInternalImages
@@ -1046,6 +1050,7 @@ const Main_SalesShippingDetails = ({
         key: 'details',
         label: 'Details',
         size: 'XL',
+        nextRow: true,
         sortType: 'string',
         renderCell: (row) => (
           <Main_TextArea
@@ -1062,6 +1067,7 @@ const Main_SalesShippingDetails = ({
         key: 'remark',
         label: 'Internal Remark',
         size: 'XL',
+        nextRow: true,
         sortType: 'string',
         renderCell: (row) => (
           <Main_TextArea
@@ -1078,6 +1084,7 @@ const Main_SalesShippingDetails = ({
         key: 'images',
         label: 'Print Images',
         size: 'XL',
+        nextRow: true,
         sortable: false,
         renderCell: (row) => {
           const defaultImages = shippingPriceImages
@@ -1124,6 +1131,7 @@ const Main_SalesShippingDetails = ({
         key: 'internal_images',
         label: 'Internal Images',
         size: 'XL',
+        nextRow: true,
         sortable: false,
         renderCell: (row) => {
           const defaultImages = shippingPriceInternalImages

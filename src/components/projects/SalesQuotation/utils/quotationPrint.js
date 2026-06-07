@@ -572,6 +572,7 @@ const buildQuotationHtml = ({
         color: #4b5563;
         margin-top: 2px;
         line-height: 1.45;
+        white-space: pre-line;
       }
 
       .item-image {

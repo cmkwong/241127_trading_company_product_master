@@ -1,8 +1,10 @@
+import { Fragment } from 'react';
 import styles from './EditableDataTable.module.css';
 
 const EditableDataTableBody = ({
   rows,
   columns,
+  tailColumns = [],
   rowKey,
   emptyMessage,
   getFillCellClassName,
@@ -24,49 +26,116 @@ const EditableDataTableBody = ({
   return (
     <tbody>
       {rows.map((row, rowIndex) => (
-        <tr
+        <Fragment
           key={
-            typeof rowKey === 'function' ? rowKey(row, rowIndex) : row?.[rowKey]
+            typeof rowKey === 'function'
+              ? String(rowKey(row, rowIndex))
+              : String(row?.[rowKey])
           }
         >
-          {columns.map((column) => {
-            const fillField = column.fillField;
-            const tdClassName = fillField
-              ? getFillCellClassName(fillField, rowIndex)
-              : '';
+          <tr
+            key={
+              typeof rowKey === 'function'
+                ? `${String(rowKey(row, rowIndex))}-primary`
+                : `${String(row?.[rowKey])}-primary`
+            }
+          >
+            {columns.map((column) => {
+              const fillField = column.fillField;
+              const tdClassName = fillField
+                ? getFillCellClassName(fillField, rowIndex)
+                : '';
 
-            const content = column.renderCell
-              ? column.renderCell(row, {
-                  rowIndex,
-                  wrapWithFill,
-                })
-              : row?.[column.key];
+              const content = column.renderCell
+                ? column.renderCell(row, {
+                    rowIndex,
+                    wrapWithFill,
+                  })
+                : row?.[column.key];
 
-            return (
+              return (
+                <td
+                  key={column.key}
+                  className={[
+                    tdClassName,
+                    column.cellClassName || column.columnClassName,
+                  ]
+                    .filter(Boolean)
+                    .join(' ')}
+                  style={{
+                    width: column.width,
+                    minWidth: column.minWidth,
+                    maxWidth: column.maxWidth,
+                  }}
+                  onMouseEnter={
+                    fillField
+                      ? () => handleCellMouseEnter(fillField, rowIndex)
+                      : undefined
+                  }
+                >
+                  {content}
+                </td>
+              );
+            })}
+          </tr>
+
+          {tailColumns.length > 0 && (
+            <tr
+              key={
+                typeof rowKey === 'function'
+                  ? `${String(rowKey(row, rowIndex))}-tail`
+                  : `${String(row?.[rowKey])}-tail`
+              }
+              className={styles.nextRowTr}
+            >
               <td
-                key={column.key}
-                className={[
-                  tdClassName,
-                  column.cellClassName || column.columnClassName,
-                ]
-                  .filter(Boolean)
-                  .join(' ')}
-                style={{
-                  width: column.width,
-                  minWidth: column.minWidth,
-                  maxWidth: column.maxWidth,
-                }}
-                onMouseEnter={
-                  fillField
-                    ? () => handleCellMouseEnter(fillField, rowIndex)
-                    : undefined
-                }
+                colSpan={Math.max(columns.length, 1)}
+                className={styles.nextRowCell}
               >
-                {content}
+                <div className={styles.nextRowGrid}>
+                  {tailColumns.map((column) => {
+                    const content = column.renderCell
+                      ? column.renderCell(row, {
+                          rowIndex,
+                          wrapWithFill,
+                        })
+                      : row?.[column.key];
+                    const tailMinWidth =
+                      column?.nextRowMinWidth ||
+                      column?.minWidth ||
+                      column?.width ||
+                      '220px';
+                    const tailMaxWidth =
+                      column?.nextRowMaxWidth || column?.maxWidth || undefined;
+
+                    return (
+                      <div
+                        key={column.key}
+                        className={[
+                          styles.nextRowItem,
+                          column.cellClassName || column.columnClassName,
+                        ]
+                          .filter(Boolean)
+                          .join(' ')}
+                        style={{
+                          '--next-row-item-min-width': tailMinWidth,
+                          ...(tailMaxWidth
+                            ? { '--next-row-item-max-width': tailMaxWidth }
+                            : {}),
+                        }}
+                      >
+                        <div className={styles.nextRowLabel}>
+                          {column.label}
+                        </div>
+                        <div className={styles.nextRowValue}>{content}</div>
+                      </div>
+                    );
+                  })}
+                </div>
               </td>
-            );
-          })}
-        </tr>
+            </tr>
+          )}
+        </Fragment>
       ))}
     </tbody>
   );

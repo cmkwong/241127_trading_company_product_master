@@ -182,6 +182,22 @@ const TopBar = ({ title, activeView, onViewChange }) => {
           </button>
           <button
             className={`${styles.navBtn} ${
+              activeView === 'purchaseRequest' ? styles.active : ''
+            }`}
+            onClick={() => handleViewSwitch('purchaseRequest')}
+          >
+            Purchase Request
+          </button>
+          <button
+            className={`${styles.navBtn} ${
+              activeView === 'apInvoice' ? styles.active : ''
+            }`}
+            onClick={() => handleViewSwitch('apInvoice')}
+          >
+            AP Invoice
+          </button>
+          <button
+            className={`${styles.navBtn} ${
               activeView === 'customer' ? styles.active : ''
             }`}
             onClick={() => handleViewSwitch('customer')}

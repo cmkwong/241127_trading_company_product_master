@@ -28,9 +28,13 @@ const buildAddressPreview = (address) => {
   }
 
   const parts = [
+    address?.address_line1,
+    address?.address_line2,
+    address?.address_line3,
     address?.address,
     address?.line1,
     address?.line2,
+    address?.line3,
     address?.city,
     address?.state || address?.province,
     address?.country,
@@ -51,6 +55,7 @@ const Main_SalesBasicInfo = ({
   customerOptions = [],
   customerAddressOptions = [],
   onPatchQuotation,
+  onRefreshReferenceOptions,
 }) => {
   const selectedCustomerId = String(quotation?.customer_id || '').trim();
 
@@ -241,6 +246,9 @@ const Main_SalesBasicInfo = ({
               }
               placeholder="Search customer address"
               autoComplete="new-password"
+              onFocus={() => {
+                onRefreshReferenceOptions?.();
+              }}
               getSuggestionLabel={(suggestion) => suggestion?.name || ''}
               getSuggestionSearchText={(suggestion) =>
                 String(

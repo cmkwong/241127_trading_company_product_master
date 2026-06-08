@@ -38,9 +38,13 @@ const buildAddressPreview = (address) => {
   }
 
   const parts = [
+    address?.address_line1,
+    address?.address_line2,
+    address?.address_line3,
     address?.address,
     address?.line1,
     address?.line2,
+    address?.line3,
     address?.city,
     address?.state || address?.province,
     address?.country,
@@ -64,6 +68,7 @@ const Main_SalesShippingDetails = ({
   currencyOptions = [],
   incotermOptions = [],
   onPatchQuotation,
+  onRefreshReferenceOptions,
 }) => {
   const shippingDetails = useMemo(
     () => quotation?.sales_shipping_details || [],
@@ -544,6 +549,9 @@ const Main_SalesShippingDetails = ({
             }
             placeholder="Search customer address"
             autoComplete="new-password"
+            onFocus={() => {
+              onRefreshReferenceOptions?.();
+            }}
             getSuggestionLabel={(suggestion) => suggestion?.name || ''}
             getSuggestionSearchText={(suggestion) =>
               String(

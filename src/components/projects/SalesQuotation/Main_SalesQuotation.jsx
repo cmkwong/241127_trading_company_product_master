@@ -418,6 +418,7 @@ const Main_SalesQuotation = () => {
                   customerOptions={customerOptions}
                   customerAddressOptions={customerAddressOptions}
                   onPatchQuotation={patchSelectedQuotation}
+                  onRefreshReferenceOptions={refreshReferenceOptions}
                 />
 
                 <Main_SalesShippingDetails
@@ -428,6 +429,7 @@ const Main_SalesQuotation = () => {
                   currencyOptions={currencyOptions}
                   incotermOptions={incotermOptions}
                   onPatchQuotation={patchSelectedQuotation}
+                  onRefreshReferenceOptions={refreshReferenceOptions}
                 />
 
                 <Main_SalesProductDetails

@@ -4,6 +4,8 @@ import Main_SupplierMaster from './components/projects/SupplierMaster/Main_Suppl
 import Main_CustomerMaster from './components/projects/CustomerMaster/Main_CustomerMaster';
 import Main_MasterControl from './components/projects/MasterControl/Main_MasterControl';
 import Main_SalesQuotation from './components/projects/SalesQuotation/Main_SalesQuotation';
+import Main_PurchaseRequest from './components/projects/PurchaseRequest/Main_PurchaseRequest';
+import Main_APInvoice from './components/projects/APInvoice/Main_APInvoice';
 import TopBar from './components/projects/TopBar/TopBar';
 import { AuthContext_Provider } from './store/AuthContext';
 import { GeneralContext_Provider } from './store/GeneralContext';
@@ -22,6 +24,8 @@ function App() {
     supplier: 'Supplier Master',
     customer: 'Customer Master',
     salesQuotation: 'Sales Quotation',
+    purchaseRequest: 'Purchase Request',
+    apInvoice: 'AP Invoice',
     masterControl: 'Master Control',
   };
 
@@ -48,6 +52,10 @@ function App() {
                         <Main_CustomerMaster />
                       ) : currentView === 'salesQuotation' ? (
                         <Main_SalesQuotation />
+                      ) : currentView === 'purchaseRequest' ? (
+                        <Main_PurchaseRequest />
+                      ) : currentView === 'apInvoice' ? (
+                        <Main_APInvoice />
                       ) : (
                         <Main_MasterControl />
                       )}

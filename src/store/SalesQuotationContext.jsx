@@ -33,6 +33,12 @@ const PRODUCTS_API_BASE =
   'http://localhost:3001/api/v1/trade_business/products';
 const MASTER_API_BASE = 'http://localhost:3001/api/v1/trade_business/master';
 
+const NO_CACHE_HEADERS = {
+  'Cache-Control': 'no-cache, no-store, must-revalidate',
+  Pragma: 'no-cache',
+  Expires: '0',
+};
+
 const SALES_TABLE_NAME = 'sales_quotations';
 
 const DEFAULT_QUOTATION_FILE_MAPPINGS = {
@@ -675,7 +681,11 @@ export const SalesQuotationContext_Provider = ({ children }) => {
 
     const [customerResult, supplierResult, productResult, customerTypeResult] =
       await Promise.allSettled([
-        apiGet(`${CUSTOMERS_API_BASE}/data`, { token }),
+        apiGet(`${CUSTOMERS_API_BASE}/data`, {
+          token,
+          cache: 'no-store',
+          headers: NO_CACHE_HEADERS,
+        }),
         fetchSuppliersList(),
         fetchProductsList(),
         fetchMasterCustomerTypes(),
@@ -849,15 +859,20 @@ export const SalesQuotationContext_Provider = ({ children }) => {
         const label = pickFirstLabel(address, [
           'name',
           'value',
+          'address_line1',
           'address',
           'details',
           'remark',
         ]);
 
         const addressParts = [
+          pickFirstLabel(address, ['address_line1']),
+          pickFirstLabel(address, ['address_line2']),
+          pickFirstLabel(address, ['address_line3']),
           pickFirstLabel(address, ['address']),
           pickFirstLabel(address, ['line1', 'line_1']),
           pickFirstLabel(address, ['line2', 'line_2']),
+          pickFirstLabel(address, ['line3', 'line_3']),
           pickFirstLabel(address, ['city']),
           pickFirstLabel(address, ['state', 'province']),
           pickFirstLabel(address, ['country']),

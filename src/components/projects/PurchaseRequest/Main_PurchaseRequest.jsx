@@ -780,12 +780,22 @@ const Main_PurchaseRequest = () => {
           const quantity = detail?.quantity ?? detail?.qty ?? '';
           const selectedPrice = resolveSelectedShippingPrice(detail);
           const currencyId = toSafeString(
-            selectedPrice?.currency_id || detail?.currency_id,
+            selectedPrice?.cost_currency_id ||
+              selectedPrice?.currency_id ||
+              detail?.cost_currency_id ||
+              detail?.currency_id,
           );
           const price =
-            selectedPrice?.price !== undefined && selectedPrice?.price !== null
-              ? selectedPrice.price
-              : detail?.price;
+            selectedPrice?.cost_price !== undefined &&
+            selectedPrice?.cost_price !== null
+              ? selectedPrice.cost_price
+              : selectedPrice?.price !== undefined &&
+                  selectedPrice?.price !== null
+                ? selectedPrice.price
+                : detail?.cost_price !== undefined &&
+                    detail?.cost_price !== null
+                  ? detail.cost_price
+                  : detail?.price;
 
           return {
             id: detailId,
@@ -803,6 +813,8 @@ const Main_PurchaseRequest = () => {
               customerAddressId,
               currencyId,
               price,
+              selectedPrice?.cost_currency_id,
+              selectedPrice?.cost_price,
               detail?.details,
               detail?.remark,
               detail?.length,
@@ -846,6 +858,8 @@ const Main_PurchaseRequest = () => {
               productId,
               detail?.details,
               detail?.remark,
+              detail?.cost_currency_id,
+              detail?.cost_price,
               detail?.currency_id,
               detail?.price,
               quantity,
@@ -882,6 +896,8 @@ const Main_PurchaseRequest = () => {
               detail?.supplier_id,
               detail?.details,
               detail?.remark,
+              detail?.cost_currency_id,
+              detail?.cost_price,
               detail?.currency_id,
               detail?.price,
               quantity,
@@ -1589,8 +1605,14 @@ const Main_PurchaseRequest = () => {
                 sales_product_detail_id: toSafeString(sourceRow?.id),
                 product_id: toSafeString(sourceRow?.product_id),
                 qty: sourceRow?.qty ?? sourceRow?.quantity ?? '',
-                currency_id: toSafeString(sourceRow?.currency_id),
-                price: sourceRow?.price ?? '',
+                currency_id: toSafeString(
+                  sourceRow?.cost_currency_id || sourceRow?.currency_id,
+                ),
+                price:
+                  sourceRow?.cost_price !== undefined &&
+                  sourceRow?.cost_price !== null
+                    ? sourceRow.cost_price
+                    : (sourceRow?.price ?? ''),
                 details: toSafeString(sourceRow?.details),
                 remark: toSafeString(sourceRow?.remark),
               };
@@ -1606,8 +1628,13 @@ const Main_PurchaseRequest = () => {
         sales_product_detail_id: toSafeString(sourceRow?.id),
         product_id: toSafeString(sourceRow?.product_id),
         qty: sourceRow?.qty ?? sourceRow?.quantity ?? '',
-        currency_id: toSafeString(sourceRow?.currency_id),
-        price: sourceRow?.price ?? '',
+        currency_id: toSafeString(
+          sourceRow?.cost_currency_id || sourceRow?.currency_id,
+        ),
+        price:
+          sourceRow?.cost_price !== undefined && sourceRow?.cost_price !== null
+            ? sourceRow.cost_price
+            : (sourceRow?.price ?? ''),
         details: toSafeString(sourceRow?.details),
         remark: toSafeString(sourceRow?.remark),
         purchase_product_images: [],
@@ -1639,8 +1666,14 @@ const Main_PurchaseRequest = () => {
                 sales_service_detail_id: toSafeString(sourceRow?.id),
                 service_id: toSafeString(sourceRow?.service_id),
                 qty: sourceRow?.qty ?? sourceRow?.quantity ?? '',
-                currency_id: toSafeString(sourceRow?.currency_id),
-                price: sourceRow?.price ?? '',
+                currency_id: toSafeString(
+                  sourceRow?.cost_currency_id || sourceRow?.currency_id,
+                ),
+                price:
+                  sourceRow?.cost_price !== undefined &&
+                  sourceRow?.cost_price !== null
+                    ? sourceRow.cost_price
+                    : (sourceRow?.price ?? ''),
                 details: toSafeString(sourceRow?.details),
                 remark: toSafeString(sourceRow?.remark),
               };
@@ -1659,8 +1692,13 @@ const Main_PurchaseRequest = () => {
         sales_service_detail_id: toSafeString(sourceRow?.id),
         service_id: toSafeString(sourceRow?.service_id),
         qty: sourceRow?.qty ?? sourceRow?.quantity ?? '',
-        currency_id: toSafeString(sourceRow?.currency_id),
-        price: sourceRow?.price ?? '',
+        currency_id: toSafeString(
+          sourceRow?.cost_currency_id || sourceRow?.currency_id,
+        ),
+        price:
+          sourceRow?.cost_price !== undefined && sourceRow?.cost_price !== null
+            ? sourceRow.cost_price
+            : (sourceRow?.price ?? ''),
         details: toSafeString(sourceRow?.details),
         remark: toSafeString(sourceRow?.remark),
         purchase_service_images: [],

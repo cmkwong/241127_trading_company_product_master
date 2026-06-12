@@ -3,6 +3,7 @@ import { apiDelete, apiGet, apiPatch, apiPost } from '../../../utils/crud';
 import { useAuthContext } from '../../../store/AuthContext';
 import { processChangesWithBase64 } from '../../../utils/objectUrlUtils';
 import DeleteBtn from '../../common/Buttons/DeleteBtn';
+import Main_Dropdown from '../../common/InputOptions/Dropdown/Main_Dropdown';
 import bottomBarDeleteStyles from '../../common/Buttons/BottomBarDeleteAction.module.css';
 import PurchaseRequestSavePageContainer from './Container/PurchaseRequestSavePageContainer';
 import PurchaseRequestSidebar from './AllPurchaseRequestList/PurchaseRequestSidebar';
@@ -11,6 +12,7 @@ import PurchaseRequestShippingDetails from './ShippingDetails/PurchaseRequestShi
 import PurchaseRequestProductDetails from './ProductDetails/PurchaseRequestProductDetails';
 import PurchaseRequestServiceDetails from './ServiceDetails/PurchaseRequestServiceDetails';
 import {
+  buildBaseCurrencyOptions,
   buildCurrencyCodeById,
   buildExchangeRateMap,
   buildNormalizedCurrencies,
@@ -120,8 +122,11 @@ const buildAddressPreview = (address) => {
 
   const parts = [
     address?.address,
+    address?.address_line1,
     address?.address_1,
+    address?.address_line2,
     address?.line1,
+    address?.address_line3,
     address?.address_2,
     address?.line2,
     address?.city,
@@ -136,7 +141,7 @@ const buildAddressPreview = (address) => {
     return parts.join(', ');
   }
 
-  return toSafeString(address?.name || address?.label || address?.id);
+  return toSafeString(address?.name || address?.label || 'Address unavailable');
 };
 
 const getCustomerDisplayLabel = (customer) => {
@@ -240,12 +245,27 @@ const flattenSalesShippingPrices = (quotation) => {
   );
 };
 
+const resolveSelectedShippingPrice = (shippingDetail) => {
+  const prices = toArray(shippingDetail?.sales_shipping_prices);
+  if (prices.length === 0) return null;
+  return prices.find((row) => row?.selected) || prices[0];
+};
+
 const normalizeQuotationForTotals = (quotation) => ({
   ...quotation,
   sales_shipping_prices: flattenSalesShippingPrices(quotation),
   sales_product_details: toArray(quotation?.sales_product_details),
   sales_service_details: toArray(quotation?.sales_service_details),
 });
+
+const toFiniteNumber = (value) => {
+  if (value === '' || value === null || value === undefined) {
+    return NaN;
+  }
+
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : NaN;
+};
 
 const Main_PurchaseRequest = () => {
   const { token } = useAuthContext();
@@ -260,24 +280,17 @@ const Main_PurchaseRequest = () => {
   const [sidebarSearch, setSidebarSearch] = useState('');
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+  const [baseCurrencyCode, setBaseCurrencyCode] = useState('HKD');
 
   const [suppliers, setSuppliers] = useState([]);
   const [products, setProducts] = useState([]);
   const [services, setServices] = useState([]);
   const [masterCategories, setMasterCategories] = useState([]);
+  const [masterSupplierTypes, setMasterSupplierTypes] = useState([]);
   const [currencies, setCurrencies] = useState([]);
   const [salesQuotations, setSalesQuotations] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [exchangeRateRows, setExchangeRateRows] = useState([]);
-
-  const [
-    shippingQuotationSuggestionValue,
-    setShippingQuotationSuggestionValue,
-  ] = useState('');
-  const [productQuotationSuggestionValue, setProductQuotationSuggestionValue] =
-    useState('');
-  const [serviceQuotationSuggestionValue, setServiceQuotationSuggestionValue] =
-    useState('');
 
   const selectedIdRef = useRef('');
 
@@ -285,34 +298,58 @@ const Main_PurchaseRequest = () => {
     selectedIdRef.current = selectedId;
   }, [selectedId]);
 
+  const supplierTypeNameById = useMemo(() => {
+    const map = new Map();
+    toArray(masterSupplierTypes).forEach((item) => {
+      const id = toSafeString(item?.id);
+      if (!id) return;
+      map.set(id, toSafeString(item?.name || item?.label || id));
+    });
+    return map;
+  }, [masterSupplierTypes]);
+
   const supplierSuggestionOptions = useMemo(
     () =>
-      toArray(suppliers).map((item) => ({
-        id: toSafeString(item?.id),
-        name: toSafeString(
-          item?.supplier_display_name ||
-            item?.display_name ||
-            item?.supplier_name ||
-            item?.name ||
+      toArray(suppliers).map((item) => {
+        const typeNames = toArray(item?.supplier_types)
+          .map((typeRow) => {
+            const typeId = toSafeString(
+              typeRow?.supplier_type_id || typeRow?.category_id,
+            );
+            return supplierTypeNameById.get(typeId) || '';
+          })
+          .filter(Boolean);
+
+        const supplierTypeName =
+          typeNames.join(', ') || toSafeString(item?.supplier_type_name);
+
+        return {
+          id: toSafeString(item?.id),
+          name: toSafeString(
+            item?.supplier_display_name ||
+              item?.display_name ||
+              item?.supplier_name ||
+              item?.name ||
+              item?.id,
+          ),
+          supplier_code: toSafeString(item?.supplier_code || item?.code),
+          supplier_type_name: supplierTypeName,
+          supplier_addresses: toArray(item?.supplier_addresses),
+          searchText: [
+            item?.supplier_display_name,
+            item?.display_name,
+            item?.supplier_name,
+            item?.name,
+            supplierTypeName,
+            item?.supplier_code,
             item?.id,
-        ),
-        supplier_code: toSafeString(item?.supplier_code || item?.code),
-        supplier_type_name: toSafeString(item?.supplier_type_name),
-        supplier_addresses: toArray(item?.supplier_addresses),
-        searchText: [
-          item?.supplier_display_name,
-          item?.display_name,
-          item?.supplier_name,
-          item?.name,
-          item?.supplier_type_name,
-          item?.supplier_code,
-          item?.id,
-        ]
-          .map((value) => toSafeString(value))
-          .filter(Boolean)
-          .join(' '),
-      })),
-    [suppliers],
+          ]
+            .map((value) => toSafeString(value))
+            .filter(Boolean)
+            .join(' '),
+        };
+      }),
+    [suppliers, supplierTypeNameById],
   );
 
   const supplierNameById = useMemo(() => {
@@ -346,12 +383,18 @@ const Main_PurchaseRequest = () => {
           address?.id,
           address?.name,
           address?.address,
+          address?.address_line1,
+          address?.address_line2,
+          address?.address_line3,
           address?.address_1,
           address?.line1,
+          address?.address_2,
+          address?.line2,
           address?.city,
           address?.state,
           address?.country,
           address?.postal_code,
+          address?.zip_code,
           buildAddressPreview(address),
         ]
           .map((value) => toSafeString(value))
@@ -445,6 +488,28 @@ const Main_PurchaseRequest = () => {
     [normalizedCurrencies],
   );
 
+  const baseCurrencyOptions = useMemo(
+    () => buildBaseCurrencyOptions(normalizedCurrencies),
+    [normalizedCurrencies],
+  );
+
+  useEffect(() => {
+    if (baseCurrencyOptions.length === 0) {
+      if (baseCurrencyCode !== 'HKD') {
+        setBaseCurrencyCode('HKD');
+      }
+      return;
+    }
+
+    const exists = baseCurrencyOptions.some(
+      (item) => toSafeString(item?.id) === toSafeString(baseCurrencyCode),
+    );
+
+    if (!exists) {
+      setBaseCurrencyCode(toSafeString(baseCurrencyOptions[0]?.id) || 'HKD');
+    }
+  }, [baseCurrencyCode, baseCurrencyOptions]);
+
   const customerNameById = useMemo(() => {
     const map = new Map();
 
@@ -469,6 +534,110 @@ const Main_PurchaseRequest = () => {
     () => buildExchangeRateMap(latestExchangeRateRow || {}),
     [latestExchangeRateRow],
   );
+
+  const purchaseTotalsSummary = useMemo(() => {
+    const targetCode = toSafeString(baseCurrencyCode).toUpperCase() || 'HKD';
+
+    const convertToBaseCurrency = (rawAmount, currencyId) => {
+      const amount = toFiniteNumber(rawAmount);
+      if (!Number.isFinite(amount)) {
+        return null;
+      }
+
+      const sourceCode = toSafeString(
+        currencyCodeById[toSafeString(currencyId)],
+      ).toUpperCase();
+
+      if (!sourceCode) {
+        return null;
+      }
+
+      const sourceRate = Number(exchangeRateMap?.[sourceCode]);
+      const targetRate = Number(exchangeRateMap?.[targetCode]);
+
+      if (
+        !Number.isFinite(sourceRate) ||
+        sourceRate <= 0 ||
+        !Number.isFinite(targetRate) ||
+        targetRate <= 0
+      ) {
+        return null;
+      }
+
+      return (amount / sourceRate) * targetRate;
+    };
+
+    const summarizeRows = (rows, getRowAmount, getCurrencyId) => {
+      return toArray(rows).reduce(
+        (acc, row) => {
+          const converted = convertToBaseCurrency(
+            getRowAmount(row),
+            getCurrencyId(row),
+          );
+
+          if (!Number.isFinite(converted)) {
+            return {
+              ...acc,
+              missingCount: acc.missingCount + 1,
+            };
+          }
+
+          return {
+            total: acc.total + converted,
+            missingCount: acc.missingCount,
+          };
+        },
+        { total: 0, missingCount: 0 },
+      );
+    };
+
+    const rowAmountByQuantity = (row, qtyValue) => {
+      const price = toFiniteNumber(row?.price);
+      if (!Number.isFinite(price)) {
+        return NaN;
+      }
+
+      const qty = toFiniteNumber(qtyValue);
+      return (Number.isFinite(qty) ? qty : 1) * price;
+    };
+
+    const shippingRows = toArray(draft?.purchase_shipping_details);
+    const productRows = toArray(draft?.purchase_product_details);
+    const serviceRows = toArray(draft?.purchase_service_details);
+
+    const shippingSummary = summarizeRows(
+      shippingRows,
+      (row) => toFiniteNumber(row?.price),
+      (row) => row?.currency_id,
+    );
+
+    const productSummary = summarizeRows(
+      productRows,
+      (row) => rowAmountByQuantity(row, row?.qty ?? row?.quantity),
+      (row) => row?.currency_id,
+    );
+
+    const serviceSummary = summarizeRows(
+      serviceRows,
+      (row) => rowAmountByQuantity(row, row?.qty ?? row?.quantity),
+      (row) => row?.currency_id,
+    );
+
+    const totalCostPrice =
+      shippingSummary.total + productSummary.total + serviceSummary.total;
+
+    return {
+      baseCurrencyCode: targetCode,
+      shippingTotal: shippingSummary.total,
+      productTotal: productSummary.total,
+      serviceTotal: serviceSummary.total,
+      totalCostPrice,
+      missingCount:
+        shippingSummary.missingCount +
+        productSummary.missingCount +
+        serviceSummary.missingCount,
+    };
+  }, [baseCurrencyCode, currencyCodeById, draft, exchangeRateMap]);
 
   const salesQuotationTotalUsdById = useMemo(() => {
     const map = new Map();
@@ -578,34 +747,62 @@ const Main_PurchaseRequest = () => {
     supplierAddressSuggestionOptions.forEach((item) => {
       const id = toSafeString(item?.id);
       if (!id) return;
-      map.set(id, toSafeString(item?.name) || id);
+      map.set(id, toSafeString(item?.name) || 'Address unavailable');
     });
     return map;
   }, [supplierAddressSuggestionOptions]);
+
+  const customerAddressNameById = useMemo(() => {
+    const map = new Map();
+    toArray(customers).forEach((customer) => {
+      toArray(customer?.customer_addresses).forEach((address) => {
+        const id = toSafeString(address?.id);
+        if (!id) return;
+        map.set(id, buildAddressPreview(address) || id);
+      });
+    });
+    return map;
+  }, [customers]);
 
   const shippingQuotationSuggestionOptions = useMemo(
     () =>
       toArray(selectedSalesQuotation?.sales_shipping_details).map(
         (detail, index) => {
           const detailId = toSafeString(detail?.id) || `shipping-${index + 1}`;
-          const supplierAddressId = toSafeString(
-            detail?.supplier_address_id || detail?.customer_address_id,
+          const customerAddressId = toSafeString(
+            detail?.customer_address_id || detail?.supplier_address_id,
           );
-          const supplierAddressName =
-            supplierAddressNameById.get(supplierAddressId) || supplierAddressId;
+          const addressText =
+            toSafeString(detail?.address_text) ||
+            customerAddressNameById.get(customerAddressId) ||
+            supplierAddressNameById.get(customerAddressId) ||
+            '';
           const quantity = detail?.quantity ?? detail?.qty ?? '';
+          const selectedPrice = resolveSelectedShippingPrice(detail);
+          const currencyId = toSafeString(
+            selectedPrice?.currency_id || detail?.currency_id,
+          );
+          const price =
+            selectedPrice?.price !== undefined && selectedPrice?.price !== null
+              ? selectedPrice.price
+              : detail?.price;
 
           return {
             id: detailId,
-            name: `${index + 1}. ${supplierAddressName || 'Shipping'}${
+            name: `${index + 1}. ${addressText || 'Shipping Address'}${
               quantity !== '' ? ` | Qty ${quantity}` : ''
             }`,
             details: toSafeString(detail?.details),
+            address_text: addressText,
+            currency_id: currencyId,
+            price,
             sourceRow: detail,
             searchText: [
               detailId,
-              supplierAddressName,
-              supplierAddressId,
+              addressText,
+              customerAddressId,
+              currencyId,
+              price,
               detail?.details,
               detail?.remark,
               detail?.length,
@@ -620,7 +817,11 @@ const Main_PurchaseRequest = () => {
           };
         },
       ),
-    [selectedSalesQuotation?.sales_shipping_details, supplierAddressNameById],
+    [
+      selectedSalesQuotation?.sales_shipping_details,
+      customerAddressNameById,
+      supplierAddressNameById,
+    ],
   );
 
   const productQuotationSuggestionOptions = useMemo(
@@ -715,6 +916,7 @@ const Main_PurchaseRequest = () => {
         setDraft(null);
         setSelectedId('');
         setMasterCategories([]);
+        setMasterSupplierTypes([]);
         return;
       }
 
@@ -728,6 +930,7 @@ const Main_PurchaseRequest = () => {
           productsRes,
           servicesRes,
           categoriesRes,
+          supplierTypesRes,
           currenciesRes,
           salesRes,
           customersRes,
@@ -738,6 +941,7 @@ const Main_PurchaseRequest = () => {
           apiPost(PRODUCTS_API_BASE, {}, { token }),
           apiGet(`${MASTER_API_BASE}/master_services`, { token }),
           apiGet(`${MASTER_API_BASE}/master_categories`, { token }),
+          apiGet(`${MASTER_API_BASE}/master_supplier_types`, { token }),
           apiGet(`${MASTER_API_BASE}/master_currencies`, { token }),
           apiGet(SALES_API_BASE, { token }),
           apiGet(CUSTOMERS_API_BASE, { token }),
@@ -758,6 +962,10 @@ const Main_PurchaseRequest = () => {
           categoriesRes,
           'master_categories',
         );
+        const supplierTypeRows = extractRowsFromResponse(
+          supplierTypesRes,
+          'master_supplier_types',
+        );
         const currencyRows = extractRowsFromResponse(
           currenciesRes,
           'master_currencies',
@@ -774,6 +982,7 @@ const Main_PurchaseRequest = () => {
         setProducts(productRows);
         setServices(serviceRows);
         setMasterCategories(categoryRows);
+        setMasterSupplierTypes(supplierTypeRows);
         setCurrencies(currencyRows);
         setSalesQuotations(salesRows);
         setCustomers(customerRows);
@@ -826,12 +1035,6 @@ const Main_PurchaseRequest = () => {
     const timer = window.setTimeout(() => setNotice(''), 2500);
     return () => window.clearTimeout(timer);
   }, [notice]);
-
-  useEffect(() => {
-    setShippingQuotationSuggestionValue('');
-    setProductQuotationSuggestionValue('');
-    setServiceQuotationSuggestionValue('');
-  }, [draft?.sales_quotation_id]);
 
   const setHeaderField = useCallback((key, value) => {
     setDraft((prev) => ({
@@ -995,7 +1198,7 @@ const Main_PurchaseRequest = () => {
           ...row,
           purchase_request_id:
             toSafeString(row?.purchase_request_id) || toSafeString(working.id),
-          supplier_address_id: toNullableId(row?.supplier_address_id),
+          currency_id: toNullableId(row?.currency_id),
           purchase_shipping_images: toArray(row?.purchase_shipping_images),
         }),
       ),
@@ -1261,13 +1464,17 @@ const Main_PurchaseRequest = () => {
     appendDetailRow('purchase_shipping_details', (header) => ({
       id: newId(),
       purchase_request_id: header.id,
-      supplier_address_id: toSafeString(header?.supplier_address_id),
+      sales_shipping_detail_id: '',
+      address_text: '',
       length: '',
       width: '',
       height: '',
       quantity: '',
       weight: '',
+      currency_id: '',
+      price: '',
       details: '',
+      remark: '',
       purchase_shipping_images: [],
     }));
   }, [appendDetailRow]);
@@ -1276,11 +1483,13 @@ const Main_PurchaseRequest = () => {
     appendDetailRow('purchase_product_details', (header) => ({
       id: newId(),
       purchase_request_id: header.id,
+      sales_product_detail_id: '',
       product_id: '',
       qty: '',
       currency_id: '',
       price: '',
       details: '',
+      remark: '',
       purchase_product_images: [],
     }));
   }, [appendDetailRow]);
@@ -1290,65 +1499,156 @@ const Main_PurchaseRequest = () => {
       id: newId(),
       purchase_request_id: header.id,
       supplier_id: toSafeString(header?.supplier_id),
+      sales_service_detail_id: '',
       service_id: '',
       qty: '',
       currency_id: '',
       price: '',
       details: '',
+      remark: '',
       purchase_service_images: [],
     }));
   }, [appendDetailRow]);
 
   const handleSelectShippingFromQuotation = useCallback(
-    (suggestion) => {
+    (suggestion, targetRow) => {
       const sourceRow = suggestion?.sourceRow;
       if (!sourceRow) return;
+
+      const targetRowId = toSafeString(targetRow?.id);
+      if (targetRowId) {
+        setDraft((prev) => {
+          const base = prev || createNewPurchaseRequest();
+          return {
+            ...base,
+            purchase_shipping_details: toArray(
+              base?.purchase_shipping_details,
+            ).map((row) => {
+              if (toSafeString(row?.id) !== targetRowId) return row;
+              return {
+                ...row,
+                sales_shipping_detail_id: toSafeString(sourceRow?.id),
+                address_text:
+                  toSafeString(suggestion?.address_text) ||
+                  toSafeString(sourceRow?.address_text),
+                length: sourceRow?.length ?? '',
+                width: sourceRow?.width ?? '',
+                height: sourceRow?.height ?? '',
+                quantity: sourceRow?.quantity ?? sourceRow?.qty ?? '',
+                weight: sourceRow?.weight ?? '',
+                currency_id: toSafeString(suggestion?.currency_id),
+                price: suggestion?.price ?? '',
+                details: toSafeString(sourceRow?.details),
+                remark: toSafeString(sourceRow?.remark),
+              };
+            }),
+          };
+        });
+        return;
+      }
 
       appendDetailRow('purchase_shipping_details', (header) => ({
         id: newId(),
         purchase_request_id: header.id,
-        supplier_address_id: toSafeString(
-          sourceRow?.supplier_address_id || header?.supplier_address_id,
-        ),
+        sales_shipping_detail_id: toSafeString(sourceRow?.id),
+        address_text:
+          toSafeString(suggestion?.address_text) ||
+          toSafeString(sourceRow?.address_text),
         length: sourceRow?.length ?? '',
         width: sourceRow?.width ?? '',
         height: sourceRow?.height ?? '',
         quantity: sourceRow?.quantity ?? sourceRow?.qty ?? '',
         weight: sourceRow?.weight ?? '',
-        details: toSafeString(sourceRow?.details || sourceRow?.remark),
+        currency_id: toSafeString(suggestion?.currency_id),
+        price: suggestion?.price ?? '',
+        details: toSafeString(sourceRow?.details),
+        remark: toSafeString(sourceRow?.remark),
         purchase_shipping_images: [],
       }));
-
-      setShippingQuotationSuggestionValue('');
     },
     [appendDetailRow],
   );
 
   const handleSelectProductFromQuotation = useCallback(
-    (suggestion) => {
+    (suggestion, targetRow) => {
       const sourceRow = suggestion?.sourceRow;
       if (!sourceRow) return;
+
+      const targetRowId = toSafeString(targetRow?.id);
+      if (targetRowId) {
+        setDraft((prev) => {
+          const base = prev || createNewPurchaseRequest();
+          return {
+            ...base,
+            purchase_product_details: toArray(
+              base?.purchase_product_details,
+            ).map((row) => {
+              if (toSafeString(row?.id) !== targetRowId) return row;
+              return {
+                ...row,
+                sales_product_detail_id: toSafeString(sourceRow?.id),
+                product_id: toSafeString(sourceRow?.product_id),
+                qty: sourceRow?.qty ?? sourceRow?.quantity ?? '',
+                currency_id: toSafeString(sourceRow?.currency_id),
+                price: sourceRow?.price ?? '',
+                details: toSafeString(sourceRow?.details),
+                remark: toSafeString(sourceRow?.remark),
+              };
+            }),
+          };
+        });
+        return;
+      }
 
       appendDetailRow('purchase_product_details', (header) => ({
         id: newId(),
         purchase_request_id: header.id,
+        sales_product_detail_id: toSafeString(sourceRow?.id),
         product_id: toSafeString(sourceRow?.product_id),
         qty: sourceRow?.qty ?? sourceRow?.quantity ?? '',
         currency_id: toSafeString(sourceRow?.currency_id),
         price: sourceRow?.price ?? '',
-        details: toSafeString(sourceRow?.details || sourceRow?.remark),
+        details: toSafeString(sourceRow?.details),
+        remark: toSafeString(sourceRow?.remark),
         purchase_product_images: [],
       }));
-
-      setProductQuotationSuggestionValue('');
     },
     [appendDetailRow],
   );
 
   const handleSelectServiceFromQuotation = useCallback(
-    (suggestion) => {
+    (suggestion, targetRow) => {
       const sourceRow = suggestion?.sourceRow;
       if (!sourceRow) return;
+
+      const targetRowId = toSafeString(targetRow?.id);
+      if (targetRowId) {
+        setDraft((prev) => {
+          const base = prev || createNewPurchaseRequest();
+          return {
+            ...base,
+            purchase_service_details: toArray(
+              base?.purchase_service_details,
+            ).map((row) => {
+              if (toSafeString(row?.id) !== targetRowId) return row;
+              return {
+                ...row,
+                supplier_id: toSafeString(
+                  sourceRow?.supplier_id || base?.supplier_id,
+                ),
+                sales_service_detail_id: toSafeString(sourceRow?.id),
+                service_id: toSafeString(sourceRow?.service_id),
+                qty: sourceRow?.qty ?? sourceRow?.quantity ?? '',
+                currency_id: toSafeString(sourceRow?.currency_id),
+                price: sourceRow?.price ?? '',
+                details: toSafeString(sourceRow?.details),
+                remark: toSafeString(sourceRow?.remark),
+              };
+            }),
+          };
+        });
+        return;
+      }
 
       appendDetailRow('purchase_service_details', (header) => ({
         id: newId(),
@@ -1356,15 +1656,15 @@ const Main_PurchaseRequest = () => {
         supplier_id: toSafeString(
           sourceRow?.supplier_id || header?.supplier_id,
         ),
+        sales_service_detail_id: toSafeString(sourceRow?.id),
         service_id: toSafeString(sourceRow?.service_id),
         qty: sourceRow?.qty ?? sourceRow?.quantity ?? '',
         currency_id: toSafeString(sourceRow?.currency_id),
         price: sourceRow?.price ?? '',
-        details: toSafeString(sourceRow?.details || sourceRow?.remark),
+        details: toSafeString(sourceRow?.details),
+        remark: toSafeString(sourceRow?.remark),
         purchase_service_images: [],
       }));
-
-      setServiceQuotationSuggestionValue('');
     },
     [appendDetailRow],
   );
@@ -1414,6 +1714,70 @@ const Main_PurchaseRequest = () => {
             </div>
           ) : (
             <>
+              <div className={styles.currencySummaryBar}>
+                <div className={styles.baseCurrencyPicker}>
+                  <span className={styles.baseCurrencyLabel}>
+                    Base Currency
+                  </span>
+                  <Main_Dropdown
+                    defaultOptions={baseCurrencyOptions}
+                    defaultSelectedOption={baseCurrencyCode}
+                    onChange={(ov, nv) =>
+                      setBaseCurrencyCode(
+                        toSafeString(nv).toUpperCase() || 'HKD',
+                      )
+                    }
+                    size="S"
+                  />
+                  <span className={styles.rateMetaText}>
+                    Rate Date:{' '}
+                    {toSafeString(latestExchangeRateRow?.Date) || '-'}
+                  </span>
+                </div>
+
+                <div className={styles.totalsSummaryGrid}>
+                  <div className={styles.totalCard}>
+                    <span className={styles.totalLabel}>
+                      Shipping Row Total
+                    </span>
+                    <span className={styles.totalValue}>
+                      {purchaseTotalsSummary.baseCurrencyCode}{' '}
+                      {formatMoney(purchaseTotalsSummary.shippingTotal)}
+                    </span>
+                  </div>
+                  <div className={styles.totalCard}>
+                    <span className={styles.totalLabel}>Product Row Total</span>
+                    <span className={styles.totalValue}>
+                      {purchaseTotalsSummary.baseCurrencyCode}{' '}
+                      {formatMoney(purchaseTotalsSummary.productTotal)}
+                    </span>
+                  </div>
+                  <div className={styles.totalCard}>
+                    <span className={styles.totalLabel}>Service Row Total</span>
+                    <span className={styles.totalValue}>
+                      {purchaseTotalsSummary.baseCurrencyCode}{' '}
+                      {formatMoney(purchaseTotalsSummary.serviceTotal)}
+                    </span>
+                  </div>
+                  <div
+                    className={`${styles.totalCard} ${styles.totalCardHighlight}`}
+                  >
+                    <span className={styles.totalLabel}>Total Cost Price</span>
+                    <span className={styles.totalValueStrong}>
+                      {purchaseTotalsSummary.baseCurrencyCode}{' '}
+                      {formatMoney(purchaseTotalsSummary.totalCostPrice)}
+                    </span>
+                  </div>
+                </div>
+
+                {purchaseTotalsSummary.missingCount > 0 ? (
+                  <div className={styles.totalWarningText}>
+                    Total skipped {purchaseTotalsSummary.missingCount} row(s)
+                    due to missing price, currency, or exchange rate.
+                  </div>
+                ) : null}
+              </div>
+
               <PurchaseRequestBasicInfo
                 draft={draft}
                 supplierSuggestionOptions={supplierSuggestionOptions}
@@ -1451,15 +1815,9 @@ const Main_PurchaseRequest = () => {
 
               <PurchaseRequestShippingDetails
                 rows={toArray(draft?.purchase_shipping_details)}
-                supplierAddressSuggestionOptions={
-                  supplierAddressSuggestionOptions
-                }
+                currencyDropdownOptions={currencyDropdownOptions}
                 fileUrlBase={FILE_SERVER_BASE_URL}
                 quotationSuggestionOptions={shippingQuotationSuggestionOptions}
-                quotationSuggestionValue={shippingQuotationSuggestionValue}
-                onQuotationSuggestionInputChange={
-                  setShippingQuotationSuggestionValue
-                }
                 onQuotationSuggestionSelect={handleSelectShippingFromQuotation}
                 onAdd={handleAddShippingDetail}
                 onSetField={(rowId, field, value) =>
@@ -1492,10 +1850,6 @@ const Main_PurchaseRequest = () => {
                 currencyDropdownOptions={currencyDropdownOptions}
                 fileUrlBase={FILE_SERVER_BASE_URL}
                 quotationSuggestionOptions={productQuotationSuggestionOptions}
-                quotationSuggestionValue={productQuotationSuggestionValue}
-                onQuotationSuggestionInputChange={
-                  setProductQuotationSuggestionValue
-                }
                 onQuotationSuggestionSelect={handleSelectProductFromQuotation}
                 onAdd={handleAddProductDetail}
                 onSetField={(rowId, field, value) =>
@@ -1529,10 +1883,6 @@ const Main_PurchaseRequest = () => {
                 currencyDropdownOptions={currencyDropdownOptions}
                 fileUrlBase={FILE_SERVER_BASE_URL}
                 quotationSuggestionOptions={serviceQuotationSuggestionOptions}
-                quotationSuggestionValue={serviceQuotationSuggestionValue}
-                onQuotationSuggestionInputChange={
-                  setServiceQuotationSuggestionValue
-                }
                 onQuotationSuggestionSelect={handleSelectServiceFromQuotation}
                 onAdd={handleAddServiceDetail}
                 onSetField={(rowId, field, value) =>

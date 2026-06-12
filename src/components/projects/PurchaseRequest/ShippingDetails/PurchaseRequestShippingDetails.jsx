@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
 import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
+import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
 import Main_Suggest from '../../../common/InputOptions/Suggest/Main_Suggest';
 import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_FileUploads';
 import AddNewBtn from '../../../common/Buttons/AddNewBtn';
@@ -18,10 +19,8 @@ const toNumberOrEmpty = (value) => {
 
 const PurchaseRequestShippingDetails = ({
   rows = [],
-  supplierAddressSuggestionOptions = [],
+  currencyDropdownOptions = [],
   quotationSuggestionOptions = [],
-  quotationSuggestionValue = '',
-  onQuotationSuggestionInputChange,
   onQuotationSuggestionSelect,
   onAdd,
   onSetField,
@@ -33,67 +32,62 @@ const PurchaseRequestShippingDetails = ({
   const columns = useMemo(
     () => [
       {
-        key: 'supplier_address_id',
-        label: 'Supplier Address',
+        key: 'address_text',
+        label: 'Shipping Address',
         size: 'XXL',
+        sortType: 'string',
+        getSortValue: (row) => toSafeString(row?.address_text),
+        renderCell: (row) => (
+          <Main_TextArea
+            defaultValue={toSafeString(row?.address_text)}
+            rows={2}
+            placeholder="Shipping address"
+            onChange={(ov, nv) => onSetField?.(row?.id, 'address_text', nv)}
+          />
+        ),
+      },
+      {
+        key: 'sales_shipping_detail_id',
+        label: 'Linked SQ Row',
+        size: 'L',
+        sortType: 'string',
         getSortValue: (row) => {
-          const match = supplierAddressSuggestionOptions.find(
-            (item) => item.id === toSafeString(row?.supplier_address_id),
+          const matched = quotationSuggestionOptions.find(
+            (item) =>
+              toSafeString(item?.id) ===
+              toSafeString(row?.sales_shipping_detail_id),
           );
-          return toSafeString(match?.name || row?.supplier_address_id);
+          return toSafeString(matched?.name || row?.sales_shipping_detail_id);
         },
         renderCell: (row) => (
-          <div className={styles.suggestCell}>
-            <Main_Suggest
-              defaultSuggestions={supplierAddressSuggestionOptions}
-              defaultValue={
-                supplierAddressSuggestionOptions.find(
-                  (item) => item.id === toSafeString(row?.supplier_address_id),
-                )?.name || ''
+          <Main_Suggest
+            defaultSuggestions={quotationSuggestionOptions}
+            defaultValue={
+              quotationSuggestionOptions.find(
+                (item) =>
+                  toSafeString(item?.id) ===
+                  toSafeString(row?.sales_shipping_detail_id),
+              )?.name || ''
+            }
+            placeholder="Select shipping item from quotation"
+            getSuggestionLabel={(suggestion) => suggestion?.name || ''}
+            getSuggestionSearchText={(suggestion) =>
+              toSafeString(
+                suggestion?.searchText ||
+                  [suggestion?.name, suggestion?.id, suggestion?.details]
+                    .filter(Boolean)
+                    .join(' '),
+              )
+            }
+            onChange={(ov, nv) => {
+              if (!toSafeString(nv)) {
+                onSetField?.(row?.id, 'sales_shipping_detail_id', '');
               }
-              placeholder="Search supplier address"
-              autoComplete="new-password"
-              getSuggestionLabel={(suggestion) => suggestion?.name || ''}
-              getSuggestionSearchText={(suggestion) =>
-                toSafeString(
-                  suggestion?.searchText ||
-                    [
-                      suggestion?.name,
-                      suggestion?.address_detail,
-                      suggestion?.supplier_id,
-                      suggestion?.id,
-                    ]
-                      .filter(Boolean)
-                      .join(' '),
-                )
-              }
-              renderSuggestion={(suggestion) => (
-                <div className={styles.suggestionContent}>
-                  <div className={styles.suggestionTitle}>
-                    {suggestion?.name || suggestion?.id || ''}
-                  </div>
-                  <div className={styles.suggestionMeta}>
-                    <span>Address ID: {suggestion?.id || '-'}</span>
-                    <span>
-                      Address Detail: {suggestion?.address_detail || '-'}
-                    </span>
-                  </div>
-                </div>
-              )}
-              onChange={(ov, nv) => {
-                if (!toSafeString(nv)) {
-                  onSetField?.(row?.id, 'supplier_address_id', '');
-                }
-              }}
-              onSelectSuggestion={(suggestion) =>
-                onSetField?.(
-                  row?.id,
-                  'supplier_address_id',
-                  toSafeString(suggestion?.id),
-                )
-              }
-            />
-          </div>
+            }}
+            onSelectSuggestion={(suggestion) =>
+              onQuotationSuggestionSelect?.(suggestion, row)
+            }
+          />
         ),
       },
       {
@@ -182,23 +176,63 @@ const PurchaseRequestShippingDetails = ({
         ),
       },
       {
-        key: 'actions',
-        label: 'Actions',
-        size: 'S',
-        sortable: false,
-        renderCell: (row) => <DeleteBtn onClick={() => onRemove?.(row?.id)} />,
+        key: 'currency_id',
+        label: 'Currency',
+        size: 'L',
+        sortType: 'string',
+        renderCell: (row) => (
+          <Main_Dropdown
+            matchParentWidth
+            defaultOptions={currencyDropdownOptions}
+            defaultSelectedOption={toSafeString(row?.currency_id)}
+            onChange={(ov, nv) => onSetField?.(row?.id, 'currency_id', nv)}
+          />
+        ),
+      },
+      {
+        key: 'price',
+        label: 'Price',
+        size: 'M',
+        sortType: 'number',
+        renderCell: (row) => (
+          <Main_TextField
+            className={styles.cellInput}
+            type="number"
+            defaultValue={toSafeString(row?.price)}
+            placeholder="Price"
+            onChange={(ov, nv) =>
+              onSetField?.(row?.id, 'price', toNumberOrEmpty(nv))
+            }
+          />
+        ),
       },
       {
         key: 'details',
         label: 'Details',
         size: 'XL',
         nextRow: true,
+        sortType: 'string',
         renderCell: (row) => (
           <Main_TextArea
             defaultValue={toSafeString(row?.details)}
             rows={2}
             placeholder="Shipping details"
             onChange={(ov, nv) => onSetField?.(row?.id, 'details', nv)}
+          />
+        ),
+      },
+      {
+        key: 'remark',
+        label: 'Internal Remark',
+        size: 'XL',
+        nextRow: true,
+        sortType: 'string',
+        renderCell: (row) => (
+          <Main_TextArea
+            defaultValue={toSafeString(row?.remark)}
+            rows={2}
+            placeholder="Internal remark (not printed)"
+            onChange={(ov, nv) => onSetField?.(row?.id, 'remark', nv)}
           />
         ),
       },
@@ -229,14 +263,23 @@ const PurchaseRequestShippingDetails = ({
           </div>
         ),
       },
+      {
+        key: 'actions',
+        label: 'Actions',
+        size: 'S',
+        sortable: false,
+        renderCell: (row) => <DeleteBtn onClick={() => onRemove?.(row?.id)} />,
+      },
     ],
     [
       buildDefaultUploadFiles,
+      currencyDropdownOptions,
       fileUrlBase,
+      quotationSuggestionOptions,
       onFilesChange,
+      onQuotationSuggestionSelect,
       onRemove,
       onSetField,
-      supplierAddressSuggestionOptions,
     ],
   );
 
@@ -244,26 +287,6 @@ const PurchaseRequestShippingDetails = ({
     <Main_InputContainer label="Shipping Details">
       <div className={styles.tableSection}>
         <div className={styles.tableActions}>
-          <div className={styles.tableActionsLeft}>
-            <Main_Suggest
-              defaultSuggestions={quotationSuggestionOptions}
-              defaultValue={quotationSuggestionValue}
-              placeholder="Select shipping item from quotation"
-              getSuggestionLabel={(suggestion) => suggestion?.name || ''}
-              getSuggestionSearchText={(suggestion) =>
-                toSafeString(
-                  suggestion?.searchText ||
-                    [suggestion?.name, suggestion?.id, suggestion?.details]
-                      .filter(Boolean)
-                      .join(' '),
-                )
-              }
-              onChange={(ov, nv) => onQuotationSuggestionInputChange?.(nv)}
-              onSelectSuggestion={(suggestion) =>
-                onQuotationSuggestionSelect?.(suggestion)
-              }
-            />
-          </div>
           <div className={styles.tableActionsRight}>
             <AddNewBtn
               onClick={onAdd}

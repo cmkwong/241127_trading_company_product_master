@@ -38,6 +38,7 @@ const DEFAULT_TABLE_NAMES = [
   'master_currencies',
   'master_company_info',
   'master_incoterms',
+  'master_invoice_types',
   'master_shipping_method',
   'master_exchange_rate_hkd',
 ];
@@ -66,6 +67,7 @@ const TABLE_INITIAL_DATA = {
   master_currencies: [],
   master_company_info: [],
   master_incoterms: [],
+  master_invoice_types: [],
   master_shipping_method: [],
   master_exchange_rate_hkd: [],
 };
@@ -224,6 +226,13 @@ const LEGACY_TABLE_BINDINGS = [
     updateName: 'updateIncoterms',
     addName: 'addIncoterm',
     removeName: 'removeIncoterm',
+  },
+  {
+    tableName: 'master_invoice_types',
+    getName: 'getInvoiceTypes',
+    updateName: 'updateInvoiceTypes',
+    addName: 'addInvoiceType',
+    removeName: 'removeInvoiceType',
   },
   {
     tableName: 'master_shipping_method',

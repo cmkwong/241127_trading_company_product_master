@@ -112,9 +112,6 @@ const PurchaseRequestBasicInfo = ({
                   </div>
                   <div className={styles.suggestionMeta}>
                     <span>Address ID: {suggestion?.id || '-'}</span>
-                    <span>
-                      Address Detail: {suggestion?.address_detail || '-'}
-                    </span>
                   </div>
                 </div>
               )}

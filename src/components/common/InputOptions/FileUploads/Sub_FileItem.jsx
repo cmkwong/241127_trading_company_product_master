@@ -36,9 +36,12 @@ const Sub_FileItem = ({
 
   // Format file size for display
   const formatFileSize = (bytes) => {
-    if (bytes < 1024) return bytes + ' B';
-    else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
-    else return (bytes / 1048576).toFixed(1) + ' MB';
+    const numericBytes = Number(bytes);
+    if (!Number.isFinite(numericBytes) || numericBytes <= 0) return '';
+    if (numericBytes < 1024) return numericBytes + ' B';
+    else if (numericBytes < 1048576)
+      return (numericBytes / 1024).toFixed(1) + ' KB';
+    else return (numericBytes / 1048576).toFixed(1) + ' MB';
   };
 
   const resolvedFileUrl = useMemo(() => {

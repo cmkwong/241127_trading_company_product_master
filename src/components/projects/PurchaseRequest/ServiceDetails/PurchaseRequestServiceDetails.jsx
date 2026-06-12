@@ -22,8 +22,6 @@ const PurchaseRequestServiceDetails = ({
   serviceSuggestionOptions = [],
   currencyDropdownOptions = [],
   quotationSuggestionOptions = [],
-  quotationSuggestionValue = '',
-  onQuotationSuggestionInputChange,
   onQuotationSuggestionSelect,
   onAdd,
   onSetField,
@@ -77,6 +75,50 @@ const PurchaseRequestServiceDetails = ({
               }
             />
           </div>
+        ),
+      },
+      {
+        key: 'sales_service_detail_id',
+        label: 'Linked SQ Row',
+        size: 'L',
+        sortType: 'string',
+        getSortValue: (row) => {
+          const matched = quotationSuggestionOptions.find(
+            (item) =>
+              toSafeString(item?.id) ===
+              toSafeString(row?.sales_service_detail_id),
+          );
+          return toSafeString(matched?.name || row?.sales_service_detail_id);
+        },
+        renderCell: (row) => (
+          <Main_Suggest
+            defaultSuggestions={quotationSuggestionOptions}
+            defaultValue={
+              quotationSuggestionOptions.find(
+                (item) =>
+                  toSafeString(item?.id) ===
+                  toSafeString(row?.sales_service_detail_id),
+              )?.name || ''
+            }
+            placeholder="Select service item from quotation"
+            getSuggestionLabel={(suggestion) => suggestion?.name || ''}
+            getSuggestionSearchText={(suggestion) =>
+              toSafeString(
+                suggestion?.searchText ||
+                  [suggestion?.name, suggestion?.id, suggestion?.details]
+                    .filter(Boolean)
+                    .join(' '),
+              )
+            }
+            onChange={(ov, nv) => {
+              if (!toSafeString(nv)) {
+                onSetField?.(row?.id, 'sales_service_detail_id', '');
+              }
+            }}
+            onSelectSuggestion={(suggestion) =>
+              onQuotationSuggestionSelect?.(suggestion, row)
+            }
+          />
         ),
       },
       {
@@ -149,6 +191,20 @@ const PurchaseRequestServiceDetails = ({
         ),
       },
       {
+        key: 'remark',
+        label: 'Internal Remark',
+        size: 'XL',
+        nextRow: true,
+        renderCell: (row) => (
+          <Main_TextArea
+            defaultValue={toSafeString(row?.remark)}
+            rows={2}
+            placeholder="Internal remark (not printed)"
+            onChange={(ov, nv) => onSetField?.(row?.id, 'remark', nv)}
+          />
+        ),
+      },
+      {
         key: 'images',
         label: 'Service Images',
         size: 'XL',
@@ -184,6 +240,8 @@ const PurchaseRequestServiceDetails = ({
       onRemove,
       onSetField,
       serviceSuggestionOptions,
+      quotationSuggestionOptions,
+      onQuotationSuggestionSelect,
     ],
   );
 
@@ -191,26 +249,6 @@ const PurchaseRequestServiceDetails = ({
     <Main_InputContainer label="Service Details">
       <div className={styles.tableSection}>
         <div className={styles.tableActions}>
-          <div className={styles.tableActionsLeft}>
-            <Main_Suggest
-              defaultSuggestions={quotationSuggestionOptions}
-              defaultValue={quotationSuggestionValue}
-              placeholder="Select service item from quotation"
-              getSuggestionLabel={(suggestion) => suggestion?.name || ''}
-              getSuggestionSearchText={(suggestion) =>
-                toSafeString(
-                  suggestion?.searchText ||
-                    [suggestion?.name, suggestion?.id, suggestion?.details]
-                      .filter(Boolean)
-                      .join(' '),
-                )
-              }
-              onChange={(ov, nv) => onQuotationSuggestionInputChange?.(nv)}
-              onSelectSuggestion={(suggestion) =>
-                onQuotationSuggestionSelect?.(suggestion)
-              }
-            />
-          </div>
           <div className={styles.tableActionsRight}>
             <AddNewBtn
               onClick={onAdd}

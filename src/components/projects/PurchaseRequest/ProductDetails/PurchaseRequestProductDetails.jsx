@@ -17,6 +17,23 @@ const toNumberOrEmpty = (value) => {
   return Number.isFinite(parsed) ? parsed : value;
 };
 
+const isCheckedBoolean = (value, defaultWhenMissing = true) => {
+  if (value === undefined || value === null || value === '') {
+    return defaultWhenMissing;
+  }
+
+  if (typeof value === 'boolean') {
+    return value;
+  }
+
+  if (typeof value === 'number') {
+    return value !== 0;
+  }
+
+  const normalized = toSafeString(value).toLowerCase();
+  return !['false', '0', 'no', 'n', 'off'].includes(normalized);
+};
+
 const PurchaseRequestProductDetails = ({
   rows = [],
   productSuggestionOptions = [],
@@ -202,6 +219,23 @@ const PurchaseRequestProductDetails = ({
               onSetField?.(row?.id, 'price', toNumberOrEmpty(nv))
             }
           />
+        ),
+      },
+      {
+        key: 'api_selected',
+        label: 'AP Invoice',
+        size: 'S',
+        sortType: 'string',
+        renderCell: (row) => (
+          <div className={styles.checkboxCell}>
+            <input
+              type="checkbox"
+              checked={isCheckedBoolean(row?.api_selected, true)}
+              onChange={(event) =>
+                onSetField?.(row?.id, 'api_selected', event.target.checked)
+              }
+            />
+          </div>
         ),
       },
       {

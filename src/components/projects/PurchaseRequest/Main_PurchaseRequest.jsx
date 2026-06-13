@@ -21,6 +21,7 @@ import {
   getLatestExchangeRateRow,
   toSafeString,
 } from '../SalesQuotation/utils/quotationTotals';
+import { buildApInvoiceDocumentA4Html } from '../APInvoice/utils/apInvoicePrint';
 import styles from './Main_PurchaseRequest.module.css';
 
 const PURCHASE_API_BASE =
@@ -267,6 +268,23 @@ const toFiniteNumber = (value) => {
   return Number.isFinite(parsed) ? parsed : NaN;
 };
 
+const isTruthyFlag = (value, defaultWhenMissing = true) => {
+  if (value === undefined || value === null || value === '') {
+    return defaultWhenMissing;
+  }
+
+  if (typeof value === 'boolean') {
+    return value;
+  }
+
+  if (typeof value === 'number') {
+    return value !== 0;
+  }
+
+  const normalized = toSafeString(value).toLowerCase();
+  return !['false', '0', 'no', 'n', 'off'].includes(normalized);
+};
+
 const Main_PurchaseRequest = () => {
   const { token } = useAuthContext();
 
@@ -281,6 +299,9 @@ const Main_PurchaseRequest = () => {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [baseCurrencyCode, setBaseCurrencyCode] = useState('HKD');
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [previewHtml, setPreviewHtml] = useState('');
+  const [isPreparingPreview, setIsPreparingPreview] = useState(false);
 
   const [suppliers, setSuppliers] = useState([]);
   const [products, setProducts] = useState([]);
@@ -293,6 +314,7 @@ const Main_PurchaseRequest = () => {
   const [exchangeRateRows, setExchangeRateRows] = useState([]);
 
   const selectedIdRef = useRef('');
+  const previewIframeRef = useRef(null);
 
   useEffect(() => {
     selectedIdRef.current = selectedId;
@@ -741,6 +763,76 @@ const Main_PurchaseRequest = () => {
     });
     return map;
   }, [serviceSuggestionOptions]);
+
+  const apInvoicePreviewRows = useMemo(() => {
+    const buildAmount = (priceValue, qtyValue = 1) => {
+      const price = toFiniteNumber(priceValue);
+      if (!Number.isFinite(price)) {
+        return '';
+      }
+
+      const qty = toFiniteNumber(qtyValue);
+      const safeQty = Number.isFinite(qty) ? qty : 1;
+      return safeQty * price;
+    };
+
+    const shippingRows = toArray(draft?.purchase_shipping_details)
+      .filter((row) => isTruthyFlag(row?.api_selected, true))
+      .map((row, index) => ({
+        id: toSafeString(row?.id) || newId(),
+        ap_invoice_type: 'SHIPPING',
+        description:
+          toSafeString(row?.address_text) || `Shipping Detail ${index + 1}`,
+        amount: buildAmount(row?.price, 1),
+        currency_id: toSafeString(row?.currency_id),
+        details: toSafeString(row?.details),
+        remark: toSafeString(row?.remark),
+      }));
+
+    const productRows = toArray(draft?.purchase_product_details)
+      .filter((row) => isTruthyFlag(row?.api_selected, true))
+      .map((row, index) => {
+        const productId = toSafeString(row?.product_id);
+        return {
+          id: toSafeString(row?.id) || newId(),
+          ap_invoice_type: 'PRODUCT',
+          description:
+            productNameById.get(productId) ||
+            productId ||
+            `Product ${index + 1}`,
+          amount: buildAmount(row?.price, row?.qty ?? row?.quantity),
+          currency_id: toSafeString(row?.currency_id),
+          details: toSafeString(row?.details),
+          remark: toSafeString(row?.remark),
+        };
+      });
+
+    const serviceRows = toArray(draft?.purchase_service_details)
+      .filter((row) => isTruthyFlag(row?.api_selected, true))
+      .map((row, index) => {
+        const serviceId = toSafeString(row?.service_id);
+        return {
+          id: toSafeString(row?.id) || newId(),
+          ap_invoice_type: 'SERVICE',
+          description:
+            serviceNameById.get(serviceId) ||
+            serviceId ||
+            `Service ${index + 1}`,
+          amount: buildAmount(row?.price, row?.qty ?? row?.quantity),
+          currency_id: toSafeString(row?.currency_id),
+          details: toSafeString(row?.details),
+          remark: toSafeString(row?.remark),
+        };
+      });
+
+    return [...shippingRows, ...productRows, ...serviceRows];
+  }, [
+    draft?.purchase_product_details,
+    draft?.purchase_service_details,
+    draft?.purchase_shipping_details,
+    productNameById,
+    serviceNameById,
+  ]);
 
   const supplierAddressNameById = useMemo(() => {
     const map = new Map();
@@ -1489,6 +1581,7 @@ const Main_PurchaseRequest = () => {
       weight: '',
       currency_id: '',
       price: '',
+      api_selected: true,
       details: '',
       remark: '',
       purchase_shipping_images: [],
@@ -1504,6 +1597,7 @@ const Main_PurchaseRequest = () => {
       qty: '',
       currency_id: '',
       price: '',
+      api_selected: true,
       details: '',
       remark: '',
       purchase_product_images: [],
@@ -1520,6 +1614,7 @@ const Main_PurchaseRequest = () => {
       qty: '',
       currency_id: '',
       price: '',
+      api_selected: true,
       details: '',
       remark: '',
       purchase_service_images: [],
@@ -1554,6 +1649,7 @@ const Main_PurchaseRequest = () => {
                 weight: sourceRow?.weight ?? '',
                 currency_id: toSafeString(suggestion?.currency_id),
                 price: suggestion?.price ?? '',
+                api_selected: row?.api_selected ?? true,
                 details: toSafeString(sourceRow?.details),
                 remark: toSafeString(sourceRow?.remark),
               };
@@ -1577,6 +1673,7 @@ const Main_PurchaseRequest = () => {
         weight: sourceRow?.weight ?? '',
         currency_id: toSafeString(suggestion?.currency_id),
         price: suggestion?.price ?? '',
+        api_selected: true,
         details: toSafeString(sourceRow?.details),
         remark: toSafeString(sourceRow?.remark),
         purchase_shipping_images: [],
@@ -1613,6 +1710,7 @@ const Main_PurchaseRequest = () => {
                   sourceRow?.cost_price !== null
                     ? sourceRow.cost_price
                     : (sourceRow?.price ?? ''),
+                api_selected: row?.api_selected ?? true,
                 details: toSafeString(sourceRow?.details),
                 remark: toSafeString(sourceRow?.remark),
               };
@@ -1635,6 +1733,7 @@ const Main_PurchaseRequest = () => {
           sourceRow?.cost_price !== undefined && sourceRow?.cost_price !== null
             ? sourceRow.cost_price
             : (sourceRow?.price ?? ''),
+        api_selected: true,
         details: toSafeString(sourceRow?.details),
         remark: toSafeString(sourceRow?.remark),
         purchase_product_images: [],
@@ -1674,6 +1773,7 @@ const Main_PurchaseRequest = () => {
                   sourceRow?.cost_price !== null
                     ? sourceRow.cost_price
                     : (sourceRow?.price ?? ''),
+                api_selected: row?.api_selected ?? true,
                 details: toSafeString(sourceRow?.details),
                 remark: toSafeString(sourceRow?.remark),
               };
@@ -1699,6 +1799,7 @@ const Main_PurchaseRequest = () => {
           sourceRow?.cost_price !== undefined && sourceRow?.cost_price !== null
             ? sourceRow.cost_price
             : (sourceRow?.price ?? ''),
+        api_selected: true,
         details: toSafeString(sourceRow?.details),
         remark: toSafeString(sourceRow?.remark),
         purchase_service_images: [],
@@ -1707,12 +1808,110 @@ const Main_PurchaseRequest = () => {
     [appendDetailRow],
   );
 
+  const handlePreviewApInvoice = useCallback(() => {
+    if (!draft || isPreparingPreview) {
+      return;
+    }
+
+    try {
+      setIsPreparingPreview(true);
+
+      if (apInvoicePreviewRows.length === 0) {
+        setError(
+          'No rows are selected for AP invoice preview. Tick AP Invoice on at least one row.',
+        );
+        return;
+      }
+
+      const draftId = toSafeString(draft?.id);
+      const previewInvoice = {
+        id: draftId || newId(),
+        purchase_request_id: draftId,
+        supplier_id: toSafeString(draft?.supplier_id),
+        supplier_address_id: toSafeString(draft?.supplier_address_id),
+        invoice_ref: '',
+        invoice_date: '',
+        due_date: '',
+        remark: toSafeString(draft?.remark),
+        ap_invoice_row_details: apInvoicePreviewRows,
+      };
+
+      const nextPurchaseRequests = [
+        {
+          ...draft,
+          id: draftId,
+        },
+        ...toArray(rows).filter((row) => toSafeString(row?.id) !== draftId),
+      ];
+
+      const html = buildApInvoiceDocumentA4Html({
+        invoice: previewInvoice,
+        supplierOptions: suppliers,
+        purchaseRequests: nextPurchaseRequests,
+        currencies,
+        invoiceTypes: [
+          { code: 'SHIPPING', description: 'Shipping' },
+          { code: 'PRODUCT', description: 'Product' },
+          { code: 'SERVICE', description: 'Service' },
+        ],
+        baseCurrencyCode,
+        currencyCodeById,
+        exchangeRateMap,
+      });
+
+      setPreviewHtml(html);
+      setIsPreviewOpen(true);
+    } catch (err) {
+      console.error(err);
+      setError(err?.message || 'Failed to prepare AP invoice preview.');
+    } finally {
+      setIsPreparingPreview(false);
+    }
+  }, [
+    apInvoicePreviewRows,
+    baseCurrencyCode,
+    currencies,
+    currencyCodeById,
+    draft,
+    exchangeRateMap,
+    isPreparingPreview,
+    rows,
+    suppliers,
+  ]);
+
+  const handlePrintFromPreview = useCallback(() => {
+    const iframeWindow = previewIframeRef.current?.contentWindow;
+    if (!iframeWindow) {
+      setError('Preview is not ready yet. Please try again.');
+      return;
+    }
+
+    iframeWindow.focus();
+    iframeWindow.print();
+  }, []);
+
+  const handleClosePreview = useCallback(() => {
+    setIsPreviewOpen(false);
+  }, []);
+
   return (
     <PurchaseRequestSavePageContainer
       onSave={handleSave}
       dryRunAction={getPurchaseRequestDryRunData}
       saveButtonText="Save Purchase Request"
       successMessage="Purchase request saved successfully!"
+      leftOfDryRunAction={
+        <button
+          type="button"
+          className={styles.previewButton}
+          onClick={handlePreviewApInvoice}
+          disabled={!draft || isPreparingPreview}
+        >
+          {isPreparingPreview
+            ? 'Preparing Preview...'
+            : 'Preview / Print AP Invoice (A4 PDF)'}
+        </button>
+      }
       leftBottomAction={
         <DeleteBtn
           text={isDeleting ? 'Deleting...' : 'Delete Purchase Request'}
@@ -1950,6 +2149,49 @@ const Main_PurchaseRequest = () => {
           )}
         </section>
       </div>
+
+      {isPreviewOpen ? (
+        <div
+          className={styles.previewModalBackdrop}
+          onClick={handleClosePreview}
+        >
+          <div
+            className={styles.previewModalWindow}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className={styles.previewModalHeader}>
+              <div className={styles.previewModalTitle}>
+                AP Invoice Preview (From Purchase Request)
+              </div>
+              <div className={styles.previewModalActions}>
+                <button
+                  type="button"
+                  className={styles.previewActionBtn}
+                  onClick={handlePrintFromPreview}
+                >
+                  Print / Save PDF
+                </button>
+                <button
+                  type="button"
+                  className={styles.previewCloseBtn}
+                  onClick={handleClosePreview}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+
+            <div className={styles.previewFrameWrap}>
+              <iframe
+                ref={previewIframeRef}
+                title="Purchase Request AP Invoice Preview"
+                className={styles.previewFrame}
+                srcDoc={previewHtml}
+              />
+            </div>
+          </div>
+        </div>
+      ) : null}
     </PurchaseRequestSavePageContainer>
   );
 };

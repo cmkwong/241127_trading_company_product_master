@@ -19,9 +19,11 @@ import {
   computeQuotationTotals,
   formatMoney,
   getLatestExchangeRateRow,
+  isSelectedFlag,
   toSafeString,
 } from './utils/quotationTotals';
 import { buildQuotationDocumentA4Html } from './utils/quotationPrint';
+import { buildArInvoiceDocumentA4Html } from './utils/arInvoicePrint';
 
 const formatPercent = (value) => {
   if (!Number.isFinite(value)) {
@@ -37,6 +39,7 @@ const Main_SalesQuotation = () => {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [previewHtml, setPreviewHtml] = useState('');
   const [isPreparingPreview, setIsPreparingPreview] = useState(false);
+  const [previewType, setPreviewType] = useState('quotation');
   const [baseCurrencyCode, setBaseCurrencyCode] = useState('HKD');
   const previewIframeRef = useRef(null);
   const {
@@ -200,11 +203,77 @@ const Main_SalesQuotation = () => {
         exchangeRateMap,
       });
 
+      setPreviewType('quotation');
       setPreviewHtml(html);
       setIsPreviewOpen(true);
     } catch (error) {
       console.error('Failed to prepare quotation preview:', error);
       alert(error?.message || 'Failed to prepare quotation preview.');
+    } finally {
+      setIsPreparingPreview(false);
+    }
+  }, [
+    baseCurrencyCode,
+    companyInfo,
+    currencyCodeById,
+    customerAddressOptions,
+    customerOptions,
+    exchangeRateMap,
+    isPreparingPreview,
+    productOptions,
+    selectedQuotation,
+    serviceOptions,
+    shippingMethodOptions,
+  ]);
+
+  const handlePreviewArInvoice = useCallback(() => {
+    if (!selectedQuotation || isPreparingPreview) {
+      return;
+    }
+
+    const shippingRows = Array.isArray(selectedQuotation?.sales_shipping_prices)
+      ? selectedQuotation.sales_shipping_prices
+      : [];
+    const productRows = Array.isArray(selectedQuotation?.sales_product_details)
+      ? selectedQuotation.sales_product_details
+      : [];
+    const serviceRows = Array.isArray(selectedQuotation?.sales_service_details)
+      ? selectedQuotation.sales_service_details
+      : [];
+
+    const hasSelectedArRows =
+      shippingRows.some((row) => isSelectedFlag(row?.ari_selected, true)) ||
+      productRows.some((row) => isSelectedFlag(row?.ari_selected, true)) ||
+      serviceRows.some((row) => isSelectedFlag(row?.ari_selected, true));
+
+    if (!hasSelectedArRows) {
+      alert(
+        'No rows are selected for AR invoice preview. Tick AR Invoice on at least one row.',
+      );
+      return;
+    }
+
+    try {
+      setIsPreparingPreview(true);
+      const html = buildArInvoiceDocumentA4Html({
+        quotation: selectedQuotation,
+        companyInfo: Array.isArray(companyInfo) ? companyInfo[0] : null,
+        customerOptions,
+        customerAddressOptions,
+        shippingMethodOptions,
+        productOptions,
+        serviceOptions,
+        currencyCodeById,
+        baseCurrencyCode,
+        exchangeRateMap,
+      });
+
+      setPreviewType('ar-invoice');
+      setPreviewHtml(html);
+      setIsPreviewOpen(true);
+    } catch (error) {
+      console.error('Failed to prepare AR invoice preview:', error);
+      alert(error?.message || 'Failed to prepare AR invoice preview.');
     } finally {
       setIsPreparingPreview(false);
     }
@@ -277,16 +346,28 @@ const Main_SalesQuotation = () => {
       saveButtonText="Save Sales Quotation"
       successMessage="Sales quotation saved successfully!"
       leftOfDryRunAction={
-        <button
-          type="button"
-          className={styles.printButton}
-          onClick={handlePreviewQuotation}
-          disabled={!selectedQuotation || isPreparingPreview}
-        >
-          {isPreparingPreview
-            ? 'Preparing Preview...'
-            : 'Preview / Print Quotation (A4 PDF)'}
-        </button>
+        <div className={styles.printButtonsGroup}>
+          <button
+            type="button"
+            className={styles.printButton}
+            onClick={handlePreviewQuotation}
+            disabled={!selectedQuotation || isPreparingPreview}
+          >
+            {isPreparingPreview
+              ? 'Preparing Preview...'
+              : 'Preview / Print Quotation (A4 PDF)'}
+          </button>
+          <button
+            type="button"
+            className={styles.printButton}
+            onClick={handlePreviewArInvoice}
+            disabled={!selectedQuotation || isPreparingPreview}
+          >
+            {isPreparingPreview
+              ? 'Preparing Preview...'
+              : 'Preview / Print AR Invoice (A4 PDF)'}
+          </button>
+        </div>
       }
       leftBottomAction={
         <DeleteBtn
@@ -469,7 +550,9 @@ const Main_SalesQuotation = () => {
           >
             <div className={styles.previewModalHeader}>
               <div className={styles.previewModalTitle}>
-                Quotation A4 Preview
+                {previewType === 'ar-invoice'
+                  ? 'AR Invoice A4 Preview'
+                  : 'Quotation A4 Preview'}
               </div>
               <div className={styles.previewModalActions}>
                 <button
@@ -492,7 +575,11 @@ const Main_SalesQuotation = () => {
             <div className={styles.previewFrameWrap}>
               <iframe
                 ref={previewIframeRef}
-                title="Quotation Preview"
+                title={
+                  previewType === 'ar-invoice'
+                    ? 'AR Invoice Preview'
+                    : 'Quotation Preview'
+                }
                 className={styles.previewFrame}
                 srcDoc={previewHtml}
               />

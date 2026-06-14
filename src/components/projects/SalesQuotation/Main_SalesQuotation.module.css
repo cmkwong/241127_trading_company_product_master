@@ -36,6 +36,13 @@
   margin-bottom: 0.25rem;
 }
 
+.printButtonsGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
 .printButton {
   border: 1px solid #0b66a7;
   border-radius: 6px;
@@ -236,6 +243,16 @@
 
   .quotationActions {
     justify-content: stretch;
+  }
+
+  .printButtonsGroup {
+    width: 100%;
+  }
+
+  .printButton {
+    flex: 1;
+    min-width: 0;
+    text-align: center;
   }
 
   .totalsSummaryGrid {

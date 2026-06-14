@@ -9,6 +9,7 @@ import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_File
 import AddNewBtn from '../../../common/Buttons/AddNewBtn';
 import DeleteBtn from '../../../common/Buttons/DeleteBtn';
 import EditableDataTable from '../../../common/Table/EditableDataTable';
+import { isSelectedFlag } from '../utils/quotationTotals';
 import styles from './Main_SalesShippingDetails.module.css';
 
 const FILE_SERVER_BASE_URL = 'http://localhost:3001';
@@ -29,6 +30,10 @@ const toInteger = (value, fallback = '') => {
 
   const parsed = parseInt(value, 10);
   return Number.isNaN(parsed) ? fallback : parsed;
+};
+
+const isCheckedBoolean = (value, defaultWhenMissing = true) => {
+  return isSelectedFlag(value, defaultWhenMissing);
 };
 
 const buildAddressPreview = (address) => {
@@ -306,6 +311,7 @@ const Main_SalesShippingDetails = ({
         details: '',
         remark: '',
         selected: false,
+        ari_selected: true,
         ...row,
         ...patch,
       };
@@ -416,6 +422,7 @@ const Main_SalesShippingDetails = ({
           details: '',
           remark: '',
           selected: false,
+          ari_selected: true,
         },
       ]);
     },
@@ -1046,9 +1053,28 @@ const Main_SalesShippingDetails = ({
           <div className={styles.checkboxCell}>
             <input
               type="checkbox"
-              checked={Boolean(row.selected)}
+              checked={isCheckedBoolean(row?.selected, false)}
               onChange={(event) =>
                 handleToggleShippingPriceSelected(row, event.target.checked)
+              }
+            />
+          </div>
+        ),
+      },
+      {
+        key: 'ari_selected',
+        label: 'AR Invoice',
+        size: 'S',
+        sortType: 'string',
+        renderCell: (row) => (
+          <div className={styles.checkboxCell}>
+            <input
+              type="checkbox"
+              checked={isCheckedBoolean(row?.ari_selected, true)}
+              onChange={(event) =>
+                handleUpsertShippingPrice(row, {
+                  ari_selected: event.target.checked,
+                })
               }
             />
           </div>

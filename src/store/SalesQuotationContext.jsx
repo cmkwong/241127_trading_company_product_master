@@ -407,6 +407,35 @@ const buildChildParentLookup = (sourceRows = [], rootChildKey, parentField) => {
   return lookup;
 };
 
+const upsertRowsById = (existingRows = [], incomingRows = []) => {
+  const mergedRows = [...toArray(existingRows)];
+
+  toArray(incomingRows).forEach((incomingRow) => {
+    const incomingId = toSafeString(incomingRow?.id);
+
+    if (!incomingId) {
+      mergedRows.push(incomingRow);
+      return;
+    }
+
+    const existingIndex = mergedRows.findIndex(
+      (row) => toSafeString(row?.id) === incomingId,
+    );
+
+    if (existingIndex === -1) {
+      mergedRows.push(incomingRow);
+      return;
+    }
+
+    mergedRows[existingIndex] = {
+      ...mergedRows[existingIndex],
+      ...incomingRow,
+    };
+  });
+
+  return mergedRows;
+};
+
 const renestSalesQuotationRowForApi = (row = {}, fallbackRows = []) => {
   const nextRow = deepClone(row);
 
@@ -458,7 +487,7 @@ const renestSalesQuotationRowForApi = (row = {}, fallbackRows = []) => {
       const nestedRows = toArray(detailRow?.[config.nestedChildKey]);
       details[detailIndex] = {
         ...detailRow,
-        [config.nestedChildKey]: [...nestedRows, nextChildRow],
+        [config.nestedChildKey]: upsertRowsById(nestedRows, [nextChildRow]),
       };
     });
 
@@ -1084,24 +1113,29 @@ export const SalesQuotationContext_Provider = ({ children }) => {
   }, [token, refreshSalesQuotationList, refreshReferenceOptions]);
 
   const upsertSalesQuotationPageData = useCallback(
-    (nestedData = {}) => {
+    (nestedDataOrUpdater = {}) => {
       const targetId = toSafeString(selectedQuotationId);
       if (!targetId) {
-        return;
-      }
-
-      if (
-        !validateNestedDataObject(
-          nestedData,
-          'upsertSalesQuotationPageData requires an object argument',
-        )
-      ) {
         return;
       }
 
       setQuotations((previousRows) =>
         previousRows.map((row) => {
           if (toSafeString(row?.id) !== targetId) {
+            return row;
+          }
+
+          const nestedData =
+            typeof nestedDataOrUpdater === 'function'
+              ? nestedDataOrUpdater(row)
+              : nestedDataOrUpdater;
+
+          if (
+            !validateNestedDataObject(
+              nestedData,
+              'upsertSalesQuotationPageData requires an object argument',
+            )
+          ) {
             return row;
           }
 

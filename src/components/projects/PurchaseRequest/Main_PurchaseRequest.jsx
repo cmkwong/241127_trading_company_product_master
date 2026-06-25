@@ -38,7 +38,7 @@ const FILE_SERVER_BASE_URL = 'http://localhost:3001';
 
 const DEFAULT_PURCHASE_FILE_MAPPINGS = {
   purchase_shipping_images: { url: 'image_url', base64: 'base64_image' },
-  purchase_product_images: { url: 'image_url', base64: 'base64_image' },
+  purchase_product_images: { url: 'image_url', base64: 'base64_file' },
   purchase_service_images: { url: 'image_url', base64: 'base64_image' },
 };
 

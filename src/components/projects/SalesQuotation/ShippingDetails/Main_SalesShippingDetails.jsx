@@ -13,6 +13,8 @@ import { isSelectedFlag } from '../utils/quotationTotals';
 import styles from './Main_SalesShippingDetails.module.css';
 
 const FILE_SERVER_BASE_URL = 'http://localhost:3001';
+const MIN_CHARGEABLE_WEIGHT_PER_CARTON = 12;
+const DEFAULT_VOLUMETRIC_DIVISOR = 6000;
 
 const toNumber = (value, fallback = '') => {
   if (value === '' || value === null || value === undefined) {
@@ -34,6 +36,103 @@ const toInteger = (value, fallback = '') => {
 
 const isCheckedBoolean = (value, defaultWhenMissing = true) => {
   return isSelectedFlag(value, defaultWhenMissing);
+};
+
+const toFiniteNumber = (value) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : NaN;
+};
+
+const formatWeight = (value, fallback = '-') => {
+  if (!Number.isFinite(value)) {
+    return fallback;
+  }
+
+  return value.toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+};
+
+const buildChargeableWeightSummary = ({
+  qty,
+  weightPerCarton,
+  lengthCm,
+  widthCm,
+  heightCm,
+  volumetricDivisor,
+  minChargeableWeightPerCarton,
+}) => {
+  const safeDivisor =
+    Number.isFinite(toFiniteNumber(volumetricDivisor)) &&
+    toFiniteNumber(volumetricDivisor) > 0
+      ? toFiniteNumber(volumetricDivisor)
+      : DEFAULT_VOLUMETRIC_DIVISOR;
+  const safeMinChargeableWeight =
+    Number.isFinite(toFiniteNumber(minChargeableWeightPerCarton)) &&
+    toFiniteNumber(minChargeableWeightPerCarton) > 0
+      ? toFiniteNumber(minChargeableWeightPerCarton)
+      : MIN_CHARGEABLE_WEIGHT_PER_CARTON;
+  const qtyValue = toFiniteNumber(qty);
+  const weightValue = toFiniteNumber(weightPerCarton);
+  const lengthValue = toFiniteNumber(lengthCm);
+  const widthValue = toFiniteNumber(widthCm);
+  const heightValue = toFiniteNumber(heightCm);
+
+  const hasQty = Number.isFinite(qtyValue) && qtyValue > 0;
+  const hasWeightPerCarton = Number.isFinite(weightValue) && weightValue >= 0;
+  const hasVolumeInputs =
+    Number.isFinite(lengthValue) &&
+    Number.isFinite(widthValue) &&
+    Number.isFinite(heightValue) &&
+    lengthValue > 0 &&
+    widthValue > 0 &&
+    heightValue > 0;
+
+  const grossTotalWeight =
+    hasQty && hasWeightPerCarton ? qtyValue * weightValue : NaN;
+  const volumeCubicMeter =
+    hasQty && hasVolumeInputs
+      ? (lengthValue * widthValue * heightValue * qtyValue) / 1000000
+      : NaN;
+  const volumetricWeightPerCarton = hasVolumeInputs
+    ? (lengthValue * widthValue * heightValue) / safeDivisor
+    : NaN;
+  const volumetricWeightTotal =
+    hasQty && Number.isFinite(volumetricWeightPerCarton)
+      ? volumetricWeightPerCarton * qtyValue
+      : NaN;
+
+  let chargeablePerCarton = NaN;
+  if (
+    hasQty &&
+    (hasWeightPerCarton || Number.isFinite(volumetricWeightPerCarton))
+  ) {
+    const comparedWeight = Math.max(
+      hasWeightPerCarton ? weightValue : 0,
+      Number.isFinite(volumetricWeightPerCarton)
+        ? volumetricWeightPerCarton
+        : 0,
+    );
+
+    chargeablePerCarton = Math.max(comparedWeight, safeMinChargeableWeight);
+  }
+
+  const finalChargeableWeight =
+    hasQty && Number.isFinite(chargeablePerCarton)
+      ? chargeablePerCarton * qtyValue
+      : NaN;
+
+  return {
+    grossTotalWeight,
+    volumeCubicMeter,
+    volumetricWeightPerCarton,
+    volumetricWeightTotal,
+    chargeablePerCarton,
+    finalChargeableWeight,
+    divisor: safeDivisor,
+    minChargeableWeightPerCarton: safeMinChargeableWeight,
+  };
 };
 
 const buildAddressPreview = (address) => {
@@ -63,6 +162,69 @@ const buildAddressPreview = (address) => {
   }
 
   return String(address?.name || address?.label || address?.id || '').trim();
+};
+
+const buildShippingQuoteText = (row, addressPreview, summary) => {
+  const lines = [];
+
+  if (addressPreview) {
+    lines.push(`Address: ${addressPreview}`);
+  }
+
+  const length = toNumber(row?.length);
+  const width = toNumber(row?.width);
+  const height = toNumber(row?.height);
+  if (length !== '' && width !== '' && height !== '') {
+    lines.push(`Size / Carton: ${length} x ${width} x ${height} cm`);
+  }
+
+  const weight = toNumber(row?.weight);
+  if (weight !== '') {
+    lines.push(`Weight / Carton: ${weight} kg`);
+  }
+
+  const qty = toNumber(row?.qty);
+  if (qty !== '') {
+    lines.push(`Carton Qty: ${qty}`);
+  }
+
+  // Add chargeable weight information if available
+  if (summary) {
+    lines.push('');
+    if (Number.isFinite(summary.grossTotalWeight)) {
+      lines.push(`Gross Total: ${formatWeight(summary.grossTotalWeight)} kg`);
+    }
+    if (Number.isFinite(summary.volumeCubicMeter)) {
+      lines.push(`Volume: ${formatWeight(summary.volumeCubicMeter)} m3`);
+    }
+    if (Number.isFinite(summary.volumetricWeightTotal)) {
+      lines.push(
+        `Volumetric Total: ${formatWeight(summary.volumetricWeightTotal)} kg`,
+      );
+    }
+    if (Number.isFinite(summary.chargeablePerCarton)) {
+      lines.push(
+        `Per Carton (with Min): ${formatWeight(summary.chargeablePerCarton)} kg`,
+      );
+    }
+    if (Number.isFinite(summary.finalChargeableWeight)) {
+      lines.push(
+        `Final Chargeable: ${formatWeight(summary.finalChargeableWeight)} kg`,
+      );
+    }
+  }
+
+  return lines.join('\n');
+};
+
+const copyToClipboard = async (text) => {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch (err) {
+    console.error('Failed to copy to clipboard:', err);
+    return false;
+  }
 };
 
 const Main_SalesShippingDetails = ({
@@ -109,8 +271,16 @@ const Main_SalesShippingDetails = ({
   );
 
   const setShippingPrices = useCallback(
-    (nextRows) => {
-      onPatchQuotation({ sales_shipping_prices: nextRows });
+    (nextRowsOrUpdater) => {
+      onPatchQuotation((currentQuotation) => {
+        const previousRows = currentQuotation?.sales_shipping_prices || [];
+        const nextRows =
+          typeof nextRowsOrUpdater === 'function'
+            ? nextRowsOrUpdater(previousRows)
+            : nextRowsOrUpdater;
+
+        return { sales_shipping_prices: nextRows };
+      });
     },
     [onPatchQuotation],
   );
@@ -238,6 +408,8 @@ const Main_SalesShippingDetails = ({
         height: '',
         qty: 0,
         weight: '',
+        chargeable_divisor: DEFAULT_VOLUMETRIC_DIVISOR,
+        min_chargeable_weight: MIN_CHARGEABLE_WEIGHT_PER_CARTON,
         details: '',
         remark: '',
       },
@@ -316,17 +488,21 @@ const Main_SalesShippingDetails = ({
         ...patch,
       };
 
-      const exists = shippingPrices.some((item) => item.id === rowId);
-      if (exists) {
-        setShippingPrices(
-          shippingPrices.map((item) => (item.id === rowId ? nextRow : item)),
+      setShippingPrices((previousRows) => {
+        const exists = previousRows.some(
+          (item) => String(item?.id || '') === rowId,
         );
-        return;
-      }
 
-      setShippingPrices([...shippingPrices, nextRow]);
+        if (exists) {
+          return previousRows.map((item) =>
+            String(item?.id || '') === rowId ? nextRow : item,
+          );
+        }
+
+        return [...previousRows, nextRow];
+      });
     },
-    [shippingPrices, setShippingPrices],
+    [setShippingPrices],
   );
 
   const handleDeleteShippingPrice = useCallback(
@@ -334,7 +510,9 @@ const Main_SalesShippingDetails = ({
       const rowId = String(row?.id || '');
       if (!rowId) return;
 
-      setShippingPrices(shippingPrices.filter((item) => item.id !== rowId));
+      setShippingPrices((previousRows) =>
+        previousRows.filter((item) => String(item?.id || '') !== rowId),
+      );
       setShippingPriceImages(
         shippingPriceImages.filter(
           (item) => String(item?.sales_shipping_price_id || '') !== rowId,
@@ -347,7 +525,6 @@ const Main_SalesShippingDetails = ({
       );
     },
     [
-      shippingPrices,
       shippingPriceImages,
       shippingPriceInternalImages,
       setShippingPrices,
@@ -405,8 +582,8 @@ const Main_SalesShippingDetails = ({
       const detailId = String(shippingDetailId || '').trim();
       if (!detailId) return;
 
-      setShippingPrices([
-        ...shippingPrices,
+      setShippingPrices((previousRows) => [
+        ...previousRows,
         {
           id: uuidv4(),
           sales_shipping_detail_id: detailId,
@@ -427,7 +604,6 @@ const Main_SalesShippingDetails = ({
       ]);
     },
     [
-      shippingPrices,
       shippingMethodOptions,
       incotermOptions,
       currencyOptions,
@@ -449,8 +625,8 @@ const Main_SalesShippingDetails = ({
         return;
       }
 
-      setShippingPrices(
-        shippingPrices.map((item) => {
+      setShippingPrices((previousRows) =>
+        previousRows.map((item) => {
           const itemId = String(item?.id || '').trim();
           const itemDetailId = String(
             item?.sales_shipping_detail_id || '',
@@ -467,7 +643,7 @@ const Main_SalesShippingDetails = ({
         }),
       );
     },
-    [shippingPrices, setShippingPrices, handleUpsertShippingPrice],
+    [setShippingPrices, handleUpsertShippingPrice],
   );
 
   const addressSuggestionOptions = useMemo(() => {
@@ -811,6 +987,142 @@ const Main_SalesShippingDetails = ({
         },
       },
       {
+        key: 'chargeable_weight_panel',
+        label: 'Chargeable Weight',
+        size: 'XXL',
+        nextRow: true,
+        sortable: false,
+        renderCell: (row) => {
+          const divisor =
+            toNumber(row?.chargeable_divisor) || DEFAULT_VOLUMETRIC_DIVISOR;
+          const minChargeableWeight =
+            toNumber(row?.min_chargeable_weight) ||
+            MIN_CHARGEABLE_WEIGHT_PER_CARTON;
+          const summary = buildChargeableWeightSummary({
+            qty: row?.qty,
+            weightPerCarton: row?.weight,
+            lengthCm: row?.length,
+            widthCm: row?.width,
+            heightCm: row?.height,
+            volumetricDivisor: divisor,
+            minChargeableWeightPerCarton: minChargeableWeight,
+          });
+
+          return (
+            <div className={styles.chargeablePanel}>
+              <div className={styles.chargeableTitle}>Chargeable Weight</div>
+              <div className={styles.chargeableControls}>
+                <div className={styles.chargeableControlItem}>
+                  <span className={styles.chargeableControlLabel}>Divisor</span>
+                  <Main_TextField
+                    className={styles.chargeableControlInput}
+                    type="number"
+                    defaultValue={String(summary.divisor)}
+                    onChange={(ov, nv) =>
+                      handleUpsertShippingDetail(row, {
+                        chargeable_divisor:
+                          toNumber(nv) || DEFAULT_VOLUMETRIC_DIVISOR,
+                      })
+                    }
+                  />
+                </div>
+
+                <div className={styles.chargeableControlItem}>
+                  <span className={styles.chargeableControlLabel}>
+                    Min Weight / Carton (kg)
+                  </span>
+                  <Main_TextField
+                    className={styles.chargeableControlInput}
+                    type="number"
+                    defaultValue={String(summary.minChargeableWeightPerCarton)}
+                    onChange={(ov, nv) =>
+                      handleUpsertShippingDetail(row, {
+                        min_chargeable_weight:
+                          toNumber(nv) || MIN_CHARGEABLE_WEIGHT_PER_CARTON,
+                      })
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className={styles.chargeableMeta}>
+                Formula: max(Gross per carton, Volumetric per carton, Min per
+                carton) x Qty
+              </div>
+
+              <div className={styles.chargeableGrid}>
+                <div className={styles.chargeableItem}>
+                  <span className={styles.chargeableLabel}>Gross Total</span>
+                  <span className={styles.chargeableValue}>
+                    {formatWeight(summary.grossTotalWeight)} kg
+                  </span>
+                </div>
+
+                <div className={styles.chargeableItem}>
+                  <span className={styles.chargeableLabel}>Volume</span>
+                  <span className={styles.chargeableValue}>
+                    {formatWeight(summary.volumeCubicMeter)} m3
+                  </span>
+                </div>
+
+                <div className={styles.chargeableItem}>
+                  <span className={styles.chargeableLabel}>
+                    Volumetric Total
+                  </span>
+                  <span className={styles.chargeableValue}>
+                    {formatWeight(summary.volumetricWeightTotal)} kg
+                  </span>
+                </div>
+
+                <div className={styles.chargeableItem}>
+                  <span className={styles.chargeableLabel}>
+                    Per Carton (with Min)
+                  </span>
+                  <span className={styles.chargeableValue}>
+                    {formatWeight(summary.chargeablePerCarton)} kg
+                  </span>
+                </div>
+
+                <div className={styles.chargeableItemStrong}>
+                  <span className={styles.chargeableLabel}>
+                    Final Chargeable
+                  </span>
+                  <span className={styles.chargeableValueStrong}>
+                    {formatWeight(summary.finalChargeableWeight)} kg
+                  </span>
+                </div>
+              </div>
+
+              <button
+                className={styles.copyQuoteButton}
+                onClick={async () => {
+                  const addressPreview = buildAddressPreview(
+                    addressSuggestionOptions.find(
+                      (addr) =>
+                        String(addr?.id || '') ===
+                        String(row?.customer_address_id || ''),
+                    ),
+                  );
+                  const quoteText = buildShippingQuoteText(
+                    row,
+                    addressPreview,
+                    summary,
+                  );
+                  const success = await copyToClipboard(quoteText);
+                  if (success) {
+                    alert('Shipping quote copied to clipboard!');
+                  } else {
+                    alert('Failed to copy to clipboard');
+                  }
+                }}
+              >
+                📋 Copy Quote Details
+              </button>
+            </div>
+          );
+        },
+      },
+      {
         key: 'actions',
         label: 'Actions',
         size: 'S',
@@ -824,6 +1136,7 @@ const Main_SalesShippingDetails = ({
       addressSuggestionOptions,
       shippingImages,
       shippingInternalImages,
+      onRefreshReferenceOptions,
       handleShippingImagesChange,
       handleShippingInternalImagesChange,
       handleUpsertShippingDetail,

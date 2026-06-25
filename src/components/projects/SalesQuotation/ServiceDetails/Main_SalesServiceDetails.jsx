@@ -44,8 +44,16 @@ const Main_SalesServiceDetails = ({
   );
 
   const setServiceDetails = useCallback(
-    (nextRows) => {
-      onPatchQuotation({ sales_service_details: nextRows });
+    (nextRowsOrUpdater) => {
+      onPatchQuotation((currentQuotation) => {
+        const previousRows = currentQuotation?.sales_service_details || [];
+        const nextRows =
+          typeof nextRowsOrUpdater === 'function'
+            ? nextRowsOrUpdater(previousRows)
+            : nextRowsOrUpdater;
+
+        return { sales_service_details: nextRows };
+      });
     },
     [onPatchQuotation],
   );
@@ -85,17 +93,21 @@ const Main_SalesServiceDetails = ({
         ...patch,
       };
 
-      const exists = serviceDetails.some((item) => item.id === rowId);
-      if (exists) {
-        setServiceDetails(
-          serviceDetails.map((item) => (item.id === rowId ? nextRow : item)),
+      setServiceDetails((previousRows) => {
+        const exists = previousRows.some(
+          (item) => String(item?.id || '') === rowId,
         );
-        return;
-      }
 
-      setServiceDetails([...serviceDetails, nextRow]);
+        if (exists) {
+          return previousRows.map((item) =>
+            String(item?.id || '') === rowId ? nextRow : item,
+          );
+        }
+
+        return [...previousRows, nextRow];
+      });
     },
-    [quotation?.id, serviceDetails, setServiceDetails],
+    [quotation?.id, setServiceDetails],
   );
 
   const handleDeleteServiceDetail = useCallback(
@@ -126,8 +138,8 @@ const Main_SalesServiceDetails = ({
   );
 
   const handleAddServiceDetail = useCallback(() => {
-    setServiceDetails([
-      ...serviceDetails,
+    setServiceDetails((previousRows) => [
+      ...previousRows,
       {
         id: uuidv4(),
         sales_quotation_id: quotation?.id,
@@ -145,7 +157,6 @@ const Main_SalesServiceDetails = ({
       },
     ]);
   }, [
-    serviceDetails,
     quotation?.id,
     supplierOptions,
     serviceOptions,

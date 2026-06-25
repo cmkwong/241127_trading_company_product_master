@@ -60,8 +60,16 @@ const Main_SalesProductDetails = ({
   );
 
   const setProductDetails = useCallback(
-    (nextRows) => {
-      onPatchQuotation({ sales_product_details: nextRows });
+    (nextRowsOrUpdater) => {
+      onPatchQuotation((currentQuotation) => {
+        const previousRows = currentQuotation?.sales_product_details || [];
+        const nextRows =
+          typeof nextRowsOrUpdater === 'function'
+            ? nextRowsOrUpdater(previousRows)
+            : nextRowsOrUpdater;
+
+        return { sales_product_details: nextRows };
+      });
     },
     [onPatchQuotation],
   );
@@ -100,17 +108,21 @@ const Main_SalesProductDetails = ({
         ...patch,
       };
 
-      const exists = productDetails.some((item) => item.id === rowId);
-      if (exists) {
-        setProductDetails(
-          productDetails.map((item) => (item.id === rowId ? nextRow : item)),
+      setProductDetails((previousRows) => {
+        const exists = previousRows.some(
+          (item) => String(item?.id || '') === rowId,
         );
-        return;
-      }
 
-      setProductDetails([...productDetails, nextRow]);
+        if (exists) {
+          return previousRows.map((item) =>
+            String(item?.id || '') === rowId ? nextRow : item,
+          );
+        }
+
+        return [...previousRows, nextRow];
+      });
     },
-    [quotation?.id, productDetails, setProductDetails],
+    [quotation?.id, setProductDetails],
   );
 
   const handleDeleteProductDetail = useCallback(
@@ -141,8 +153,8 @@ const Main_SalesProductDetails = ({
   );
 
   const handleAddProductDetail = useCallback(() => {
-    setProductDetails([
-      ...productDetails,
+    setProductDetails((previousRows) => [
+      ...previousRows,
       {
         id: uuidv4(),
         sales_quotation_id: quotation?.id,
@@ -158,13 +170,7 @@ const Main_SalesProductDetails = ({
         ari_selected: true,
       },
     ]);
-  }, [
-    productDetails,
-    quotation?.id,
-    productOptions,
-    currencyOptions,
-    setProductDetails,
-  ]);
+  }, [quotation?.id, productOptions, currencyOptions, setProductDetails]);
 
   const handleProductImagesChange = useCallback(
     (salesProductDetailId, newFiles = []) => {

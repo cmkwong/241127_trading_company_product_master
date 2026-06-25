@@ -283,6 +283,13 @@ const PurchaseRequestProductDetails = ({
           <div className={styles.uploadsCell}>
             <Main_FileUploads
               mode="file"
+              acceptedTypes={[
+                'application/pdf',
+                'image/png',
+                'image/jpeg',
+                'image/jpg',
+                'image/webp',
+              ]}
               compact
               tableCell
               hoverPreview

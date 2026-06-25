@@ -101,3 +101,113 @@
   font-weight: 600;
   color: #1f2937;
 }
+
+.chargeablePanel {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #dbe3ef;
+  border-radius: 8px;
+  background: #f8fbff;
+  padding: 0.6rem 0.7rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.chargeableTitle {
+  font-size: 12px;
+  font-weight: 700;
+  color: #1e3a8a;
+}
+
+.chargeableMeta {
+  font-size: 11px;
+  color: #475569;
+  line-height: 1.4;
+}
+
+.chargeableControls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(180px, 1fr));
+  gap: 0.5rem;
+}
+
+.chargeableControlItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.chargeableControlLabel {
+  font-size: 11px;
+  color: #475569;
+  font-weight: 600;
+}
+
+.chargeableControlInput {
+  width: 100%;
+}
+
+.chargeableGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(120px, 1fr));
+  gap: 0.4rem;
+}
+
+.chargeableItem,
+.chargeableItemStrong {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 0.3rem 0.45rem;
+  background: #ffffff;
+}
+
+.chargeableItemStrong {
+  grid-column: 1 / -1;
+  border-color: #93c5fd;
+  background: #eff6ff;
+}
+
+.chargeableLabel {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.chargeableValue,
+.chargeableValueStrong {
+  font-size: 12px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.chargeableValueStrong {
+  font-size: 13px;
+  color: #0b3b91;
+}
+
+.copyQuoteButton {
+  padding: 0.5rem 0.75rem;
+  background: #3b82f6;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  align-self: flex-start;
+}
+
+.copyQuoteButton:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+}
+
+.copyQuoteButton:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(59, 130, 246, 0.2);
+}

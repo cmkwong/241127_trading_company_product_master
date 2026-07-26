@@ -84,7 +84,7 @@ const Main_SalesBasicInfo = ({
           const id = String(item?.id || '').trim();
           const fallbackLabel = String(item?.name || item?.label || '').trim();
           const customerCode = String(
-            item?.customer_code || item?.code || '',
+            item?.customer_code || item?.customer_id || item?.code || '',
           ).trim();
           const customerDisplayName = String(
             item?.customer_display_name ||
@@ -113,13 +113,18 @@ const Main_SalesBasicInfo = ({
             item?.label ||
             '',
         ).trim(),
+        customer_id: String(
+          item?.customer_id || item?.customer_code || item?.code || '',
+        ).trim(),
         customer_type_name: String(item?.customer_type_name || '').trim(),
         searchText: [
+          String(item?.searchText || '').trim(),
           String(item?.customer_display_name || '').trim(),
           String(item?.display_name || '').trim(),
           String(item?.customer_name || '').trim(),
           String(item?.name || item?.label || '').trim(),
           String(item?.customer_type_name || '').trim(),
+          String(item?.customer_id || '').trim(),
           String(item?.customer_code || item?.code || '').trim(),
           String(item?.id || '').trim(),
         ]

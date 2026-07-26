@@ -46,6 +46,33 @@ export const isSelectedFlag = (value, defaultWhenMissing = true) => {
   return defaultWhenMissing;
 };
 
+export const normalizeDiscountPercent = (value) => {
+  const parsed = toNumber(value);
+  if (!Number.isFinite(parsed)) {
+    return 0;
+  }
+
+  if (parsed < 0) {
+    return 0;
+  }
+
+  if (parsed > 100) {
+    return 100;
+  }
+
+  return parsed;
+};
+
+export const getDiscountedRate = (rateValue, discountPercentValue) => {
+  const rate = toNumber(rateValue);
+  if (!Number.isFinite(rate)) {
+    return NaN;
+  }
+
+  const discountPercent = normalizeDiscountPercent(discountPercentValue);
+  return rate * (1 - discountPercent / 100);
+};
+
 const EXCHANGE_RATE_META_KEYS = new Set([
   'id',
   'Date',
@@ -224,7 +251,7 @@ export const computeQuotationTotals = (
 
   const shippingSummary = sumConvertedRows(
     shippingSelectedRows,
-    (row) => row?.price,
+    (row) => getDiscountedRate(row?.price, row?.discount_percent),
     (row) => row?.currency_id,
   );
 
@@ -238,7 +265,7 @@ export const computeQuotationTotals = (
     productSelectedRows,
     (row) => {
       const qty = toNumber(row?.qty);
-      const price = toNumber(row?.price);
+      const price = getDiscountedRate(row?.price, row?.discount_percent);
 
       if (!Number.isFinite(price)) {
         return NaN;
@@ -268,7 +295,7 @@ export const computeQuotationTotals = (
     serviceSelectedRows,
     (row) => {
       const qty = toNumber(row?.qty);
-      const price = toNumber(row?.price);
+      const price = getDiscountedRate(row?.price, row?.discount_percent);
 
       if (!Number.isFinite(price)) {
         return NaN;

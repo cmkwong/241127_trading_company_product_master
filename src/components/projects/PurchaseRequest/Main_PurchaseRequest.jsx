@@ -1214,6 +1214,7 @@ const Main_PurchaseRequest = () => {
 
   const buildDefaultUploadFiles = useCallback((files, nameField, urlField) => {
     return toArray(files)
+      .filter((file) => !file?._delete)
       .slice()
       .sort(
         (a, b) => Number(a?.display_order || 0) - Number(b?.display_order || 0),
@@ -1273,20 +1274,41 @@ const Main_PurchaseRequest = () => {
         addedFiles.map((item) => toSafeString(item?.id)),
       );
 
+      const oldFileById = new Map(
+        oldList
+          .map((item) => [toSafeString(item?.id), item])
+          .filter(([id]) => id),
+      );
+
       const nextFiles = [
         ...removedFiles
           .map((item) => ({ id: item?.id, _delete: true }))
           .filter((item) => toSafeString(item?.id)),
-        ...newList.map((item, fileIndex) => ({
-          id: item?.id || newId(),
-          display_order: fileIndex + 1,
-          ...(addedIds.has(toSafeString(item?.id))
-            ? {
-                [nameField]: item?.name,
-                [urlField]: item?.url,
-              }
-            : {}),
-        })),
+        ...newList.map((item, fileIndex) => {
+          const normalizedItemId = toSafeString(item?.id);
+          const existingFile = oldFileById.get(normalizedItemId);
+          const isAddedFile = addedIds.has(normalizedItemId);
+
+          const resolvedName =
+            item?.name || existingFile?.name || existingFile?.[nameField] || '';
+          const resolvedUrl =
+            item?.url || existingFile?.url || existingFile?.[urlField] || '';
+
+          return {
+            id: item?.id || newId(),
+            display_order: fileIndex + 1,
+            ...(isAddedFile || resolvedName
+              ? {
+                  [nameField]: resolvedName,
+                }
+              : {}),
+            ...(isAddedFile || resolvedUrl
+              ? {
+                  [urlField]: resolvedUrl,
+                }
+              : {}),
+          };
+        }),
       ];
 
       setDetailFieldById(detailKey, normalizedRowId, fileKey, nextFiles);
@@ -1301,36 +1323,145 @@ const Main_PurchaseRequest = () => {
       ...working,
       sales_quotation_id: toNullableId(working?.sales_quotation_id),
       supplier_address_id: toNullableId(working?.supplier_address_id),
-      purchase_shipping_details: toArray(working.purchase_shipping_details).map(
-        (row) => ({
+      purchase_shipping_details: toArray(working.purchase_shipping_details)
+        .filter((row) => !row?._delete)
+        .map((row) => ({
           ...row,
           purchase_request_id:
             toSafeString(row?.purchase_request_id) || toSafeString(working.id),
           currency_id: toNullableId(row?.currency_id),
-          purchase_shipping_images: toArray(row?.purchase_shipping_images),
-        }),
-      ),
-      purchase_product_details: toArray(working.purchase_product_details).map(
-        (row) => ({
+          purchase_shipping_images: toArray(
+            row?.purchase_shipping_images,
+          ).filter((image) => !image?._delete),
+        })),
+      purchase_product_details: toArray(working.purchase_product_details)
+        .filter((row) => !row?._delete)
+        .map((row) => ({
           ...row,
           purchase_request_id:
             toSafeString(row?.purchase_request_id) || toSafeString(working.id),
           currency_id: toNullableId(row?.currency_id),
-          purchase_product_images: toArray(row?.purchase_product_images),
-        }),
-      ),
-      purchase_service_details: toArray(working.purchase_service_details).map(
-        (row) => ({
+          purchase_product_images: toArray(row?.purchase_product_images).filter(
+            (image) => !image?._delete,
+          ),
+        })),
+      purchase_service_details: toArray(working.purchase_service_details)
+        .filter((row) => !row?._delete)
+        .map((row) => ({
           ...row,
           purchase_request_id:
             toSafeString(row?.purchase_request_id) || toSafeString(working.id),
           supplier_id: toNullableId(row?.supplier_id),
           currency_id: toNullableId(row?.currency_id),
-          purchase_service_images: toArray(row?.purchase_service_images),
-        }),
-      ),
+          purchase_service_images: toArray(row?.purchase_service_images).filter(
+            (image) => !image?._delete,
+          ),
+        })),
     });
   }, []);
+
+  const buildDeletePayloadFromDiff = useCallback(
+    (workingInput, existingInput) => {
+      if (!existingInput) {
+        return null;
+      }
+
+      const workingPayload = buildPayloadFromWorking(
+        workingInput || createNewPurchaseRequest(),
+      );
+      const existingPayload = buildPayloadFromWorking(existingInput);
+
+      const buildDetailDeletes = (currentRows, previousRows, imageKey) => {
+        const currentById = new Map(
+          toArray(currentRows)
+            .map((row) => [toSafeString(row?.id), row])
+            .filter(([id]) => id),
+        );
+
+        return toArray(previousRows)
+          .map((previousRow) => {
+            const previousId = toSafeString(previousRow?.id);
+            if (!previousId) {
+              return null;
+            }
+
+            const currentRow = currentById.get(previousId);
+            if (!currentRow) {
+              return { id: previousId };
+            }
+
+            const activeCurrentImageIds = new Set(
+              toArray(currentRow?.[imageKey])
+                .filter((item) => !item?._delete)
+                .map((item) => toSafeString(item?.id))
+                .filter(Boolean),
+            );
+
+            const removedImageRows = toArray(previousRow?.[imageKey])
+              .map((item) => toSafeString(item?.id))
+              .filter(Boolean)
+              .filter((id) => !activeCurrentImageIds.has(id))
+              .map((id) => ({ id }));
+
+            if (removedImageRows.length === 0) {
+              return null;
+            }
+
+            return {
+              id: previousId,
+              [imageKey]: removedImageRows,
+            };
+          })
+          .filter(Boolean);
+      };
+
+      const purchase_shipping_details = buildDetailDeletes(
+        workingPayload?.purchase_shipping_details,
+        existingPayload?.purchase_shipping_details,
+        'purchase_shipping_images',
+      );
+      const purchase_product_details = buildDetailDeletes(
+        workingPayload?.purchase_product_details,
+        existingPayload?.purchase_product_details,
+        'purchase_product_images',
+      );
+      const purchase_service_details = buildDetailDeletes(
+        workingPayload?.purchase_service_details,
+        existingPayload?.purchase_service_details,
+        'purchase_service_images',
+      );
+
+      const rootDeleteRow = {
+        id: toSafeString(existingPayload?.id || workingPayload?.id),
+      };
+
+      if (purchase_shipping_details.length > 0) {
+        rootDeleteRow.purchase_shipping_details = purchase_shipping_details;
+      }
+
+      if (purchase_product_details.length > 0) {
+        rootDeleteRow.purchase_product_details = purchase_product_details;
+      }
+
+      if (purchase_service_details.length > 0) {
+        rootDeleteRow.purchase_service_details = purchase_service_details;
+      }
+
+      const hasNestedDeletePayload =
+        Boolean(rootDeleteRow.purchase_shipping_details?.length) ||
+        Boolean(rootDeleteRow.purchase_product_details?.length) ||
+        Boolean(rootDeleteRow.purchase_service_details?.length);
+
+      if (!rootDeleteRow.id || !hasNestedDeletePayload) {
+        return null;
+      }
+
+      return {
+        purchase_requests: [rootDeleteRow],
+      };
+    },
+    [buildPayloadFromWorking],
+  );
 
   const buildPayloadWithBase64 = useCallback(
     async (workingInput) => {
@@ -1358,12 +1489,17 @@ const Main_PurchaseRequest = () => {
       };
     }
 
-    const normalizedPayload = buildPayloadFromWorking(draft);
-    const normalizedPayloadId = toSafeString(normalizedPayload?.id);
+    const normalizedDraftPayload = buildPayloadFromWorking(draft);
+    const normalizedPayloadId = toSafeString(normalizedDraftPayload?.id);
     const existingRow = toArray(rows).find(
       (row) => toSafeString(row?.id) === normalizedPayloadId,
     );
     const exists = Boolean(existingRow);
+
+    const normalizedPayload = buildPayloadFromWorking(draft);
+    const deletePayload = exists
+      ? buildDeletePayloadFromDiff(draft, existingRow)
+      : null;
 
     if (exists) {
       const normalizedExisting = buildPayloadFromWorking(existingRow);
@@ -1372,6 +1508,21 @@ const Main_PurchaseRequest = () => {
         JSON.stringify(normalizedPayload);
 
       if (noChanges) {
+        if (deletePayload) {
+          return {
+            endpoint: `${PURCHASE_API_BASE}/ids`,
+            method: 'PATCH + DELETE',
+            create: {},
+            update: { purchase_requests: [normalizedPayload] },
+            delete: deletePayload,
+            payload: {
+              data: {
+                purchase_requests: [normalizedPayload],
+              },
+            },
+          };
+        }
+
         return {
           endpoint: `${PURCHASE_API_BASE}/ids`,
           method: 'PATCH',
@@ -1390,17 +1541,18 @@ const Main_PurchaseRequest = () => {
 
     return {
       endpoint: exists ? `${PURCHASE_API_BASE}/ids` : PURCHASE_API_BASE,
-      method: exists ? 'PATCH' : 'POST',
+      method:
+        exists && deletePayload ? 'PATCH + DELETE' : exists ? 'PATCH' : 'POST',
       create: exists ? {} : { purchase_requests: [payload] },
       update: exists ? { purchase_requests: [payload] } : {},
-      delete: {},
+      delete: deletePayload || {},
       payload: {
         data: {
           purchase_requests: [payload],
         },
       },
     };
-  }, [buildPayloadFromWorking, draft, rows]);
+  }, [buildDeletePayloadFromDiff, buildPayloadFromWorking, draft, rows]);
 
   const handleSave = useCallback(async () => {
     if (!token || !draft) return;
@@ -1408,12 +1560,23 @@ const Main_PurchaseRequest = () => {
     setError('');
 
     try {
-      const payload = await buildPayloadWithBase64(draft);
-      const exists = rows.some(
-        (row) => toSafeString(row?.id) === toSafeString(payload?.id),
+      const existingRow = rows.find(
+        (row) => toSafeString(row?.id) === toSafeString(draft?.id),
       );
+      const payload = await buildPayloadWithBase64(draft);
+      const exists = Boolean(existingRow);
+      const deletePayload = exists
+        ? buildDeletePayloadFromDiff(draft, existingRow)
+        : null;
 
       if (exists) {
+        if (deletePayload) {
+          await apiDelete(`${PURCHASE_API_BASE}/ids`, {
+            token,
+            body: { data: deletePayload },
+          });
+        }
+
         await apiPatch(
           `${PURCHASE_API_BASE}/ids`,
           { data: { purchase_requests: [payload] } },
@@ -1433,7 +1596,14 @@ const Main_PurchaseRequest = () => {
       setError(err?.message || 'Failed to save purchase request');
       throw err;
     }
-  }, [buildPayloadWithBase64, draft, refreshAll, rows, token]);
+  }, [
+    buildDeletePayloadFromDiff,
+    buildPayloadWithBase64,
+    draft,
+    refreshAll,
+    rows,
+    token,
+  ]);
 
   const handleDelete = useCallback(async () => {
     if (!token || !draft?.id || isDeleting) return;

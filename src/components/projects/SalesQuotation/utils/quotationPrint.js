@@ -1,7 +1,9 @@
 import {
   computeQuotationTotals,
   formatMoney,
+  getDiscountedRate,
   isSelectedFlag,
+  normalizeDiscountPercent,
   toNumber,
   toSafeString,
 } from './quotationTotals';
@@ -211,7 +213,11 @@ const buildProductLineItems = ({
       const product = productById.get(toSafeString(row?.product_id));
       const qty = Number.isFinite(toNumber(row?.qty)) ? toNumber(row?.qty) : 1;
       const rate = toNumber(row?.price);
-      const amount = Number.isFinite(rate) ? qty * rate : NaN;
+      const discountPercent = normalizeDiscountPercent(row?.discount_percent);
+      const discountedRate = getDiscountedRate(rate, discountPercent);
+      const amount = Number.isFinite(discountedRate)
+        ? qty * discountedRate
+        : NaN;
       const currencyCode =
         currencyCodeById[toSafeString(row?.currency_id)] || baseCurrencyCode;
       const detailId = toSafeString(row?.id);
@@ -228,6 +234,8 @@ const buildProductLineItems = ({
         details: [toSafeString(row?.details)].filter(Boolean),
         qty,
         rate,
+        discountPercent,
+        discountedRate,
         amount,
         currencyCode,
         imageUrls: uniqueImageUrls,
@@ -256,7 +264,11 @@ const buildServiceLineItems = ({
       const service = serviceById.get(toSafeString(row?.service_id));
       const qty = Number.isFinite(toNumber(row?.qty)) ? toNumber(row?.qty) : 1;
       const rate = toNumber(row?.price);
-      const amount = Number.isFinite(rate) ? qty * rate : NaN;
+      const discountPercent = normalizeDiscountPercent(row?.discount_percent);
+      const discountedRate = getDiscountedRate(rate, discountPercent);
+      const amount = Number.isFinite(discountedRate)
+        ? qty * discountedRate
+        : NaN;
       const currencyCode =
         currencyCodeById[toSafeString(row?.currency_id)] || baseCurrencyCode;
       const detailId = toSafeString(row?.id);
@@ -267,6 +279,8 @@ const buildServiceLineItems = ({
         details: [toSafeString(row?.details)].filter(Boolean),
         qty,
         rate,
+        discountPercent,
+        discountedRate,
         amount,
         currencyCode,
         imageUrls,
@@ -308,6 +322,8 @@ const buildShippingLineItems = ({
         toSafeString(row?.shipping_method_id),
       );
       const rate = toNumber(row?.price);
+      const discountPercent = normalizeDiscountPercent(row?.discount_percent);
+      const discountedRate = getDiscountedRate(rate, discountPercent);
       const currencyCode =
         currencyCodeById[toSafeString(row?.currency_id)] || baseCurrencyCode;
       const deliveryAddress = addressById.get(
@@ -348,7 +364,9 @@ const buildShippingLineItems = ({
         ].filter(Boolean),
         qty: 1,
         rate,
-        amount: rate,
+        discountPercent,
+        discountedRate,
+        amount: discountedRate,
         currencyCode,
         imageUrls: uniqueImageUrls,
       };
@@ -377,6 +395,22 @@ const buildQuotationRowsHtml = (lineItems = [], baseCurrencyCode) => {
       const rowDetails = (item.details || [])
         .map((line) => `<div class="item-detail">${escapeHtml(line)}</div>`)
         .join('');
+      const hasDiscount =
+        Number.isFinite(item?.discountPercent) &&
+        Number(item.discountPercent) > 0;
+      const discountPercentLabel = hasDiscount
+        ? Number(item.discountPercent).toLocaleString(undefined, {
+            minimumFractionDigits: Number.isInteger(
+              Number(item.discountPercent),
+            )
+              ? 0
+              : 2,
+            maximumFractionDigits: 2,
+          })
+        : '';
+      const discountTag = hasDiscount
+        ? `<div class="discount-badge">${escapeHtml(`${discountPercentLabel}% OFF`)}</div>`
+        : '';
       const imageHtml = (Array.isArray(item.imageUrls) ? item.imageUrls : [])
         .filter(Boolean)
         .map(
@@ -400,10 +434,19 @@ const buildQuotationRowsHtml = (lineItems = [], baseCurrencyCode) => {
           <td class="item-col">
             <div class="item-title">${escapeHtml(item.itemName)}</div>
             ${rowDetails}
+            ${discountTag}
             ${imageBlock}
           </td>
           <td class="qty-col">${escapeHtml(String(item.qty))}</td>
-          <td class="rate-col">${escapeHtml(formatLineMoney(item.rate))}${currencySuffix}</td>
+          <td class="rate-col">${
+            hasDiscount
+              ? `<div class="rate-old">${escapeHtml(
+                  formatLineMoney(item.rate),
+                )}${currencySuffix}</div><div class="rate-new">${escapeHtml(
+                  formatLineMoney(item.discountedRate),
+                )}${currencySuffix}</div>`
+              : `${escapeHtml(formatLineMoney(item.rate))}${currencySuffix}`
+          }</td>
           <td class="amount-col">${escapeHtml(formatLineMoney(item.amount))}${currencySuffix}</td>
         </tr>
       `;
@@ -573,6 +616,34 @@ const buildQuotationHtml = ({
         margin-top: 2px;
         line-height: 1.45;
         white-space: pre-line;
+      }
+
+      .discount-badge {
+        display: inline-block;
+        margin-top: 10px;
+        padding: 3px 9px;
+        border: 1.5px solid #f2a3b2;
+        border-radius: 7px;
+        background: #ffe8ee;
+        color: #d54f6c;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.2px;
+        line-height: 1.2;
+      }
+
+      .rate-old {
+        color: #9ca3af;
+        text-decoration: line-through;
+        text-decoration-thickness: 2px;
+        text-decoration-color: #9ca3af;
+        line-height: 1.2;
+      }
+
+      .rate-new {
+        color: #111827;
+        font-weight: 700;
+        line-height: 1.2;
       }
 
       .item-image {

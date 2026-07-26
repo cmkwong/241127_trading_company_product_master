@@ -7,6 +7,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import { apiDelete, apiGet, apiPatch, apiPost } from '../utils/crud';
 import {
   buildNestedChangedData,
@@ -130,6 +131,30 @@ const toSafeString = (value) => String(value || '').trim();
 const toIsoNow = () => new Date().toISOString();
 
 const deepClone = (value) => JSON.parse(JSON.stringify(value));
+
+const cloneRowsWithNewIds = (
+  rows = [],
+  { parentField, nextParentId, now } = {},
+) => {
+  const sourceRows = Array.isArray(rows) ? rows : [];
+  return sourceRows.map((row) => {
+    const rest = deepClone(row || {});
+    delete rest.created_at;
+    delete rest.updated_at;
+    const nextRow = {
+      ...rest,
+      id: uuidv4(),
+      created_at: now,
+      updated_at: now,
+    };
+
+    if (parentField && nextParentId) {
+      nextRow[parentField] = nextParentId;
+    }
+
+    return nextRow;
+  });
+};
 
 const toArray = (value) => (Array.isArray(value) ? value : []);
 
@@ -792,6 +817,11 @@ export const SalesQuotationContext_Provider = ({ children }) => {
     const normalizedCustomerOptions = customerRows
       .map((customer) => {
         const id = toSafeString(customer?.id);
+        const customerCode = pickFirstLabel(customer, [
+          'customer_code',
+          'customer_id',
+          'code',
+        ]);
         const customerName =
           pickNestedName(customer, ['customer_names']) ||
           pickFirstLabel(customer, [
@@ -800,9 +830,34 @@ export const SalesQuotationContext_Provider = ({ children }) => {
             'customer_name',
             'name',
           ]) ||
-          pickFirstLabel(customer, ['customer_code', 'code']);
-        const label =
-          customerName || pickFirstLabel(customer, ['customer_code', 'code']);
+          customerCode;
+        const label = customerName || customerCode;
+
+        const nestedCustomerNames = toArray(customer?.customer_names)
+          .map((row) =>
+            pickFirstLabel(row, [
+              'name',
+              'customer_name',
+              'display_name',
+              'full_name',
+              'label',
+            ]),
+          )
+          .filter(Boolean);
+
+        const customerSearchTokens = [
+          customerName,
+          ...nestedCustomerNames,
+          pickFirstLabel(customer, [
+            'customer_display_name',
+            'display_name',
+            'customer_name',
+            'name',
+            'label',
+          ]),
+          customerCode,
+          id,
+        ].filter(Boolean);
 
         const typeRows = [
           ...toArray(customer?.customer_types),
@@ -861,6 +916,10 @@ export const SalesQuotationContext_Provider = ({ children }) => {
           ...option,
           customer_display_name: customerName || option.name,
           customer_type_name: typeNames.join(', '),
+          customer_code: customerCode,
+          customer_id:
+            pickFirstLabel(customer, ['customer_id']) || customerCode,
+          searchText: [...new Set(customerSearchTokens)].join(' '),
         };
       })
       .filter(Boolean);
@@ -1204,6 +1263,74 @@ export const SalesQuotationContext_Provider = ({ children }) => {
     setSaveError('');
 
     try {
+      const originalSnapshot = originalQuotationMap?.[targetId];
+      const isLocalDraft = !originalSnapshot;
+      const cleanedPageData = cleanupQuotationFlags(selectedQuotation);
+
+      if (isLocalDraft) {
+        const createPayload = renestSalesPayloadForApi(
+          {
+            sales_quotations: [cleanedPageData],
+          },
+          {
+            currentRow: selectedQuotation,
+            originalRow: null,
+          },
+        );
+
+        const processedCreatePayload = await processChangesWithBase64(
+          createPayload,
+          quotationBase64Config,
+        );
+
+        const response = await apiPost(
+          `${SALES_API_BASE}/data`,
+          {
+            data: processedCreatePayload,
+          },
+          { token },
+        );
+
+        const createdRows = extractRowsFromResponse(response, SALES_TABLE_NAME)
+          .map(normalizeSalesQuotation)
+          .filter((row) => toSafeString(row?.id));
+
+        const normalizedSavedRow =
+          createdRows[0] || normalizeSalesQuotation(cleanedPageData);
+        const savedId = toSafeString(normalizedSavedRow?.id) || targetId;
+
+        setQuotations((previousRows) => {
+          const nextRows = previousRows.map((row) =>
+            toSafeString(row?.id) === targetId ? normalizedSavedRow : row,
+          );
+
+          if (!nextRows.some((row) => toSafeString(row?.id) === savedId)) {
+            nextRows.unshift(normalizedSavedRow);
+          }
+
+          return nextRows.filter(
+            (row, index, rows) =>
+              rows.findIndex(
+                (candidate) =>
+                  toSafeString(candidate?.id) === toSafeString(row?.id),
+              ) === index,
+          );
+        });
+
+        setOriginalQuotationMap((previousMap) => {
+          const nextMap = { ...previousMap };
+          delete nextMap[targetId];
+          nextMap[savedId] = deepClone(normalizedSavedRow);
+          return nextMap;
+        });
+
+        if (savedId !== targetId) {
+          setSelectedQuotationId(savedId);
+        }
+
+        return normalizedSavedRow;
+      }
+
       const changesResult = getChangedData();
 
       if (!changesResult) {
@@ -1211,7 +1338,6 @@ export const SalesQuotationContext_Provider = ({ children }) => {
       }
 
       const { changes, deletions } = changesResult;
-      const cleanedPageData = cleanupQuotationFlags(selectedQuotation);
       const normalizedChanges = renestSalesPayloadForApi(changes, {
         currentRow: selectedQuotation,
         originalRow: originalPageData,
@@ -1267,6 +1393,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
       throw error;
     }
   }, [
+    originalQuotationMap,
     selectedQuotation,
     originalPageData,
     token,
@@ -1340,11 +1467,326 @@ export const SalesQuotationContext_Provider = ({ children }) => {
     token,
   ]);
 
+  const duplicateSelectedSalesQuotation = useCallback(async () => {
+    if (!selectedQuotation || !toSafeString(selectedQuotation?.id)) {
+      throw new Error('No sales quotation selected to duplicate.');
+    }
+
+    const now = toIsoNow();
+    const sourceQuotation = cleanupQuotationFlags(selectedQuotation);
+    const nextQuotationId = uuidv4();
+
+    const sourceShippingDetails = toArray(
+      sourceQuotation?.sales_shipping_details,
+    );
+    const sourceProductDetails = toArray(
+      sourceQuotation?.sales_product_details,
+    );
+    const sourceServiceDetails = toArray(
+      sourceQuotation?.sales_service_details,
+    );
+    const sourceShippingPrices = toArray(
+      sourceQuotation?.sales_shipping_prices,
+    );
+    const sourceShippingImages = toArray(
+      sourceQuotation?.sales_shipping_images,
+    );
+    const sourceShippingInternalImages = toArray(
+      sourceQuotation?.sales_shipping_internal_images,
+    );
+    const sourceProductImages = toArray(
+      sourceQuotation?.sales_product_detail_images,
+    );
+    const sourceProductInternalImages = toArray(
+      sourceQuotation?.sales_product_detail_internal_images,
+    );
+    const sourceServiceImages = toArray(
+      sourceQuotation?.sales_service_detail_images,
+    );
+    const sourceServiceInternalImages = toArray(
+      sourceQuotation?.sales_service_detail_internal_images,
+    );
+    const sourceShippingPriceImages = toArray(
+      sourceQuotation?.sales_shipping_price_images,
+    );
+    const sourceShippingPriceInternalImages = toArray(
+      sourceQuotation?.sales_shipping_price_internal_images,
+    );
+
+    const shippingDetailIdMap = new Map();
+    const productDetailIdMap = new Map();
+    const serviceDetailIdMap = new Map();
+    const shippingPriceIdMap = new Map();
+
+    const sales_shipping_details = sourceShippingDetails.map((row) => {
+      const nextId = uuidv4();
+      shippingDetailIdMap.set(toSafeString(row?.id), nextId);
+      const rest = deepClone(row || {});
+      delete rest.sales_shipping_prices;
+      delete rest.sales_shipping_images;
+      delete rest.sales_shipping_internal_images;
+      delete rest.created_at;
+      delete rest.updated_at;
+      return {
+        ...rest,
+        id: nextId,
+        sales_quotation_id: nextQuotationId,
+        created_at: now,
+        updated_at: now,
+      };
+    });
+
+    const sales_product_details = sourceProductDetails.map((row) => {
+      const nextId = uuidv4();
+      productDetailIdMap.set(toSafeString(row?.id), nextId);
+      const rest = deepClone(row || {});
+      delete rest.sales_product_detail_images;
+      delete rest.sales_product_detail_internal_images;
+      delete rest.created_at;
+      delete rest.updated_at;
+      return {
+        ...rest,
+        id: nextId,
+        sales_quotation_id: nextQuotationId,
+        created_at: now,
+        updated_at: now,
+      };
+    });
+
+    const sales_service_details = sourceServiceDetails.map((row) => {
+      const nextId = uuidv4();
+      serviceDetailIdMap.set(toSafeString(row?.id), nextId);
+      const rest = deepClone(row || {});
+      delete rest.sales_service_detail_images;
+      delete rest.sales_service_detail_internal_images;
+      delete rest.created_at;
+      delete rest.updated_at;
+      return {
+        ...rest,
+        id: nextId,
+        sales_quotation_id: nextQuotationId,
+        created_at: now,
+        updated_at: now,
+      };
+    });
+
+    const sales_shipping_prices = sourceShippingPrices
+      .map((row) => {
+        const sourceId = toSafeString(row?.id);
+        const sourceDetailId = toSafeString(row?.sales_shipping_detail_id);
+        const nextDetailId = shippingDetailIdMap.get(sourceDetailId);
+        if (!nextDetailId) {
+          return null;
+        }
+
+        const nextId = uuidv4();
+        shippingPriceIdMap.set(sourceId, nextId);
+        const rest = deepClone(row || {});
+        delete rest.sales_shipping_price_images;
+        delete rest.sales_shipping_price_internal_images;
+        delete rest.created_at;
+        delete rest.updated_at;
+        return {
+          ...rest,
+          id: nextId,
+          sales_shipping_detail_id: nextDetailId,
+          created_at: now,
+          updated_at: now,
+        };
+      })
+      .filter(Boolean);
+
+    const sales_shipping_images = sourceShippingImages
+      .map((row) => {
+        const sourceDetailId = toSafeString(row?.sales_shipping_detail_id);
+        const nextDetailId = shippingDetailIdMap.get(sourceDetailId);
+        if (!nextDetailId) {
+          return null;
+        }
+
+        return cloneRowsWithNewIds([row], {
+          parentField: 'sales_shipping_detail_id',
+          nextParentId: nextDetailId,
+          now,
+        })[0];
+      })
+      .filter(Boolean);
+
+    const sales_shipping_internal_images = sourceShippingInternalImages
+      .map((row) => {
+        const sourceDetailId = toSafeString(row?.sales_shipping_detail_id);
+        const nextDetailId = shippingDetailIdMap.get(sourceDetailId);
+        if (!nextDetailId) {
+          return null;
+        }
+
+        return cloneRowsWithNewIds([row], {
+          parentField: 'sales_shipping_detail_id',
+          nextParentId: nextDetailId,
+          now,
+        })[0];
+      })
+      .filter(Boolean);
+
+    const sales_product_detail_images = sourceProductImages
+      .map((row) => {
+        const sourceDetailId = toSafeString(row?.sales_product_detail_id);
+        const nextDetailId = productDetailIdMap.get(sourceDetailId);
+        if (!nextDetailId) {
+          return null;
+        }
+
+        return cloneRowsWithNewIds([row], {
+          parentField: 'sales_product_detail_id',
+          nextParentId: nextDetailId,
+          now,
+        })[0];
+      })
+      .filter(Boolean);
+
+    const sales_product_detail_internal_images = sourceProductInternalImages
+      .map((row) => {
+        const sourceDetailId = toSafeString(row?.sales_product_detail_id);
+        const nextDetailId = productDetailIdMap.get(sourceDetailId);
+        if (!nextDetailId) {
+          return null;
+        }
+
+        return cloneRowsWithNewIds([row], {
+          parentField: 'sales_product_detail_id',
+          nextParentId: nextDetailId,
+          now,
+        })[0];
+      })
+      .filter(Boolean);
+
+    const sales_service_detail_images = sourceServiceImages
+      .map((row) => {
+        const sourceDetailId = toSafeString(row?.sales_service_detail_id);
+        const nextDetailId = serviceDetailIdMap.get(sourceDetailId);
+        if (!nextDetailId) {
+          return null;
+        }
+
+        return cloneRowsWithNewIds([row], {
+          parentField: 'sales_service_detail_id',
+          nextParentId: nextDetailId,
+          now,
+        })[0];
+      })
+      .filter(Boolean);
+
+    const sales_service_detail_internal_images = sourceServiceInternalImages
+      .map((row) => {
+        const sourceDetailId = toSafeString(row?.sales_service_detail_id);
+        const nextDetailId = serviceDetailIdMap.get(sourceDetailId);
+        if (!nextDetailId) {
+          return null;
+        }
+
+        return cloneRowsWithNewIds([row], {
+          parentField: 'sales_service_detail_id',
+          nextParentId: nextDetailId,
+          now,
+        })[0];
+      })
+      .filter(Boolean);
+
+    const sales_shipping_price_images = sourceShippingPriceImages
+      .map((row) => {
+        const sourcePriceId = toSafeString(row?.sales_shipping_price_id);
+        const nextPriceId = shippingPriceIdMap.get(sourcePriceId);
+        if (!nextPriceId) {
+          return null;
+        }
+
+        return cloneRowsWithNewIds([row], {
+          parentField: 'sales_shipping_price_id',
+          nextParentId: nextPriceId,
+          now,
+        })[0];
+      })
+      .filter(Boolean);
+
+    const sales_shipping_price_internal_images =
+      sourceShippingPriceInternalImages
+        .map((row) => {
+          const sourcePriceId = toSafeString(row?.sales_shipping_price_id);
+          const nextPriceId = shippingPriceIdMap.get(sourcePriceId);
+          if (!nextPriceId) {
+            return null;
+          }
+
+          return cloneRowsWithNewIds([row], {
+            parentField: 'sales_shipping_price_id',
+            nextParentId: nextPriceId,
+            now,
+          })[0];
+        })
+        .filter(Boolean);
+
+    const duplicatedRow = normalizeSalesQuotation({
+      id: nextQuotationId,
+      to_order: Boolean(sourceQuotation?.to_order),
+      remark: toSafeString(sourceQuotation?.remark),
+      customer_id: toSafeString(sourceQuotation?.customer_id),
+      customer_address_id: toSafeString(sourceQuotation?.customer_address_id),
+      sales_shipping_details,
+      sales_shipping_prices,
+      sales_shipping_images,
+      sales_shipping_internal_images,
+      sales_shipping_price_images,
+      sales_shipping_price_internal_images,
+      sales_product_details,
+      sales_product_detail_images,
+      sales_product_detail_internal_images,
+      sales_service_details,
+      sales_service_detail_images,
+      sales_service_detail_internal_images,
+    });
+
+    setQuotations((previousRows) => {
+      const withoutDuplicate = previousRows.filter(
+        (row) => toSafeString(row?.id) !== toSafeString(duplicatedRow?.id),
+      );
+      return [duplicatedRow, ...withoutDuplicate];
+    });
+    setSelectedQuotationId(duplicatedRow.id);
+    setSaveError('');
+
+    return duplicatedRow;
+  }, [cleanupQuotationFlags, selectedQuotation]);
+
   const deleteSalesQuotation = useCallback(
     async (quotationId) => {
       const targetId = toSafeString(quotationId || selectedQuotationId);
       if (!targetId || !token) {
         return false;
+      }
+
+      const isLocalDraft = !originalQuotationMap?.[targetId];
+
+      if (isLocalDraft) {
+        setQuotations((previousRows) => {
+          const nextRows = previousRows.filter((row) => row.id !== targetId);
+
+          setSelectedQuotationId((previousId) => {
+            if (previousId !== targetId) {
+              return previousId;
+            }
+            return nextRows[0]?.id || null;
+          });
+
+          return nextRows;
+        });
+
+        setOriginalQuotationMap((previousMap) => {
+          const nextMap = { ...previousMap };
+          delete nextMap[targetId];
+          return nextMap;
+        });
+
+        return true;
       }
 
       const requestBody = {
@@ -1386,7 +1828,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
 
       return true;
     },
-    [selectedQuotationId, token],
+    [originalQuotationMap, selectedQuotationId, token],
   );
 
   const selectSalesQuotation = useCallback(
@@ -1550,6 +1992,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
     upsertSalesQuotationPageData,
     saveSelectedQuotation,
     createSalesQuotation,
+    duplicateSelectedSalesQuotation,
     deleteSalesQuotation,
     selectSalesQuotation,
     getSalesQuotationDryRunData,

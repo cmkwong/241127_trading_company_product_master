@@ -9,7 +9,11 @@ import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_File
 import AddNewBtn from '../../../common/Buttons/AddNewBtn';
 import DeleteBtn from '../../../common/Buttons/DeleteBtn';
 import EditableDataTable from '../../../common/Table/EditableDataTable';
-import { isSelectedFlag } from '../utils/quotationTotals';
+import {
+  getDiscountedRate,
+  isSelectedFlag,
+  normalizeDiscountPercent,
+} from '../utils/quotationTotals';
 import styles from './Main_SalesServiceDetails.module.css';
 
 const FILE_SERVER_BASE_URL = 'http://localhost:3001';
@@ -84,6 +88,7 @@ const Main_SalesServiceDetails = ({
         currency_id: '',
         cost_currency_id: '',
         price: '',
+        discount_percent: 0,
         cost_price: '',
         details: '',
         remark: '',
@@ -149,6 +154,7 @@ const Main_SalesServiceDetails = ({
         currency_id: currencyOptions[0]?.id || '',
         cost_currency_id: currencyOptions[0]?.id || '',
         price: '',
+        discount_percent: 0,
         cost_price: '',
         details: '',
         remark: '',
@@ -384,6 +390,50 @@ const Main_SalesServiceDetails = ({
             onChange={(ov, nv) =>
               handleUpsertServiceDetail(row, { price: toNumber(nv) })
             }
+          />
+        ),
+      },
+      {
+        key: 'discount_percent',
+        label: 'Discount %',
+        size: 'S',
+        sortType: 'number',
+        renderCell: (row) => (
+          <Main_TextField
+            className={styles.cellInput}
+            type="number"
+            defaultValue={String(
+              normalizeDiscountPercent(row.discount_percent),
+            )}
+            placeholder="0"
+            onChange={(ov, nv) =>
+              handleUpsertServiceDetail(row, {
+                discount_percent: normalizeDiscountPercent(nv),
+              })
+            }
+          />
+        ),
+      },
+      {
+        key: 'discount_sales_price',
+        label: 'Discount Sales Price',
+        size: 'M',
+        sortType: 'number',
+        getSortValue: (row) =>
+          getDiscountedRate(row?.price, row?.discount_percent),
+        renderCell: (row) => (
+          <Main_TextField
+            className={styles.cellInput}
+            type="number"
+            defaultValue={String(
+              Number.isFinite(
+                getDiscountedRate(row?.price, row?.discount_percent),
+              )
+                ? getDiscountedRate(row?.price, row?.discount_percent)
+                : '',
+            )}
+            placeholder="Auto"
+            disabled
           />
         ),
       },

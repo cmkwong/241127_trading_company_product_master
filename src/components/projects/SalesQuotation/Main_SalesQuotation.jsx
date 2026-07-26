@@ -36,6 +36,8 @@ const formatPercent = (value) => {
 const Main_SalesQuotation = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isDuplicating, setIsDuplicating] = useState(false);
+  const [isSummaryCompact, setIsSummaryCompact] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [previewHtml, setPreviewHtml] = useState('');
   const [isPreparingPreview, setIsPreparingPreview] = useState(false);
@@ -59,6 +61,7 @@ const Main_SalesQuotation = () => {
     patchSelectedQuotation: patchSalesQuotationInContext,
     saveSelectedQuotation,
     createSalesQuotation,
+    duplicateSelectedSalesQuotation,
     deleteSalesQuotation,
     getSalesQuotationDryRunData,
     refreshReferenceOptions,
@@ -157,6 +160,22 @@ const Main_SalesQuotation = () => {
   const handleSaveQuotation = useCallback(async () => {
     await saveSelectedQuotation();
   }, [saveSelectedQuotation]);
+
+  const handleDuplicateQuotation = useCallback(async () => {
+    if (!selectedQuotation || isDuplicating) {
+      return;
+    }
+
+    setIsDuplicating(true);
+    try {
+      await duplicateSelectedSalesQuotation();
+    } catch (error) {
+      console.error('Failed to duplicate sales quotation:', error);
+      alert(error?.message || 'Failed to duplicate sales quotation.');
+    } finally {
+      setIsDuplicating(false);
+    }
+  }, [duplicateSelectedSalesQuotation, isDuplicating, selectedQuotation]);
 
   const handleDeleteQuotation = useCallback(async () => {
     const quotationId = String(selectedQuotation?.id || '').trim();
@@ -339,6 +358,17 @@ const Main_SalesQuotation = () => {
     setIsPreviewOpen(false);
   }, []);
 
+  const handleInputScroll = useCallback((event) => {
+    const nextCompact = Number(event?.currentTarget?.scrollTop || 0) > 8;
+    setIsSummaryCompact((previous) => {
+      if (previous === nextCompact) {
+        return previous;
+      }
+
+      return nextCompact;
+    });
+  }, []);
+
   return (
     <SalesQuotationSavePageContainer
       onSave={handleSaveQuotation}
@@ -370,14 +400,26 @@ const Main_SalesQuotation = () => {
         </div>
       }
       leftBottomAction={
-        <DeleteBtn
-          text={isDeleting ? 'Deleting...' : 'Delete Quotation'}
-          onClick={handleDeleteQuotation}
-          disabled={!selectedQuotation || isDeleting}
-          title="Delete selected sales quotation"
-          ariaLabel="Delete selected sales quotation"
-          className={bottomBarDeleteStyles.bottomBarDeleteAction}
-        />
+        <div className={styles.bottomActionGroup}>
+          <DeleteBtn
+            text={isDeleting ? 'Deleting...' : 'Delete Quotation'}
+            onClick={handleDeleteQuotation}
+            disabled={!selectedQuotation || isDeleting}
+            title="Delete selected sales quotation"
+            ariaLabel="Delete selected sales quotation"
+            className={bottomBarDeleteStyles.bottomBarDeleteAction}
+          />
+          <button
+            type="button"
+            className={styles.duplicateBottomButton}
+            onClick={handleDuplicateQuotation}
+            disabled={!selectedQuotation || isDuplicating}
+            title="Duplicate selected sales quotation"
+            aria-label="Duplicate selected sales quotation"
+          >
+            {isDuplicating ? 'Duplicating...' : 'Duplicate Quotation'}
+          </button>
+        </div>
       }
     >
       <div className={styles.masterContainer}>
@@ -400,92 +442,131 @@ const Main_SalesQuotation = () => {
             sidebarCollapsed ? styles.fullWidth : ''
           }`}
         >
-          <div className={styles.inputSide}>
+          <div className={styles.inputSide} onScroll={handleInputScroll}>
             {selectedQuotation ? (
               <>
-                <div className={styles.currencySummaryBar}>
-                  <div className={styles.baseCurrencyPicker}>
-                    <span className={styles.baseCurrencyLabel}>
-                      Base Currency
-                    </span>
-                    <Main_Dropdown
-                      defaultOptions={baseCurrencyOptions}
-                      defaultSelectedOption={baseCurrencyCode}
-                      onChange={(ov, nv) =>
-                        setBaseCurrencyCode(
-                          toSafeString(nv).toUpperCase() || 'HKD',
-                        )
-                      }
-                      size="S"
-                    />
-                    <span className={styles.rateMetaText}>
-                      Rate Date:{' '}
-                      {toSafeString(latestExchangeRateRow?.Date) || '-'}
-                    </span>
+                <div
+                  className={`${styles.currencySummaryBar} ${
+                    isSummaryCompact ? styles.currencySummaryBarCompact : ''
+                  }`}
+                >
+                  {!isSummaryCompact ? (
+                    <div className={styles.baseCurrencyPicker}>
+                      <span className={styles.baseCurrencyLabel}>
+                        Base Currency
+                      </span>
+                      <Main_Dropdown
+                        defaultOptions={baseCurrencyOptions}
+                        defaultSelectedOption={baseCurrencyCode}
+                        onChange={(ov, nv) =>
+                          setBaseCurrencyCode(
+                            toSafeString(nv).toUpperCase() || 'HKD',
+                          )
+                        }
+                        size="S"
+                      />
+                      <span className={styles.rateMetaText}>
+                        Rate Date:{' '}
+                        {toSafeString(latestExchangeRateRow?.Date) || '-'}
+                      </span>
+                    </div>
+                  ) : null}
+
+                  <div
+                    className={`${styles.totalsSummaryGrid} ${
+                      isSummaryCompact ? styles.totalsSummaryGridCompact : ''
+                    }`}
+                  >
+                    {isSummaryCompact ? (
+                      <>
+                        <div className={styles.totalCard}>
+                          <span className={styles.totalLabel}>Total Cost</span>
+                          <span className={styles.totalValue}>
+                            {totalsSummary.baseCurrencyCode}{' '}
+                            {formatMoney(totalsSummary.costGrandTotal)}
+                          </span>
+                        </div>
+                        <div className={styles.totalCard}>
+                          <span className={styles.totalLabel}>Profit</span>
+                          <span className={styles.totalValue}>
+                            {totalsSummary.baseCurrencyCode}{' '}
+                            {formatMoney(totalsSummary.profitAmount)}
+                          </span>
+                        </div>
+                        <div className={styles.totalCard}>
+                          <span className={styles.totalLabel}>
+                            Profit % (vs Cost)
+                          </span>
+                          <span className={styles.totalValue}>
+                            {formatPercent(totalsSummary.profitPercent)}
+                          </span>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className={styles.totalCard}>
+                          <span className={styles.totalLabel}>
+                            Shipping Sales (Selected)
+                          </span>
+                          <span className={styles.totalValue}>
+                            {totalsSummary.baseCurrencyCode}{' '}
+                            {formatMoney(totalsSummary.shipping)}
+                          </span>
+                        </div>
+                        <div className={styles.totalCard}>
+                          <span className={styles.totalLabel}>
+                            Product Sales (Selected)
+                          </span>
+                          <span className={styles.totalValue}>
+                            {totalsSummary.baseCurrencyCode}{' '}
+                            {formatMoney(totalsSummary.product)}
+                          </span>
+                        </div>
+                        <div className={styles.totalCard}>
+                          <span className={styles.totalLabel}>
+                            Service Sales (Selected)
+                          </span>
+                          <span className={styles.totalValue}>
+                            {totalsSummary.baseCurrencyCode}{' '}
+                            {formatMoney(totalsSummary.service)}
+                          </span>
+                        </div>
+                        <div
+                          className={`${styles.totalCard} ${styles.totalCardHighlight}`}
+                        >
+                          <span className={styles.totalLabel}>Total Sales</span>
+                          <span className={styles.totalValueStrong}>
+                            {totalsSummary.baseCurrencyCode}{' '}
+                            {formatMoney(totalsSummary.grandTotal)}
+                          </span>
+                        </div>
+                        <div className={styles.totalCard}>
+                          <span className={styles.totalLabel}>Total Cost</span>
+                          <span className={styles.totalValue}>
+                            {totalsSummary.baseCurrencyCode}{' '}
+                            {formatMoney(totalsSummary.costGrandTotal)}
+                          </span>
+                        </div>
+                        <div className={styles.totalCard}>
+                          <span className={styles.totalLabel}>Profit</span>
+                          <span className={styles.totalValue}>
+                            {totalsSummary.baseCurrencyCode}{' '}
+                            {formatMoney(totalsSummary.profitAmount)}
+                          </span>
+                        </div>
+                        <div className={styles.totalCard}>
+                          <span className={styles.totalLabel}>
+                            Profit % (vs Cost)
+                          </span>
+                          <span className={styles.totalValue}>
+                            {formatPercent(totalsSummary.profitPercent)}
+                          </span>
+                        </div>
+                      </>
+                    )}
                   </div>
 
-                  <div className={styles.totalsSummaryGrid}>
-                    <div className={styles.totalCard}>
-                      <span className={styles.totalLabel}>
-                        Shipping Sales (Selected)
-                      </span>
-                      <span className={styles.totalValue}>
-                        {totalsSummary.baseCurrencyCode}{' '}
-                        {formatMoney(totalsSummary.shipping)}
-                      </span>
-                    </div>
-                    <div className={styles.totalCard}>
-                      <span className={styles.totalLabel}>
-                        Product Sales (Selected)
-                      </span>
-                      <span className={styles.totalValue}>
-                        {totalsSummary.baseCurrencyCode}{' '}
-                        {formatMoney(totalsSummary.product)}
-                      </span>
-                    </div>
-                    <div className={styles.totalCard}>
-                      <span className={styles.totalLabel}>
-                        Service Sales (Selected)
-                      </span>
-                      <span className={styles.totalValue}>
-                        {totalsSummary.baseCurrencyCode}{' '}
-                        {formatMoney(totalsSummary.service)}
-                      </span>
-                    </div>
-                    <div
-                      className={`${styles.totalCard} ${styles.totalCardHighlight}`}
-                    >
-                      <span className={styles.totalLabel}>Total Sales</span>
-                      <span className={styles.totalValueStrong}>
-                        {totalsSummary.baseCurrencyCode}{' '}
-                        {formatMoney(totalsSummary.grandTotal)}
-                      </span>
-                    </div>
-                    <div className={styles.totalCard}>
-                      <span className={styles.totalLabel}>Total Cost</span>
-                      <span className={styles.totalValue}>
-                        {totalsSummary.baseCurrencyCode}{' '}
-                        {formatMoney(totalsSummary.costGrandTotal)}
-                      </span>
-                    </div>
-                    <div className={styles.totalCard}>
-                      <span className={styles.totalLabel}>Profit</span>
-                      <span className={styles.totalValue}>
-                        {totalsSummary.baseCurrencyCode}{' '}
-                        {formatMoney(totalsSummary.profitAmount)}
-                      </span>
-                    </div>
-                    <div className={styles.totalCard}>
-                      <span className={styles.totalLabel}>
-                        Profit % (vs Cost)
-                      </span>
-                      <span className={styles.totalValue}>
-                        {formatPercent(totalsSummary.profitPercent)}
-                      </span>
-                    </div>
-                  </div>
-
-                  {totalsSummary.missingCount > 0 ? (
+                  {!isSummaryCompact && totalsSummary.missingCount > 0 ? (
                     <div className={styles.totalWarningText}>
                       Sales skipped: {totalsSummary.salesMissingCount} row(s),
                       Cost skipped: {totalsSummary.costMissingCount} row(s) due

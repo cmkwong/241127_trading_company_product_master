@@ -42,7 +42,8 @@ const Main_SalesQuotation = () => {
   const [previewHtml, setPreviewHtml] = useState('');
   const [isPreparingPreview, setIsPreparingPreview] = useState(false);
   const [previewType, setPreviewType] = useState('quotation');
-  const [baseCurrencyCode, setBaseCurrencyCode] = useState('HKD');
+  const [previewShowTotalPrice, setPreviewShowTotalPrice] = useState(true);
+  const [baseCurrencyCode, setBaseCurrencyCode] = useState('USD');
   const previewIframeRef = useRef(null);
   const {
     quotations,
@@ -106,8 +107,8 @@ const Main_SalesQuotation = () => {
 
   useEffect(() => {
     if (baseCurrencyOptions.length === 0) {
-      if (baseCurrencyCode !== 'HKD') {
-        setBaseCurrencyCode('HKD');
+      if (baseCurrencyCode !== 'USD') {
+        setBaseCurrencyCode('USD');
       }
       return;
     }
@@ -117,7 +118,7 @@ const Main_SalesQuotation = () => {
     );
 
     if (!exists) {
-      setBaseCurrencyCode(toSafeString(baseCurrencyOptions[0]?.id) || 'HKD');
+      setBaseCurrencyCode(toSafeString(baseCurrencyOptions[0]?.id) || 'USD');
     }
   }, [baseCurrencyCode, baseCurrencyOptions]);
 
@@ -220,6 +221,7 @@ const Main_SalesQuotation = () => {
         currencyCodeById,
         baseCurrencyCode,
         exchangeRateMap,
+        showTotalPrice: previewShowTotalPrice,
       });
 
       setPreviewType('quotation');
@@ -239,6 +241,46 @@ const Main_SalesQuotation = () => {
     customerOptions,
     exchangeRateMap,
     isPreparingPreview,
+    previewShowTotalPrice,
+    productOptions,
+    selectedQuotation,
+    serviceOptions,
+    shippingMethodOptions,
+  ]);
+
+  useEffect(() => {
+    if (!isPreviewOpen || previewType !== 'quotation' || !selectedQuotation) {
+      return;
+    }
+
+    try {
+      const html = buildQuotationDocumentA4Html({
+        quotation: selectedQuotation,
+        companyInfo: Array.isArray(companyInfo) ? companyInfo[0] : null,
+        customerOptions,
+        customerAddressOptions,
+        shippingMethodOptions,
+        productOptions,
+        serviceOptions,
+        currencyCodeById,
+        baseCurrencyCode,
+        exchangeRateMap,
+        showTotalPrice: previewShowTotalPrice,
+      });
+      setPreviewHtml(html);
+    } catch (error) {
+      console.error('Failed to refresh quotation preview:', error);
+    }
+  }, [
+    baseCurrencyCode,
+    companyInfo,
+    currencyCodeById,
+    customerAddressOptions,
+    customerOptions,
+    exchangeRateMap,
+    isPreviewOpen,
+    previewShowTotalPrice,
+    previewType,
     productOptions,
     selectedQuotation,
     serviceOptions,
@@ -460,7 +502,7 @@ const Main_SalesQuotation = () => {
                         defaultSelectedOption={baseCurrencyCode}
                         onChange={(ov, nv) =>
                           setBaseCurrencyCode(
-                            toSafeString(nv).toUpperCase() || 'HKD',
+                            toSafeString(nv).toUpperCase() || 'USD',
                           )
                         }
                         size="S"
@@ -636,6 +678,18 @@ const Main_SalesQuotation = () => {
                   : 'Quotation A4 Preview'}
               </div>
               <div className={styles.previewModalActions}>
+                {previewType === 'quotation' ? (
+                  <label className={styles.previewOptionToggle}>
+                    <input
+                      type="checkbox"
+                      checked={previewShowTotalPrice}
+                      onChange={(event) =>
+                        setPreviewShowTotalPrice(event.target.checked)
+                      }
+                    />
+                    <span>Show Total Price</span>
+                  </label>
+                ) : null}
                 <button
                   type="button"
                   className={styles.previewActionBtn}

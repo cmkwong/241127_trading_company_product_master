@@ -58,6 +58,27 @@ const formatWeight = (value, fallback = '-') => {
   });
 };
 
+const computeMinimizedLengthPlusGirth = (lengthCm, widthCm, heightCm) => {
+  const dimensions = [
+    toFiniteNumber(lengthCm),
+    toFiniteNumber(widthCm),
+    toFiniteNumber(heightCm),
+  ];
+
+  const hasValidDimensions = dimensions.every(
+    (value) => Number.isFinite(value) && value > 0,
+  );
+
+  if (!hasValidDimensions) {
+    return NaN;
+  }
+
+  const [smallest, middle, largest] = [...dimensions].sort((a, b) => a - b);
+  const girth = 2 * (smallest + middle);
+
+  return largest + girth;
+};
+
 const buildChargeableWeightSummary = ({
   qty,
   weightPerCarton,
@@ -106,6 +127,11 @@ const buildChargeableWeightSummary = ({
     hasQty && Number.isFinite(volumetricWeightPerCarton)
       ? volumetricWeightPerCarton * qtyValue
       : NaN;
+  const lengthPlusGirth = computeMinimizedLengthPlusGirth(
+    lengthValue,
+    widthValue,
+    heightValue,
+  );
 
   let chargeablePerCarton = NaN;
   if (
@@ -134,6 +160,7 @@ const buildChargeableWeightSummary = ({
     volumetricWeightTotal,
     chargeablePerCarton,
     finalChargeableWeight,
+    lengthPlusGirth,
     divisor: safeDivisor,
     minChargeableWeightPerCarton: safeMinChargeableWeight,
   };
@@ -195,6 +222,9 @@ const buildShippingQuoteText = (row, addressPreview, summary) => {
   // Add chargeable weight information if available
   if (summary) {
     lines.push('');
+    if (Number.isFinite(summary.divisor)) {
+      lines.push(`Divisor: ${summary.divisor}`);
+    }
     if (Number.isFinite(summary.grossTotalWeight)) {
       lines.push(`Gross Total: ${formatWeight(summary.grossTotalWeight)} kg`);
     }
@@ -215,6 +245,9 @@ const buildShippingQuoteText = (row, addressPreview, summary) => {
       lines.push(
         `Final Chargeable: ${formatWeight(summary.finalChargeableWeight)} kg`,
       );
+    }
+    if (Number.isFinite(summary.lengthPlusGirth)) {
+      lines.push(`Length + Girth: ${formatWeight(summary.lengthPlusGirth)} cm`);
     }
   }
 
@@ -320,6 +353,12 @@ const Main_SalesShippingDetails = ({
   const handleUpsertShippingDetail = useCallback(
     (row, patch) => {
       const rowId = String(row?.id || uuidv4());
+      const hasDimensionChanges =
+        patch &&
+        (Object.prototype.hasOwnProperty.call(patch, 'length') ||
+          Object.prototype.hasOwnProperty.call(patch, 'width') ||
+          Object.prototype.hasOwnProperty.call(patch, 'height'));
+
       const nextRow = {
         id: rowId,
         sales_quotation_id: quotation?.id,
@@ -327,6 +366,18 @@ const Main_SalesShippingDetails = ({
         ...row,
         ...patch,
       };
+
+      if (hasDimensionChanges) {
+        const computedLengthPlusGirth = computeMinimizedLengthPlusGirth(
+          nextRow?.length,
+          nextRow?.width,
+          nextRow?.height,
+        );
+
+        nextRow.length_plus_girth = Number.isFinite(computedLengthPlusGirth)
+          ? Number(computedLengthPlusGirth.toFixed(2))
+          : '';
+      }
 
       const exists = shippingDetails.some((item) => item.id === rowId);
       if (exists) {
@@ -412,6 +463,7 @@ const Main_SalesShippingDetails = ({
         height: '',
         qty: 0,
         weight: '',
+        length_plus_girth: '',
         chargeable_divisor: DEFAULT_VOLUMETRIC_DIVISOR,
         min_chargeable_weight: MIN_CHARGEABLE_WEIGHT_PER_CARTON,
         details: '',
@@ -1086,6 +1138,13 @@ const Main_SalesShippingDetails = ({
                   </span>
                   <span className={styles.chargeableValue}>
                     {formatWeight(summary.chargeablePerCarton)} kg
+                  </span>
+                </div>
+
+                <div className={styles.chargeableItem}>
+                  <span className={styles.chargeableLabel}>Length + Girth</span>
+                  <span className={styles.chargeableValue}>
+                    {formatWeight(summary.lengthPlusGirth)} cm
                   </span>
                 </div>
 

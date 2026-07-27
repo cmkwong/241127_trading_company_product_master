@@ -465,6 +465,7 @@ const buildQuotationHtml = ({
   totalAmount,
   createdDate,
   validTillDate,
+  showTotalPrice = true,
 }) => {
   const quotationNumber = toSafeString(quotation?.id) || '-';
   const resolvedCompanyInfo = resolveCompanyInfo(companyInfo);
@@ -675,6 +676,10 @@ const buildQuotationHtml = ({
         align-items: start;
       }
 
+      .footer-no-total {
+        grid-template-columns: 1fr;
+      }
+
       .terms {
         font-size: 11px;
         color: #374151;
@@ -760,17 +765,21 @@ const buildQuotationHtml = ({
         </tbody>
       </table>
 
-      <div class="footer">
+      <div class="footer ${showTotalPrice ? '' : 'footer-no-total'}">
         <div class="terms">
           <div class="terms-title">Terms and Conditions</div>
           <div>Work will resume after advance payment.</div>
           <div>If any custom tax charge which is not included.</div>
           <div>Preliminary quotes only. Mass production pricing to be re-quoted after sampling.</div>
         </div>
-        <div class="total-box">
+        ${
+          showTotalPrice
+            ? `<div class="total-box">
           <span class="total-label">Total (${escapeHtml(totalLabel)})</span>
           <span class="total-value">$${escapeHtml(totalAmount)}</span>
-        </div>
+        </div>`
+            : ''
+        }
       </div>
     </div>
   </body>
@@ -789,6 +798,7 @@ export const buildQuotationDocumentA4Html = ({
   currencyCodeById = {},
   baseCurrencyCode = 'USD',
   exchangeRateMap = { HKD: 1 },
+  showTotalPrice = true,
 }) => {
   if (!quotation || !quotation?.id) {
     throw new Error('Please select a quotation to print.');
@@ -866,6 +876,7 @@ export const buildQuotationDocumentA4Html = ({
     totalAmount,
     createdDate,
     validTillDate,
+    showTotalPrice,
   });
 
   return html;

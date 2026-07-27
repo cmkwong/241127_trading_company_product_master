@@ -228,6 +228,22 @@
   gap: 8px;
 }
 
+.previewOptionToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #334155;
+  padding-right: 6px;
+}
+
+.previewOptionToggle input {
+  width: 14px;
+  height: 14px;
+  accent-color: #1177bf;
+}
+
 .previewActionBtn,
 .previewCloseBtn {
   border: 1px solid #cbd5e1;

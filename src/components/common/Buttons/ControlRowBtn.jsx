@@ -1,5 +1,6 @@
 import { useState, cloneElement, Children, useEffect } from 'react';
 import styles from './ControlRowBtn.module.css';
+import AddNewBtn from './AddNewBtn';
 import { v4 as uuidv4 } from 'uuid';
 import {
   DRAG_READY_LABEL,
@@ -147,6 +148,23 @@ const ControlRowBtn = (props) => {
     setDragOverRowId(null);
   };
 
+  const renderDragHandleIcon = () => (
+    <svg viewBox="0 0 16 16" aria-hidden="true">
+      <circle cx="5" cy="4" r="1.2" />
+      <circle cx="11" cy="4" r="1.2" />
+      <circle cx="5" cy="8" r="1.2" />
+      <circle cx="11" cy="8" r="1.2" />
+      <circle cx="5" cy="12" r="1.2" />
+      <circle cx="11" cy="12" r="1.2" />
+    </svg>
+  );
+
+  const renderMinusIcon = () => (
+    <svg viewBox="0 0 16 16" aria-hidden="true">
+      <path d="M3 8h10" />
+    </svg>
+  );
+
   return (
     <div
       className={`${styles.controlRowWrapper} ${
@@ -154,19 +172,9 @@ const ControlRowBtn = (props) => {
       }`}
     >
       {rows.length === 0 ? (
-        <div className={styles.controlRowContainer}>
-          <div className={styles.rowNumberContainer}>
-            <span className={styles.rowNumber}>0</span>
-          </div>
-          <div className={styles.buttonsContainer}>
-            <button className={styles.addButton} onClick={handleAddRow}>
-              +
-            </button>
-          </div>
-        </div>
+        <div className={styles.emptyRowMessage}>No rows added</div>
       ) : (
         rows.map((row, rowindex) => {
-          const isLastRow = rowindex === rows.length - 1;
           const { isDraggedItem: isDraggedRow, isDropTarget } =
             getDragPlacementUiState({
               draggedKey: draggedRowId,
@@ -183,9 +191,6 @@ const ControlRowBtn = (props) => {
               onDragOver={(event) => handleDragOver(event, row.id)}
               onDrop={(event) => handleDrop(event, row.id)}
             >
-              <div className={styles.rowNumberContainer}>
-                <span className={styles.rowNumber}>{rowindex + 1}</span>
-              </div>
               {draggableRows && (
                 <button
                   type="button"
@@ -196,31 +201,16 @@ const ControlRowBtn = (props) => {
                   title="Drag to reorder"
                   aria-label="Drag to reorder row"
                 >
-                  ⋮⋮
+                  {renderDragHandleIcon()}
                 </button>
               )}
               {isDropTarget && (
                 <div className={styles.dropReadyBadge}>{DRAG_READY_LABEL}</div>
               )}
-              <div className={styles.buttonsContainer}>
-                <button
-                  className={styles.removeButton}
-                  onClick={() => handleRemoveRow(row.id)}
-                >
-                  -
-                </button>
-                {/* Only show add button in the last row */}
-                {isLastRow && (
-                  <button className={styles.addButton} onClick={handleAddRow}>
-                    +
-                  </button>
-                )}
-              </div>
               <div className={styles.childrenContainer}>
                 {Children.map(children, (child, index) => {
                   if (!child) return null;
 
-                  // Pass both rowindex and rowId to child
                   return cloneElement(child, {
                     key: `${row.id}-${index}`,
                     rowindex: rowindex,
@@ -228,10 +218,31 @@ const ControlRowBtn = (props) => {
                   });
                 })}
               </div>
+              <div className={styles.rowNumberContainer}>
+                <span className={styles.rowNumber}>{rowindex + 1}</span>
+              </div>
+              <div className={styles.buttonsContainer}>
+                <button
+                  type="button"
+                  className={styles.removeButton}
+                  onClick={() => handleRemoveRow(row.id)}
+                  title="Remove row"
+                  aria-label={`Remove row ${rowindex + 1}`}
+                >
+                  {renderMinusIcon()}
+                </button>
+              </div>
             </div>
           );
         })
       )}
+
+      <AddNewBtn
+        className={styles.addButton}
+        onClick={handleAddRow}
+        text="Add Row"
+        aria-label="Add row"
+      />
     </div>
   );
 };

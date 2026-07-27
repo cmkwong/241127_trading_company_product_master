@@ -45,6 +45,8 @@ const Main_Suggest = (props) => {
     onChange = () => {},
     onFocus,
     onBlur,
+    onClick,
+    onKeyDown,
     onSelectSuggestion,
     // Uncontrolled defaults
     defaultSuggestions = [],
@@ -58,6 +60,8 @@ const Main_Suggest = (props) => {
     getSuggestionLabel = getDefaultSuggestionLabel,
     getSuggestionSearchText = getDefaultSuggestionSearchText,
     renderSuggestion,
+    inputRef,
+    showSuggestionList = true,
   } = props;
 
   // Internal state
@@ -115,7 +119,7 @@ const Main_Suggest = (props) => {
   };
 
   useEffect(() => {
-    if (!isFocused || filterSuggestions.length === 0) {
+    if (!showSuggestionList || !isFocused || filterSuggestions.length === 0) {
       setListStyle(null);
       return;
     }
@@ -153,7 +157,7 @@ const Main_Suggest = (props) => {
       window.removeEventListener('resize', updateListPosition);
       window.removeEventListener('scroll', updateListPosition, true);
     };
-  }, [isFocused, filterSuggestions.length]);
+  }, [showSuggestionList, isFocused, filterSuggestions.length]);
 
   // Input field props
   // const inputProps = useMemo(
@@ -174,17 +178,31 @@ const Main_Suggest = (props) => {
       {label && <label className={styles.label}>{label}</label>}
       <div className={styles.inputWrapper}>
         <div className={styles.inputContainer} ref={inputContainerRef}>
+          <span className={styles.searchIcon} aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+              <ellipse cx="10" cy="5.5" rx="5.5" ry="2.5" />
+              <path d="M4.5 5.5v8c0 1.38 2.46 2.5 5.5 2.5.73 0 1.43-.06 2.06-.18" />
+              <path d="M15.5 5.5v4" />
+              <path d="M4.5 9.5c0 1.38 2.46 2.5 5.5 2.5.73 0 1.43-.06 2.06-.18" />
+              <circle cx="17.5" cy="16.5" r="3" />
+              <path d="m19.8 18.8 2.2 2.2" />
+            </svg>
+          </span>
           <Main_TextField
             inputId={resolvedInputIdRef.current}
+            inputRef={inputRef}
             defaultValue={inputValue}
             onChange={handleInputChange}
             placeholder={placeholder}
             autoComplete={autoComplete}
             onFocus={handleFocus}
             onBlur={handleBlur}
+            onClick={onClick}
+            onKeyDown={onKeyDown}
             className={styles.suggestInput}
           />
-          {isFocused &&
+          {showSuggestionList &&
+            isFocused &&
             filterSuggestions.length > 0 &&
             listStyle &&
             createPortal(
@@ -218,6 +236,8 @@ Main_Suggest.propTypes = {
   onChange: PropTypes.func,
   onFocus: PropTypes.func,
   onBlur: PropTypes.func,
+  onClick: PropTypes.func,
+  onKeyDown: PropTypes.func,
   onSelectSuggestion: PropTypes.func,
   // Uncontrolled defaults
   defaultSuggestions: PropTypes.array,
@@ -234,6 +254,11 @@ Main_Suggest.propTypes = {
   getSuggestionLabel: PropTypes.func,
   getSuggestionSearchText: PropTypes.func,
   renderSuggestion: PropTypes.func,
+  inputRef: PropTypes.oneOfType([
+    PropTypes.func,
+    PropTypes.shape({ current: PropTypes.any }),
+  ]),
+  showSuggestionList: PropTypes.bool,
 };
 
 export default Main_Suggest;

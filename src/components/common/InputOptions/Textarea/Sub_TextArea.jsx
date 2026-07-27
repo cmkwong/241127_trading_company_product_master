@@ -56,7 +56,7 @@ const Sub_TextArea = ({
       />
       {typeof maxLength === 'number' && (
         <div className={styles.counter}>
-          {value?.length || 0}/{maxLength}
+          {value?.length || 0} / {maxLength}
         </div>
       )}
     </div>

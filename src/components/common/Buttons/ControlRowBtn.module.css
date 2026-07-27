@@ -1,6 +1,7 @@
 .controlRowWrapper {
   display: flex;
   flex-direction: column;
+  gap: 12px;
   width: 100%;
 }
 
@@ -10,12 +11,11 @@
 
 .controlRowContainer {
   display: flex;
-  margin-bottom: 20px; /* Increased margin for better spacing */
+  align-items: center;
+  gap: 12px;
   width: 100%;
-  position: relative; /* Added to allow absolute positioning of children */
-  padding-top: 15px; /* Added space for the row number at top */
-  border-bottom: 1px solid #cccccc; /* Added more visible separator line */
-  padding-bottom: 15px; /* Added padding to separate content from line */
+  min-width: 0;
+  position: relative;
   transition:
     background-color 0.18s ease,
     transform 0.18s ease,
@@ -24,10 +24,10 @@
 }
 
 .dragOverRow {
-  background-color: #f0f7ff;
-  border: 1px dashed #6aa8ff;
+  background-color: #eff6ff;
+  border: 1px dashed #3b82f6;
   border-radius: 8px;
-  box-shadow: 0 0 0 2px rgba(86, 156, 255, 0.2);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
   transform: translateY(-1px);
 }
 
@@ -36,86 +36,62 @@
   transform: scale(0.995);
 }
 
-/* Add a special style for the last container to remove the border */
-.controlRowContainer:last-child {
-  border-bottom: none;
-}
-
 .rowNumberContainer {
-  position: absolute;
-  top: -10px;
-  right: 0; /* Changed from left:0 to right:0 to position at top-right */
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 24px;
-  z-index: 1;
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
 }
 
 .rowNumber {
-  font-size: 12px;
-  font-weight: 700;
-  color: #fff;
-  background-color: #555;
-  border-radius: 20%;
-  width: 22px;
-  height: 22px;
-  display: flex;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-}
-
-/* Add a horizontal line that extends across the container */
-.controlRowContainer::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 1px;
-  background: linear-gradient(
-    to left,
-    /* Changed direction to match the new position */ #555 0%,
-    #555 30px,
-    #cccccc 30px,
-    #cccccc 100%
-  );
-  /* Creates a gradient line that's darker near the row number (now on the right) */
+  border-radius: 50%;
+  background-color: #f1f5f9;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .buttonsContainer {
   display: flex;
-  flex-direction: column;
-  margin-right: 8px;
-  gap: 5px;
+  align-items: center;
+  flex: 0 0 auto;
 }
 
 .dragHandleButton {
-  position: absolute;
-  top: -10px;
-  right: 28px;
-  width: 22px;
-  height: 22px;
-  border: 1px solid #d0d7e2;
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  border: none;
   border-radius: 6px;
-  background: #ffffff;
-  color: #90a0b4;
-  font-size: 13px;
-  font-weight: 700;
-  line-height: 1;
+  background: transparent;
+  color: #94a3b8;
   cursor: grab;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.dragHandleButton svg,
+.removeButton svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
 }
 
 .dragHandleButton:hover {
-  color: #4d6a8a;
-  border-color: #a9bed7;
-  background: #f8fbff;
+  color: #475569;
+  background: #f8fafc;
 }
 
 .dragHandleButton:active {
@@ -124,8 +100,8 @@
 
 .dropReadyBadge {
   position: absolute;
-  top: -10px;
-  left: 32px;
+  top: -28px;
+  left: 0;
   font-size: 11px;
   font-weight: 600;
   color: #1e5aa8;
@@ -139,34 +115,55 @@
 .childrenContainer {
   display: flex;
   flex: 1;
+  min-width: 0;
+  align-items: center;
   gap: 8px;
 }
 
 .addButton {
-  background-color: #000000;
-  color: white;
-  border: none;
-  border-radius: 15%;
-  width: 24px;
-  height: 24px;
-  font-size: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  margin-bottom: 4px;
+  align-self: flex-start;
+}
+
+.addButton:focus-visible,
+.removeButton:focus-visible,
+.dragHandleButton:focus-visible {
+  outline: 2px solid #93c5fd;
+  outline-offset: 2px;
 }
 
 .removeButton {
-  background-color: #ffffff;
-  color: rgb(0, 0, 0);
-  border: 1px solid #000;
-  border-radius: 15%;
-  width: 24px;
-  height: 24px;
-  font-size: 16px;
-  display: flex;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  padding: 6px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background-color: #ffffff;
+  color: #475569;
   cursor: pointer;
+}
+
+.removeButton:hover {
+  color: #e85b49;
+  border-color: #fecaca;
+  background: #fff7f6;
+}
+
+.emptyRowMessage {
+  color: #94a3b8;
+  font-size: 13px;
+  line-height: 20px;
+}
+
+@media (max-width: 680px) {
+  .controlRowContainer {
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .childrenContainer {
+    flex-wrap: wrap;
+  }
 }

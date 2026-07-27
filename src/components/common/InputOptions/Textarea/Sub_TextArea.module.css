@@ -1,6 +1,7 @@
 .fieldContainer {
   position: relative;
   width: 100%;
+  min-width: 0;
 }
 
 .fullHeight {
@@ -12,13 +13,24 @@
 .textarea {
   width: 100%;
   box-sizing: border-box;
-  padding: 8px 10px;
-  border: 1px solid #ccc;
-  background: #fff;
-  border-radius: 6px;
-  font: inherit;
-  color: #111;
-  line-height: 1.4;
+  min-height: 120px;
+  padding: 12px 12px 32px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 400;
+  color: #0c1e36;
+  line-height: normal;
+  transition:
+    border-color 0.16s ease,
+    box-shadow 0.16s ease,
+    background-color 0.16s ease;
+}
+
+.textarea:hover:not(:disabled):not(:read-only) {
+  border-color: #cbd5e1;
 }
 
 .textareaFullHeight {
@@ -29,23 +41,29 @@
 
 .textarea:focus {
   outline: none;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  border-color: #94a3b8;
+  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.22);
+}
+
+.textarea::placeholder {
+  color: #94a3b8;
 }
 
 .textarea:disabled {
-  background: #f5f5f5;
-  color: #888;
+  background: #f8fafc;
+  color: #94a3b8;
   cursor: not-allowed;
 }
 
 .counter {
   position: absolute;
-  right: 8px;
-  bottom: 6px;
+  right: 19px;
+  bottom: 9px;
   font-size: 12px;
-  color: #666;
-  background: rgba(255, 255, 255, 0.8);
-  padding: 0 4px;
-  border-radius: 4px;
+  font-weight: 400;
+  line-height: normal;
+  color: #94a3b8;
+  background: transparent;
+  padding: 0;
+  pointer-events: none;
 }

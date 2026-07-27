@@ -1,7 +1,7 @@
 import { useState, useRef, useMemo, useCallback, useEffect } from 'react';
 import Sub_TagPlate from './Sub_TagPlate';
-import Sub_TagTextField from './Sub_TagTextField';
 import Sub_TagList from './Sub_TagList';
+import Main_Suggest from '../Suggest/Main_Suggest';
 import styles from './Main_TagInputField.module.css';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -19,6 +19,7 @@ const Main_TagInputField = (props) => {
     canAddNewOptions = true,
     enableHierarchyViewToggle = false,
     hierarchyToggleLabel = 'Show hierarchy',
+    placeholder = 'Search options...',
   } = props;
 
   // Internal state
@@ -160,7 +161,6 @@ const Main_TagInputField = (props) => {
     // hide the option choice
     setShowOption(false);
     // clear the value after enter pressed
-    if (inputReference.current) inputReference.current.value = '';
     setInputValue('');
     // add data into option
     addOptionData(value);
@@ -366,12 +366,17 @@ const Main_TagInputField = (props) => {
           </label>
         )}
 
-        <Sub_TagTextField
-          reference={inputReference}
+        <Main_Suggest
+          inputRef={inputReference}
+          defaultValue={inputValue}
+          placeholder={placeholder}
+          showSuggestionList={false}
+          onFocus={handleFocus}
           onClick={handleFocus}
           onBlur={handleFocusOut}
           onKeyDown={(event) => {
             if (event.key === 'Enter') {
+              event.preventDefault();
               handleEnterPress(event.target.value);
             }
             if (event.key === 'Escape') {

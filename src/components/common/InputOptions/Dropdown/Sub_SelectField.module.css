@@ -1,61 +1,96 @@
-/* DropdownField.module.css */
-
 .dropdown_container {
-  position: relative; /* anchor for absolute list */
+  position: relative;
   width: 100%;
 }
 
 .dropdown_btn {
   width: 100%;
+  min-width: 0;
+  min-height: 35px;
+  box-sizing: border-box;
   display: flex;
-  justify-content: space-between; /* text left, icon right */
+  justify-content: space-between;
+  gap: 6px;
   align-items: center;
   cursor: pointer;
-  border: 1px solid #000;
-  border-radius: 5px;
-  background: #fff;
-  padding: 8px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #f8fafc;
+  color: #0c1e36;
+  padding: 8px 10px 8px 12px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: normal;
+  text-align: left;
+  transition:
+    border-color 0.16s ease,
+    background-color 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.dropdown_btn:hover:not(:disabled) {
+  border-color: #cbd5e1;
+  background: #ffffff;
+}
+
+.dropdown_btn:focus-visible {
+  outline: none;
+  border-color: #94a3b8;
+  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.22);
+}
+
+.dropdown_btn:disabled {
+  cursor: not-allowed;
+  color: #94a3b8;
+  background: #f1f5f9;
+  border-color: #e2e8f0;
 }
 
 .dropdown_icon {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+  opacity: 0.72;
 }
 
 .selected_text {
+  min-width: 0;
+  flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* The list should appear at the left-bottom of the button */
 .list_box {
-  position: absolute;
-  left: 0; /* left-aligned to container/button */
-  top: 100%; /* directly below the button */
+  box-sizing: border-box;
   width: 100%;
   background: #fff;
-  border: 1px solid #000;
+  border: 1px solid #e2e8f0;
   border-radius: 6px;
-  margin-top: 4px;
   z-index: 10;
   max-height: 240px;
   overflow: auto;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+  padding: 4px;
+  color: #0c1e36;
+  font-size: 14px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.14);
 }
 
 .list_item {
-  padding: 8px 12px;
+  padding: 8px;
+  border-radius: 4px;
   cursor: pointer;
+  line-height: 1.35;
 }
 
 .list_item:hover,
 .list_item:focus {
-  background: #f3f4f6;
+  background: #f1f5f9;
   outline: none;
 }
 
 .selected {
-  background: #e5e7eb;
+  background: #e2e8f0;
   font-weight: 600;
 }

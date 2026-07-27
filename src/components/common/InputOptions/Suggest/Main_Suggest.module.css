@@ -5,8 +5,10 @@
 }
 
 .label {
-  font-weight: bold;
-  margin-bottom: 8px;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 500;
+  margin-bottom: 4px;
 }
 
 .rowContainer {
@@ -25,48 +27,73 @@
   width: 100%;
 }
 
-.suggestInput {
+.inputContainer input.suggestInput {
   width: 100%;
+  padding: 12px 16px 12px 42px;
+  font-size: 14px;
+}
+
+.searchIcon {
+  position: absolute;
+  top: 50%;
+  left: 16px;
+  z-index: 1;
+  width: 16px;
+  height: 16px;
+  color: #94a3b8;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.searchIcon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .suggestionList {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
+  box-sizing: border-box;
   max-height: 200px;
   overflow-y: auto;
-  background-color: white;
-  border: 1px solid #ccc;
-  border-top: none;
-  border-radius: 0 0 4px 4px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.14);
   z-index: 10;
   margin: 0;
-  padding: 0;
+  padding: 4px;
   list-style: none;
+  color: #0c1e36;
+  font-size: 14px;
 }
 
 .suggestionItem {
-  padding: 8px 12px;
+  padding: 8px;
+  border-radius: 4px;
   cursor: pointer;
+  line-height: 1.35;
 }
 
 .suggestionItem:hover,
 .suggestionItem:focus {
-  background-color: #f5f5f5;
+  background-color: #f1f5f9;
+  outline: none;
 }
 
 .suggestionContent {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .suggestionTitle {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
-  color: #111827;
+  color: #0c1e36;
   line-height: 1.35;
 }
 
@@ -75,6 +102,6 @@
   flex-direction: column;
   gap: 2px;
   font-size: 12px;
-  color: #6b7280;
+  color: #64748b;
   line-height: 1.35;
 }

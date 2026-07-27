@@ -1,39 +1,44 @@
 .optionList {
   position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  box-sizing: border-box;
   width: 100%;
-  min-height: 20px;
+  min-height: 48px;
   max-height: 320px;
-  left: 0px;
   z-index: 100;
-  border-radius: 5px;
-  border: 1px solid #000;
-  /* display the options */
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
   display: flex;
   flex-direction: column;
+  gap: 8px;
   overflow-y: auto;
   overflow-x: hidden;
-  opacity: 0.95;
-  background-color: #fff;
+  padding: 16px;
+  background-color: #f8fafc;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
 }
 
 .notFound {
-  padding: 10px;
+  padding: 8px;
   text-align: center;
-  color: #999;
-  font-style: italic;
+  color: #94a3b8;
+  font-size: 14px;
 }
 
 .addNewHint {
-  padding: 10px;
+  padding: 8px;
   text-align: center;
-  color: #2e7d32;
-  background-color: #e8f5e9;
-  font-style: italic;
-  border: none;
+  color: #fa6d5a;
+  background-color: #fff7f5;
+  border: 1px solid #fed7d1;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
   width: 100%;
   cursor: pointer;
 }
 
 .addNewHint:hover {
-  background-color: #dff1e2;
+  background-color: #ffede9;
 }

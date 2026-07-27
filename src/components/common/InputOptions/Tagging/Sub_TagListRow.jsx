@@ -30,12 +30,18 @@ const Sub_TagListRow = (props) => {
     onToggleCollapse?.(id);
   };
 
+  const renderFolderIcon = () => (
+    <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path d="M1.75 4.5a1 1 0 0 1 1-1h3l1.15 1.35h6.35a1 1 0 0 1 1 1v5.4a1 1 0 0 1-1 1H2.75a1 1 0 0 1-1-1V4.5Z" />
+    </svg>
+  );
+
   return (
     <div
       id={id}
       className={styles['container']}
       onClick={handleClick}
-      style={{ paddingLeft: `${8 + level * 18}px` }}
+      style={{ paddingLeft: `${level * 24}px` }}
     >
       {showHierarchy && hasChildren ? (
         <button
@@ -45,11 +51,9 @@ const Sub_TagListRow = (props) => {
           aria-label={isCollapsed ? 'Expand children' : 'Collapse children'}
           title={isCollapsed ? 'Expand children' : 'Collapse children'}
         >
-          {isCollapsed ? '▸' : '▾'}
+          {renderFolderIcon()}
         </button>
-      ) : (
-        <span className={styles.collapseSpacer} />
-      )}
+      ) : null}
       <input
         className={styles['checkbox']}
         id={id}

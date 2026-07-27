@@ -22,6 +22,8 @@ const Sub_TextField = forwardRef((props, externalRef) => {
     className = '',
     onFocus,
     onBlur,
+    onClick,
+    onKeyDown,
   } = props;
 
   const isLinkType = type === 'link';
@@ -102,6 +104,8 @@ const Sub_TextField = forwardRef((props, externalRef) => {
       autoFocus={autoFocus}
       onFocus={onFocus}
       onBlur={onBlur}
+      onClick={onClick}
+      onKeyDown={onKeyDown}
       data-testid="sub-text-field"
     />
   );
@@ -162,6 +166,8 @@ Sub_TextField.propTypes = {
   className: PropTypes.string,
   onFocus: PropTypes.func,
   onBlur: PropTypes.func,
+  onClick: PropTypes.func,
+  onKeyDown: PropTypes.func,
 };
 
 // Add displayName for better debugging

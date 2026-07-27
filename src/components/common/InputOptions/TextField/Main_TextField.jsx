@@ -13,6 +13,9 @@ const Main_TextField = (props) => {
     onChange = () => {},
     onFocus,
     onBlur,
+    onClick,
+    onKeyDown,
+    inputRef,
 
     // Uncontrolled defaults
     defaultValue = '',
@@ -71,6 +74,7 @@ const Main_TextField = (props) => {
         )}
         <div className={styles.inputWrapper}>
           <Sub_TextField
+            ref={inputRef}
             id={inputId}
             value={internalValue}
             onInputChange={handleInputChange}
@@ -86,6 +90,8 @@ const Main_TextField = (props) => {
             className={className}
             onFocus={onFocus}
             onBlur={onBlur}
+            onClick={onClick}
+            onKeyDown={onKeyDown}
           />
         </div>
       </div>
@@ -105,6 +111,12 @@ Main_TextField.propTypes = {
   onChange: PropTypes.func,
   onFocus: PropTypes.func,
   onBlur: PropTypes.func,
+  onClick: PropTypes.func,
+  onKeyDown: PropTypes.func,
+  inputRef: PropTypes.oneOfType([
+    PropTypes.func,
+    PropTypes.shape({ current: PropTypes.any }),
+  ]),
 
   // Uncontrolled defaults
   value: PropTypes.string,

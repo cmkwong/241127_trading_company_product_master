@@ -2,7 +2,6 @@ import { useState } from 'react';
 import Main_ProductMaster from './components/projects/ProductMaster/Main_ProductMaster';
 import Main_SupplierMaster from './components/projects/SupplierMaster/Main_SupplierMaster';
 import Main_CustomerMaster from './components/projects/CustomerMaster/Main_CustomerMaster';
-import Main_MasterControl from './components/projects/MasterControl/Main_MasterControl';
 import Main_SalesQuotation from './components/projects/SalesQuotation/Main_SalesQuotation';
 import Main_PurchaseRequest from './components/projects/PurchaseRequest/Main_PurchaseRequest';
 import Main_APInvoice from './components/projects/APInvoice/Main_APInvoice';
@@ -15,6 +14,7 @@ import { ProductContext_Provider } from './store/ProductContext';
 import { SalesQuotationContext_Provider } from './store/SalesQuotationContext';
 import { SupplierContext_Provider } from './store/SupplierContext';
 import styles from './App.module.css';
+import React from 'react';
 
 function App() {
   const [currentView, setCurrentView] = useState('product');
@@ -57,7 +57,7 @@ function App() {
                       ) : currentView === 'apInvoice' ? (
                         <Main_APInvoice />
                       ) : (
-                        <Main_MasterControl />
+                        <React.Fragment />
                       )}
                     </div>
                   </SalesQuotationContext_Provider>

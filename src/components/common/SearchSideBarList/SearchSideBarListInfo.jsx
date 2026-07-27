@@ -8,6 +8,46 @@ const normalizeRowLabel = (label) =>
     .trim()
     .toLowerCase();
 
+const getDetailValueClassName = (label, value) => {
+  const normalizedLabel = normalizeRowLabel(label);
+  const normalizedValue = String(value || '')
+    .trim()
+    .toLowerCase();
+
+  if (normalizedLabel === 'id') {
+    return styles.detailValueId;
+  }
+
+  if (normalizedLabel === 'status') {
+    if (normalizedValue.includes('inactive')) {
+      return styles.detailValueStatusInactive;
+    }
+
+    if (normalizedValue.includes('pending')) {
+      return styles.detailValueStatusPending;
+    }
+
+    if (normalizedValue.includes('active')) {
+      return styles.detailValueStatusActive;
+    }
+
+    return styles.detailValueStatusDefault;
+  }
+
+  if (normalizedLabel.includes('alibaba')) {
+    return styles.detailValuePrimary;
+  }
+
+  if (
+    normalizedLabel.includes('created') ||
+    normalizedLabel.includes('updated')
+  ) {
+    return styles.detailValueMuted;
+  }
+
+  return styles.detailValueDefault;
+};
+
 const getSidebarRowDisplay = (row) => {
   const rawValue = row?.value;
   const label = normalizeRowLabel(row?.label);
@@ -51,7 +91,10 @@ const SearchSideBarListInfo = ({ title, rows = [] }) => {
             <div key={`${row.label}-${index}`} className={styles.detailItem}>
               <span className={styles.detailLabel}>{row.label}</span>
               <span
-                className={styles.detailValue}
+                className={`${styles.detailValue} ${getDetailValueClassName(
+                  row.label,
+                  rowView.fullText || rowView.displayValue,
+                )}`}
                 title={rowView.isTruncated ? rowView.fullText : undefined}
               >
                 {rowView.displayValue}

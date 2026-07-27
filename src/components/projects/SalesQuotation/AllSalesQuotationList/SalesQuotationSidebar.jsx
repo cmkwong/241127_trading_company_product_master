@@ -359,6 +359,7 @@ const SalesQuotationSidebar = ({
           }}
           exportFileName="sales_quotations_filtered_list"
           exportSheetName="Sales Quotations"
+          sidebarTitle="Quotation List"
         />
       </div>
 

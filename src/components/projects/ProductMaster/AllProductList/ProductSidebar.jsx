@@ -534,6 +534,7 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
           getItemIconAlt={getProductName}
           exportFileName="products_filtered_list"
           exportSheetName="Products"
+          sidebarTitle="Product List"
           onResolveExportImage={resolveProductExportImage}
           onResolveExportImagesBatch={resolveProductExportImagesBatch}
         />

@@ -93,6 +93,8 @@ const SearchSideBarListSearchBar = ({
     notifyVisibleHistoryIds();
   }, [showHistory, notifyVisibleHistoryIds]);
 
+  const hasSearchValue = String(value || '').trim().length > 0;
+
   return (
     <div className={styles.searchContainer}>
       <div className={styles.searchFieldWrapper}>
@@ -105,7 +107,7 @@ const SearchSideBarListSearchBar = ({
 
         <button
           type="button"
-          className={styles.searchInlineButton}
+          className={`${styles.searchInlineButton} ${styles.searchHistoryButton}`}
           title="Search history"
           aria-label="Search history"
           onClick={() => setShowHistory((prev) => !prev)}
@@ -127,31 +129,32 @@ const SearchSideBarListSearchBar = ({
           </svg>
         </button>
 
-        <button
-          type="button"
-          className={styles.searchInlineButton}
-          title="Clear search"
-          aria-label="Clear search"
-          onClick={() => {
-            onClear?.();
-            setShowHistory(false);
-          }}
-          disabled={!String(value || '').trim()}
-        >
-          <svg
-            width="22"
-            height="22"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+        {hasSearchValue ? (
+          <button
+            type="button"
+            className={`${styles.searchInlineButton} ${styles.searchClearButton}`}
+            title="Clear search"
+            aria-label="Clear search"
+            onClick={() => {
+              onClear?.();
+              setShowHistory(false);
+            }}
           >
-            <line x1="18" y1="6" x2="6" y2="18" />
-            <line x1="6" y1="6" x2="18" y2="18" />
-          </svg>
-        </button>
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        ) : null}
 
         {showHistory &&
           Array.isArray(searchHistory) &&

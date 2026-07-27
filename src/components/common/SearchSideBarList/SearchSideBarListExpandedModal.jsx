@@ -1080,6 +1080,22 @@ const SearchSideBarListExpandedModal = ({
     return null;
   }
 
+  const getColumnClassName = (column) => {
+    const map = {
+      Icon: styles.overlayColIcon,
+      Title: styles.overlayColTitle,
+      'Product Keywords': styles.overlayColProductKeywords,
+      ID: styles.overlayColId,
+      Status: styles.overlayColStatus,
+      Categories: styles.overlayColCategories,
+      Alibaba: styles.overlayColAlibaba,
+      'Created At': styles.overlayColCreatedAt,
+      'Updated At': styles.overlayColUpdatedAt,
+    };
+
+    return map[column] || '';
+  };
+
   return (
     <div
       className={styles.modalBackdrop}
@@ -1093,7 +1109,7 @@ const SearchSideBarListExpandedModal = ({
           <div className={styles.modalHeaderActions}>
             <button
               type="button"
-              className={styles.exportButton}
+              className={styles.modalActionIconButton}
               onClick={handleExportXlsx}
               title="Export filtered table to XLSX"
               aria-label="Export filtered table to XLSX"
@@ -1116,7 +1132,7 @@ const SearchSideBarListExpandedModal = ({
             </button>
             <button
               type="button"
-              className={styles.focusButton}
+              className={styles.modalActionIconButton}
               onClick={scrollToSelectedRow}
               title="Scroll to selected item"
               aria-label="Scroll to selected item"
@@ -1142,19 +1158,9 @@ const SearchSideBarListExpandedModal = ({
             {hasAnySubRows ? (
               <button
                 type="button"
-                style={{
-                  marginRight: 8,
-                  borderRadius: 6,
-                  border: '1px solid #bcd',
-                  background: allExpanded ? '#e3f2fd' : '#fff',
-                  color: '#1976d2',
-                  cursor: 'pointer',
-                  height: 32,
-                  width: 40,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
+                className={`${styles.modalActionIconButton} ${
+                  allExpanded ? styles.modalActionIconButtonActive : ''
+                }`}
                 onClick={() => {
                   setAllExpanded((prev) => {
                     const next = !prev;
@@ -1209,7 +1215,7 @@ const SearchSideBarListExpandedModal = ({
             ) : null}
             <button
               type="button"
-              className={styles.closeOverlayButton}
+              className={styles.modalCloseButton}
               onClick={onClose}
               aria-label="Close expanded table"
               title="Close"
@@ -1245,15 +1251,19 @@ const SearchSideBarListExpandedModal = ({
             <thead>
               <tr className={styles.overlayHeaderRow}>
                 {tableColumns.map((column) => (
-                  <th key={column}>
+                  <th key={column} className={getColumnClassName(column)}>
                     <button
                       type="button"
                       className={styles.sortButton}
                       onClick={() => handleSort(column)}
                       disabled={column === 'Icon'}
                     >
-                      <span>{column}</span>
-                      <span className={styles.sortIndicator}>
+                      <span className={styles.sortLabel}>{column}</span>
+                      <span
+                        className={`${styles.sortIndicator} ${
+                          sortKey === column ? styles.sortIndicatorActive : ''
+                        }`}
+                      >
                         {getSortIndicator(column)}
                       </span>
                     </button>
@@ -1265,7 +1275,10 @@ const SearchSideBarListExpandedModal = ({
                   const isFilterable = filterableColumns.has(column);
 
                   return (
-                    <th key={`${column}-filter`}>
+                    <th
+                      key={`${column}-filter`}
+                      className={getColumnClassName(column)}
+                    >
                       {isFilterable ? (
                         <input
                           type="text"
@@ -1300,9 +1313,10 @@ const SearchSideBarListExpandedModal = ({
                         ref={(element) => setRowRef(rowKey, element)}
                         data-item-id={rowKey}
                         tabIndex={-1}
-                        className={isSelected ? styles.overlaySelectedRow : ''}
+                        className={`${styles.overlayDataRow} ${
+                          index % 2 === 1 ? styles.overlayDataRowAlt : ''
+                        } ${isSelected ? styles.overlaySelectedRow : ''}`}
                         onClick={() => handleRowClick(item)}
-                        style={{ cursor: 'pointer' }}
                         onDoubleClick={(e) => {
                           e.stopPropagation();
                           setExpandedSubRows((old) => ({
@@ -1314,9 +1328,9 @@ const SearchSideBarListExpandedModal = ({
                         {tableColumns.map((column) => (
                           <td
                             key={`${rowKey}-${column}`}
-                            className={
+                            className={`${
                               column === 'Icon' ? styles.overlayIconCell : ''
-                            }
+                            } ${getColumnClassName(column)}`.trim()}
                           >
                             {renderCellContent(
                               getCellValue(item, column),

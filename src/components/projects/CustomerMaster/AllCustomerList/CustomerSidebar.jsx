@@ -313,6 +313,7 @@ const CustomerSidebar = ({ isCollapsed, onToggleCollapse }) => {
           getItemIconAlt={(customer) => getPrimaryCustomerName(customer)}
           exportFileName="customers_filtered_list"
           exportSheetName="Customers"
+          sidebarTitle="Customer List"
         />
       </div>
 

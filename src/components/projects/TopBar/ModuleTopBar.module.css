@@ -1,0 +1,76 @@
+.moduleToolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 24px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-left: none;
+  border-right: none;
+  min-height: 45px;
+}
+
+.moduleName {
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: #0c1e36;
+}
+
+.refreshButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #0c1e36;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.refreshButton:hover:not(:disabled) {
+  background: #f1f5f9;
+}
+
+.refreshButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.refreshIcon {
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.refreshLabel {
+  font-size: 12px;
+}
+
+.refreshIconSpinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 900px) {
+  .moduleToolbar {
+    padding: 8px 12px;
+  }
+
+  .moduleName {
+    font-size: 22px;
+  }
+}

@@ -29,27 +29,6 @@
   color: #183042;
 }
 
-.refreshButton {
-  border: 1px solid #c8d1db;
-  background: #f8fafc;
-  border-radius: 8px;
-  padding: 7px 12px;
-  cursor: pointer;
-  color: #274156;
-  font-weight: 600;
-}
-
-.refreshButton:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.sidebarListWrap {
-  flex: 1;
-  min-height: 0;
-  padding: 10px;
-}
-
 .sidebarSearchList {
   height: 100%;
 }

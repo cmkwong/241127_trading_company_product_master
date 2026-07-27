@@ -5,7 +5,7 @@ import DeleteBtn from '../../common/Buttons/DeleteBtn';
 import bottomBarDeleteStyles from '../../common/Buttons/BottomBarDeleteAction.module.css';
 import Main_Dropdown from '../../common/InputOptions/Dropdown/Main_Dropdown';
 import APInvoiceSavePageContainer from './Container/APInvoiceSavePageContainer';
-import APInvoiceSidebar from './Sidebar/APInvoiceSidebar';
+import APInvoiceSidebar from './APInvoiceList/APInvoiceSidebar';
 import APInvoiceBasicInfo from './BasicInfo/APInvoiceBasicInfo';
 import APInvoiceRowDetails from './RowDetails/APInvoiceRowDetails';
 import {

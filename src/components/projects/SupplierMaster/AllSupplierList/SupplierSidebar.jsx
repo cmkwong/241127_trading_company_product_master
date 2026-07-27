@@ -118,10 +118,7 @@ const SupplierSidebar = ({
       .replace(/\.\d{3}Z?$/, '');
   }, []);
 
-  const getSupplierName = useCallback(
-    (supplier) => supplier?.name || '-',
-    [],
-  );
+  const getSupplierName = useCallback((supplier) => supplier?.name || '-', []);
 
   const supplierTypeById = useMemo(() => {
     const map = new Map();
@@ -442,6 +439,7 @@ const SupplierSidebar = ({
           getItemIconAlt={getSupplierName}
           exportFileName="suppliers_filtered_list"
           exportSheetName="Suppliers"
+          sidebarTitle="Supplier List"
         />
       </div>
 

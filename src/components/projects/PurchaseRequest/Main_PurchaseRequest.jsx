@@ -2101,8 +2101,6 @@ const Main_PurchaseRequest = () => {
           onSearchChange={setSidebarSearch}
           onSelectRow={handleSelectRow}
           onCreate={handleCreate}
-          onRefresh={() => refreshAll(selectedId)}
-          isLoading={isLoading}
           getItemTitle={getSidebarItemTitle}
           getItemRows={getSidebarItemRows}
         />

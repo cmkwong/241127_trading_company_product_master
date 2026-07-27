@@ -83,6 +83,7 @@ const APInvoiceSidebar = ({
         getItemRows={getItemRows}
         exportFileName="ap_invoices_filtered_list"
         exportSheetName="AP Invoices"
+        sidebarTitle="AP Invoices List"
       />
     </div>
   );

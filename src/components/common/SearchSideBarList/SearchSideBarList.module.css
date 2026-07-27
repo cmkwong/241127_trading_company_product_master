@@ -3,7 +3,10 @@
   flex-direction: column;
   width: 100%;
   height: 100%;
-  background-color: #f5f5f5;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   overflow: hidden;
 }
 
@@ -11,14 +14,28 @@
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 10px;
-  padding: 12px;
-  border-bottom: 1px solid #e0e0e0;
+  gap: 8px;
+  padding: 16px 16px 8px;
+  border-bottom: 1px solid #e2e8f0;
   background-color: #ffffff;
   position: sticky;
   top: 0;
   z-index: 5;
   flex-shrink: 0;
+}
+
+.toolbarHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.toolbarTitle {
+  color: #0c1e36;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.1;
 }
 
 .toolbarTop {
@@ -29,11 +46,23 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.listCountBar {
+  background: #f8fafc;
+  color: #94a3b8;
+  font-size: 10px;
+  line-height: 1.2;
+  text-align: center;
+  padding: 6px 16px;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .searchContainer {
   flex: 1;
-  min-height: 40px;
+  min-height: 34px;
   display: flex;
   align-items: center;
 }
@@ -51,38 +80,47 @@
 }
 
 .searchFieldWrapper input {
-  height: 40px;
+  height: 34px;
   box-sizing: border-box;
-  padding: 8px 74px 8px 12px;
+  padding: 8px 58px 8px 28px;
   margin: 0;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #f8fafc;
+  color: #0c1e36;
+  font-size: 12px;
+}
+
+.searchFieldWrapper input::placeholder {
+  color: #94a3b8;
 }
 
 .searchInlineButton {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  width: 30px;
-  height: 30px;
+  width: 22px;
+  height: 22px;
   border: none;
   background: transparent;
-  color: #111;
+  color: #64748b;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  border-radius: 6px;
+  border-radius: 4px;
 }
 
-.searchInlineButton:first-of-type {
-  right: 38px;
-}
-
-.searchInlineButton:nth-of-type(2) {
+.searchHistoryButton {
   right: 8px;
 }
 
+.searchClearButton {
+  right: 30px;
+}
+
 .searchInlineButton:hover:not(:disabled) {
-  background: #f3f4f6;
+  background: #e2e8f0;
 }
 
 .searchInlineButton:disabled {
@@ -92,15 +130,15 @@
 
 .searchHistoryPanel {
   position: absolute;
-  top: calc(100% + 4px);
+  top: calc(100% + 6px);
   right: 0;
   left: 0;
   max-height: 280px;
   overflow-y: auto;
   background: #fff;
-  border: 1px solid #d9d9d9;
+  border: 1px solid #dbe5ef;
   border-radius: 6px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.14);
   z-index: 30;
   padding: 4px;
 }
@@ -160,49 +198,45 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 40px;
-  height: 40px;
-  background-color: #000000;
-  color: #ffffff;
+  width: 24px;
+  height: 24px;
+  background-color: transparent;
+  color: #0c1e36;
   border: none;
   border-radius: 4px;
-  margin-left: 8px;
+  margin-left: 0;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s ease;
 }
 
 .expandButton {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 40px;
-  height: 40px;
-  background-color: #ffffff;
-  color: #333333;
-  border: 1px solid #d0d0d0;
+  width: 24px;
+  height: 24px;
+  background-color: transparent;
+  color: #0c1e36;
+  border: none;
   border-radius: 4px;
-  margin-left: 8px;
+  margin-left: 0;
   cursor: pointer;
-  transition:
-    background-color 0.2s,
-    border-color 0.2s;
+  transition: background-color 0.2s ease;
 }
 
 .focusButton {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 40px;
-  height: 40px;
-  background-color: #ffffff;
-  color: #333333;
-  border: 1px solid #d0d0d0;
+  width: 24px;
+  height: 24px;
+  background-color: transparent;
+  color: #0c1e36;
+  border: none;
   border-radius: 4px;
   margin-left: 0;
   cursor: pointer;
-  transition:
-    background-color 0.2s,
-    border-color 0.2s;
+  transition: background-color 0.2s ease;
 }
 
 .exportButton {
@@ -237,12 +271,11 @@
 }
 
 .focusButton:hover:not(:disabled) {
-  background-color: #f5f9ff;
-  border-color: #8ab4f8;
+  background-color: #f1f5f9;
 }
 
 .focusButton:active:not(:disabled) {
-  transform: scale(0.98);
+  transform: scale(0.96);
 }
 
 .focusButton:disabled {
@@ -251,27 +284,26 @@
 }
 
 .expandButton:hover {
-  background-color: #f5f9ff;
-  border-color: #8ab4f8;
+  background-color: #f1f5f9;
 }
 
 .expandButton:active {
-  transform: scale(0.98);
+  transform: scale(0.96);
 }
 
 .createButton:hover {
-  background-color: #333333;
+  background-color: #f1f5f9;
 }
 
 .createButton:active {
-  background-color: #000000;
-  transform: scale(0.98);
+  transform: scale(0.96);
 }
 
 .list {
   flex: 1;
   overflow-y: auto;
-  padding: 8px 0;
+  padding: 0;
+  background: #ffffff;
   min-height: 0;
 }
 
@@ -292,7 +324,7 @@
   position: fixed;
   inset: 0;
   z-index: 2100;
-  background: rgba(0, 0, 0, 0.28);
+  background: rgba(8, 15, 28, 0.72);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -300,12 +332,12 @@
 }
 
 .modalWindow {
-  width: min(1400px, 100%);
-  height: min(90vh, 100%);
+  width: min(1820px, calc(100vw - 32px));
+  height: min(92vh, 100%);
   background: #ffffff;
-  border: 1px solid #d9d9d9;
-  border-radius: 8px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -324,24 +356,72 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 16px;
-  border-bottom: 1px solid #ececec;
-  background: #fafafa;
+  padding: 16px 24px;
+  border-bottom: 1px solid #e2e8f0;
+  background: #ffffff;
 }
 
 .modalHeaderActions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
+}
+
+.modalActionIconButton {
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  color: #0c1e36;
+  border-radius: 4px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.modalActionIconButton:hover:not(:disabled) {
+  background: #f1f5f9;
+}
+
+.modalActionIconButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.modalActionIconButtonActive {
+  background: #eef6ff;
+  color: #1d4ed8;
+}
+
+.modalCloseButton {
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  color: #0c1e36;
+  font-size: 18px;
+  line-height: 1;
+  border-radius: 4px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.modalCloseButton:hover {
+  background: #f1f5f9;
 }
 
 .overlaySearchBar {
-  padding: 12px 16px;
-  border-bottom: 1px solid #ececec;
+  padding: 8px 24px;
+  border-bottom: 1px solid #e2e8f0;
   background: #ffffff;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
 }
 
 .overlaySearchBar > div {
@@ -350,21 +430,42 @@
   min-width: 0;
 }
 
-.overlayResetFiltersBtn {
-  height: 34px;
-  border: 1px solid #d1d5db;
+.overlaySearchBar .searchContainer {
+  min-height: 45px;
+}
+
+.overlaySearchBar .searchFieldWrapper input {
+  height: 45px;
+  border: 1px solid #e2e8f0;
   border-radius: 6px;
-  background: #ffffff;
-  color: #374151;
+  color: #0c1e36;
   font-size: 12px;
-  font-weight: 600;
-  padding: 0 10px;
+  padding: 8px 72px 8px 12px;
+}
+
+.overlaySearchBar .searchFieldWrapper input::placeholder {
+  color: #94a3b8;
+}
+
+.overlaySearchBar .searchInlineButton {
+  color: #64748b;
+}
+
+.overlayResetFiltersBtn {
+  height: 33px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: #f1f5f9;
+  color: #0c1e36;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 0 12px;
   cursor: pointer;
   white-space: nowrap;
 }
 
 .overlayResetFiltersBtn:hover {
-  background: #f3f4f6;
+  background: #e2e8f0;
 }
 
 .overlayTitle {
@@ -374,9 +475,9 @@
 }
 
 .modalTitle {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
-  color: #1f1f1f;
+  color: #0c1e36;
 }
 
 .closeOverlayButton {
@@ -395,21 +496,33 @@
 .overlayTableWrap {
   flex: 1;
   overflow: auto;
+  background: #ffffff;
 }
 
 .overlayTable {
   width: 100%;
   border-collapse: collapse;
-  min-width: 700px;
+  min-width: 1130px;
 }
 
 .overlayTable th,
 .overlayTable td {
-  border-bottom: 1px solid #efefef;
-  padding: 10px 12px;
+  border-bottom: 1px solid #e2e8f0;
+  border-right: 1px solid #edf2f7;
+  padding: 8px;
   text-align: left;
   vertical-align: top;
-  font-size: 13px;
+  font-size: 11px;
+  color: #0c1e36;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.overlayTable th:last-child,
+.overlayTable td:last-child {
+  border-right: none;
 }
 
 .sortButton {
@@ -427,8 +540,19 @@
 }
 
 .sortIndicator {
-  color: #666;
-  font-size: 12px;
+  color: #94a3b8;
+  font-size: 10px;
+  line-height: 1;
+}
+
+.sortIndicatorActive {
+  color: #64748b;
+}
+
+.sortLabel {
+  color: #d97706;
+  font-size: 11px;
+  font-weight: 600;
 }
 
 .sortButton:disabled {
@@ -439,7 +563,7 @@
   position: sticky;
   top: 0;
   z-index: 1;
-  background: #f7f7f7;
+  background: #f8fafc;
   font-weight: 600;
 }
 
@@ -451,45 +575,53 @@
 .overlayFilterRow th {
   top: 42px;
   z-index: 2;
-  background: #f9fafb;
+  background: #ffffff;
   padding-top: 6px;
   padding-bottom: 6px;
 }
 
 .overlayColumnFilterInput {
   width: 100%;
-  height: 28px;
+  height: 20px;
   box-sizing: border-box;
-  border: 1px solid #d1d5db;
+  border: 1px solid #d97706;
   border-radius: 4px;
-  padding: 4px 8px;
-  font-size: 12px;
-  color: #374151;
+  padding: 2px 6px;
+  font-size: 10px;
+  color: #0c1e36;
   background: #fff;
+}
+
+.overlayColumnFilterInput::placeholder {
+  color: #94a3b8;
 }
 
 .overlayColumnFilterInput:focus {
   outline: none;
-  border-color: #93c5fd;
-  box-shadow: 0 0 0 2px rgba(147, 197, 253, 0.24);
+  border-color: #c96b04;
+  box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.2);
 }
 
 .overlayColumnFilterPlaceholder {
-  height: 28px;
+  height: 20px;
 }
 
-.overlayTable tbody tr {
+.overlayDataRow {
   cursor: pointer;
 }
 
-.overlayTable tbody tr:hover {
-  background: #f8fbff;
+.overlayDataRowAlt {
+  background: #f8fafc;
+}
+
+.overlayDataRow:hover {
+  background: #edf4ff;
 }
 
 .overlayIconCell {
-  width: 108px;
-  min-width: 108px;
-  max-width: 108px;
+  width: 80px;
+  min-width: 80px;
+  max-width: 80px;
   text-align: center;
 }
 
@@ -503,11 +635,11 @@
 }
 
 .overlayIconImage {
-  width: 88px;
-  height: 88px;
+  width: 64px;
+  height: 64px;
   object-fit: cover;
-  border-radius: 6px;
-  border: 1px solid #d9d9d9;
+  border-radius: 2px;
+  border: 1px solid #dbe4ef;
   background: #fff;
 }
 
@@ -531,7 +663,67 @@
 }
 
 .overlaySelectedRow {
-  background: #eaf3ff;
+  background: #e8f0fe !important;
+}
+
+.overlayColIcon {
+  width: 80px;
+  min-width: 80px;
+  max-width: 80px;
+}
+
+.overlayColTitle {
+  width: 256px;
+  min-width: 256px;
+  max-width: 256px;
+}
+
+.overlayColProductKeywords {
+  width: 256px;
+  min-width: 256px;
+  max-width: 256px;
+}
+
+.overlayTable td.overlayColTitle,
+.overlayTable td.overlayColProductKeywords,
+.overlayTable td.overlayColCategories,
+.overlayTable td.overlayColAlibaba {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  word-break: break-word;
+}
+
+.overlayColId {
+  width: 130px;
+  min-width: 130px;
+}
+
+.overlayColStatus {
+  width: 70px;
+  min-width: 70px;
+}
+
+.overlayColCategories {
+  width: 128px;
+  min-width: 128px;
+  max-width: 128px;
+}
+
+.overlayColAlibaba {
+  width: 128px;
+  min-width: 128px;
+  max-width: 128px;
+}
+
+.overlayColCreatedAt {
+  width: 90px;
+  min-width: 90px;
+}
+
+.overlayColUpdatedAt {
+  width: 90px;
+  min-width: 90px;
 }
 
 .overlayNoRows {
@@ -709,55 +901,63 @@
 }
 
 .list::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 
 .list::-webkit-scrollbar-track {
-  background: #f5f5f5;
+  background: #f8fafc;
 }
 
 .list::-webkit-scrollbar-thumb {
-  background-color: #bbbbbb;
-  border-radius: 4px;
-  border: 2px solid #f5f5f5;
+  background-color: #cbd5e1;
+  border-radius: 999px;
 }
 
 .listItem {
   display: flex;
-  padding: 12px;
-  border-bottom: 1px solid #e0e0e0;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 10px;
+  border-bottom: 1px solid #f1f5f9;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s ease;
   background-color: #ffffff;
-  margin: 0 8px 8px 8px;
-  border-radius: 4px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin: 0;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .listItem:hover {
-  background-color: #f0f7ff;
+  background-color: #f8fbff;
 }
 
 .selected {
-  background-color: #e3f2fd;
-  border-left: 4px solid #1976d2;
+  background-color: #eff6ff;
+  outline: 1px solid #3b82f6;
+  outline-offset: -1px;
+  position: relative;
+  z-index: 1;
 }
 
 .itemIcon {
-  width: 50px;
-  height: 50px;
-  margin-right: 12px;
+  width: 84px;
+  height: 84px;
+  padding: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background: #e2ecf8;
+  box-sizing: border-box;
 }
 
 .itemIcon img {
   max-width: 100%;
   max-height: 100%;
-  border-radius: 4px;
-  object-fit: cover;
+  border-radius: 2px;
+  object-fit: contain;
   width: 100%;
   height: 100%;
 }
@@ -768,14 +968,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #f0f0f0;
-  border-radius: 4px;
-  color: #999;
+  background-color: transparent;
+  border-radius: 2px;
+  color: #334155;
 }
 
 .placeholderIcon svg {
-  width: 30px;
-  height: 30px;
+  width: 16px;
+  height: 16px;
 }
 
 .itemInfo {
@@ -787,8 +987,11 @@
 }
 
 .itemTitle {
-  font-weight: 500;
-  margin-bottom: 4px;
+  font-size: 10px;
+  line-height: 1.25;
+  font-weight: 600;
+  color: #0c1e36;
+  margin: 0 0 1px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -797,39 +1000,81 @@
 .itemDetails {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 1px;
 }
 
 .detailItem {
   display: flex;
   align-items: baseline;
-  font-size: 12px;
-  line-height: 1.4;
+  gap: 4px;
+  font-size: 8px;
+  line-height: 1.2;
+  min-width: 0;
 }
 
 .detailLabel {
-  font-weight: 500;
-  color: #666;
-  width: 80px;
+  font-weight: 400;
+  color: #94a3b8;
+  width: auto;
   flex-shrink: 0;
 }
 
 .detailValue {
-  color: #333;
+  color: #0c1e36;
+  font-weight: 500;
+  min-width: 0;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
+.detailValueDefault {
+  color: #0c1e36;
+}
+
+.detailValueId {
+  color: #fa6d5a;
+}
+
+.detailValueStatusDefault {
+  color: #0c1e36;
+}
+
+.detailValueStatusActive {
+  color: #22c55e;
+}
+
+.detailValueStatusInactive {
+  color: #f59e0b;
+}
+
+.detailValueStatusPending {
+  color: #f59e0b;
+}
+
+.detailValuePrimary {
+  color: #0c1e36;
+}
+
+.detailValueMuted {
+  color: #cbd5e1;
+}
+
 .noResults {
-  padding: 20px;
+  padding: 16px;
   text-align: center;
-  color: #666;
-  font-style: italic;
+  color: #94a3b8;
+  font-size: 11px;
 }
 
 @media (max-width: 768px) {
   .container {
     width: 100%;
-    height: 300px;
+    height: 100%;
+    border-radius: 10px;
+  }
+
+  .toolbarTitle {
+    font-size: 13px;
   }
 }

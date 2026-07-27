@@ -300,6 +300,8 @@ const Sub_FileItem = ({
         className={`${styles.imagePreview} ${
           fullSizePreview ? styles.fullSizePreview : ''
         } ${editMode ? styles.editorModePreview : ''} ${compactImage ? styles.compactImagePreview : ''} ${shiftClass} ${
+          compactImage && isSelected ? styles.compactImageSelected : ''
+        } ${
           isDraggedItem ? styles.draggingItem : ''
         } ${isDropTarget ? styles.dragOverItem : ''}`}
         draggable={!disabled && !!onMove}

@@ -110,6 +110,67 @@ const Main_DropZone = ({
 
   const canAddMoreItems = items.length < maxFiles;
   const hasItems = items.length > 0;
+  const showUploadPrompt = canAddMoreItems || showMaxItemsNotice;
+
+  const renderUploadPrompt = () => {
+    if (!showUploadPrompt) return null;
+
+    return (
+      <div
+        className={`${styles.uploadPrompt} ${
+          hasItems ? styles.uploadPromptWithItems : ''
+        } ${tableCell ? styles.tableCellUploadButton : ''}`}
+        onClick={canAddMoreItems ? handleUploadClick : undefined}
+      >
+        {canAddMoreItems && (
+          <div className={styles.uploadIcon}>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+            >
+              {hasItems || tableCell ? (
+                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+              ) : (
+                <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z" />
+              )}
+            </svg>
+          </div>
+        )}
+
+        {canAddMoreItems && (
+          <>
+            <div className={styles.uploadText}>
+              {compact
+                ? compactButtonText
+                : isDragging
+                  ? `Drop ${itemType} here`
+                  : hasItems
+                    ? `Click or drop to add more ${itemType}`
+                    : `Click to upload, drag, or paste ${itemType} here`}
+            </div>
+
+            {!compact && (
+              <div className={styles.uploadInfo}>
+                {`${items.length}/${maxFiles} ${itemType}, up to ${maxSizeInMB}MB each`}
+                {acceptedTypes.length > 0 && (
+                  <div className={styles.acceptedTypes}>
+                    Accepted types: {acceptedTypes.join(', ')}
+                  </div>
+                )}
+              </div>
+            )}
+          </>
+        )}
+
+        {!canAddMoreItems && showMaxItemsNotice && (
+          <div className={styles.maxItemsNotice}>
+            Maximum {maxFiles} {itemType} reached
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div
@@ -140,6 +201,8 @@ const Main_DropZone = ({
       />
 
       <div className={styles.dropZoneContent}>
+        {tableCell && renderUploadPrompt()}
+
         {/* Show preview/list if we have items and children */}
         {showPreview && hasItems && children && (
           <div
@@ -155,65 +218,7 @@ const Main_DropZone = ({
           </div>
         )}
 
-        {/* Show upload prompt if we can add more or if max notice should be shown */}
-        {(canAddMoreItems || showMaxItemsNotice) && (
-          <div
-            className={`${styles.uploadPrompt} ${
-              hasItems ? styles.uploadPromptWithItems : ''
-            } ${tableCell ? styles.tableCellUploadButton : ''}`}
-            onClick={canAddMoreItems ? handleUploadClick : undefined}
-          >
-            {canAddMoreItems && (
-              <div className={styles.uploadIcon}>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                >
-                  {hasItems ? (
-                    // Plus icon for adding more
-                    <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-                  ) : (
-                    // Upload icon for initial upload
-                    <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z" />
-                  )}
-                </svg>
-              </div>
-            )}
-
-            {canAddMoreItems && (
-              <>
-                <div className={styles.uploadText}>
-                  {compact
-                    ? compactButtonText
-                    : isDragging
-                      ? `Drop ${itemType} here`
-                      : hasItems
-                        ? `Click or drop to add more ${itemType}`
-                        : `Click to upload, drag, or paste ${itemType} here`}
-                </div>
-
-                {!compact && (
-                  <div className={styles.uploadInfo}>
-                    {`${items.length}/${maxFiles} ${itemType}, up to ${maxSizeInMB}MB each`}
-                    {acceptedTypes.length > 0 && (
-                      <div className={styles.acceptedTypes}>
-                        Accepted types: {acceptedTypes.join(', ')}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </>
-            )}
-
-            {/* Show notice if max items reached */}
-            {!canAddMoreItems && showMaxItemsNotice && (
-              <div className={styles.maxItemsNotice}>
-                Maximum {maxFiles} {itemType} reached
-              </div>
-            )}
-          </div>
-        )}
+        {!tableCell && renderUploadPrompt()}
       </div>
     </div>
   );

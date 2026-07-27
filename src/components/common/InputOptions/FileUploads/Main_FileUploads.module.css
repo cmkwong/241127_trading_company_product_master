@@ -15,6 +15,10 @@
   gap: 6px;
 }
 
+.tableCellHeaderRow {
+  min-height: 16px;
+}
+
 .tableCellContainer .dropZoneEditorWrap {
   min-width: 0;
 }
@@ -22,12 +26,12 @@
 .tableCellContainer .sequenceGridCompact,
 .tableCellContainer .sequenceGridEditor {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   gap: 6px;
-  width: 100%;
-  min-width: 0;
-  max-width: 100%;
+  width: max-content;
+  min-width: max-content;
+  max-width: none;
   justify-content: start;
 }
 
@@ -64,6 +68,16 @@
   gap: 6px;
 }
 
+.tableCellHeaderRow .label {
+  color: #475569;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.tableCellHeaderRow .headerActions {
+  gap: 8px;
+}
+
 .selectAllWrap {
   display: inline-flex;
   align-items: center;
@@ -78,12 +92,99 @@
   height: 14px;
 }
 
+.tableCellTool {
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #64748b;
+  box-shadow: none;
+}
+
+.tableCellTool:hover:not(:disabled) {
+  background: transparent;
+  color: #334155;
+}
+
+.tableCellTool input {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  accent-color: #64748b;
+}
+
+.tableCellTool svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+.tableCellIcon16 {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+
+.tableCellIcon14 {
+  width: 14px;
+  height: 14px;
+  display: block;
+}
+
+.watermarkToggleButton {
+  border: 0;
+  background: transparent;
+}
+
+.watermarkToggleActive {
+  color: #2563eb;
+}
+
+.watermarkToggleInactive {
+  color: #94a3b8;
+}
+
+.watermarkTextToggle {
+  border: 1px solid #cfd8e3;
+  background: #ffffff;
+  color: #334155;
+  border-radius: 6px;
+  min-height: 28px;
+  padding: 0 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.watermarkTextToggle[aria-pressed='true'] {
+  border-color: #93c5fd;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.watermarkTextToggle:hover:not(:disabled) {
+  background: #f8fafc;
+}
+
+.tableCellImageCounter {
+  color: #475569;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 16px;
+  white-space: nowrap;
+}
+
 .dropZoneEditorWrap {
   position: relative;
 }
 
 .sequenceEditorIconBtn {
-  border: 1px solid #cfd8e3;
+  /* border: 1px solid #cfd8e3; */
   background: #fff;
   color: #1d4ed8;
   border-radius: 6px;

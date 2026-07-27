@@ -541,8 +541,7 @@ const Main_FileUploads = (props) => {
   const itemType = mode === 'image' ? 'images' : 'files';
   const testIdPrefix = mode === 'image' ? 'image' : 'file';
   const canOpenSequenceEditor = enableSequenceEditor && mode === 'image';
-  const showHeaderEditorButton = canOpenSequenceEditor && !tableCell;
-  const showInlineEditorButton = canOpenSequenceEditor && tableCell;
+  const showHeaderEditorButton = canOpenSequenceEditor;
   const selectableIds = useMemo(
     () => fileList.map((file) => String(file?.id || '').trim()).filter(Boolean),
     [fileList],
@@ -680,7 +679,10 @@ const Main_FileUploads = (props) => {
       }`}
     >
       <Sub_FileUploadsHeader
-        label={label}
+        label={label || (tableCell ? 'Files' : '')}
+        tableCell={tableCell}
+        isImageMode={mode === 'image'}
+        maxFiles={maxFiles}
         canOpenSequenceEditor={showHeaderEditorButton}
         onOpenSequenceEditor={() => setIsSequenceEditorOpen(true)}
         showDownloadButton={showDownloadButton}
@@ -701,25 +703,6 @@ const Main_FileUploads = (props) => {
       />
 
       <div className={styles.dropZoneEditorWrap}>
-        {showInlineEditorButton && (
-          <button
-            type="button"
-            className={styles.inlineSequenceEditorBtn}
-            onClick={() => setIsSequenceEditorOpen(true)}
-            title="Open sequence editor"
-            aria-label="Open sequence editor"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              aria-hidden="true"
-            >
-              <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zm2.92 2.33H5v-.92l8.06-8.06.92.92L5.92 19.58zM20.71 7.04a1.003 1.003 0 000-1.42L18.37 3.29a1.003 1.003 0 00-1.42 0l-1.83 1.83 3.75 3.75 1.84-1.83z" />
-            </svg>
-          </button>
-        )}
-
         <Main_DropZone
           {...baseDropZoneProps}
           testIdPrefix={testIdPrefix}

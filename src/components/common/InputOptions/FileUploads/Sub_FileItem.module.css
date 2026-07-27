@@ -224,12 +224,12 @@
 }
 
 .compactImagePreview {
-  width: 36px;
-  height: 36px;
+  width: 56px;
+  height: 56px;
   border-radius: 6px;
   border: 1px solid #dbe3f2;
-  background: #fff;
-  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.1);
+  background: #f1f5f9;
+  box-shadow: none;
 }
 
 .compactImagePreview .previewImg {
@@ -247,6 +247,10 @@
   width: 14px;
   height: 14px;
   font-size: 10px;
+}
+
+.compactImageSelected {
+  border: 2px solid #60ff52;
 }
 
 .previewImg {

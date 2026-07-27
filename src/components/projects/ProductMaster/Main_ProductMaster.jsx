@@ -17,16 +17,22 @@ import Main_ProductCosts from './ProductCosts/Main_ProductCosts';
 import VerticalLayout from '../../common/Layouts/VerticalLayout';
 import SplitLayout from '../../common/Layouts/SplitLayout';
 import DeleteBtn from '../../common/Buttons/DeleteBtn';
-import bottomBarDeleteStyles from '../../common/Buttons/BottomBarDeleteAction.module.css';
 import { useProductContext } from '../../../store/ProductContext';
 
 const Main_ProductMaster = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showIconPanel, setShowIconPanel] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isDuplicating, setIsDuplicating] = useState(false);
   const iconOverlayRef = useRef(null);
   const iconToggleBtnRef = useRef(null);
-  const { pageData, getAllProducts, deleteProductById } = useProductContext();
+  const {
+    pageData,
+    getAllProducts,
+    deleteProductById,
+    createNewProduct,
+    duplicateSelectedProduct,
+  } = useProductContext();
 
   const productId = String(pageData?.id || '').trim();
   const hasPersistedProduct = (getAllProducts() || []).some(
@@ -56,6 +62,22 @@ const Main_ProductMaster = () => {
       setIsDeleting(false);
     }
   }, [deleteProductById, hasPersistedProduct, isDeleting, productId]);
+
+  const handleDuplicateProduct = useCallback(async () => {
+    if (!hasPersistedProduct || isDuplicating) {
+      return;
+    }
+
+    setIsDuplicating(true);
+    try {
+      await duplicateSelectedProduct();
+    } catch (error) {
+      console.error('Failed to duplicate product:', error);
+      alert(error?.message || 'Failed to duplicate product.');
+    } finally {
+      setIsDuplicating(false);
+    }
+  }, [duplicateSelectedProduct, hasPersistedProduct, isDuplicating]);
 
   useEffect(() => {
     if (!showIconPanel) return;
@@ -101,15 +123,33 @@ const Main_ProductMaster = () => {
       onSave={onSaveProduct}
       saveButtonText="Save Product"
       successMessage="Product saved successfully!"
+      onCreate={createNewProduct}
+      createButtonText="Add Product"
+      showCreateButton
       leftBottomAction={
-        <DeleteBtn
-          text={isDeleting ? 'Deleting...' : 'Delete Product'}
-          onClick={handleDeleteProduct}
-          disabled={!productId || !hasPersistedProduct || isDeleting}
-          title="Delete product"
-          ariaLabel="Delete product"
-          className={bottomBarDeleteStyles.bottomBarDeleteAction}
-        />
+        <div className={styles.bottomActionGroup}>
+          <DeleteBtn
+            text={isDeleting ? 'Deleting...' : 'Delete Product'}
+            onClick={handleDeleteProduct}
+            disabled={!productId || !hasPersistedProduct || isDeleting}
+            title="Delete product"
+            ariaLabel="Delete product"
+          />
+          <button
+            type="button"
+            className={styles.duplicateBottomButton}
+            onClick={handleDuplicateProduct}
+            disabled={!hasPersistedProduct || isDuplicating}
+            title="Duplicate selected product"
+            aria-label="Duplicate selected product"
+          >
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <rect x="5.5" y="5.5" width="7" height="7" rx="1" />
+              <path d="M10.5 5V3.5a1 1 0 0 0-1-1h-6a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1H5" />
+            </svg>
+            {isDuplicating ? 'Duplicating...' : 'Duplicate Product'}
+          </button>
+        </div>
       }
     >
       <div className={styles.masterContainer}>

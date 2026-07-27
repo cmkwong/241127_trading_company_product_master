@@ -4,7 +4,6 @@ import { useAuthContext } from '../../../store/AuthContext';
 import { processChangesWithBase64 } from '../../../utils/objectUrlUtils';
 import DeleteBtn from '../../common/Buttons/DeleteBtn';
 import Main_Dropdown from '../../common/InputOptions/Dropdown/Main_Dropdown';
-import bottomBarDeleteStyles from '../../common/Buttons/BottomBarDeleteAction.module.css';
 import PurchaseRequestSavePageContainer from './Container/PurchaseRequestSavePageContainer';
 import PurchaseRequestSidebar from './AllPurchaseRequestList/PurchaseRequestSidebar';
 import PurchaseRequestBasicInfo from './PurchaseBasicInfo/PurchaseRequestBasicInfo';
@@ -2070,18 +2069,12 @@ const Main_PurchaseRequest = () => {
       dryRunAction={getPurchaseRequestDryRunData}
       saveButtonText="Save Purchase Request"
       successMessage="Purchase request saved successfully!"
-      leftOfDryRunAction={
-        <button
-          type="button"
-          className={styles.previewButton}
-          onClick={handlePreviewApInvoice}
-          disabled={!draft || isPreparingPreview}
-        >
-          {isPreparingPreview
-            ? 'Preparing Preview...'
-            : 'Preview / Print AP Invoice (A4 PDF)'}
-        </button>
-      }
+      onCreate={handleCreate}
+      createButtonText="Add Purchase Request"
+      showCreateButton
+      onPrint={handlePreviewApInvoice}
+      isPrinting={isPreparingPreview}
+      showPrintButton
       leftBottomAction={
         <DeleteBtn
           text={isDeleting ? 'Deleting...' : 'Delete Purchase Request'}
@@ -2089,7 +2082,6 @@ const Main_PurchaseRequest = () => {
           disabled={!draft?.id || isDeleting}
           title="Delete selected purchase request"
           ariaLabel="Delete selected purchase request"
-          className={bottomBarDeleteStyles.bottomBarDeleteAction}
         />
       }
     >
@@ -2100,7 +2092,6 @@ const Main_PurchaseRequest = () => {
           searchValue={sidebarSearch}
           onSearchChange={setSidebarSearch}
           onSelectRow={handleSelectRow}
-          onCreate={handleCreate}
           getItemTitle={getSidebarItemTitle}
           getItemRows={getSidebarItemRows}
         />
@@ -2115,7 +2106,9 @@ const Main_PurchaseRequest = () => {
 
           {!draft ? (
             <div className={styles.emptyEditor}>
-              Select a purchase request or create a new one.
+              {isLoading
+                ? 'Loading purchase requests...'
+                : 'Select a purchase request or create a new one.'}
             </div>
           ) : (
             <>

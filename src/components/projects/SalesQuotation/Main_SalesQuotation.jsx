@@ -9,7 +9,6 @@ import Main_SalesServiceDetails from './ServiceDetails/Main_SalesServiceDetails'
 import { useSalesQuotationContext } from '../../../store/SalesQuotationContext';
 import { useMasterContext } from '../../../store/MasterContext';
 import DeleteBtn from '../../common/Buttons/DeleteBtn';
-import bottomBarDeleteStyles from '../../common/Buttons/BottomBarDeleteAction.module.css';
 import Main_Dropdown from '../../common/InputOptions/Dropdown/Main_Dropdown';
 import {
   buildBaseCurrencyOptions,
@@ -43,6 +42,7 @@ const Main_SalesQuotation = () => {
   const [isPreparingPreview, setIsPreparingPreview] = useState(false);
   const [previewType, setPreviewType] = useState('quotation');
   const [previewShowTotalPrice, setPreviewShowTotalPrice] = useState(true);
+  const [previewPrintArInvoice, setPreviewPrintArInvoice] = useState(false);
   const [baseCurrencyCode, setBaseCurrencyCode] = useState('USD');
   const previewIframeRef = useRef(null);
   const {
@@ -210,6 +210,7 @@ const Main_SalesQuotation = () => {
 
     try {
       setIsPreparingPreview(true);
+      setPreviewPrintArInvoice(false);
       const html = buildQuotationDocumentA4Html({
         quotation: selectedQuotation,
         companyInfo: Array.isArray(companyInfo) ? companyInfo[0] : null,
@@ -249,12 +250,12 @@ const Main_SalesQuotation = () => {
   ]);
 
   useEffect(() => {
-    if (!isPreviewOpen || previewType !== 'quotation' || !selectedQuotation) {
+    if (!isPreviewOpen || !selectedQuotation) {
       return;
     }
 
     try {
-      const html = buildQuotationDocumentA4Html({
+      const previewOptions = {
         quotation: selectedQuotation,
         companyInfo: Array.isArray(companyInfo) ? companyInfo[0] : null,
         customerOptions,
@@ -265,8 +266,13 @@ const Main_SalesQuotation = () => {
         currencyCodeById,
         baseCurrencyCode,
         exchangeRateMap,
-        showTotalPrice: previewShowTotalPrice,
-      });
+      };
+      const html = previewPrintArInvoice
+        ? buildArInvoiceDocumentA4Html(previewOptions)
+        : buildQuotationDocumentA4Html({
+            ...previewOptions,
+            showTotalPrice: previewShowTotalPrice,
+          });
       setPreviewHtml(html);
     } catch (error) {
       console.error('Failed to refresh quotation preview:', error);
@@ -279,19 +285,15 @@ const Main_SalesQuotation = () => {
     customerOptions,
     exchangeRateMap,
     isPreviewOpen,
+    previewPrintArInvoice,
     previewShowTotalPrice,
-    previewType,
     productOptions,
     selectedQuotation,
     serviceOptions,
     shippingMethodOptions,
   ]);
 
-  const handlePreviewArInvoice = useCallback(() => {
-    if (!selectedQuotation || isPreparingPreview) {
-      return;
-    }
-
+  const hasSelectedArInvoiceRows = useCallback(() => {
     const shippingRows = Array.isArray(selectedQuotation?.sales_shipping_prices)
       ? selectedQuotation.sales_shipping_prices
       : [];
@@ -307,50 +309,25 @@ const Main_SalesQuotation = () => {
       productRows.some((row) => isSelectedFlag(row?.ari_selected, true)) ||
       serviceRows.some((row) => isSelectedFlag(row?.ari_selected, true));
 
-    if (!hasSelectedArRows) {
-      alert(
-        'No rows are selected for AR invoice preview. Tick AR Invoice on at least one row.',
-      );
-      return;
-    }
+    return hasSelectedArRows;
+  }, [selectedQuotation]);
 
-    try {
-      setIsPreparingPreview(true);
-      const html = buildArInvoiceDocumentA4Html({
-        quotation: selectedQuotation,
-        companyInfo: Array.isArray(companyInfo) ? companyInfo[0] : null,
-        customerOptions,
-        customerAddressOptions,
-        shippingMethodOptions,
-        productOptions,
-        serviceOptions,
-        currencyCodeById,
-        baseCurrencyCode,
-        exchangeRateMap,
-      });
+  const handlePreviewArInvoiceChange = useCallback(
+    (event) => {
+      const shouldPrintArInvoice = event.target.checked;
 
-      setPreviewType('ar-invoice');
-      setPreviewHtml(html);
-      setIsPreviewOpen(true);
-    } catch (error) {
-      console.error('Failed to prepare AR invoice preview:', error);
-      alert(error?.message || 'Failed to prepare AR invoice preview.');
-    } finally {
-      setIsPreparingPreview(false);
-    }
-  }, [
-    baseCurrencyCode,
-    companyInfo,
-    currencyCodeById,
-    customerAddressOptions,
-    customerOptions,
-    exchangeRateMap,
-    isPreparingPreview,
-    productOptions,
-    selectedQuotation,
-    serviceOptions,
-    shippingMethodOptions,
-  ]);
+      if (shouldPrintArInvoice && !hasSelectedArInvoiceRows()) {
+        alert(
+          'No rows are selected for AR invoice preview. Tick AR Invoice on at least one row.',
+        );
+        return;
+      }
+
+      setPreviewPrintArInvoice(shouldPrintArInvoice);
+      setPreviewType(shouldPrintArInvoice ? 'ar-invoice' : 'quotation');
+    },
+    [hasSelectedArInvoiceRows],
+  );
 
   const handlePrintFromPreview = useCallback(() => {
     const iframe = previewIframeRef.current;
@@ -417,30 +394,12 @@ const Main_SalesQuotation = () => {
       dryRunAction={getSalesQuotationDryRunData}
       saveButtonText="Save Sales Quotation"
       successMessage="Sales quotation saved successfully!"
-      leftOfDryRunAction={
-        <div className={styles.printButtonsGroup}>
-          <button
-            type="button"
-            className={styles.printButton}
-            onClick={handlePreviewQuotation}
-            disabled={!selectedQuotation || isPreparingPreview}
-          >
-            {isPreparingPreview
-              ? 'Preparing Preview...'
-              : 'Preview / Print Quotation (A4 PDF)'}
-          </button>
-          <button
-            type="button"
-            className={styles.printButton}
-            onClick={handlePreviewArInvoice}
-            disabled={!selectedQuotation || isPreparingPreview}
-          >
-            {isPreparingPreview
-              ? 'Preparing Preview...'
-              : 'Preview / Print AR Invoice (A4 PDF)'}
-          </button>
-        </div>
-      }
+      onCreate={handleCreateQuotation}
+      createButtonText="Add Quotation"
+      showCreateButton
+      onPrint={handlePreviewQuotation}
+      isPrinting={isPreparingPreview}
+      showPrintButton
       leftBottomAction={
         <div className={styles.bottomActionGroup}>
           <DeleteBtn
@@ -449,7 +408,6 @@ const Main_SalesQuotation = () => {
             disabled={!selectedQuotation || isDeleting}
             title="Delete selected sales quotation"
             ariaLabel="Delete selected sales quotation"
-            className={bottomBarDeleteStyles.bottomBarDeleteAction}
           />
           <button
             type="button"
@@ -459,6 +417,10 @@ const Main_SalesQuotation = () => {
             title="Duplicate selected sales quotation"
             aria-label="Duplicate selected sales quotation"
           >
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <rect x="5.5" y="5.5" width="7" height="7" rx="1" />
+              <path d="M10.5 5V3.5a1 1 0 0 0-1-1h-6a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1H5" />
+            </svg>
             {isDuplicating ? 'Duplicating...' : 'Duplicate Quotation'}
           </button>
         </div>
@@ -469,7 +431,6 @@ const Main_SalesQuotation = () => {
           quotations={quotations}
           selectedQuotationId={selectedQuotationId}
           onSelectQuotation={handleSelectQuotation}
-          onCreateQuotation={handleCreateQuotation}
           isCollapsed={sidebarCollapsed}
           onToggleCollapse={setSidebarCollapsed}
           customerOptions={customerOptions}
@@ -678,18 +639,24 @@ const Main_SalesQuotation = () => {
                   : 'Quotation A4 Preview'}
               </div>
               <div className={styles.previewModalActions}>
-                {previewType === 'quotation' ? (
-                  <label className={styles.previewOptionToggle}>
-                    <input
-                      type="checkbox"
-                      checked={previewShowTotalPrice}
-                      onChange={(event) =>
-                        setPreviewShowTotalPrice(event.target.checked)
-                      }
-                    />
-                    <span>Show Total Price</span>
-                  </label>
-                ) : null}
+                <label className={styles.previewOptionToggle}>
+                  <input
+                    type="checkbox"
+                    checked={previewShowTotalPrice}
+                    onChange={(event) =>
+                      setPreviewShowTotalPrice(event.target.checked)
+                    }
+                  />
+                  <span>Show Total Price</span>
+                </label>
+                <label className={styles.previewOptionToggle}>
+                  <input
+                    type="checkbox"
+                    checked={previewPrintArInvoice}
+                    onChange={handlePreviewArInvoiceChange}
+                  />
+                  <span>Print AR Invoice</span>
+                </label>
                 <button
                   type="button"
                   className={styles.previewActionBtn}

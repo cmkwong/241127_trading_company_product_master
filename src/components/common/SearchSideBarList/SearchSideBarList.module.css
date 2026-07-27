@@ -823,7 +823,7 @@
 }
 
 .overlayDetailTitle {
-  font-size: 12px;
+  font-size: 18px;
   font-weight: 700;
   color: #1f2937;
   margin-bottom: 8px;
@@ -987,7 +987,7 @@
 }
 
 .itemTitle {
-  font-size: 10px;
+  font-size: 18px;
   line-height: 1.25;
   font-weight: 600;
   color: #0c1e36;
@@ -1007,7 +1007,7 @@
   display: flex;
   align-items: baseline;
   gap: 4px;
-  font-size: 8px;
+  font-size: 12px;
   line-height: 1.2;
   min-width: 0;
 }

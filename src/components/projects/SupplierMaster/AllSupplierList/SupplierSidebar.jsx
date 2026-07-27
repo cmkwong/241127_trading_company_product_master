@@ -31,7 +31,7 @@ const SupplierSidebar = ({
   isCollapsed,
   onToggleCollapse,
 }) => {
-  const { getSupplierData, suppliers, createNewSupplier, selectedSupplierId } =
+  const { getSupplierData, suppliers, selectedSupplierId } =
     useSupplierContext();
   const { supplierType, services } = useMasterContext();
 
@@ -293,10 +293,6 @@ const SupplierSidebar = ({
     setSearchTerm('');
   }, []);
 
-  const handleCreateSupplier = () => {
-    createNewSupplier();
-  };
-
   const getSupplierRows = useCallback(
     (supplier) => {
       const supplierTypeLabel = formatSupplierTypeLabel(supplier);
@@ -427,9 +423,7 @@ const SupplierSidebar = ({
           onSelectSearchHistory={handleSelectSearchHistory}
           onClearSearch={handleClearSearch}
           searchPlaceholder="Search suppliers..."
-          onCreate={handleCreateSupplier}
-          createButtonTitle="Create New Supplier"
-          createButtonAriaLabel="Create New Supplier"
+          showCreateButton={false}
           noResultsMessage="No suppliers found"
           getItemId={(supplier) => supplier.id}
           getItemTitle={getSupplierName}

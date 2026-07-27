@@ -10,7 +10,13 @@ const SalesQuotationSavePageContainer = ({
   showSaveButton = true,
   className,
   leftBottomAction,
-  leftOfDryRunAction,
+  onCreate,
+  createButtonText,
+  showCreateButton,
+  onPrint,
+  printButtonText,
+  isPrinting,
+  showPrintButton,
 }) => {
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -28,9 +34,7 @@ const SalesQuotationSavePageContainer = ({
       }
 
       setSaveSuccess(true);
-      window.setTimeout(() => {
-        setSaveSuccess(false);
-      }, 3000);
+      window.setTimeout(() => setSaveSuccess(false), 3000);
     } catch (error) {
       setSaveError(error?.message || 'Failed to save sales quotation');
     } finally {
@@ -51,7 +55,13 @@ const SalesQuotationSavePageContainer = ({
       saveError={saveError}
       className={className}
       leftBottomAction={leftBottomAction}
-      leftOfDryRunAction={leftOfDryRunAction}
+      onCreate={onCreate}
+      createButtonText={createButtonText}
+      showCreateButton={showCreateButton}
+      onPrint={onPrint}
+      printButtonText={printButtonText}
+      isPrinting={isPrinting}
+      showPrintButton={showPrintButton}
     >
       {children}
     </Main_SavePage>

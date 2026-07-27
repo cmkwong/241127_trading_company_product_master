@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import Button from '../Buttons/Button';
 import styles from './Main_SavePage.module.css';
 
 const isLikelyBase64String = (value) => {
@@ -73,7 +72,13 @@ const Main_SavePage = ({
   saveError = null,
   className = '',
   leftBottomAction = null,
-  leftOfDryRunAction = null,
+  onCreate = null,
+  createButtonText = 'Add New',
+  showCreateButton = false,
+  onPrint = null,
+  printButtonText = 'Print',
+  isPrinting = false,
+  showPrintButton = false,
 }) => {
   const [isDryRunning, setIsDryRunning] = useState(false);
   const [dryRunError, setDryRunError] = useState('');
@@ -117,7 +122,22 @@ const Main_SavePage = ({
       <div className={styles.content}>{children}</div>
       {showSaveButton && (
         <div className={styles.saveActions}>
-          <div className={styles.leftActionContainer}>{leftBottomAction}</div>
+          <div className={styles.leftActionContainer}>
+            {showCreateButton && typeof onCreate === 'function' && (
+              <button
+                type="button"
+                className={styles.createButton}
+                onClick={onCreate}
+              >
+                <svg viewBox="0 0 16 16" aria-hidden="true">
+                  <path d="M8 3v10M3 8h10" />
+                </svg>
+                {createButtonText}
+              </button>
+            )}
+            {leftBottomAction}
+          </div>
+
           <div className={styles.messageContainer}>
             {saveSuccess && (
               <div className={styles.successMessage}>{successMessage}</div>
@@ -126,18 +146,42 @@ const Main_SavePage = ({
               <div className={styles.errorMessage}>{saveError}</div>
             )}
           </div>
+
           <div className={styles.buttonContainer}>
-            {leftOfDryRunAction}
-            {typeof dryRunAction === 'function' && (
-              <Button
-                text={isDryRunning ? 'Running...' : dryRunButtonText}
-                onClick={handleDryRunClick}
-              />
+            {showPrintButton && typeof onPrint === 'function' && (
+              <button
+                type="button"
+                className={styles.printButton}
+                onClick={onPrint}
+                disabled={isPrinting}
+              >
+                <svg viewBox="0 0 16 16" aria-hidden="true">
+                  <path d="M4 6V2.5h8V6M4 12.5h8v-4H4v4ZM3 6h10v4H3zM11 7.25h.01" />
+                </svg>
+                {isPrinting ? 'Preparing...' : printButtonText}
+              </button>
             )}
-            <Button
-              text={isSaving ? 'Saving...' : saveButtonText}
+            {typeof dryRunAction === 'function' && (
+              <button
+                type="button"
+                className={styles.dryRunButton}
+                onClick={handleDryRunClick}
+                disabled={isDryRunning}
+              >
+                <svg viewBox="0 0 16 16" aria-hidden="true">
+                  <path d="m6 3 7 5-7 5V3Z" fill="currentColor" stroke="none" />
+                </svg>
+                {isDryRunning ? 'Running...' : dryRunButtonText}
+              </button>
+            )}
+            <button
+              type="button"
+              className={styles.saveButton}
               onClick={handleSaveClick}
-            />
+              disabled={isSaving}
+            >
+              {isSaving ? 'Saving...' : saveButtonText}
+            </button>
           </div>
         </div>
       )}

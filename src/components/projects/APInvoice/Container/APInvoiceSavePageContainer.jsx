@@ -10,7 +10,13 @@ const APInvoiceSavePageContainer = ({
   showSaveButton = true,
   className,
   leftBottomAction,
-  leftOfDryRunAction,
+  onCreate,
+  createButtonText,
+  showCreateButton,
+  onPrint,
+  printButtonText,
+  isPrinting,
+  showPrintButton,
 }) => {
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -51,7 +57,13 @@ const APInvoiceSavePageContainer = ({
       saveError={saveError}
       className={className}
       leftBottomAction={leftBottomAction}
-      leftOfDryRunAction={leftOfDryRunAction}
+      onCreate={onCreate}
+      createButtonText={createButtonText}
+      showCreateButton={showCreateButton}
+      onPrint={onPrint}
+      printButtonText={printButtonText}
+      isPrinting={isPrinting}
+      showPrintButton={showPrintButton}
     >
       {children}
     </Main_SavePage>

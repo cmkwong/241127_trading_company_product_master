@@ -44,7 +44,7 @@ const getPrimaryCustomerName = (customer) => {
 };
 
 const CustomerSidebar = ({ isCollapsed, onToggleCollapse }) => {
-  const { customers, getCustomerData, createNewCustomer, selectedCustomerId } =
+  const { customers, getCustomerData, selectedCustomerId } =
     useCustomerContext();
   const { customerType = [], getMasterTableData } = useMasterContext();
 
@@ -300,9 +300,7 @@ const CustomerSidebar = ({ isCollapsed, onToggleCollapse }) => {
           onSelectSearchHistory={handleSelectSearchHistory}
           onClearSearch={() => setSearchTerm('')}
           searchPlaceholder="Search customers..."
-          onCreate={createNewCustomer}
-          createButtonTitle="Create New Customer"
-          createButtonAriaLabel="Create New Customer"
+          showCreateButton={false}
           noResultsMessage="No customers found"
           getItemId={(customer) => customer.id}
           getItemTitle={(customer) => getPrimaryCustomerName(customer)}

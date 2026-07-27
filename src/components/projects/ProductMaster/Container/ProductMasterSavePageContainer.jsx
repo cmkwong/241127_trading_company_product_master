@@ -11,6 +11,9 @@ const SavePageContextBridge = ({
   customSaveAction,
   className,
   leftBottomAction,
+  onCreate,
+  createButtonText,
+  showCreateButton,
 }) => {
   const {
     handleProductSave,
@@ -34,6 +37,9 @@ const SavePageContextBridge = ({
       saveError={saveError}
       className={className}
       leftBottomAction={leftBottomAction}
+      onCreate={onCreate}
+      createButtonText={createButtonText}
+      showCreateButton={showCreateButton}
     >
       {children}
     </Main_SavePage>
@@ -50,6 +56,9 @@ const ProductMasterSavePageContainer = ({
   customSaveAction,
   className,
   leftBottomAction,
+  onCreate,
+  createButtonText,
+  showCreateButton,
 }) => {
   return (
     <MasterContext_Provider>
@@ -61,6 +70,9 @@ const ProductMasterSavePageContainer = ({
         customSaveAction={customSaveAction}
         className={className}
         leftBottomAction={leftBottomAction}
+        onCreate={onCreate}
+        createButtonText={createButtonText}
+        showCreateButton={showCreateButton}
       >
         {children}
       </SavePageContextBridge>

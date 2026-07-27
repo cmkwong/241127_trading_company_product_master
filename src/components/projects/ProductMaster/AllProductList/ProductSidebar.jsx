@@ -31,7 +31,6 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
   const {
     getProductData,
     products,
-    createNewProduct,
     selectedProductId,
     hydrateProductIcons,
     pageData,
@@ -437,10 +436,6 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
     [hydrateProductIcons],
   );
 
-  const handleCreateProduct = () => {
-    createNewProduct();
-  };
-
   const getProductRows = useCallback(
     (product) => {
       const categoryLabels =
@@ -523,9 +518,7 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
           onVisibleItemIdsChange={handleVisibleItemIdsChange}
           onVisibleHistoryItemIdsChange={handleVisibleHistoryItemIdsChange}
           searchPlaceholder="Search products..."
-          onCreate={handleCreateProduct}
-          createButtonTitle="Create New Product"
-          createButtonAriaLabel="Create New Product"
+          showCreateButton={false}
           noResultsMessage="No products found"
           getItemId={(product) => product.id}
           getItemTitle={getProductName}

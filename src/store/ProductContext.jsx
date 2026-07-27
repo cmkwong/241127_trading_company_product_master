@@ -40,6 +40,72 @@ const PRODUCT_LIST_ICON_COMPRESSION = {
   iconQuality: 0.45,
 };
 
+const cloneProductForDuplication = (sourceProduct) => {
+  const source = cleanupNestedInternalFlags(sourceProduct || {});
+  const idMap = new Map();
+
+  const collectRowIds = (value) => {
+    if (Array.isArray(value)) {
+      value.forEach((item) => {
+        if (item?._delete) return;
+        collectRowIds(item);
+      });
+      return;
+    }
+
+    if (!value || typeof value !== 'object') return;
+
+    const id = String(value.id || '').trim();
+    if (id && !idMap.has(id)) {
+      idMap.set(id, uuidv4());
+    }
+
+    Object.values(value).forEach(collectRowIds);
+  };
+
+  const cloneValue = (value) => {
+    if (Array.isArray(value)) {
+      return value
+        .filter((item) => !item?._delete)
+        .map((item) => cloneValue(item));
+    }
+
+    if (!value || typeof value !== 'object') return value;
+
+    return Object.entries(value).reduce((copy, [key, nestedValue]) => {
+      if (
+        key === '_delete' ||
+        key === '_base64_changed' ||
+        key === '_objUrl' ||
+        key === 'created_at' ||
+        key === 'updated_at'
+      ) {
+        return copy;
+      }
+
+      if (key === 'id') {
+        const replacementId = idMap.get(String(nestedValue || '').trim());
+        if (replacementId) {
+          copy.id = replacementId;
+        }
+        return copy;
+      }
+
+      if (key.endsWith('_id')) {
+        const replacementId = idMap.get(String(nestedValue || '').trim());
+        copy[key] = replacementId || nestedValue;
+        return copy;
+      }
+
+      copy[key] = cloneValue(nestedValue);
+      return copy;
+    }, {});
+  };
+
+  collectRowIds(source);
+  return cloneValue(source);
+};
+
 // Provider component for save page data
 export const ProductContext_Provider = ({ children, initialData = {} }) => {
   const { token } = useAuthContext();
@@ -789,6 +855,26 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
     return true;
   }, [pageData, isDataUnchanged, discardCurrentProductUnsavedChanges]);
 
+  const duplicateSelectedProduct = useCallback(() => {
+    if (!String(pageData?.id || '').trim()) {
+      throw new Error('No product selected to duplicate.');
+    }
+
+    const duplicatedProduct = cloneProductForDuplication(pageData);
+    const duplicatedProductId = String(duplicatedProduct?.id || '').trim();
+
+    if (!duplicatedProductId) {
+      throw new Error('Failed to create a duplicate product draft.');
+    }
+
+    setPageData(duplicatedProduct);
+    setOriginalPageData({});
+    setSelectedProductId(duplicatedProductId);
+    setSaveError(null);
+
+    return duplicatedProduct;
+  }, [pageData]);
+
   // Get all collected data
   const getAllData = useCallback(() => {
     return pageData;
@@ -814,6 +900,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
         // Save/create actions
         handleProductSave,
         createNewProduct,
+        duplicateSelectedProduct,
         deleteProductById,
 
         // Utility getters

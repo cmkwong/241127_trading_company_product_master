@@ -9,7 +9,6 @@ import Main_SupplierServices from './Services/Main_SupplierServices';
 import SupplierSidebar from './AllSupplierList/SupplierSidebar';
 import Main_SupplierBasicInfo from './SupplierBasicInfo/Main_SupplierBasicInfo';
 import DeleteBtn from '../../common/Buttons/DeleteBtn';
-import bottomBarDeleteStyles from '../../common/Buttons/BottomBarDeleteAction.module.css';
 import { useSupplierContext } from '../../../store/SupplierContext';
 
 const SupplierMasterContent = ({ onSelectSupplier }) => {
@@ -44,7 +43,7 @@ const SupplierMasterContent = ({ onSelectSupplier }) => {
 const Main_SupplierMaster = () => {
   const [selectedSupplier, setSelectedSupplier] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const { pageData, getAllSuppliers, deleteSupplierById } =
+  const { pageData, getAllSuppliers, deleteSupplierById, createNewSupplier } =
     useSupplierContext();
 
   const supplierId = String(pageData?.id || '').trim();
@@ -89,6 +88,9 @@ const Main_SupplierMaster = () => {
       onSave={onSaveSupplier}
       saveButtonText="Save Supplier"
       successMessage="Supplier saved successfully!"
+      onCreate={createNewSupplier}
+      createButtonText="Add Supplier"
+      showCreateButton
       leftBottomAction={
         <DeleteBtn
           text={isDeleting ? 'Deleting...' : 'Delete Supplier'}
@@ -96,7 +98,6 @@ const Main_SupplierMaster = () => {
           disabled={!supplierId || !hasPersistedSupplier || isDeleting}
           title="Delete supplier"
           ariaLabel="Delete supplier"
-          className={bottomBarDeleteStyles.bottomBarDeleteAction}
         />
       }
       initialData={

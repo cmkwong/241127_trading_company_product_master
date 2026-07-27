@@ -8,7 +8,6 @@ const PurchaseRequestSidebar = ({
   searchValue = '',
   onSearchChange,
   onSelectRow,
-  onCreate,
   getItemTitle,
   getItemRows,
 }) => {
@@ -22,9 +21,7 @@ const PurchaseRequestSidebar = ({
         onSearchChange={onSearchChange}
         onClearSearch={() => onSearchChange?.('')}
         searchPlaceholder="Search purchase requests..."
-        onCreate={onCreate}
-        createButtonTitle="Create New Purchase Request"
-        createButtonAriaLabel="Create New Purchase Request"
+        showCreateButton={false}
         noResultsMessage="No purchase requests found"
         getItemId={(item) => toSafeString(item?.id)}
         getItemTitle={getItemTitle}

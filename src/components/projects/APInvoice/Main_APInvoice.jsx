@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { apiDelete, apiGet, apiPatch, apiPost } from '../../../utils/crud';
 import { useAuthContext } from '../../../store/AuthContext';
 import DeleteBtn from '../../common/Buttons/DeleteBtn';
-import bottomBarDeleteStyles from '../../common/Buttons/BottomBarDeleteAction.module.css';
 import Main_Dropdown from '../../common/InputOptions/Dropdown/Main_Dropdown';
 import APInvoiceSavePageContainer from './Container/APInvoiceSavePageContainer';
 import APInvoiceSidebar from './APInvoiceList/APInvoiceSidebar';
@@ -761,18 +760,12 @@ const Main_APInvoice = () => {
       dryRunAction={getApInvoiceDryRunData}
       saveButtonText="Save AP Invoice"
       successMessage="AP invoice saved successfully!"
-      leftOfDryRunAction={
-        <button
-          type="button"
-          className={styles.previewButton}
-          onClick={handlePreview}
-          disabled={!draft || isPreparingPreview}
-        >
-          {isPreparingPreview
-            ? 'Preparing Preview...'
-            : 'Preview / Print AP Invoice (A4 PDF)'}
-        </button>
-      }
+      onCreate={handleCreate}
+      createButtonText="Add AP Invoice"
+      showCreateButton
+      onPrint={handlePreview}
+      isPrinting={isPreparingPreview}
+      showPrintButton
       leftBottomAction={
         <DeleteBtn
           text={isDeleting ? 'Deleting...' : 'Delete AP Invoice'}
@@ -780,7 +773,6 @@ const Main_APInvoice = () => {
           disabled={!draft?.id || isDeleting}
           title="Delete selected AP invoice"
           ariaLabel="Delete selected AP invoice"
-          className={bottomBarDeleteStyles.bottomBarDeleteAction}
         />
       }
     >
@@ -791,7 +783,6 @@ const Main_APInvoice = () => {
           searchValue={sidebarSearch}
           onSearchChange={setSidebarSearch}
           onSelectRow={handleSelectRow}
-          onCreate={handleCreate}
           supplierNameById={supplierNameById}
         />
 

@@ -134,8 +134,18 @@ const TopBar = ({ title, activeView, onViewChange }) => {
     <div className={styles.topBarShell}>
       <div className={styles.topBar}>
         <div className={styles.leftSection}>
-          <div className={styles.titleWrap}>
-            <div className={styles.title}>{title || 'Product Master'}</div>
+          <div className={styles.brand} aria-label="Rivolx">
+            <div className={styles.brandIconWrap}>
+              <img
+                className={styles.brandIcon}
+                src="/assets/watermark_pure_logo.png"
+                alt=""
+              />
+            </div>
+            <div className={styles.brandText}>
+              <span className={styles.brandName}>RIVOLX</span>
+              <span className={styles.brandTagline}>Your Pets Our Passion</span>
+            </div>
           </div>
           <div className={styles.navLinks}>
             <button

@@ -7,7 +7,6 @@ const APInvoiceSidebar = ({
   searchValue,
   onSearchChange,
   onSelectRow,
-  onCreate,
   supplierNameById = new Map(),
 }) => {
   const getItemTitle = (row) => {
@@ -74,9 +73,7 @@ const APInvoiceSidebar = ({
         searchValue={searchValue}
         onSearchChange={onSearchChange}
         searchPlaceholder="Search AP invoices..."
-        onCreate={onCreate}
-        createButtonTitle="Create New AP Invoice"
-        createButtonAriaLabel="Create New AP Invoice"
+        showCreateButton={false}
         noResultsMessage="No AP invoices found"
         getItemId={(row) => row?.id}
         getItemTitle={getItemTitle}

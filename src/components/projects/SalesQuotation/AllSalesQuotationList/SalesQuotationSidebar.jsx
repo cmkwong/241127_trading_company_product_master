@@ -51,7 +51,6 @@ const SalesQuotationSidebar = ({
   quotations = [],
   selectedQuotationId,
   onSelectQuotation,
-  onCreateQuotation,
   isCollapsed,
   onToggleCollapse,
   customerOptions = [],
@@ -345,9 +344,7 @@ const SalesQuotationSidebar = ({
           onSelectSearchHistory={handleSelectSearchHistory}
           onClearSearch={() => setSearchTerm('')}
           searchPlaceholder="Search sales quotations..."
-          onCreate={onCreateQuotation}
-          createButtonTitle="Create New Sales Quotation"
-          createButtonAriaLabel="Create New Sales Quotation"
+          showCreateButton={false}
           noResultsMessage="No sales quotations found"
           getItemId={(quotation) => quotation.id}
           getItemTitle={getQuotationTitle}

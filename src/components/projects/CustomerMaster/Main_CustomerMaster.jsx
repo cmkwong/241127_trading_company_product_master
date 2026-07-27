@@ -8,14 +8,13 @@ import Main_CustomerAddresses from './Addresses/Main_CustomerAddresses';
 import Main_CustomerContacts from './Contacts/Main_CustomerContacts';
 import Main_CustomerImages from './Images/Main_CustomerImages';
 import DeleteBtn from '../../common/Buttons/DeleteBtn';
-import bottomBarDeleteStyles from '../../common/Buttons/BottomBarDeleteAction.module.css';
 import { useCustomerContext } from '../../../store/CustomerContext';
 import styles from './Main_CustomerMaster.module.css';
 
 const Main_CustomerMaster = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const { pageData, getAllCustomers, deleteCustomerById } =
+  const { pageData, getAllCustomers, deleteCustomerById, createNewCustomer } =
     useCustomerContext();
 
   const customerId = String(pageData?.id || '').trim();
@@ -60,6 +59,9 @@ const Main_CustomerMaster = () => {
       onSave={onSaveCustomer}
       saveButtonText="Save Customer"
       successMessage="Customer saved successfully!"
+      onCreate={createNewCustomer}
+      createButtonText="Add Customer"
+      showCreateButton
       leftBottomAction={
         <DeleteBtn
           text={isDeleting ? 'Deleting...' : 'Delete Customer'}
@@ -67,7 +69,6 @@ const Main_CustomerMaster = () => {
           disabled={!customerId || !hasPersistedCustomer || isDeleting}
           title="Delete customer"
           ariaLabel="Delete customer"
-          className={bottomBarDeleteStyles.bottomBarDeleteAction}
         />
       }
     >

@@ -1,0 +1,31 @@
+.flow {
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+  flex-shrink: 0; /* not allowed to shrink */
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  box-sizing: border-box;
+}
+
+.flow > * {
+  min-width: 0;
+}
+
+/* Direct Frame children form equal-width columns in a horizontal Frame. */
+.horizontal > .flow {
+  flex: 1 1 0;
+  width: auto !important;
+}
+
+/* Direct Frame children form equal-height columns in a vertical Frame. */
+.vertical > .flow {
+  flex: 1 1 0;
+  height: auto !important;
+}
+
+/* An explicit alignment controls nested Flows on the parent cross axis. */
+.hasExplicitAlignment > .flow {
+  align-self: auto;
+}

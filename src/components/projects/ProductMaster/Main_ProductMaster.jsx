@@ -3,7 +3,7 @@ import Main_Pack from './Packing/Main_Pack';
 import styles from './Main_ProductMaster.module.css';
 import Main_ProductName from './ProductName/Main_ProductName';
 import Main_Category from './Categories/Main_Category';
-import Main_Supplier from './Customization/Main_Customization';
+import Main_Customization from './Customization/Main_Customization';
 import Main_ProductLink from './ProductLink/Main_ProductLink';
 import Main_AlibabaLink from './AlibabaLink/Main_AlibabaLink';
 import Main_Remark from './Remarks/Main_Remark';
@@ -14,10 +14,9 @@ import Main_ProductImages from './ProductImages/Main_ProductImages';
 import Main_Keywords from './Keywords/Main_Keywords';
 import ProductMasterSavePageContainer from './Container/ProductMasterSavePageContainer';
 import Main_ProductCosts from './ProductCosts/Main_ProductCosts';
-import VerticalLayout from '../../common/Layouts/VerticalLayout';
-import SplitLayout from '../../common/Layouts/SplitLayout';
 import DeleteBtn from '../../common/Buttons/DeleteBtn';
 import { useProductContext } from '../../../store/ProductContext';
+import Frame from '../../common/Layouts/Frame';
 
 const Main_ProductMaster = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -175,22 +174,26 @@ const Main_ProductMaster = () => {
           </button>
 
           <div className={`${styles.inputSide} ${styles.withIconOverlay}`}>
-            <SplitLayout>
-              <VerticalLayout>
+            <Frame direction="horizontal" gap={12} alignment="Top left">
+              <Frame direction="vertical" gap={12}>
                 <Main_ProductName />
                 <Main_Category />
                 <Main_Keywords />
-              </VerticalLayout>
-              <VerticalLayout>
+              </Frame>
+              <Frame>
                 <Main_AlibabaLink />
-              </VerticalLayout>
-            </SplitLayout>
-            <Main_ProductLink />
+              </Frame>
+            </Frame>
 
+            <Main_ProductLink />
             <Main_ProductImages />
-            <Main_Supplier />
+
+            <Main_Customization />
+
             <Main_Pack />
+
             <Main_CertificateData />
+
             <Main_ProductCosts />
             <Main_Remark />
           </div>

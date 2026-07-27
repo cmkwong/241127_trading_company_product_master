@@ -1,4 +1,5 @@
 import { useState, cloneElement, Children, useEffect } from 'react';
+import Frame from '../Layouts/Frame';
 import styles from './ControlRowBtn.module.css';
 import AddNewBtn from './AddNewBtn';
 import { v4 as uuidv4 } from 'uuid';
@@ -17,6 +18,9 @@ const ControlRowBtn = (props) => {
     onRowsReorder,
     initialRowCount = 1,
     draggableRows = false,
+    className = '',
+    direction = 'vertical',
+    ...flowProps
   } = props;
 
   const [draggedRowId, setDraggedRowId] = useState(null);
@@ -166,10 +170,14 @@ const ControlRowBtn = (props) => {
   );
 
   return (
-    <div
-      className={`${styles.controlRowWrapper} ${
+    <Frame
+      className={`${styles.controlRowWrapper} ${className} ${
         isDragging ? styles.controlRowWrapperDragging : ''
       }`}
+      direction={direction}
+      width="fill container"
+      gap={12}
+      {...flowProps}
     >
       {rows.length === 0 ? (
         <div className={styles.emptyRowMessage}>No rows added</div>
@@ -243,7 +251,7 @@ const ControlRowBtn = (props) => {
         text="Add Row"
         aria-label="Add row"
       />
-    </div>
+    </Frame>
   );
 };
 

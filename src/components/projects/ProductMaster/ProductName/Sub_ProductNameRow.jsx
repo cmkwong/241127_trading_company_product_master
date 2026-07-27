@@ -4,6 +4,7 @@ import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
 import styles from './Sub_ProductNameRow.module.css';
 import { useMasterContext } from '../../../../store/MasterContext';
 import { useProductContext } from '../../../../store/ProductContext';
+import Frame from '../../../common/Layouts/Frame';
 
 const defaultProductName = [
   'Elizabeth Collar Pet Grooming Shield Anti Bite Collar Dog Necklace Cat Neck Shame Collar',
@@ -60,7 +61,7 @@ const Sub_ProductNameRow = (props) => {
   };
 
   return (
-    <>
+    <Frame direction="horizontal" gap="auto" className={styles.rowContainer}>
       <div ref={inputRef} className={styles.inputWrapper}>
         <Main_Suggest
           defaultSuggestions={defaultProductName}
@@ -75,7 +76,7 @@ const Sub_ProductNameRow = (props) => {
           onChange={handleTypeChange}
         />
       </div>
-    </>
+    </Frame>
   );
 };
 

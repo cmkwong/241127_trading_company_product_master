@@ -92,6 +92,7 @@ const Main_ProductName = () => {
   return (
     <Main_InputContainer label="Product Names">
       <ControlRowBtn
+        direction="vertical"
         rowIds={rowIds}
         onRowIdsChange={handleRowIdsChange}
         onRowAdd={handleRowAdd}

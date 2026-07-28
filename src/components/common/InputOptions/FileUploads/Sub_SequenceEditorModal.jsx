@@ -29,14 +29,29 @@ const Sub_SequenceEditorModal = ({
   onToggleSelectAll = () => {},
   showToggleSelectButton = false,
   onToggleSelect = () => {},
+  showRemoveSelectedButton = false,
+  onRemoveSelected = () => {},
+  disableRemoveSelected = false,
   showWatermarkToggle = false,
   applyWatermarkOnDownload = true,
   onToggleApplyWatermark = () => {},
   selectionLabel = 'images',
+  showSequencePreviewPanel = false,
+  previewItems = [],
   dropZoneProps,
   children,
 }) => {
   const [showSortMenu, setShowSortMenu] = useState(false);
+
+  const formatFileSize = (bytes) => {
+    const numericBytes = Number(bytes);
+    if (!Number.isFinite(numericBytes) || numericBytes <= 0) return '';
+    if (numericBytes < 1024) return `${numericBytes} B`;
+    if (numericBytes < 1024 * 1024) {
+      return `${(numericBytes / 1024).toFixed(1)} KB`;
+    }
+    return `${(numericBytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
 
   if (!isOpen) return null;
 
@@ -129,6 +144,26 @@ const Sub_SequenceEditorModal = ({
                     className={styles.tableCellIcon16}
                     aria-hidden="true"
                   />
+                </button>
+              )}
+              {showRemoveSelectedButton && (
+                <button
+                  type="button"
+                  className={`${styles.sequenceEditorIconBtn} ${styles.sequenceEditorToolbarIconBtn}`}
+                  onClick={onRemoveSelected}
+                  title="Remove selected"
+                  aria-label="Remove selected"
+                  disabled={disableRemoveSelected}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    className={styles.tableCellIcon16}
+                    aria-hidden="true"
+                  >
+                    <path d="M9 3h6l1 2h5v2h-2v13a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V7H3V5h5l1-2zm8 4H7v13h10V7zm-7 3h2v8h-2v-8zm4 0h2v8h-2v-8z" />
+                  </svg>
                 </button>
               )}
               {showDownloadButton && (
@@ -233,6 +268,69 @@ const Sub_SequenceEditorModal = ({
           </button>
         </div>
       </div>
+
+      {showSequencePreviewPanel && (
+        <aside
+          className={styles.sequencePreviewFloatingWindow}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className={styles.sequencePreviewPanel}>
+            <div className={styles.sequencePreviewHeader}>
+              <span className={styles.sequencePreviewTitle}>
+                Description Preview
+              </span>
+              <span
+                className={styles.sequencePreviewCounter}
+              >{`${previewItems.length} items`}</span>
+            </div>
+
+            <div className={styles.sequencePreviewList}>
+              {previewItems.length === 0 && (
+                <div className={styles.sequencePreviewEmpty}>
+                  No images to preview.
+                </div>
+              )}
+
+              {previewItems.map((item, itemIndex) => (
+                <article
+                  key={item?.id || `${item?.name || 'preview'}-${itemIndex}`}
+                  className={styles.sequencePreviewCard}
+                >
+                  <div className={styles.sequencePreviewImageWrap}>
+                    {item?.url ? (
+                      <img
+                        src={item.url}
+                        alt={item?.name || `Preview ${itemIndex + 1}`}
+                        className={styles.sequencePreviewImage}
+                      />
+                    ) : (
+                      <div className={styles.sequencePreviewImagePlaceholder}>
+                        No Preview
+                      </div>
+                    )}
+                  </div>
+
+                  {/* <div className={styles.sequencePreviewMeta}>
+                    <div
+                      className={styles.sequencePreviewName}
+                      title={item?.name || ''}
+                    >
+                      {item?.name || `Image ${itemIndex + 1}`}
+                    </div>
+                    <div className={styles.sequencePreviewInfoRow}>
+                      <span>{`${itemIndex + 1} / ${previewItems.length}`}</span>
+                      {formatFileSize(item?.size) && <span>•</span>}
+                      {formatFileSize(item?.size) && (
+                        <span>{formatFileSize(item?.size)}</span>
+                      )}
+                    </div>
+                  </div> */}
+                </article>
+              ))}
+            </div>
+          </div>
+        </aside>
+      )}
     </div>,
     document.body,
   );
@@ -255,10 +353,23 @@ Sub_SequenceEditorModal.propTypes = {
   onToggleSelectAll: PropTypes.func,
   showToggleSelectButton: PropTypes.bool,
   onToggleSelect: PropTypes.func,
+  showRemoveSelectedButton: PropTypes.bool,
+  onRemoveSelected: PropTypes.func,
+  disableRemoveSelected: PropTypes.bool,
   showWatermarkToggle: PropTypes.bool,
   applyWatermarkOnDownload: PropTypes.bool,
   onToggleApplyWatermark: PropTypes.func,
   selectionLabel: PropTypes.string,
+  showSequencePreviewPanel: PropTypes.bool,
+  previewItems: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+      name: PropTypes.string,
+      size: PropTypes.number,
+      type: PropTypes.string,
+      url: PropTypes.string,
+    }),
+  ),
   dropZoneProps: PropTypes.shape({
     onFileSelect: PropTypes.func.isRequired,
     isDragging: PropTypes.bool.isRequired,

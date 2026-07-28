@@ -378,13 +378,27 @@
 }
 
 .expandedPreview.imagePreviewContainer {
+  display: block;
+  width: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
   min-height: 800px;
   max-height: 800px;
 }
 
 .expandedPreview.filePreviewContainer {
+  display: block;
+  width: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
   min-height: 800px;
   max-height: 800px;
+}
+
+.expandedPreview.imagePreviewContainer > *,
+.expandedPreview.filePreviewContainer > * {
+  width: 100%;
+  min-width: 0;
 }
 
 .fullSizeContainer {

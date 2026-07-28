@@ -259,6 +259,9 @@ const Sub_FileItem = ({
       return;
     }
 
+    // Sequence editor uses a dedicated RHS preview panel.
+    if (editMode) return;
+
     if (!hoverPreview || !hoverImageUrl) return;
 
     const rect = event.currentTarget.getBoundingClientRect();
@@ -424,6 +427,7 @@ const Sub_FileItem = ({
         {showHoverPreview &&
           hoverPreview &&
           hoverImageUrl &&
+          !editMode &&
           !(compactImage && !editMode) &&
           createPortal(
             <div className={styles.hoverPreviewPopup} style={hoverPreviewStyle}>

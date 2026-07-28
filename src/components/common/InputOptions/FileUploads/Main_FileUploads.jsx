@@ -559,6 +559,12 @@ const Main_FileUploads = (props) => {
   const allSelected =
     selectableIds.length > 0 &&
     selectableIds.every((id) => selectedSet.has(id));
+  const selectedCount = useMemo(
+    () => selectableIds.filter((id) => selectedSet.has(id)).length,
+    [selectableIds, selectedSet],
+  );
+  const showRemoveSelectedButton = mode === 'image' && showSelectionTools;
+  const disableRemoveSelectedButton = disabled || selectedCount === 0;
 
   const handleToggleSelectAll = useCallback(() => {
     if (allSelected) {
@@ -590,6 +596,28 @@ const Main_FileUploads = (props) => {
     });
   }, [selectableIds]);
 
+  const handleRemoveSelected = useCallback(() => {
+    if (disabled) return;
+
+    const selectedIdSet = new Set(
+      (selectedFileIds || []).map((id) => String(id || '').trim()),
+    );
+    if (selectedIdSet.size === 0) return;
+
+    const oldFiles = [...fileList];
+    const updatedFiles = oldFiles.filter(
+      (file) => !selectedIdSet.has(String(file?.id || '').trim()),
+    );
+
+    if (updatedFiles.length === oldFiles.length) return;
+
+    setFileList(updatedFiles);
+    setSelectedFileIds(
+      updatedFiles.map((file) => String(file?.id || '').trim()).filter(Boolean),
+    );
+    onChange(oldFiles, updatedFiles);
+  }, [disabled, selectedFileIds, fileList, onChange]);
+
   const resolveFileUrl = useCallback(
     (rawUrl) => {
       const url = String(rawUrl || '').trim();
@@ -617,6 +645,18 @@ const Main_FileUploads = (props) => {
     },
     [fileUrlBase],
   );
+
+  const sequencePreviewItems = useMemo(() => {
+    if (mode !== 'image') return [];
+
+    return (fileList || []).map((file, index) => ({
+      id: file?.id || `sequence-preview-${index}`,
+      name: String(file?.name || file?.image_name || `Image ${index + 1}`),
+      size: Number(file?.size || 0),
+      type: String(file?.type || ''),
+      url: resolveFileUrl(file?.url),
+    }));
+  }, [mode, fileList, resolveFileUrl]);
 
   const renderFileItems = (forModal = false) => {
     return fileList.map((file, index) => (
@@ -698,11 +738,14 @@ const Main_FileUploads = (props) => {
         onDownload={handleDownload}
         showSelectAll={showSelectionTools}
         allSelected={allSelected}
-        selectedCount={selectedFileIds.length}
+        selectedCount={selectedCount}
         totalCount={selectableIds.length}
         onToggleSelectAll={handleToggleSelectAll}
         showToggleSelectButton={showSelectionTools}
         onToggleSelect={handleToggleSelect}
+        showRemoveSelectedButton={showRemoveSelectedButton}
+        onRemoveSelected={handleRemoveSelected}
+        disableRemoveSelected={disableRemoveSelectedButton}
         showWatermarkToggle={showDownloadButton && mode === 'image'}
         applyWatermarkOnDownload={applyWatermarkOnDownload}
         onToggleApplyWatermark={() =>
@@ -735,17 +778,22 @@ const Main_FileUploads = (props) => {
           onSortBySize={handleSortBySize}
           showSelectAll={showSelectionTools}
           allSelected={allSelected}
-          selectedCount={selectedFileIds.length}
+          selectedCount={selectedCount}
           totalCount={selectableIds.length}
           onToggleSelectAll={handleToggleSelectAll}
           showToggleSelectButton={showSelectionTools}
           onToggleSelect={handleToggleSelect}
+          showRemoveSelectedButton={showRemoveSelectedButton}
+          onRemoveSelected={handleRemoveSelected}
+          disableRemoveSelected={disableRemoveSelectedButton}
           showWatermarkToggle={showDownloadButton && mode === 'image'}
           applyWatermarkOnDownload={applyWatermarkOnDownload}
           onToggleApplyWatermark={() =>
             setApplyWatermarkOnDownload((prev) => !prev)
           }
           selectionLabel={mode === 'image' ? 'images' : 'files'}
+          showSequencePreviewPanel={mode === 'image'}
+          previewItems={sequencePreviewItems}
           dropZoneProps={{
             ...baseDropZoneProps,
             testIdPrefix: `${testIdPrefix}-sequence-editor`,

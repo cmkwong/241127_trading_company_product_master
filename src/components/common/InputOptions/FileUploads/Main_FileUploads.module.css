@@ -259,6 +259,11 @@
   background: #f4f8ff;
 }
 
+.sequenceEditorIconBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 .sequenceEditorIconBtn svg {
   width: 15px;
   height: 15px;
@@ -338,6 +343,7 @@
   align-items: center;
   /* justify-content: center; */
   padding: 16px;
+  gap: 12px;
 }
 
 .sequenceEditorModal {
@@ -413,6 +419,120 @@
 .sequenceEditorBody {
   padding: 24px 32px;
   overflow: auto;
+}
+
+.sequencePreviewFloatingWindow {
+  z-index: 10031;
+  display: flex;
+  pointer-events: auto;
+  height: 100%;
+}
+
+.sequencePreviewPanel {
+  width: 100%;
+  height: 100%;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.sequencePreviewHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.sequencePreviewTitle {
+  color: #0c1e36;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.sequencePreviewCounter {
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.sequencePreviewList {
+  flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  background: #f8fafc;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 0px;
+}
+
+.sequencePreviewEmpty {
+  color: #94a3b8;
+  font-size: 12px;
+  text-align: center;
+  padding: 16px 8px;
+}
+
+.sequencePreviewCard {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.sequencePreviewImageWrap {
+  width: 100%;
+  height: auto;
+  /* min-height: 180px; */
+  /* max-height: 320px; */
+  /* background: #e3f3e3; */
+  /* display: flex; */
+  /* align-items: center; */
+  /* justify-content: center; */
+}
+
+.sequencePreviewImage {
+  width: 100%;
+  height: auto;
+  /* max-height: 320px; */
+  object-fit: contain;
+  display: block;
+}
+
+.sequencePreviewImagePlaceholder {
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.sequencePreviewMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+}
+
+.sequencePreviewName {
+  color: #0c1e36;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sequencePreviewInfoRow {
+  color: #94a3b8;
+  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .sequenceEditorFooter {
@@ -494,6 +614,19 @@
   align-content: flex-start;
   flex-wrap: wrap;
   gap: 12px;
+}
+
+@media (max-width: 1180px) {
+  .sequenceEditorModal {
+    width: min(960px, 100%);
+  }
+
+  .sequencePreviewFloatingWindow {
+    position: static;
+    width: min(960px, calc(100vw - 32px));
+    max-height: 38vh;
+    margin: 0 auto;
+  }
 }
 
 .noFiles {

@@ -15,23 +15,26 @@
 
 .uploadArea {
   width: 100%;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
   align-items: stretch;
 }
 
 .uploadCell {
+  width: 100%;
   min-width: 0;
   display: flex;
+  flex-direction: column;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.uploadCell:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
 }
 
 .uploadCell > * {
   width: 100%;
-}
-
-@media (max-width: 900px) {
-  .uploadArea {
-    grid-template-columns: 1fr;
-  }
 }

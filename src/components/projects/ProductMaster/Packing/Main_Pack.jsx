@@ -279,6 +279,7 @@ const Main_Pack = () => {
             <div className={styles.uploadsCell}>
               <Main_FileUploads
                 mode="file"
+                maxFiles={5}
                 maxSizeInMB={20}
                 label=""
                 compact

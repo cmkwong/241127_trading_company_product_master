@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  gap: 16px;
+  gap: 5px;
   height: 100%;
   min-height: 0;
 }
@@ -76,6 +76,63 @@
 
 .tableCellHeaderRow .headerActions {
   gap: 8px;
+}
+
+.figmaImageHeaderRow {
+  min-height: 20px;
+}
+
+.figmaImageHeaderRow .label {
+  margin-bottom: 0;
+  color: #0c1e36;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.figmaImageHeaderActions {
+  gap: 6px;
+}
+
+.figmaImageToolbar {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.figmaSelectAllWrap {
+  gap: 0;
+}
+
+.figmaSelectAllWrap input {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  border: 1.5px solid #64748b;
+  accent-color: #64748b;
+}
+
+.figmaHeaderTool {
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #64748b;
+  box-shadow: none;
+}
+
+.figmaHeaderTool:hover:not(:disabled) {
+  background: transparent;
+  color: #334155;
+}
+
+.figmaImageCounter {
+  color: #475569;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: normal;
 }
 
 .selectAllWrap {
@@ -284,17 +341,16 @@
 }
 
 .sequenceEditorModal {
-  width: min(1100px, 100%);
-  min-height: 400px;
-  max-height: calc(100vh - 32px);
+  width: min(960px, 100%);
+  min-height: 640px;
+  max-height: calc(100vh - 40px);
   background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 24px 64px rgba(15, 23, 42, 0.3);
-  border: 1px solid #dbe3f2;
+  border-radius: 16px;
+  box-shadow: 0 12px 32px -4px rgba(12, 30, 54, 0.15);
+  border: 1px solid #e2e8f0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 14px;
+  gap: 0;
   overflow: hidden;
 }
 
@@ -302,41 +358,128 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 24px;
+  padding: 24px 32px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.sequenceEditorHeaderText {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
 }
 
 .sequenceEditorTitle {
-  font-size: 14px;
+  font-size: 32px;
   font-weight: 700;
-  color: #111827;
+  line-height: 1.2;
+  color: #0c1e36;
+}
+
+.sequenceEditorToolbarArea {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sequenceEditorToolbar {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sequenceEditorToolbarIconBtn {
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #64748b;
+  box-shadow: none;
+}
+
+.sequenceEditorToolbarIconBtn:hover:not(:disabled) {
+  background: transparent;
+  color: #334155;
+}
+
+.sequenceEditorToolbarStaticIcon {
+  cursor: default;
+}
+
+.sequenceEditorBody {
+  padding: 24px 32px;
+  overflow: auto;
+}
+
+.sequenceEditorFooter {
+  margin-top: auto;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 32px;
+}
+
+.sequenceEditorFooterLeft {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.sequenceEditorFooterTotal {
+  color: #0c1e36;
+}
+
+.sequenceEditorFooterDot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #94a3b8;
+}
+
+.sequenceEditorFooterSelected {
+  color: #fa6d5a;
+}
+
+.sequenceEditorHint {
+  font-size: 14px;
+  color: #64748b;
 }
 
 .sequenceEditorCloseBtn {
-  border: 1px solid #d1d5db;
+  border: 1px solid #64748b;
   background: #fff;
-  border-radius: 6px;
-  padding: 6px 12px;
-  font-size: 12px;
+  border-radius: 12px;
+  min-width: 106px;
+  height: 52px;
+  padding: 0 20px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #64748b;
   cursor: pointer;
 }
 
 .sequenceEditorCloseBtn:hover {
-  background: #f9fafb;
-}
-
-.sequenceEditorHint {
-  font-size: 12px;
-  color: #475569;
+  background: #f8fafc;
 }
 
 .sequenceGridCompact,
 .sequenceGridEditor {
-  display: grid;
-  grid-auto-flow: row;
-  align-content: start;
-  justify-content: start;
+  display: flex;
+  align-content: center;
+  justify-content: center;
   gap: 6px;
   width: max-content;
+  flex-direction: row;
+  align-items: center;
 }
 
 .sequenceGridCompact {
@@ -344,7 +487,13 @@
 }
 
 .sequenceGridEditor {
-  grid-template-columns: repeat(5, max-content);
+  width: 100%;
+  max-width: 100%;
+  justify-content: flex-start;
+  align-items: flex-start;
+  align-content: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .noFiles {

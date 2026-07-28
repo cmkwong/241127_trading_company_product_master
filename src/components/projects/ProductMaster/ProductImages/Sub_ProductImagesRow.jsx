@@ -226,6 +226,7 @@ const Sub_ProductImagesRow = (props) => {
             <div className={styles.uploadCell} key={subType.id}>
               <Main_FileUploads
                 mode={isVideoType ? 'file' : 'image'}
+                figmaStrip
                 label={subType.name}
                 showDownloadButton
                 downloadEndpoint="http://localhost:3001/api/v1/trade_business/products/data/images/download"
@@ -258,6 +259,7 @@ const Sub_ProductImagesRow = (props) => {
           <div className={styles.uploadCell} key={`main-${mainImageTypeId}`}>
             <Main_FileUploads
               mode="image"
+              figmaStrip
               label={`${
                 (productImageType || []).find(
                   (type) => type.id === mainImageTypeId,

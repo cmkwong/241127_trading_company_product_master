@@ -353,11 +353,6 @@ const Main_SalesShippingDetails = ({
   const handleUpsertShippingDetail = useCallback(
     (row, patch) => {
       const rowId = String(row?.id || uuidv4());
-      const hasDimensionChanges =
-        patch &&
-        (Object.prototype.hasOwnProperty.call(patch, 'length') ||
-          Object.prototype.hasOwnProperty.call(patch, 'width') ||
-          Object.prototype.hasOwnProperty.call(patch, 'height'));
 
       const nextRow = {
         id: rowId,
@@ -366,18 +361,6 @@ const Main_SalesShippingDetails = ({
         ...row,
         ...patch,
       };
-
-      if (hasDimensionChanges) {
-        const computedLengthPlusGirth = computeMinimizedLengthPlusGirth(
-          nextRow?.length,
-          nextRow?.width,
-          nextRow?.height,
-        );
-
-        nextRow.length_plus_girth = Number.isFinite(computedLengthPlusGirth)
-          ? Number(computedLengthPlusGirth.toFixed(2))
-          : '';
-      }
 
       const exists = shippingDetails.some((item) => item.id === rowId);
       if (exists) {
@@ -463,7 +446,6 @@ const Main_SalesShippingDetails = ({
         height: '',
         qty: 0,
         weight: '',
-        length_plus_girth: '',
         chargeable_divisor: DEFAULT_VOLUMETRIC_DIVISOR,
         min_chargeable_weight: MIN_CHARGEABLE_WEIGHT_PER_CARTON,
         details: '',

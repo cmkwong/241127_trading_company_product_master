@@ -38,6 +38,7 @@ const Main_FileUploads = (props) => {
     compact = false,
     compactButtonText = 'Select Files',
     tableCell = false,
+    figmaStrip = false,
     hoverPreview = false,
     enableSequenceEditor = true,
     showDownloadButton = true,
@@ -540,7 +541,12 @@ const Main_FileUploads = (props) => {
   // Determine item type label for DropZone
   const itemType = mode === 'image' ? 'images' : 'files';
   const testIdPrefix = mode === 'image' ? 'image' : 'file';
-  const canOpenSequenceEditor = enableSequenceEditor && mode === 'image';
+  const isFigmaStripMode = !tableCell && (mode === 'image' || figmaStrip);
+  const canOpenSequenceEditor =
+    enableSequenceEditor && (mode === 'image' || tableCell || isFigmaStripMode);
+  const showSelectionTools =
+    showDownloadButton &&
+    (mode === 'image' || (mode === 'file' && (tableCell || isFigmaStripMode)));
   const showHeaderEditorButton = canOpenSequenceEditor;
   const selectableIds = useMemo(
     () => fileList.map((file) => String(file?.id || '').trim()).filter(Boolean),
@@ -626,13 +632,13 @@ const Main_FileUploads = (props) => {
         fullSizePreview={forModal || !showMaxItemsNotice}
         editMode={forModal}
         compactImage={forModal ? false : tableCell}
+        largeImage={forModal ? false : mode === 'image' && isFigmaStripMode}
+        largeFile={forModal ? false : mode === 'file' && isFigmaStripMode}
         compactFile={!forModal && tableCell && mode === 'file'}
         hoverPreview={forModal ? true : hoverPreview}
         isSelected={selectedSet.has(String(file?.id || '').trim())}
         onToggleSelected={
-          showDownloadButton && mode === 'image'
-            ? () => handleToggleSelectFile(file?.id)
-            : null
+          showSelectionTools ? () => handleToggleSelectFile(file?.id) : null
         }
       />
     ));
@@ -682,18 +688,20 @@ const Main_FileUploads = (props) => {
         label={label || (tableCell ? 'Files' : '')}
         tableCell={tableCell}
         isImageMode={mode === 'image'}
+        figmaStrip={isFigmaStripMode}
+        selectionLabel={mode === 'image' ? 'images' : 'files'}
         maxFiles={maxFiles}
         canOpenSequenceEditor={showHeaderEditorButton}
         onOpenSequenceEditor={() => setIsSequenceEditorOpen(true)}
         showDownloadButton={showDownloadButton}
         isDownloading={isDownloading}
         onDownload={handleDownload}
-        showSelectAll={showDownloadButton && mode === 'image'}
+        showSelectAll={showSelectionTools}
         allSelected={allSelected}
         selectedCount={selectedFileIds.length}
         totalCount={selectableIds.length}
         onToggleSelectAll={handleToggleSelectAll}
-        showToggleSelectButton={showDownloadButton && mode === 'image'}
+        showToggleSelectButton={showSelectionTools}
         onToggleSelect={handleToggleSelect}
         showWatermarkToggle={showDownloadButton && mode === 'image'}
         applyWatermarkOnDownload={applyWatermarkOnDownload}
@@ -708,6 +716,7 @@ const Main_FileUploads = (props) => {
           testIdPrefix={testIdPrefix}
           compact={compact}
           tableCell={tableCell}
+          figmaImageStrip={isFigmaStripMode}
         >
           {renderPreviewContent(false)}
         </Main_DropZone>
@@ -724,18 +733,19 @@ const Main_FileUploads = (props) => {
           canSort={fileList.length > 1 && !disabled}
           onSortByName={handleSortByName}
           onSortBySize={handleSortBySize}
-          showSelectAll={showDownloadButton && mode === 'image'}
+          showSelectAll={showSelectionTools}
           allSelected={allSelected}
           selectedCount={selectedFileIds.length}
           totalCount={selectableIds.length}
           onToggleSelectAll={handleToggleSelectAll}
-          showToggleSelectButton={showDownloadButton && mode === 'image'}
+          showToggleSelectButton={showSelectionTools}
           onToggleSelect={handleToggleSelect}
           showWatermarkToggle={showDownloadButton && mode === 'image'}
           applyWatermarkOnDownload={applyWatermarkOnDownload}
           onToggleApplyWatermark={() =>
             setApplyWatermarkOnDownload((prev) => !prev)
           }
+          selectionLabel={mode === 'image' ? 'images' : 'files'}
           dropZoneProps={{
             ...baseDropZoneProps,
             testIdPrefix: `${testIdPrefix}-sequence-editor`,
@@ -769,6 +779,7 @@ Main_FileUploads.propTypes = {
   compact: PropTypes.bool,
   compactButtonText: PropTypes.string,
   tableCell: PropTypes.bool,
+  figmaStrip: PropTypes.bool,
   hoverPreview: PropTypes.bool,
   enableSequenceEditor: PropTypes.bool,
   showDownloadButton: PropTypes.bool,

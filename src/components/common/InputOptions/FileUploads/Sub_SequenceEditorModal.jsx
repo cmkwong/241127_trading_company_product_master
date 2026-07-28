@@ -4,6 +4,14 @@ import { createPortal } from 'react-dom';
 import styles from './Main_FileUploads.module.css';
 import Main_DropZone from '../DropZone/Main_DropZone';
 
+const FIGMA_SORT_ICON = '/assets/figma/modal-sort.svg';
+const FIGMA_DESELECT_ICON = '/assets/figma/table-deselect.svg';
+const FIGMA_DOWNLOAD_ICON = '/assets/figma/table-download.svg';
+const FIGMA_EDIT_ICON = '/assets/figma/table-edit.svg';
+const FIGMA_WATERMARK_ICON_INACTIVE =
+  '/assets/figma/table-watermark-inactive.svg';
+const FIGMA_WATERMARK_ICON_ACTIVE = '/assets/figma/table-watermark-active.svg';
+
 const Sub_SequenceEditorModal = ({
   isOpen,
   onClose,
@@ -24,6 +32,7 @@ const Sub_SequenceEditorModal = ({
   showWatermarkToggle = false,
   applyWatermarkOnDownload = true,
   onToggleApplyWatermark = () => {},
+  selectionLabel = 'images',
   dropZoneProps,
   children,
 }) => {
@@ -39,134 +48,190 @@ const Sub_SequenceEditorModal = ({
         onClick={(e) => e.stopPropagation()}
       >
         <div className={styles.sequenceEditorHeader}>
-          <div className={styles.sequenceEditorTitle}>Edit Image Sequence</div>
-          <div className={styles.headerActions}>
-            {showSelectAll && (
-              <label className={styles.selectAllWrap}>
-                <input
-                  type="checkbox"
-                  checked={Boolean(allSelected)}
-                  onChange={onToggleSelectAll}
-                />
-                <span>{`All (${selectedCount}/${totalCount})`}</span>
-              </label>
-            )}
-            {showToggleSelectButton && (
-              <button
-                type="button"
-                className={styles.sequenceEditorIconBtn}
-                onClick={onToggleSelect}
-                title="Toggle selection"
-                aria-label="Toggle selection"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  aria-hidden="true"
-                >
-                  <path d="M3 5h11v2H3V5zm0 6h11v2H3v-2zm0 6h7v2H3v-2zm15.59-4L21 15.41 16.41 20 12 15.59 14.41 13l2 2 5-5z" />
-                </svg>
-              </button>
-            )}
-            {showDownloadButton && (
-              <>
-                {showWatermarkToggle && (
-                  <label className={styles.selectAllWrap}>
-                    <input
-                      type="checkbox"
-                      checked={Boolean(applyWatermarkOnDownload)}
-                      onChange={onToggleApplyWatermark}
+          <div className={styles.sequenceEditorHeaderText}>
+            <div className={styles.sequenceEditorTitle}>
+              Edit Image Sequence
+            </div>
+            <div className={styles.sequenceEditorHint}>
+              Drag to reorder, click to select {selectionLabel}
+            </div>
+          </div>
+
+          <div className={styles.sequenceEditorToolbarArea}>
+            <div className={styles.sequenceEditorToolbar}>
+              {showSortButton && (
+                <div className={styles.sortActionWrap}>
+                  <button
+                    type="button"
+                    className={`${styles.sequenceEditorIconBtn} ${styles.sequenceEditorToolbarIconBtn}`}
+                    title="Sort"
+                    aria-label="Sort"
+                    onClick={() => setShowSortMenu((prev) => !prev)}
+                    disabled={!canSort}
+                  >
+                    <img
+                      src={FIGMA_SORT_ICON}
+                      alt=""
+                      className={styles.tableCellIcon14}
+                      aria-hidden="true"
                     />
-                    <span>Watermark</span>
-                  </label>
-                )}
+                  </button>
+
+                  {showSortMenu && canSort && (
+                    <div className={styles.sortMenu}>
+                      <button
+                        type="button"
+                        className={styles.sortMenuItem}
+                        onClick={() => {
+                          onSortByName();
+                          setShowSortMenu(false);
+                        }}
+                      >
+                        Sort by Name
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.sortMenuItem}
+                        onClick={() => {
+                          onSortBySize();
+                          setShowSortMenu(false);
+                        }}
+                      >
+                        Sort by File Size
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {showSelectAll && (
+                <label
+                  className={`${styles.selectAllWrap} ${styles.figmaSelectAllWrap}`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={Boolean(allSelected)}
+                    onChange={onToggleSelectAll}
+                  />
+                </label>
+              )}
+              {showToggleSelectButton && (
                 <button
                   type="button"
-                  className={styles.sequenceEditorIconBtn}
-                  onClick={onDownload}
-                  title={isDownloading ? 'Downloading...' : 'Download selected'}
-                  aria-label={
-                    isDownloading ? 'Downloading...' : 'Download selected'
-                  }
-                  disabled={isDownloading}
+                  className={`${styles.sequenceEditorIconBtn} ${styles.sequenceEditorToolbarIconBtn}`}
+                  onClick={onToggleSelect}
+                  title="Toggle selection"
+                  aria-label="Toggle selection"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
+                  <img
+                    src={FIGMA_DESELECT_ICON}
+                    alt=""
+                    className={styles.tableCellIcon16}
                     aria-hidden="true"
-                  >
-                    <path d="M5 20h14v-2H5v2zm7-18v9.17l3.59-3.58L17 9l-5 5-5-5 1.41-1.41L11 11.17V2h1z" />
-                  </svg>
+                  />
                 </button>
-              </>
-            )}
-
-            {showSortButton && (
-              <div className={styles.sortActionWrap}>
-                <button
-                  type="button"
-                  className={styles.sequenceEditorIconBtn}
-                  title="Sort"
-                  aria-label="Sort"
-                  onClick={() => setShowSortMenu((prev) => !prev)}
-                  disabled={!canSort}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    aria-hidden="true"
-                  >
-                    <path d="M3 18h6v-2H3v2zm0-5h12v-2H3v2zm0-7v2h18V6H3zm14 10-3 3h2v3h2v-3h2l-3-3z" />
-                  </svg>
-                </button>
-
-                {showSortMenu && canSort && (
-                  <div className={styles.sortMenu}>
+              )}
+              {showDownloadButton && (
+                <>
+                  {showWatermarkToggle && (
                     <button
                       type="button"
-                      className={styles.sortMenuItem}
-                      onClick={() => {
-                        onSortByName();
-                        setShowSortMenu(false);
-                      }}
+                      className={`${styles.sequenceEditorIconBtn} ${styles.sequenceEditorToolbarIconBtn} ${styles.watermarkToggleButton} ${
+                        applyWatermarkOnDownload
+                          ? styles.watermarkToggleActive
+                          : styles.watermarkToggleInactive
+                      }`}
+                      onClick={onToggleApplyWatermark}
+                      title={
+                        applyWatermarkOnDownload
+                          ? 'Disable watermark'
+                          : 'Enable watermark'
+                      }
+                      aria-label={
+                        applyWatermarkOnDownload
+                          ? 'Disable watermark'
+                          : 'Enable watermark'
+                      }
+                      aria-pressed={Boolean(applyWatermarkOnDownload)}
                     >
-                      Sort by Name
+                      <img
+                        src={
+                          applyWatermarkOnDownload
+                            ? FIGMA_WATERMARK_ICON_ACTIVE
+                            : FIGMA_WATERMARK_ICON_INACTIVE
+                        }
+                        alt=""
+                        className={styles.tableCellIcon16}
+                        aria-hidden="true"
+                      />
                     </button>
-                    <button
-                      type="button"
-                      className={styles.sortMenuItem}
-                      onClick={() => {
-                        onSortBySize();
-                        setShowSortMenu(false);
-                      }}
-                    >
-                      Sort by File Size
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
+                  )}
+                  <button
+                    type="button"
+                    className={`${styles.sequenceEditorIconBtn} ${styles.sequenceEditorToolbarIconBtn}`}
+                    onClick={onDownload}
+                    title={
+                      isDownloading ? 'Downloading...' : 'Download selected'
+                    }
+                    aria-label={
+                      isDownloading ? 'Downloading...' : 'Download selected'
+                    }
+                    disabled={isDownloading}
+                  >
+                    <img
+                      src={FIGMA_DOWNLOAD_ICON}
+                      alt=""
+                      className={styles.tableCellIcon16}
+                      aria-hidden="true"
+                    />
+                  </button>
+                </>
+              )}
 
-            <button
-              type="button"
-              className={styles.sequenceEditorCloseBtn}
-              onClick={onClose}
-            >
-              Close
-            </button>
+              <span
+                className={`${styles.sequenceEditorIconBtn} ${styles.sequenceEditorToolbarIconBtn} ${styles.sequenceEditorToolbarStaticIcon}`}
+                aria-hidden="true"
+              >
+                <img
+                  src={FIGMA_EDIT_ICON}
+                  alt=""
+                  className={styles.tableCellIcon14}
+                  aria-hidden="true"
+                />
+              </span>
+            </div>
+
+            <span
+              className={styles.figmaImageCounter}
+            >{`${selectedCount} / ${totalCount}`}</span>
           </div>
         </div>
 
-        <div className={styles.sequenceEditorHint}>
-          Drag thumbnails to reorder. Hover to preview image.
+        <div className={styles.sequenceEditorBody}>
+          <Main_DropZone {...dropZoneProps} expandedPreview>
+            {children}
+          </Main_DropZone>
         </div>
 
-        <Main_DropZone {...dropZoneProps} expandedPreview>
-          {children}
-        </Main_DropZone>
+        <div className={styles.sequenceEditorFooter}>
+          <div className={styles.sequenceEditorFooterLeft}>
+            <span
+              className={styles.sequenceEditorFooterTotal}
+            >{`${totalCount} ${selectionLabel}`}</span>
+            <span className={styles.sequenceEditorFooterDot} />
+            <span
+              className={styles.sequenceEditorFooterSelected}
+            >{`${selectedCount} selected`}</span>
+          </div>
+
+          <button
+            type="button"
+            className={styles.sequenceEditorCloseBtn}
+            onClick={onClose}
+          >
+            Close
+          </button>
+        </div>
       </div>
     </div>,
     document.body,
@@ -193,6 +258,7 @@ Sub_SequenceEditorModal.propTypes = {
   showWatermarkToggle: PropTypes.bool,
   applyWatermarkOnDownload: PropTypes.bool,
   onToggleApplyWatermark: PropTypes.func,
+  selectionLabel: PropTypes.string,
   dropZoneProps: PropTypes.shape({
     onFileSelect: PropTypes.func.isRequired,
     isDragging: PropTypes.bool.isRequired,
@@ -210,6 +276,7 @@ Sub_SequenceEditorModal.propTypes = {
     compact: PropTypes.bool,
     compactButtonText: PropTypes.string,
     tableCell: PropTypes.bool,
+    figmaImageStrip: PropTypes.bool,
   }).isRequired,
   children: PropTypes.node,
 };

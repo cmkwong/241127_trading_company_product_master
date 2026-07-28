@@ -7,6 +7,8 @@ import {
   getDragPlacementUiState,
 } from '../../../../utils/dragUi';
 
+const FIGMA_VIDEO_PLAY_ICON = '/assets/figma/video-play.svg';
+
 /**
  * Sub_FileItem Component
  * Displays an individual file/image item with its details and a remove button
@@ -23,6 +25,8 @@ const Sub_FileItem = ({
   fullSizePreview = false,
   editMode = false,
   compactImage = false,
+  largeImage = false,
+  largeFile = false,
   compactFile = false,
   hoverPreview = false,
   isSelected = true,
@@ -62,6 +66,17 @@ const Sub_FileItem = ({
     if (shouldCreateHoverObjectUrl) return URL.createObjectURL(file.file);
     return '';
   }, [file, resolvedFileUrl, shouldCreateHoverObjectUrl]);
+
+  const isVideoFile = useMemo(() => {
+    const ext = String(file?.name || '')
+      .split('.')
+      .pop()
+      ?.toLowerCase();
+    return (
+      String(file?.type || '').startsWith('video/') ||
+      ['mp4', 'webm', 'ogg', 'mov', 'm4v'].includes(ext)
+    );
+  }, [file?.name, file?.type]);
 
   useEffect(() => {
     return () => {
@@ -161,12 +176,7 @@ const Sub_FileItem = ({
   if (dropPosition === 'right') shiftClass = styles.shiftLeft;
 
   const handlePreview = () => {
-    const ext = (file?.name || '').split('.').pop()?.toLowerCase();
-    const isVideo =
-      (file?.type || '').startsWith('video/') ||
-      ['mp4', 'webm', 'ogg', 'mov', 'm4v'].includes(ext);
-
-    if (isVideo) {
+    if (isVideoFile) {
       const videoUrl =
         file.url || (file.file ? URL.createObjectURL(file.file) : '');
       if (!videoUrl) return;
@@ -223,8 +233,33 @@ const Sub_FileItem = ({
     setShowHoverPreview(false);
   };
 
+  const showCompactNameTooltip = (event) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    setHoverPreviewStyle({
+      position: 'fixed',
+      left: rect.left + rect.width / 2,
+      top: rect.top - 8,
+      zIndex: 10100,
+    });
+    setShowHoverPreview(true);
+  };
+
   const showHoverImagePreview = (event) => {
-    if (!hoverPreview || !isImagePreview || !hoverImageUrl) return;
+    if (!isImagePreview) return;
+
+    if (compactImage && !editMode) {
+      const rect = event.currentTarget.getBoundingClientRect();
+      setHoverPreviewStyle({
+        position: 'fixed',
+        left: rect.left + rect.width / 2,
+        top: rect.top - 8,
+        zIndex: 10100,
+      });
+      setShowHoverPreview(true);
+      return;
+    }
+
+    if (!hoverPreview || !hoverImageUrl) return;
 
     const rect = event.currentTarget.getBoundingClientRect();
     const popupWidth = editMode ? 560 : 320;
@@ -299,7 +334,7 @@ const Sub_FileItem = ({
       <div
         className={`${styles.imagePreview} ${
           fullSizePreview ? styles.fullSizePreview : ''
-        } ${editMode ? styles.editorModePreview : ''} ${compactImage ? styles.compactImagePreview : ''} ${shiftClass} ${
+        } ${editMode ? styles.editorModePreview : ''} ${compactImage ? styles.compactImagePreview : ''} ${largeImage ? styles.largeImagePreview : ''} ${shiftClass} ${
           compactImage && isSelected ? styles.compactImageSelected : ''
         } ${
           isDraggedItem ? styles.draggingItem : ''
@@ -312,7 +347,13 @@ const Sub_FileItem = ({
         onDragOver={handleDragOver}
         onDrop={handleDrop}
         onClick={handlePreview}
-        onMouseEnter={showHoverImagePreview}
+        onMouseEnter={(event) => {
+          if (compactImage && !editMode) {
+            showCompactNameTooltip(event);
+            return;
+          }
+          showHoverImagePreview(event);
+        }}
         onMouseLeave={hideHoverPreview}
         title={onMove ? 'Drag to reorder' : name}
         style={{ cursor: 'pointer' }}
@@ -326,6 +367,8 @@ const Sub_FileItem = ({
             type="button"
             className={`${styles.selectCircle} ${
               isSelected ? styles.selectCircleActive : ''
+            } ${largeImage ? styles.largeSelectSquare : ''} ${
+              largeImage && isSelected ? styles.largeSelectSquareActive : ''
             }`}
             onClick={(e) => {
               e.stopPropagation();
@@ -334,7 +377,7 @@ const Sub_FileItem = ({
             aria-label={isSelected ? 'Deselect image' : 'Select image'}
             title={isSelected ? 'Deselect image' : 'Select image'}
           >
-            {isSelected ? '✓' : ''}
+            {isSelected && !largeImage ? '✓' : ''}
           </button>
         )}
 
@@ -364,8 +407,24 @@ const Sub_FileItem = ({
         )}
 
         {showHoverPreview &&
+          compactImage &&
+          !editMode &&
+          createPortal(
+            <div
+              className={styles.compactNameTooltip}
+              style={hoverPreviewStyle}
+            >
+              <div className={styles.compactNameTooltipBubble} title={name}>
+                {name}
+              </div>
+            </div>,
+            document.body,
+          )}
+
+        {showHoverPreview &&
           hoverPreview &&
           hoverImageUrl &&
+          !(compactImage && !editMode) &&
           createPortal(
             <div className={styles.hoverPreviewPopup} style={hoverPreviewStyle}>
               <div
@@ -392,7 +451,11 @@ const Sub_FileItem = ({
   // Render as file list item
   return (
     <li
-      className={`${styles.fileItem} ${compactFile ? styles.compactFileItem : ''} ${shiftClass} ${
+      className={`${styles.fileItem} ${compactFile ? styles.compactFileItem : ''} ${
+        largeFile ? styles.largeFileItem : ''
+      } ${
+        compactFile && isSelected ? styles.compactFileSelected : ''
+      } ${shiftClass} ${
         isDraggedItem ? styles.draggingItem : ''
       } ${isDropTarget ? styles.dragOverItem : ''}`}
       draggable={!disabled && !!onMove}
@@ -402,6 +465,12 @@ const Sub_FileItem = ({
       onDragLeave={handleDragLeave}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
+      onMouseEnter={(event) => {
+        if (compactFile || largeFile) {
+          showCompactNameTooltip(event);
+        }
+      }}
+      onMouseLeave={hideHoverPreview}
       title={onMove ? 'Drag to reorder' : file.name}
       onClick={handlePreview}
       style={{ cursor: 'pointer' }}
@@ -410,19 +479,59 @@ const Sub_FileItem = ({
         <div className={styles.dropReadyBadge}>{DRAG_READY_LABEL}</div>
       )}
 
+      {(compactFile || largeFile) && typeof onToggleSelected === 'function' && (
+        <button
+          type="button"
+          className={`${
+            compactFile
+              ? styles.compactFileSelectDot
+              : styles.largeFileSelectSquare
+          } ${
+            isSelected
+              ? compactFile
+                ? styles.compactFileSelectDotActive
+                : styles.largeFileSelectSquareActive
+              : ''
+          }`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleSelected();
+          }}
+          aria-label={isSelected ? 'Deselect file' : 'Select file'}
+          title={isSelected ? 'Deselect file' : 'Select file'}
+        />
+      )}
+
+      {largeFile && (
+        <div className={styles.largeFileIndexBadge}>{index + 1}</div>
+      )}
+
       <div className={styles.fileInfo}>
         <div className={styles.fileIcon}>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-          >
-            <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" />
-          </svg>
+          {largeFile && isVideoFile ? (
+            <img
+              src={FIGMA_VIDEO_PLAY_ICON}
+              alt=""
+              className={styles.largeVideoIcon}
+              aria-hidden="true"
+            />
+          ) : (
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+            >
+              <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" />
+            </svg>
+          )}
         </div>
         <div className={styles.fileDetails}>
-          <div className={styles.fileName}>{file.name}</div>
-          <div className={styles.fileSize}>{formatFileSize(file.size)}</div>
+          <div className={styles.fileName}>
+            {largeFile && isVideoFile ? 'Upload Video' : file.name}
+          </div>
+          {!largeFile && (
+            <div className={styles.fileSize}>{formatFileSize(file.size)}</div>
+          )}
         </div>
       </div>
       <button
@@ -442,6 +551,17 @@ const Sub_FileItem = ({
           <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
         </svg>
       </button>
+
+      {showHoverPreview &&
+        compactFile &&
+        createPortal(
+          <div className={styles.compactNameTooltip} style={hoverPreviewStyle}>
+            <div className={styles.compactNameTooltipBubble} title={file.name}>
+              {file.name}
+            </div>
+          </div>,
+          document.body,
+        )}
     </li>
   );
 };
@@ -463,6 +583,8 @@ Sub_FileItem.propTypes = {
   fullSizePreview: PropTypes.bool,
   editMode: PropTypes.bool,
   compactImage: PropTypes.bool,
+  largeImage: PropTypes.bool,
+  largeFile: PropTypes.bool,
   compactFile: PropTypes.bool,
   hoverPreview: PropTypes.bool,
   isSelected: PropTypes.bool,

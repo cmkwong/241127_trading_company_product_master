@@ -2,6 +2,8 @@ import { useRef } from 'react';
 import PropTypes from 'prop-types';
 import styles from './Main_DropZone.module.css';
 
+const FIGMA_LARGE_ADD_ICON = '/assets/figma/large-add-plus.svg';
+
 /**
  * Main_DropZone Component
  * A unified drop zone component that can be used for both image and file uploads
@@ -33,6 +35,7 @@ const Main_DropZone = ({
   compact = false,
   compactButtonText = 'Select',
   tableCell = false,
+  figmaImageStrip = false,
   expandedPreview = false,
 }) => {
   const fileInputRef = useRef(null);
@@ -111,6 +114,7 @@ const Main_DropZone = ({
   const canAddMoreItems = items.length < maxFiles;
   const hasItems = items.length > 0;
   const showUploadPrompt = canAddMoreItems || showMaxItemsNotice;
+  const renderPromptFirst = tableCell || figmaImageStrip;
 
   const renderUploadPrompt = () => {
     if (!showUploadPrompt) return null;
@@ -124,21 +128,25 @@ const Main_DropZone = ({
       >
         {canAddMoreItems && (
           <div className={styles.uploadIcon}>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-            >
-              {hasItems || tableCell ? (
-                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-              ) : (
-                <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z" />
-              )}
-            </svg>
+            {figmaImageStrip ? (
+              <img src={FIGMA_LARGE_ADD_ICON} alt="" aria-hidden="true" />
+            ) : (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                {hasItems || tableCell ? (
+                  <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+                ) : (
+                  <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z" />
+                )}
+              </svg>
+            )}
           </div>
         )}
 
-        {canAddMoreItems && (
+        {canAddMoreItems && !figmaImageStrip && (
           <>
             <div className={styles.uploadText}>
               {compact
@@ -179,7 +187,7 @@ const Main_DropZone = ({
         disabled ? styles.disabled : ''
       } ${hasItems ? styles.hasItems : ''} ${
         !showMaxItemsNotice && hasItems ? styles.fullSizeContainer : ''
-      } ${compact ? styles.compact : ''} ${tableCell ? styles.tableCell : ''}`}
+      } ${compact ? styles.compact : ''} ${tableCell ? styles.tableCell : ''} ${figmaImageStrip ? styles.figmaImageStrip : ''}`}
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
       onDragOver={handleDragOver}
@@ -201,7 +209,7 @@ const Main_DropZone = ({
       />
 
       <div className={styles.dropZoneContent}>
-        {tableCell && renderUploadPrompt()}
+        {renderPromptFirst && renderUploadPrompt()}
 
         {/* Show preview/list if we have items and children */}
         {showPreview && hasItems && children && (
@@ -212,13 +220,15 @@ const Main_DropZone = ({
               itemType === 'images' ? styles.imagePreviewContainer : ''
             } ${!showMaxItemsNotice ? styles.fullSizePreviewContainer : ''} ${
               tableCell ? styles.tableCellPreviewRail : ''
+            } ${
+              figmaImageStrip ? styles.figmaImagePreviewRail : ''
             } ${expandedPreview ? styles.expandedPreview : ''}`}
           >
             {children}
           </div>
         )}
 
-        {!tableCell && renderUploadPrompt()}
+        {!renderPromptFirst && renderUploadPrompt()}
       </div>
     </div>
   );
@@ -257,6 +267,7 @@ Main_DropZone.propTypes = {
   compact: PropTypes.bool,
   compactButtonText: PropTypes.string,
   tableCell: PropTypes.bool,
+  figmaImageStrip: PropTypes.bool,
   expandedPreview: PropTypes.bool,
 };
 

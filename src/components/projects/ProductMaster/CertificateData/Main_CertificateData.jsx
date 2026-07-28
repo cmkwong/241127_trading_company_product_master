@@ -1,16 +1,15 @@
 import { useCallback, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
 import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
-import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
+import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
 import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_FileUploads';
 import AddNewBtn from '../../../common/Buttons/AddNewBtn';
-import DeleteBtn from '../../../common/Buttons/DeleteBtn';
-import EditableDataTable from '../../../common/Table/EditableDataTable';
+import RemoveRowBtn from '../../../common/Buttons/RemoveRowBtn';
 import styles from './Main_CertificateData.module.css';
 import { useProductContext } from '../../../../store/ProductContext';
 import { useMasterContext } from '../../../../store/MasterContext';
 import { sortByDisplayOrder } from '../../../../utils/arr';
+import Frame from '../../../common/Layouts/Frame';
 
 const Main_CertificateData = () => {
   const { pageData, upsertProductPageData } = useProductContext();
@@ -123,135 +122,158 @@ const Main_CertificateData = () => {
     [upsertCertificateRow],
   );
 
-  const columns = useMemo(
-    () => [
-      {
-        key: 'certificate_type_id',
-        label: 'Type',
-        sortType: 'string',
-        width: '220px',
-        minWidth: '220px',
-        getSortValue: (row) =>
-          certTypeOptions.find((item) => item.id === row.certificate_type_id)
-            ?.label || '',
-        renderCell: (row) => (
-          <Main_Dropdown
-            defaultOptions={certTypeOptions.map((item) => ({
-              id: item.id,
-              name: item.label,
-            }))}
-            defaultSelectedOption={row.certificate_type_id || ''}
-            onChange={(ov, nv) =>
-              upsertCertificateRow(row, { certificate_type_id: nv })
-            }
-          />
-        ),
-      },
-      {
-        key: 'product_certificate_files',
-        label: 'Certificate Files',
-        sortable: false,
-        width: '440px',
-        minWidth: '360px',
-        renderCell: (row) => {
-          const defaultFiles = sortByDisplayOrder(
-            row.product_certificate_files || [],
-          ).map((file, index) => ({
-            id: file.id || uuidv4(),
-            name: file.file_name || `file_${index + 1}`,
-            size: file.file_size || file._file_size || 0,
-            type:
-              file.file_type || file._file_type || 'application/octet-stream',
-            url: file.file_url || '',
-            display_order: file.display_order,
-          }));
-
-          return (
-            <div className={styles.uploadsCell}>
-              <Main_FileUploads
-                mode="file"
-                label=""
-                compact
-                tableCell
-                compactButtonText="Upload"
-                defaultFiles={defaultFiles}
-                maxFiles={5}
-                maxSizeInMB={2}
-                acceptedTypes={[
-                  'application/pdf',
-                  'application/msword',
-                  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                  'image/jpeg',
-                  'image/jpg',
-                  'image/png',
-                  'image/gif',
-                  'image/webp',
-                  'image/svg+xml',
-                  'image/bmp',
-                  'image/tiff',
-                ]}
-                onChange={(ov, nv) => handleCertificateFilesChange(row, ov, nv)}
-                onError={(errorMessage) => {
-                  console.error(`File upload error: ${errorMessage}`);
-                }}
-              />
-            </div>
-          );
-        },
-      },
-      {
-        key: 'remark',
-        label: 'Remark',
-        sortType: 'string',
-        minWidth: '320px',
-        renderCell: (row) => (
-          <Main_TextField
-            className={styles.cellInput}
-            defaultValue={row.remark || ''}
-            placeholder="Remark"
-            onChange={(ov, nv) => upsertCertificateRow(row, { remark: nv })}
-          />
-        ),
-      },
-      {
-        key: 'actions',
-        label: 'Actions',
-        sortable: false,
-        width: '90px',
-        minWidth: '90px',
-        renderCell: (row) => (
-          <DeleteBtn onClick={() => handleDeleteCertificateRow(row)} />
-        ),
-      },
-    ],
-    [
-      certTypeOptions,
-      upsertCertificateRow,
-      handleCertificateFilesChange,
-      handleDeleteCertificateRow,
-    ],
+  const dropdownCertTypeOptions = useMemo(
+    () =>
+      certTypeOptions.map((item) => ({
+        id: item.id,
+        name: item.label,
+      })),
+    [certTypeOptions],
   );
 
   return (
-    <Main_InputContainer label="Certificates">
-      <div className={styles.tableSection}>
+    <Frame
+      direction="vertical"
+      gap={24}
+      className={styles.cardRoot}
+      horizontal_padding={32}
+      vertical_padding={32}
+    >
+      <Frame
+        direction="horizontal"
+        gap="auto"
+        alignment="center"
+        className={styles.headerRow}
+      >
+        <h3 className={styles.title}>Certificates</h3>
         <div className={styles.actionsBar}>
           <AddNewBtn
             onClick={handleAddCertificateRow}
             text="Add Certificate"
             ariaLabel="Add new certificate"
             title="Add Certificate"
+            className={styles.addActionBtn}
           />
         </div>
+      </Frame>
 
-        <EditableDataTable
-          rows={certificateRows}
-          columns={columns}
-          rowKey="id"
-          emptyMessage="No certificates yet. Click + Add Certificate."
-        />
-      </div>
-    </Main_InputContainer>
+      <Frame direction="vertical" gap={16} className={styles.certificateRows}>
+        {certificateRows.length === 0 ? (
+          <div className={styles.emptyState}>
+            No certificates yet. Click Add Certificate.
+          </div>
+        ) : (
+          certificateRows.map((row, index) => {
+            const defaultFiles = sortByDisplayOrder(
+              row.product_certificate_files || [],
+            ).map((file, fileIndex) => ({
+              id: file.id || uuidv4(),
+              name: file.file_name || `file_${fileIndex + 1}`,
+              size: file.file_size || file._file_size || 0,
+              type:
+                file.file_type || file._file_type || 'application/octet-stream',
+              url: file.file_url || '',
+              display_order: file.display_order,
+            }));
+
+            return (
+              <Frame
+                key={row?.id || `certificate-row-${index}`}
+                direction="vertical"
+                gap={16}
+                className={styles.certificateRowCard}
+                horizontal_padding={16}
+                vertical_padding={16}
+              >
+                <Frame
+                  direction="horizontal"
+                  gap="auto"
+                  alignment="center"
+                  className={styles.rowTools}
+                >
+                  <span className={styles.rowToolsSpacer} aria-hidden="true" />
+                  <RemoveRowBtn
+                    ariaLabel="Delete certificate row"
+                    title="Delete certificate row"
+                    onClick={() => handleDeleteCertificateRow(row)}
+                  />
+                </Frame>
+
+                <div className={styles.certificateTypeField}>
+                  <label className={styles.fieldLabel}>Certificate Type</label>
+                  <div className={styles.dropdownInputWrap}>
+                    <Main_Dropdown
+                      matchParentWidth
+                      defaultOptions={dropdownCertTypeOptions}
+                      defaultSelectedOption={row.certificate_type_id || ''}
+                      onChange={(ov, nv) =>
+                        upsertCertificateRow(row, {
+                          certificate_type_id: nv,
+                        })
+                      }
+                    />
+                  </div>
+                </div>
+
+                <div className={styles.bottomRow}>
+                  <div className={styles.filesBlock}>
+                    <div className={styles.filesUploaderWrap}>
+                      <Main_FileUploads
+                        mode="file"
+                        label=""
+                        compact
+                        tableCell
+                        compactButtonText="Upload"
+                        defaultFiles={defaultFiles}
+                        maxFiles={5}
+                        maxSizeInMB={2}
+                        acceptedTypes={[
+                          'application/pdf',
+                          'application/msword',
+                          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                          'image/jpeg',
+                          'image/jpg',
+                          'image/png',
+                          'image/gif',
+                          'image/webp',
+                          'image/svg+xml',
+                          'image/bmp',
+                          'image/tiff',
+                        ]}
+                        onChange={(ov, nv) =>
+                          handleCertificateFilesChange(row, ov, nv)
+                        }
+                        onError={(errorMessage) => {
+                          console.error(`File upload error: ${errorMessage}`);
+                        }}
+                      />
+                    </div>
+                    <div className={styles.scrollbarTrack}>
+                      <div className={styles.scrollbarThumb} />
+                    </div>
+                  </div>
+
+                  <div className={styles.remarkBlock}>
+                    <label className={styles.fieldLabel}>Remark</label>
+                    <div className={styles.remarkInputWrap}>
+                      <Main_TextArea
+                        defaultValue={row.remark || ''}
+                        placeholder="Add remark..."
+                        rows={2}
+                        resize="none"
+                        onChange={(ov, nv) =>
+                          upsertCertificateRow(row, { remark: nv })
+                        }
+                      />
+                    </div>
+                  </div>
+                </div>
+              </Frame>
+            );
+          })
+        )}
+      </Frame>
+    </Frame>
   );
 };
 

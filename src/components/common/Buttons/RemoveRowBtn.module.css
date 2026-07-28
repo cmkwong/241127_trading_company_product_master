@@ -1,0 +1,39 @@
+.removeRowBtn {
+  width: 30px;
+  height: 30px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #64748b;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    border-color 0.16s ease,
+    background-color 0.16s ease,
+    color 0.16s ease;
+}
+
+.removeRowBtn:hover:not(:disabled) {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+  color: #334155;
+}
+
+.removeRowBtn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.2);
+}
+
+.removeRowBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.removeRowBtnIcon {
+  width: 12px;
+  height: 2px;
+  border-radius: 99px;
+  background: currentColor;
+}

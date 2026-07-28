@@ -1,47 +1,223 @@
-.container {
-  display: flex;
-  flex-direction: column;
+.cardRoot {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.headerRow {
   width: 100%;
-  margin-bottom: 16px;
 }
 
-.label {
-  font-weight: bold;
-  margin-bottom: 8px;
-}
-
-.tableSection {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+.title {
+  margin: 0;
+  color: #0c1e36;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.25;
 }
 
 .actionsBar {
-  display: flex;
+  display: inline-flex;
   justify-content: flex-end;
 }
 
-.cellInput {
+.addActionBtn {
+  align-self: center;
+}
+
+.packingRows {
   width: 100%;
-  min-width: 110px;
-  border: 1px solid #d3dbe7;
-  border-radius: 6px;
-  padding: 0.35rem 0.45rem;
-  font-size: 0.85rem;
-  box-sizing: border-box;
 }
 
-.uploadsCell {
-  min-width: 260px;
-  max-width: 360px;
+.emptyState {
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+  padding: 16px;
+  color: #64748b;
+  font-size: 13px;
+  text-align: center;
+  background: #f8fafc;
 }
 
-.remarkCell {
-  min-width: 260px;
+.packingRowCard {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f8fafc;
 }
 
-.remarkCell :global(textarea) {
-  min-height: 56px;
+.rowTools {
+  width: 100%;
+}
+
+.rowToolsSpacer {
+  display: block;
+  width: 1px;
+  height: 1px;
+}
+
+.dropdownRow {
+  width: 100%;
+}
+
+.dimensionRow {
+  width: 100%;
+}
+
+.fieldBlock {
+  min-width: 0;
+}
+
+.packTypeField {
+  width: 320px;
+  min-width: 320px;
+}
+
+.packReliabilityField {
+  width: 220px;
+  min-width: 220px;
+}
+
+.metricFieldSmall {
+  width: 100px;
+  min-width: 100px;
+}
+
+.metricFieldWide {
+  width: 120px;
+  min-width: 120px;
+}
+
+.fieldLabel {
+  display: block;
+  margin: 0 0 6px;
+  color: #475569;
   font-size: 12px;
-  padding: 6px 8px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.dropdownInputWrap {
+  width: 100%;
+}
+
+.dropdownInputWrap :global(button[class*='dropdown_btn']) {
+  height: 36px;
+  min-height: 36px;
+  border-radius: 8px;
+  background: #ffffff;
+  border-color: #e2e8f0;
+  color: #0c1e36;
+  padding: 8px 10px 8px 12px;
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.dropdownInputWrap :global(button[class*='dropdown_btn']:hover:not(:disabled)) {
+  border-color: #cbd5e1;
+  background: #ffffff;
+}
+
+.dropdownInputWrap :global([class*='selected_text']) {
+  font-weight: 400;
+}
+
+.dropdownInputWrap :global([class*='dropdown_icon']) {
+  opacity: 0.76;
+}
+
+.metricInput {
+  height: 36px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-family: 'JetBrains Mono', Consolas, 'Courier New', monospace;
+  font-size: 13px;
+}
+
+.filesBlock {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filesUploaderWrap {
+  width: 100%;
+}
+
+.filesUploaderWrap :global([class*='tableCellHeaderRow']) {
+  min-height: 20px;
+}
+
+.scrollbarTrack {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: #f1f5f9;
+  overflow: hidden;
+}
+
+.scrollbarThumb {
+  width: 120px;
+  height: 100%;
+  border-radius: 3px;
+  background: #cbd5e1;
+}
+
+.remarkBlock {
+  width: 100%;
+}
+
+.remarkInputWrap :global(textarea) {
+  min-height: 71px;
+  height: 71px;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+@media (max-width: 1040px) {
+  .dropdownRow {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .packTypeField,
+  .packReliabilityField {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .dimensionRow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .metricFieldSmall,
+  .metricFieldWide {
+    width: calc(33.333% - 8px);
+    min-width: 120px;
+  }
+}
+
+@media (max-width: 640px) {
+  .cardRoot {
+    padding: 20px !important;
+  }
+
+  .title {
+    font-size: 16px;
+  }
+
+  .packingRowCard {
+    padding: 12px !important;
+  }
+
+  .metricFieldSmall,
+  .metricFieldWide {
+    width: calc(50% - 6px);
+    min-width: 0;
+  }
 }

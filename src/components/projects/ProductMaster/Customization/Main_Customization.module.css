@@ -1,39 +1,167 @@
-.tableSection {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+.cardRoot {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.headerRow {
+  width: 100%;
+}
+
+.title {
+  margin: 0;
+  color: #0c1e36;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.25;
 }
 
 .actionsBar {
-  display: flex;
+  display: inline-flex;
   justify-content: flex-end;
 }
 
-.cellInput {
+.addActionBtn {
+  align-self: center;
+}
+
+.customizationList {
   width: 100%;
-  min-width: 180px;
-  border: 1px solid #d3dbe7;
-  border-radius: 6px;
-  padding: 0.35rem 0.45rem;
-  font-size: 0.85rem;
-  box-sizing: border-box;
 }
 
-.suggestCell {
-  min-width: 200px;
+.emptyState {
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+  padding: 16px;
+  color: #64748b;
+  font-size: 13px;
+  text-align: center;
+  background: #f8fafc;
 }
 
-.remarkCell {
+.customizationRow {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.rowTools {
+  width: 100%;
+}
+
+.rowToolsSpacer {
+  display: block;
+  width: 1px;
+  height: 1px;
+}
+
+.primaryFieldsRow {
+  width: 100%;
+}
+
+.titleFieldBlock {
+  flex: 1;
+  min-width: 0;
+}
+
+.supplierFieldBlock {
+  width: 220px;
   min-width: 220px;
 }
 
-.remarkCell :global(textarea) {
-  min-height: 56px;
+.fieldLabel {
+  display: block;
+  margin: 0 0 6px;
+  color: #475569;
   font-size: 12px;
-  padding: 6px 8px;
+  font-weight: 600;
+  line-height: 1.2;
 }
 
-.uploadsCell {
-  min-width: 280px;
-  max-width: 420px;
+.fieldInput {
+  height: 36px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.supplierSuggestCell {
+  width: 100%;
+}
+
+.supplierSuggestCell :global([class*='searchIcon']) {
+  display: none;
+}
+
+.supplierSuggestCell :global(input[class*='suggestInput']) {
+  height: 36px;
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
+.suggestionItemWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.suggestionCode {
+  color: #0c1e36;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.suggestionName {
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.remarkFieldBlock {
+  width: 100%;
+}
+
+.remarkInputWrap :global(textarea) {
+  min-height: 60px;
+  height: 60px;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.filesFieldBlock {
+  width: 100%;
+}
+
+@media (max-width: 980px) {
+  .title {
+    font-size: 18px;
+  }
+
+  .primaryFieldsRow {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .supplierFieldBlock {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .cardRoot {
+    padding: 20px !important;
+  }
+
+  .title {
+    font-size: 16px;
+  }
+
+  .customizationRow {
+    padding: 12px !important;
+  }
 }

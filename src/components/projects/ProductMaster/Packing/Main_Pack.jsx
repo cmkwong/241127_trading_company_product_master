@@ -1,16 +1,15 @@
 import { useCallback, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
 import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
 import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
 import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_FileUploads';
 import AddNewBtn from '../../../common/Buttons/AddNewBtn';
-import DeleteBtn from '../../../common/Buttons/DeleteBtn';
-import EditableDataTable from '../../../common/Table/EditableDataTable';
+import RemoveRowBtn from '../../../common/Buttons/RemoveRowBtn';
 import { useProductContext } from '../../../../store/ProductContext';
 import { useMasterContext } from '../../../../store/MasterContext';
 import { sortByDisplayOrder } from '../../../../utils/arr';
+import Frame from '../../../common/Layouts/Frame';
 import styles from './Main_Pack.module.css';
 
 const Main_Pack = () => {
@@ -141,216 +140,267 @@ const Main_Pack = () => {
   );
 
   const parseNumericInput = (value) => {
+    if (value === '' || value === null || value === undefined) {
+      return '';
+    }
+
     const parsed = Number.parseFloat(value);
-    return Number.isNaN(parsed) ? 0 : parsed;
+    return Number.isNaN(parsed) ? '' : parsed;
   };
 
-  const columns = useMemo(
-    () => [
-      {
-        key: 'packing_type_id',
-        label: 'Package Type',
-        sortType: 'string',
-        getSortValue: (row) =>
-          packTypeOptions.find((item) => item.id === row.packing_type_id)
-            ?.label || '',
-        renderCell: (row) => (
-          <Main_Dropdown
-            defaultOptions={packTypeOptions.map((item) => ({
-              id: item.id,
-              name: item.label,
-            }))}
-            defaultSelectedOption={row.packing_type_id || ''}
-            onChange={(ov, nv) => upsertPackRow(row, { packing_type_id: nv })}
-          />
-        ),
-      },
-      {
-        key: 'packing_reliability_type_id',
-        label: 'Pack Reliability',
-        sortType: 'string',
-        getSortValue: (row) =>
-          reliabilityTypeOptions.find(
-            (item) => item.id === row.packing_reliability_type_id,
-          )?.label || '',
-        renderCell: (row) => (
-          <Main_Dropdown
-            defaultOptions={reliabilityTypeOptions.map((item) => ({
-              id: item.id,
-              name: item.label,
-            }))}
-            defaultSelectedOption={row.packing_reliability_type_id || ''}
-            onChange={(ov, nv) =>
-              upsertPackRow(row, { packing_reliability_type_id: nv })
-            }
-          />
-        ),
-      },
-      {
-        key: 'length',
-        label: 'L',
-        sortType: 'number',
-        renderCell: (row) => (
-          <Main_TextField
-            className={styles.cellInput}
-            defaultValue={String(row.length ?? '')}
-            placeholder="Length"
-            onChange={(ov, nv) =>
-              upsertPackRow(row, { length: parseNumericInput(nv) })
-            }
-          />
-        ),
-      },
-      {
-        key: 'width',
-        label: 'W',
-        sortType: 'number',
-        renderCell: (row) => (
-          <Main_TextField
-            className={styles.cellInput}
-            defaultValue={String(row.width ?? '')}
-            placeholder="Width"
-            onChange={(ov, nv) =>
-              upsertPackRow(row, { width: parseNumericInput(nv) })
-            }
-          />
-        ),
-      },
-      {
-        key: 'height',
-        label: 'H',
-        sortType: 'number',
-        renderCell: (row) => (
-          <Main_TextField
-            className={styles.cellInput}
-            defaultValue={String(row.height ?? '')}
-            placeholder="Height"
-            onChange={(ov, nv) =>
-              upsertPackRow(row, { height: parseNumericInput(nv) })
-            }
-          />
-        ),
-      },
-      {
-        key: 'quantity',
-        label: 'Qty',
-        sortType: 'number',
-        renderCell: (row) => (
-          <Main_TextField
-            className={styles.cellInput}
-            defaultValue={String(row.quantity ?? '')}
-            placeholder="Quantity"
-            onChange={(ov, nv) =>
-              upsertPackRow(row, { quantity: parseNumericInput(nv) })
-            }
-          />
-        ),
-      },
-      {
-        key: 'weight',
-        label: 'Weight (kg)',
-        sortType: 'number',
-        renderCell: (row) => (
-          <Main_TextField
-            className={styles.cellInput}
-            defaultValue={String(row.weight ?? '')}
-            placeholder="Weight"
-            onChange={(ov, nv) =>
-              upsertPackRow(row, { weight: parseNumericInput(nv) })
-            }
-          />
-        ),
-      },
-      {
-        key: 'product_packing_files',
-        label: 'Files',
-        sortable: false,
-        renderCell: (row) => {
-          const fileDefaults = sortByDisplayOrder(
-            row.product_packing_files || [],
-          ).map((file) => ({
-            id: file.id,
-            url: file.file_url ?? file.image_url,
-            name: file.file_name ?? file.image_name,
-            display_order: file.display_order,
-          }));
+  const dropdownPackTypeOptions = useMemo(
+    () =>
+      packTypeOptions.map((item) => ({
+        id: item.id,
+        name: item.label,
+      })),
+    [packTypeOptions],
+  );
 
-          return (
-            <div className={styles.uploadsCell}>
-              <Main_FileUploads
-                mode="file"
-                maxFiles={5}
-                maxSizeInMB={20}
-                label=""
-                compact
-                tableCell
-                hoverPreview
-                compactButtonText="Upload"
-                defaultFiles={fileDefaults}
-                onChange={(ov, nv) => handlePackFilesChange(row, ov, nv)}
-                onError={(error) => {
-                  console.error('Packing file upload error:', error);
-                }}
-              />
-            </div>
-          );
-        },
-      },
-      {
-        key: 'remark',
-        label: 'Remark',
-        sortable: false,
-        minWidth: '280px',
-        renderCell: (row) => (
-          <div className={styles.remarkCell}>
-            <Main_TextArea
-              defaultValue={row.remark || ''}
-              placeholder="Remark"
-              rows={2}
-              resize="none"
-              onChange={(ov, nv) => upsertPackRow(row, { remark: nv })}
-            />
-          </div>
-        ),
-      },
-      {
-        key: 'actions',
-        label: 'Actions',
-        sortable: false,
-        renderCell: (row) => (
-          <DeleteBtn onClick={() => handleDeletePackRow(row)} />
-        ),
-      },
-    ],
-    [
-      packTypeOptions,
-      reliabilityTypeOptions,
-      upsertPackRow,
-      handlePackFilesChange,
-      handleDeletePackRow,
-    ],
+  const dropdownReliabilityOptions = useMemo(
+    () =>
+      reliabilityTypeOptions.map((item) => ({
+        id: item.id,
+        name: item.label,
+      })),
+    [reliabilityTypeOptions],
   );
 
   return (
-    <Main_InputContainer label="Packing Information">
-      <div className={styles.tableSection}>
+    <Frame
+      direction="vertical"
+      gap={24}
+      className={styles.cardRoot}
+      horizontal_padding={32}
+      vertical_padding={32}
+    >
+      <Frame
+        direction="horizontal"
+        gap="auto"
+        alignment="center"
+        className={styles.headerRow}
+      >
+        <h3 className={styles.title}>Packing Information</h3>
         <div className={styles.actionsBar}>
           <AddNewBtn
             onClick={handleAddPackRow}
             text="Add Packing"
             ariaLabel="Add new packing"
             title="Add Packing"
+            className={styles.addActionBtn}
           />
         </div>
+      </Frame>
 
-        <EditableDataTable
-          rows={packRows}
-          columns={columns}
-          rowKey="id"
-          emptyMessage="No packing rows yet. Click + Add Packing."
-        />
-      </div>
-    </Main_InputContainer>
+      <Frame direction="vertical" gap={16} className={styles.packingRows}>
+        {packRows.length === 0 ? (
+          <div className={styles.emptyState}>
+            No packing rows yet. Click Add Packing.
+          </div>
+        ) : (
+          packRows.map((row, index) => {
+            const fileDefaults = sortByDisplayOrder(
+              row.product_packing_files || [],
+            ).map((file) => ({
+              id: file.id,
+              url: file.file_url ?? file.image_url,
+              name: file.file_name ?? file.image_name,
+              display_order: file.display_order,
+            }));
+
+            return (
+              <Frame
+                key={row?.id || `packing-row-${index}`}
+                direction="vertical"
+                gap={16}
+                className={styles.packingRowCard}
+                horizontal_padding={16}
+                vertical_padding={16}
+              >
+                <Frame
+                  direction="horizontal"
+                  gap="auto"
+                  alignment="center"
+                  className={styles.rowTools}
+                >
+                  <span className={styles.rowToolsSpacer} aria-hidden="true" />
+                  <RemoveRowBtn
+                    ariaLabel="Delete packing row"
+                    title="Delete packing row"
+                    onClick={() => handleDeletePackRow(row)}
+                  />
+                </Frame>
+
+                <Frame
+                  direction="horizontal"
+                  gap={12}
+                  alignment="top left"
+                  className={styles.dropdownRow}
+                >
+                  <div
+                    className={`${styles.fieldBlock} ${styles.packTypeField}`}
+                  >
+                    <label className={styles.fieldLabel}>Package Type</label>
+                    <div className={styles.dropdownInputWrap}>
+                      <Main_Dropdown
+                        matchParentWidth
+                        defaultOptions={dropdownPackTypeOptions}
+                        defaultSelectedOption={row.packing_type_id || ''}
+                        onChange={(ov, nv) =>
+                          upsertPackRow(row, { packing_type_id: nv })
+                        }
+                      />
+                    </div>
+                  </div>
+
+                  <div
+                    className={`${styles.fieldBlock} ${styles.packReliabilityField}`}
+                  >
+                    <label className={styles.fieldLabel}>
+                      Pack Reliability
+                    </label>
+                    <div className={styles.dropdownInputWrap}>
+                      <Main_Dropdown
+                        matchParentWidth
+                        defaultOptions={dropdownReliabilityOptions}
+                        defaultSelectedOption={
+                          row.packing_reliability_type_id || ''
+                        }
+                        onChange={(ov, nv) =>
+                          upsertPackRow(row, {
+                            packing_reliability_type_id: nv,
+                          })
+                        }
+                      />
+                    </div>
+                  </div>
+                </Frame>
+
+                <Frame
+                  direction="horizontal"
+                  gap={12}
+                  alignment="top left"
+                  className={styles.dimensionRow}
+                >
+                  <div
+                    className={`${styles.fieldBlock} ${styles.metricFieldSmall}`}
+                  >
+                    <label className={styles.fieldLabel}>L</label>
+                    <Main_TextField
+                      type="number"
+                      className={styles.metricInput}
+                      defaultValue={String(row.length ?? '')}
+                      placeholder="L"
+                      onChange={(ov, nv) =>
+                        upsertPackRow(row, { length: parseNumericInput(nv) })
+                      }
+                    />
+                  </div>
+
+                  <div
+                    className={`${styles.fieldBlock} ${styles.metricFieldSmall}`}
+                  >
+                    <label className={styles.fieldLabel}>W</label>
+                    <Main_TextField
+                      type="number"
+                      className={styles.metricInput}
+                      defaultValue={String(row.width ?? '')}
+                      placeholder="W"
+                      onChange={(ov, nv) =>
+                        upsertPackRow(row, { width: parseNumericInput(nv) })
+                      }
+                    />
+                  </div>
+
+                  <div
+                    className={`${styles.fieldBlock} ${styles.metricFieldSmall}`}
+                  >
+                    <label className={styles.fieldLabel}>H</label>
+                    <Main_TextField
+                      type="number"
+                      className={styles.metricInput}
+                      defaultValue={String(row.height ?? '')}
+                      placeholder="H"
+                      onChange={(ov, nv) =>
+                        upsertPackRow(row, { height: parseNumericInput(nv) })
+                      }
+                    />
+                  </div>
+
+                  <div
+                    className={`${styles.fieldBlock} ${styles.metricFieldSmall}`}
+                  >
+                    <label className={styles.fieldLabel}>Qty</label>
+                    <Main_TextField
+                      type="number"
+                      className={styles.metricInput}
+                      defaultValue={String(row.quantity ?? '')}
+                      placeholder="Qty"
+                      onChange={(ov, nv) =>
+                        upsertPackRow(row, {
+                          quantity: parseNumericInput(nv),
+                        })
+                      }
+                    />
+                  </div>
+
+                  <div
+                    className={`${styles.fieldBlock} ${styles.metricFieldWide}`}
+                  >
+                    <label className={styles.fieldLabel}>Weight kg</label>
+                    <Main_TextField
+                      type="number"
+                      className={styles.metricInput}
+                      defaultValue={String(row.weight ?? '')}
+                      placeholder="Weight"
+                      onChange={(ov, nv) =>
+                        upsertPackRow(row, { weight: parseNumericInput(nv) })
+                      }
+                    />
+                  </div>
+                </Frame>
+
+                <div className={styles.filesBlock}>
+                  <div className={styles.filesUploaderWrap}>
+                    <Main_FileUploads
+                      mode="file"
+                      maxFiles={12}
+                      maxSizeInMB={20}
+                      label="Files"
+                      compact
+                      tableCell
+                      hoverPreview
+                      compactButtonText="Upload"
+                      defaultFiles={fileDefaults}
+                      onChange={(ov, nv) => handlePackFilesChange(row, ov, nv)}
+                      onError={(error) => {
+                        console.error('Packing file upload error:', error);
+                      }}
+                    />
+                  </div>
+                  <div className={styles.scrollbarTrack}>
+                    <div className={styles.scrollbarThumb} />
+                  </div>
+                </div>
+
+                <div className={styles.remarkBlock}>
+                  <label className={styles.fieldLabel}>Remark</label>
+                  <div className={styles.remarkInputWrap}>
+                    <Main_TextArea
+                      defaultValue={row.remark || ''}
+                      placeholder="Add remark..."
+                      rows={2}
+                      resize="none"
+                      onChange={(ov, nv) => upsertPackRow(row, { remark: nv })}
+                    />
+                  </div>
+                </div>
+              </Frame>
+            );
+          })
+        )}
+      </Frame>
+    </Frame>
   );
 };
 

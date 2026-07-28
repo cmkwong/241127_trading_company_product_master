@@ -1,31 +1,166 @@
-.fileUploadContainer {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+.cardRoot {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #ffffff;
 }
 
-.tableSection {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+.headerRow {
+  width: 100%;
+}
+
+.title {
+  margin: 0;
+  color: #0c1e36;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.25;
 }
 
 .actionsBar {
-  display: flex;
+  display: inline-flex;
   justify-content: flex-end;
 }
 
-.cellInput {
-  width: 100%;
-  min-width: 180px;
-  border: 1px solid #d3dbe7;
-  border-radius: 6px;
-  padding: 0.35rem 0.45rem;
-  font-size: 0.85rem;
-  box-sizing: border-box;
+.addActionBtn {
+  align-self: center;
 }
 
-.uploadsCell {
-  min-width: 280px;
-  max-width: 420px;
+.certificateRows {
+  width: 100%;
+}
+
+.emptyState {
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+  padding: 16px;
+  color: #64748b;
+  font-size: 13px;
+  text-align: center;
+  background: #f8fafc;
+}
+
+.certificateRowCard {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.rowTools {
+  width: 100%;
+}
+
+.rowToolsSpacer {
+  display: block;
+  width: 1px;
+  height: 1px;
+}
+
+.certificateTypeField {
+  width: 200px;
+  min-width: 200px;
+}
+
+.fieldLabel {
+  display: block;
+  margin: 0 0 6px;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.dropdownInputWrap {
+  width: 100%;
+}
+
+.dropdownInputWrap :global(button[class*='dropdown_btn']) {
+  height: 36px;
+  min-height: 36px;
+  border-radius: 8px;
+  background: #ffffff;
+  border-color: #e2e8f0;
+  color: #0c1e36;
+  padding: 8px 10px 8px 12px;
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.dropdownInputWrap :global(button[class*='dropdown_btn']:hover:not(:disabled)) {
+  border-color: #cbd5e1;
+  background: #ffffff;
+}
+
+.dropdownInputWrap :global([class*='selected_text']) {
+  font-weight: 400;
+}
+
+.bottomRow {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.filesBlock {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filesUploaderWrap {
+  width: 100%;
+}
+
+.filesUploaderWrap :global([class*='tableCellHeaderRow']) {
+  min-height: 20px;
+}
+
+.scrollbarTrack {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: #f1f5f9;
+  overflow: hidden;
+}
+
+.scrollbarThumb {
+  width: 120px;
+  height: 100%;
+  border-radius: 3px;
+  background: #cbd5e1;
+}
+
+.remarkBlock {
+  width: 100%;
+}
+
+.remarkInputWrap :global(textarea) {
+  min-height: 71px;
+  height: 71px;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+@media (max-width: 900px) {
+  .certificateTypeField {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .cardRoot {
+    padding: 20px !important;
+  }
+
+  .title {
+    font-size: 16px;
+  }
+
+  .certificateRowCard {
+    padding: 12px !important;
+  }
 }

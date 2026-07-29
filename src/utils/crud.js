@@ -1,8 +1,6 @@
 // Basic CRUD functions for interacting with a JSON API.
 // All functions throw if the request fails. Consumers should handle errors.
-const defaultHeaders = {
-  'Content-Type': 'application/json',
-};
+const defaultHeaders = {};
 
 const buildHeaders = (token, extraHeaders = {}) => {
   const headers = { ...defaultHeaders, ...extraHeaders };
@@ -49,7 +47,10 @@ export const apiPost = async (
 
   const response = await fetch(requestUrl, {
     method: 'POST',
-    headers: buildHeaders(token, headers),
+    headers: buildHeaders(token, {
+      'Content-Type': 'application/json',
+      ...(headers || {}),
+    }),
     body: JSON.stringify(body),
     ...options,
   });
@@ -67,7 +68,10 @@ export const apiUpdate = async (
 ) => {
   const response = await fetch(url, {
     method: 'PUT',
-    headers: buildHeaders(token, headers),
+    headers: buildHeaders(token, {
+      'Content-Type': 'application/json',
+      ...(headers || {}),
+    }),
     body: JSON.stringify(body),
     ...options,
   });
@@ -85,7 +89,10 @@ export const apiPatch = async (
 ) => {
   const response = await fetch(url, {
     method: 'PATCH',
-    headers: buildHeaders(token, headers),
+    headers: buildHeaders(token, {
+      'Content-Type': 'application/json',
+      ...(headers || {}),
+    }),
     body: JSON.stringify(body),
     ...options,
   });
@@ -107,6 +114,10 @@ export const apiDelete = async (
   };
 
   if (body) {
+    fetchOptions.headers = buildHeaders(token, {
+      'Content-Type': 'application/json',
+      ...(headers || {}),
+    });
     fetchOptions.body = JSON.stringify(body);
   }
 

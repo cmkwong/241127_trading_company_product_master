@@ -5,6 +5,7 @@ import Main_CustomerMaster from './components/projects/CustomerMaster/Main_Custo
 import Main_SalesQuotation from './components/projects/SalesQuotation/Main_SalesQuotation';
 import Main_PurchaseRequest from './components/projects/PurchaseRequest/Main_PurchaseRequest';
 import Main_APInvoice from './components/projects/APInvoice/Main_APInvoice';
+import Main_MasterControl from './components/projects/MasterControl/Main_MasterControl';
 import TopBar from './components/projects/TopBar/TopBar';
 import { AuthContext_Provider } from './store/AuthContext';
 import { GeneralContext_Provider } from './store/GeneralContext';
@@ -56,6 +57,8 @@ function App() {
                         <Main_PurchaseRequest />
                       ) : currentView === 'apInvoice' ? (
                         <Main_APInvoice />
+                      ) : currentView === 'masterControl' ? (
+                        <Main_MasterControl />
                       ) : (
                         <React.Fragment />
                       )}

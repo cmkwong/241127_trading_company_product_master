@@ -20,6 +20,7 @@ import {
   getLatestExchangeRateRow,
   toSafeString,
 } from '../SalesQuotation/utils/quotationTotals';
+import { getProductDisplayName } from '../../../store/productNameUtils';
 import { buildApInvoiceDocumentA4Html } from '../APInvoice/utils/apInvoicePrint';
 import styles from './Main_PurchaseRequest.module.css';
 
@@ -175,30 +176,6 @@ const resolveFileUrl = (url) => {
   }
 
   return `${FILE_SERVER_BASE_URL}/${normalized}`;
-};
-
-const getProductDisplayName = (product) => {
-  const productId = toSafeString(product?.id).toLowerCase();
-  const nestedNames = toArray(product?.product_names)
-    .map((row) => toSafeString(row?.name))
-    .filter(Boolean);
-
-  const candidates = [
-    product?.product_display_name,
-    product?.display_name,
-    product?.product_name,
-    ...nestedNames,
-    product?.name,
-    product?.id,
-  ]
-    .map((value) => toSafeString(value))
-    .filter(Boolean);
-
-  return (
-    candidates.find((value) => value.toLowerCase() !== productId) ||
-    candidates[0] ||
-    ''
-  );
 };
 
 const getProductCategoryLabel = (product, categoryNameById = new Map()) => {

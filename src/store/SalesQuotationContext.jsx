@@ -22,6 +22,7 @@ import { processChangesWithBase64 } from '../utils/objectUrlUtils';
 import { useAuthContext } from './AuthContext';
 import { useGeneralContext } from './GeneralContext';
 import { useMasterContext } from './MasterContext';
+import { pickDisplayOrderPreferredName } from './productNameUtils';
 
 export const SalesQuotationContext = createContext();
 
@@ -693,7 +694,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
         {
           fields: {
             products: ['id', 'remark', 'hs_code', 'product_index', 'icon_url'],
-            product_names: ['id', 'product_id', 'name'],
+            product_names: ['id', 'product_id', 'name', 'display_order'],
             product_categories: ['id', 'product_id', 'category_id'],
             product_alibaba_ids: ['id', 'product_id', 'value'],
           },
@@ -1082,8 +1083,26 @@ export const SalesQuotationContext_Provider = ({ children }) => {
     productNameRows.forEach((nameRow) => {
       const productId = toSafeString(nameRow?.product_id);
       const name = pickFirstLabel(nameRow, ['name', 'value', 'label']);
-      if (productId && name && !primaryProductNameById.has(productId)) {
-        primaryProductNameById.set(productId, name);
+      if (!productId || !name) {
+        return;
+      }
+
+      const parsedOrder = Number(nameRow?.display_order);
+      const hasOrder = Number.isFinite(parsedOrder);
+      const rank = hasOrder && parsedOrder === 1 ? 0 : hasOrder ? 1 : 2;
+      const order = hasOrder ? parsedOrder : Number.POSITIVE_INFINITY;
+      const existing = primaryProductNameById.get(productId);
+
+      if (
+        !existing ||
+        rank < existing.rank ||
+        (rank === existing.rank && order < existing.order)
+      ) {
+        primaryProductNameById.set(productId, {
+          name,
+          rank,
+          order,
+        });
       }
     });
 
@@ -1113,8 +1132,8 @@ export const SalesQuotationContext_Provider = ({ children }) => {
       .map((product) => {
         const id = toSafeString(product?.id);
         const name =
-          primaryProductNameById.get(id) ||
-          pickNestedName(product, ['product_names']) ||
+          primaryProductNameById.get(id)?.name ||
+          pickDisplayOrderPreferredName(product?.product_names) ||
           pickFirstLabel(product, [
             'name',
             'remark',

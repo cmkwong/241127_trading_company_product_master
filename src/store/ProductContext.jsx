@@ -153,7 +153,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
           includeBase64: false,
           fields: {
             products: ['id', 'product_status_id', 'created_at', 'updated_at'],
-            product_names: ['id', 'product_id', 'name'],
+            product_names: ['id', 'product_id', 'name', 'display_order'],
             product_categories: ['id', 'product_id', 'category_id'],
             product_alibaba_ids: ['id', 'product_id', 'value'],
             product_keywords: ['id', 'product_id', 'keyword_id'],
@@ -272,7 +272,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
             ...PRODUCT_LIST_ICON_COMPRESSION,
             fields: {
               products: ['id', 'product_status_id', 'created_at', 'updated_at'],
-              product_names: ['id', 'product_id', 'name'],
+              product_names: ['id', 'product_id', 'name', 'display_order'],
               product_categories: ['id', 'product_id', 'category_id'],
               product_alibaba_ids: ['id', 'product_id', 'value'],
               product_keywords: ['id', 'product_id', 'keyword_id'],

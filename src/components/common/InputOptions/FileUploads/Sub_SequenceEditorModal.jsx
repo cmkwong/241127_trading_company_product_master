@@ -43,16 +43,6 @@ const Sub_SequenceEditorModal = ({
 }) => {
   const [showSortMenu, setShowSortMenu] = useState(false);
 
-  const formatFileSize = (bytes) => {
-    const numericBytes = Number(bytes);
-    if (!Number.isFinite(numericBytes) || numericBytes <= 0) return '';
-    if (numericBytes < 1024) return `${numericBytes} B`;
-    if (numericBytes < 1024 * 1024) {
-      return `${(numericBytes / 1024).toFixed(1)} KB`;
-    }
-    return `${(numericBytes / (1024 * 1024)).toFixed(1)} MB`;
-  };
-
   if (!isOpen) return null;
 
   return createPortal(
@@ -272,6 +262,7 @@ const Sub_SequenceEditorModal = ({
       {showSequencePreviewPanel && (
         <aside
           className={styles.sequencePreviewFloatingWindow}
+          data-sequence-preview-window="true"
           onClick={(e) => e.stopPropagation()}
         >
           <div className={styles.sequencePreviewPanel}>

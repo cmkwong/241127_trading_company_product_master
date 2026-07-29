@@ -426,6 +426,8 @@
   display: flex;
   pointer-events: auto;
   height: 100%;
+  width: min(360px, 33vw);
+  min-width: 300px;
 }
 
 .sequencePreviewPanel {
@@ -624,6 +626,7 @@
   .sequencePreviewFloatingWindow {
     position: static;
     width: min(960px, calc(100vw - 32px));
+    min-width: 0;
     max-height: 38vh;
     margin: 0 auto;
   }

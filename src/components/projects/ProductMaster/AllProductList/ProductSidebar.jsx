@@ -249,9 +249,66 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
       .replace(/\.\d{3}Z?$/, '');
   }, []);
 
+  const extractFirstProductName = useCallback((productNames) => {
+    if (typeof productNames === 'string') {
+      return String(productNames || '').trim();
+    }
+
+    if (!Array.isArray(productNames) || productNames.length === 0) {
+      return '';
+    }
+
+    const activeRows = productNames.filter((row) => !row?._delete);
+    if (activeRows.length === 0) {
+      return '';
+    }
+
+    const rowWithDisplayOrderOne = activeRows.find((row) => {
+      const orderValue = Number(row?.display_order);
+      return Number.isFinite(orderValue) && orderValue === 1;
+    });
+
+    const orderOneName = String(
+      rowWithDisplayOrderOne?.name || rowWithDisplayOrderOne?.value || '',
+    ).trim();
+    if (orderOneName) {
+      return orderOneName;
+    }
+
+    const firstRowName = String(
+      activeRows[0]?.name || activeRows[0]?.value || '',
+    ).trim();
+    if (firstRowName) {
+      return firstRowName;
+    }
+
+    const fallbackRow = activeRows.find((row) => {
+      return String(row?.name || row?.value || '').trim().length > 0;
+    });
+
+    return String(fallbackRow?.name || fallbackRow?.value || '').trim();
+  }, []);
+
   const getProductName = useCallback(
-    (product) => product?.product_names?.[0]?.name || '',
-    [],
+    (product) => {
+      const productId = String(product?.id || '').trim();
+      const selectedId = String(pageData?.id || '').trim();
+
+      if (productId && selectedId && productId === selectedId) {
+        const liveName = extractFirstProductName(pageData?.product_names);
+        if (liveName) {
+          return liveName;
+        }
+      }
+
+      const listName = extractFirstProductName(product?.product_names);
+      if (listName) {
+        return listName;
+      }
+
+      return productId;
+    },
+    [pageData, extractFirstProductName],
   );
 
   const saveSearchHistory = useCallback((updater) => {

@@ -259,9 +259,6 @@ const Sub_FileItem = ({
       return;
     }
 
-    // Sequence editor uses a dedicated RHS preview panel.
-    if (editMode) return;
-
     if (!hoverPreview || !hoverImageUrl) return;
 
     const rect = event.currentTarget.getBoundingClientRect();
@@ -277,33 +274,55 @@ const Sub_FileItem = ({
     let top;
 
     if (editMode) {
-      const modal = document.querySelector(
-        '[data-sequence-editor-modal="true"]',
+      const previewWindow = document.querySelector(
+        '[data-sequence-preview-window="true"]',
       );
-      const modalRect = modal?.getBoundingClientRect?.();
+      const previewRect = previewWindow?.getBoundingClientRect?.();
 
-      if (modalRect) {
-        const outsideRightLeft = modalRect.right + gap;
+      if (previewRect) {
+        const outsideRightLeft = previewRect.right + gap;
         const hasOutsideRightSpace =
           outsideRightLeft + popupWidth <= viewportWidth - 12;
 
         if (hasOutsideRightSpace) {
           left = outsideRightLeft;
         } else {
-          left = Math.max(12, modalRect.right - popupWidth - 12);
+          left = Math.max(12, previewRect.left - popupWidth - gap);
         }
 
         const idealTop = rect.top + rect.height / 2 - popupHeight / 2;
-        const minTop = Math.max(12, modalRect.top + 72);
+        const minTop = 12;
         const maxTop = Math.max(minTop, viewportHeight - popupHeight - 12);
         top = Math.min(Math.max(minTop, idealTop), maxTop);
       } else {
-        left = Math.max(12, viewportWidth - popupWidth - 12);
-        const idealTop = rect.top + rect.height / 2 - popupHeight / 2;
-        top = Math.min(
-          Math.max(12, idealTop),
-          Math.max(12, viewportHeight - popupHeight - 12),
+        const modal = document.querySelector(
+          '[data-sequence-editor-modal="true"]',
         );
+        const modalRect = modal?.getBoundingClientRect?.();
+
+        if (modalRect) {
+          const outsideRightLeft = modalRect.right + gap;
+          const hasOutsideRightSpace =
+            outsideRightLeft + popupWidth <= viewportWidth - 12;
+
+          if (hasOutsideRightSpace) {
+            left = outsideRightLeft;
+          } else {
+            left = Math.max(12, modalRect.right - popupWidth - 12);
+          }
+
+          const idealTop = rect.top + rect.height / 2 - popupHeight / 2;
+          const minTop = Math.max(12, modalRect.top + 72);
+          const maxTop = Math.max(minTop, viewportHeight - popupHeight - 12);
+          top = Math.min(Math.max(minTop, idealTop), maxTop);
+        } else {
+          left = Math.max(12, viewportWidth - popupWidth - 12);
+          const idealTop = rect.top + rect.height / 2 - popupHeight / 2;
+          top = Math.min(
+            Math.max(12, idealTop),
+            Math.max(12, viewportHeight - popupHeight - 12),
+          );
+        }
       }
     } else {
       const placeRight = rect.right + gap + popupWidth < viewportWidth - 8;
@@ -427,7 +446,6 @@ const Sub_FileItem = ({
         {showHoverPreview &&
           hoverPreview &&
           hoverImageUrl &&
-          !editMode &&
           !(compactImage && !editMode) &&
           createPortal(
             <div className={styles.hoverPreviewPopup} style={hoverPreviewStyle}>

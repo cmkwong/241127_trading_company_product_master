@@ -13,6 +13,8 @@ import { useMasterContext } from '../../../../store/MasterContext';
 import { sortByDisplayOrder } from '../../../../utils/arr';
 import styles from './Main_SupplierServices.module.css';
 
+const FILE_SERVER_BASE_URL = 'http://localhost:3001';
+
 const Main_SupplierServices = () => {
   const { pageData, upsertSupplierPageData } = useSupplierContext();
   const { services, serviceImages } = useMasterContext();
@@ -42,6 +44,7 @@ const Main_SupplierServices = () => {
           remark: '',
           link: '',
           supplier_service_images: [],
+          supplier_service_files: [],
         },
       ],
     });
@@ -70,6 +73,61 @@ const Main_SupplierServices = () => {
       });
     },
     [upsertSupplierPageData, pageData.id],
+  );
+
+  const handleServiceFilesChange = useCallback(
+    (row, oldFiles = [], newFiles = []) => {
+      const oldList = Array.isArray(oldFiles) ? oldFiles : [];
+      const newList = Array.isArray(newFiles) ? newFiles : [];
+
+      const removedFiles = oldList.filter(
+        (oldFile) => !newList.some((newFile) => newFile.id === oldFile.id),
+      );
+
+      const addedFiles = newList.filter(
+        (newFile) => !oldList.some((oldFile) => oldFile.id === newFile.id),
+      );
+
+      const sameLength = oldList.length === newList.length;
+      const sameOrder =
+        sameLength && oldList.every((img, i) => img.id === newList[i]?.id);
+
+      if (removedFiles.length === 0 && addedFiles.length === 0 && sameOrder) {
+        return;
+      }
+
+      if (removedFiles.length > 0) {
+        handleUpsertRow(row, {
+          supplier_service_files: removedFiles
+            .filter((file) => !!file?.id)
+            .map((file) => ({
+              id: file.id,
+              _delete: true,
+            })),
+        });
+      }
+
+      if (newList.length > 0) {
+        const addedFileIds = new Set(addedFiles.map((file) => file.id));
+
+        handleUpsertRow(row, {
+          supplier_service_files: newList
+            .filter((file) => !!file?.id)
+            .map((file, index) => ({
+              id: file.id,
+              supplier_service_id: row.id,
+              display_order: index + 1,
+              ...(addedFileIds.has(file.id)
+                ? {
+                    file_url: file.url,
+                    file_name: file.name,
+                  }
+                : {}),
+            })),
+        });
+      }
+    },
+    [handleUpsertRow],
   );
 
   const handleServiceImagesChange = useCallback(
@@ -129,6 +187,17 @@ const Main_SupplierServices = () => {
     },
     [handleUpsertRow],
   );
+
+  const handleUploadsError = useCallback((error, fallbackMessage) => {
+    const message =
+      (typeof error === 'string' && error.trim()) ||
+      error?.message ||
+      fallbackMessage ||
+      'File operation failed.';
+
+    console.error(message, error);
+    window.alert(message);
+  }, []);
 
   const columns = useMemo(
     () => [
@@ -190,7 +259,9 @@ const Main_SupplierServices = () => {
           ).map((image) => ({
             id: image.id,
             url: image.image_url,
+            _original_image_url: image._original_image_url || image.image_url,
             name: image.image_name,
+            base64_image: image.base64_image,
             display_order: image.display_order,
           }));
 
@@ -203,12 +274,55 @@ const Main_SupplierServices = () => {
                 compactButtonText="Upload"
                 tableCell
                 hoverPreview
+                fileUrlBase={FILE_SERVER_BASE_URL}
                 defaultImages={imageDefaults}
                 onChange={(ov, nv) =>
                   handleServiceImagesChange(row, ov, nv, serviceImages)
                 }
                 onError={(error) => {
-                  console.error('Service image upload error:', error);
+                  handleUploadsError(
+                    error,
+                    'Service image upload/download failed.',
+                  );
+                }}
+              />
+            </div>
+          );
+        },
+      },
+      {
+        key: 'supplier_service_files',
+        label: 'Service Files',
+        sortable: false,
+        renderCell: (row) => {
+          const fileDefaults = sortByDisplayOrder(
+            row.supplier_service_files || [],
+          ).map((file) => ({
+            id: file.id,
+            url: file.file_url,
+            _original_file_url: file._original_file_url || file.file_url,
+            name: file.file_name,
+            base64_file: file.base64_file,
+            display_order: file.display_order,
+          }));
+
+          return (
+            <div className={styles.uploadsCell}>
+              <Main_FileUploads
+                mode="file"
+                label=""
+                compact
+                compactButtonText="Upload"
+                tableCell
+                hoverPreview
+                fileUrlBase={FILE_SERVER_BASE_URL}
+                defaultFiles={fileDefaults}
+                onChange={(ov, nv) => handleServiceFilesChange(row, ov, nv)}
+                onError={(error) => {
+                  handleUploadsError(
+                    error,
+                    'Service file upload/download failed.',
+                  );
                 }}
               />
             </div>
@@ -228,7 +342,9 @@ const Main_SupplierServices = () => {
       serviceOptions,
       handleUpsertRow,
       handleServiceImagesChange,
+      handleUploadsError,
       serviceImages,
+      handleServiceFilesChange,
       handleDeleteServiceRow,
     ],
   );

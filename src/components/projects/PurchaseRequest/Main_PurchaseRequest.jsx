@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { apiDelete, apiGet, apiPatch, apiPost } from '../../../utils/crud';
-import { useAuthContext } from '../../../store/AuthContext';
-import { processChangesWithBase64 } from '../../../utils/objectUrlUtils';
+import { usePurchaseRequestContext } from '../../../store/PurchaseRequestContext';
 import DeleteBtn from '../../common/Buttons/DeleteBtn';
 import Main_Dropdown from '../../common/InputOptions/Dropdown/Main_Dropdown';
 import PurchaseRequestSavePageContainer from './Container/PurchaseRequestSavePageContainer';
@@ -24,74 +22,9 @@ import { getProductDisplayName } from '../../../store/productNameUtils';
 import { buildApInvoiceDocumentA4Html } from '../APInvoice/utils/apInvoicePrint';
 import styles from './Main_PurchaseRequest.module.css';
 
-const PURCHASE_API_BASE =
-  'http://localhost:3001/api/v1/trade_business/purchase/data';
-const SUPPLIERS_API_BASE =
-  'http://localhost:3001/api/v1/trade_business/suppliers/data/list';
-const PRODUCTS_API_BASE =
-  'http://localhost:3001/api/v1/trade_business/products/data/list';
-const CUSTOMERS_API_BASE =
-  'http://localhost:3001/api/v1/trade_business/customers/data';
-const MASTER_API_BASE = 'http://localhost:3001/api/v1/trade_business/master';
-const SALES_API_BASE = 'http://localhost:3001/api/v1/trade_business/sales/data';
 const FILE_SERVER_BASE_URL = 'http://localhost:3001';
 
-const DEFAULT_PURCHASE_FILE_MAPPINGS = {
-  purchase_shipping_images: { url: 'image_url', base64: 'base64_image' },
-  purchase_product_images: { url: 'image_url', base64: 'base64_file' },
-  purchase_service_images: { url: 'image_url', base64: 'base64_image' },
-};
-
 const toArray = (value) => (Array.isArray(value) ? value : []);
-
-const stripAuditTimestamps = (value) => {
-  if (Array.isArray(value)) {
-    return value.map((item) => stripAuditTimestamps(item));
-  }
-
-  if (!value || typeof value !== 'object') {
-    return value;
-  }
-
-  return Object.entries(value).reduce((acc, [key, nestedValue]) => {
-    if (key === 'created_at' || key === 'updated_at') {
-      return acc;
-    }
-
-    acc[key] = stripAuditTimestamps(nestedValue);
-    return acc;
-  }, {});
-};
-
-const toNullableId = (value) => {
-  const normalized = toSafeString(value);
-  return normalized || null;
-};
-
-const extractRowsFromResponse = (response, tableName) => {
-  if (Array.isArray(response?.structuredData?.data?.[tableName])) {
-    return response.structuredData.data[tableName];
-  }
-  if (Array.isArray(response?.data?.[tableName])) {
-    return response.data[tableName];
-  }
-  if (Array.isArray(response?.[tableName])) {
-    return response[tableName];
-  }
-  if (Array.isArray(response?.data?.results)) {
-    return response.data.results;
-  }
-  if (Array.isArray(response?.results)) {
-    return response.results;
-  }
-  if (Array.isArray(response?.data)) {
-    return response.data;
-  }
-  if (Array.isArray(response)) {
-    return response;
-  }
-  return [];
-};
 
 const newId = () => {
   if (
@@ -102,18 +35,6 @@ const newId = () => {
   }
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 };
-
-const createNewPurchaseRequest = () => ({
-  id: newId(),
-  to_order: false,
-  remark: '',
-  sales_quotation_id: '',
-  supplier_id: '',
-  supplier_address_id: '',
-  purchase_shipping_details: [],
-  purchase_product_details: [],
-  purchase_service_details: [],
-});
 
 const buildAddressPreview = (address) => {
   const detail = toSafeString(address?.address_detail);
@@ -262,39 +183,40 @@ const isTruthyFlag = (value, defaultWhenMissing = true) => {
 };
 
 const Main_PurchaseRequest = () => {
-  const { token } = useAuthContext();
-
-  const [rows, setRows] = useState([]);
-  const [selectedId, setSelectedId] = useState('');
-  const [draft, setDraft] = useState(null);
-
-  const [isLoading, setIsLoading] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const {
+    rows,
+    selectedId,
+    draft,
+    setDraft,
+    error,
+    setError,
+    notice,
+    isLoading,
+    isDeleting,
+    suppliers,
+    products,
+    services,
+    masterCategories,
+    masterSupplierTypes,
+    currencies,
+    salesQuotations,
+    customers,
+    exchangeRateRows,
+    createNewPurchaseRequest,
+    handleSelectRow,
+    handleCreate,
+    getPurchaseRequestDryRunData,
+    handleSave,
+    handleDelete,
+  } = usePurchaseRequestContext();
 
   const [sidebarSearch, setSidebarSearch] = useState('');
-  const [error, setError] = useState('');
-  const [notice, setNotice] = useState('');
   const [baseCurrencyCode, setBaseCurrencyCode] = useState('HKD');
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [previewHtml, setPreviewHtml] = useState('');
   const [isPreparingPreview, setIsPreparingPreview] = useState(false);
 
-  const [suppliers, setSuppliers] = useState([]);
-  const [products, setProducts] = useState([]);
-  const [services, setServices] = useState([]);
-  const [masterCategories, setMasterCategories] = useState([]);
-  const [masterSupplierTypes, setMasterSupplierTypes] = useState([]);
-  const [currencies, setCurrencies] = useState([]);
-  const [salesQuotations, setSalesQuotations] = useState([]);
-  const [customers, setCustomers] = useState([]);
-  const [exchangeRateRows, setExchangeRateRows] = useState([]);
-
-  const selectedIdRef = useRef('');
   const previewIframeRef = useRef(null);
-
-  useEffect(() => {
-    selectedIdRef.current = selectedId;
-  }, [selectedId]);
 
   const supplierTypeNameById = useMemo(() => {
     const map = new Map();
@@ -979,214 +901,77 @@ const Main_PurchaseRequest = () => {
     [selectedSalesQuotation?.sales_service_details, serviceNameById],
   );
 
-  const handleSelectRow = useCallback(
-    (itemOrId) => {
-      const normalizedId = toSafeString(itemOrId?.id || itemOrId);
-      setSelectedId(normalizedId);
-
-      const selectedRow = toArray(rows).find(
-        (row) => toSafeString(row?.id) === normalizedId,
-      );
-
-      setDraft(selectedRow ? JSON.parse(JSON.stringify(selectedRow)) : null);
+  const setHeaderField = useCallback(
+    (key, value) => {
+      setDraft((prev) => ({
+        ...(prev || createNewPurchaseRequest()),
+        [key]: value,
+      }));
     },
-    [rows],
+    [createNewPurchaseRequest, setDraft],
   );
 
-  const refreshAll = useCallback(
-    async (preferredSelectedId = '') => {
-      if (!token) {
-        setRows([]);
-        setDraft(null);
-        setSelectedId('');
-        setMasterCategories([]);
-        setMasterSupplierTypes([]);
-        return;
-      }
+  const setDetailFieldById = useCallback(
+    (detailKey, rowId, field, value) => {
+      const normalizedRowId = toSafeString(rowId);
+      if (!normalizedRowId) return;
 
-      setIsLoading(true);
-      setError('');
+      setDraft((prev) => {
+        const base = prev || createNewPurchaseRequest();
+        const nextRows = toArray(base?.[detailKey]).map((row) => {
+          if (toSafeString(row?.id) !== normalizedRowId) {
+            return row;
+          }
 
-      try {
-        const [
-          purchaseRes,
-          suppliersRes,
-          productsRes,
-          servicesRes,
-          categoriesRes,
-          supplierTypesRes,
-          currenciesRes,
-          salesRes,
-          customersRes,
-          exchangeRatesRes,
-        ] = await Promise.all([
-          apiGet(PURCHASE_API_BASE, { token }),
-          apiPost(SUPPLIERS_API_BASE, {}, { token }),
-          apiPost(PRODUCTS_API_BASE, {}, { token }),
-          apiGet(`${MASTER_API_BASE}/master_services`, { token }),
-          apiGet(`${MASTER_API_BASE}/master_categories`, { token }),
-          apiGet(`${MASTER_API_BASE}/master_supplier_types`, { token }),
-          apiGet(`${MASTER_API_BASE}/master_currencies`, { token }),
-          apiGet(SALES_API_BASE, { token }),
-          apiGet(CUSTOMERS_API_BASE, { token }),
-          apiGet(`${MASTER_API_BASE}/master_exchange_rate_hkd`, { token }),
-        ]);
-
-        const purchaseRows = extractRowsFromResponse(
-          purchaseRes,
-          'purchase_requests',
-        );
-        const supplierRows = extractRowsFromResponse(suppliersRes, 'suppliers');
-        const productRows = extractRowsFromResponse(productsRes, 'products');
-        const serviceRows = extractRowsFromResponse(
-          servicesRes,
-          'master_services',
-        );
-        const categoryRows = extractRowsFromResponse(
-          categoriesRes,
-          'master_categories',
-        );
-        const supplierTypeRows = extractRowsFromResponse(
-          supplierTypesRes,
-          'master_supplier_types',
-        );
-        const currencyRows = extractRowsFromResponse(
-          currenciesRes,
-          'master_currencies',
-        );
-        const salesRows = extractRowsFromResponse(salesRes, 'sales_quotations');
-        const customerRows = extractRowsFromResponse(customersRes, 'customers');
-        const exchangeRows = extractRowsFromResponse(
-          exchangeRatesRes,
-          'master_exchange_rate_hkd',
-        );
-
-        setRows(purchaseRows);
-        setSuppliers(supplierRows);
-        setProducts(productRows);
-        setServices(serviceRows);
-        setMasterCategories(categoryRows);
-        setMasterSupplierTypes(supplierTypeRows);
-        setCurrencies(currencyRows);
-        setSalesQuotations(salesRows);
-        setCustomers(customerRows);
-        setExchangeRateRows(exchangeRows);
-
-        const nextTargetId =
-          toSafeString(preferredSelectedId) ||
-          toSafeString(selectedIdRef.current);
-
-        const stillExists = purchaseRows.some(
-          (row) => toSafeString(row?.id) === nextTargetId,
-        );
-
-        if (stillExists) {
-          const selectedRow = purchaseRows.find(
-            (row) => toSafeString(row?.id) === nextTargetId,
-          );
-          setSelectedId(nextTargetId);
-          setDraft(
-            selectedRow ? JSON.parse(JSON.stringify(selectedRow)) : null,
-          );
-          return;
-        }
-
-        if (purchaseRows.length > 0) {
-          const firstId = toSafeString(purchaseRows[0]?.id);
-          setSelectedId(firstId);
-          setDraft(JSON.parse(JSON.stringify(purchaseRows[0])));
-          return;
-        }
-
-        setSelectedId('');
-        setDraft(null);
-      } catch (err) {
-        console.error(err);
-        setError(err?.message || 'Failed to load purchase requests');
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [token],
-  );
-
-  useEffect(() => {
-    refreshAll();
-  }, [refreshAll]);
-
-  useEffect(() => {
-    if (!notice) return;
-    const timer = window.setTimeout(() => setNotice(''), 2500);
-    return () => window.clearTimeout(timer);
-  }, [notice]);
-
-  const setHeaderField = useCallback((key, value) => {
-    setDraft((prev) => ({
-      ...(prev || createNewPurchaseRequest()),
-      [key]: value,
-    }));
-  }, []);
-
-  const setDetailFieldById = useCallback((detailKey, rowId, field, value) => {
-    const normalizedRowId = toSafeString(rowId);
-    if (!normalizedRowId) return;
-
-    setDraft((prev) => {
-      const base = prev || createNewPurchaseRequest();
-      const nextRows = toArray(base?.[detailKey]).map((row) => {
-        if (toSafeString(row?.id) !== normalizedRowId) {
-          return row;
-        }
+          return {
+            ...row,
+            [field]: value,
+          };
+        });
 
         return {
-          ...row,
-          [field]: value,
+          ...base,
+          [detailKey]: nextRows,
         };
       });
+    },
+    [createNewPurchaseRequest, setDraft],
+  );
 
-      return {
-        ...base,
-        [detailKey]: nextRows,
-      };
-    });
-  }, []);
+  const appendDetailRow = useCallback(
+    (detailKey, rowFactory) => {
+      setDraft((prev) => {
+        const base = prev || createNewPurchaseRequest();
+        const list = toArray(base[detailKey]).map((row) => ({ ...row }));
+        list.push(rowFactory(base));
+        return {
+          ...base,
+          [detailKey]: list,
+        };
+      });
+    },
+    [createNewPurchaseRequest, setDraft],
+  );
 
-  const appendDetailRow = useCallback((detailKey, rowFactory) => {
-    setDraft((prev) => {
-      const base = prev || createNewPurchaseRequest();
-      const list = toArray(base[detailKey]).map((row) => ({ ...row }));
-      list.push(rowFactory(base));
-      return {
-        ...base,
-        [detailKey]: list,
-      };
-    });
-  }, []);
+  const removeDetailRow = useCallback(
+    (detailKey, rowId) => {
+      const normalizedRowId = toSafeString(rowId);
+      if (!normalizedRowId) return;
 
-  const removeDetailRow = useCallback((detailKey, rowId) => {
-    const normalizedRowId = toSafeString(rowId);
-    if (!normalizedRowId) return;
+      setDraft((prev) => {
+        const base = prev || createNewPurchaseRequest();
+        const list = toArray(base[detailKey]).filter(
+          (row) => toSafeString(row?.id) !== normalizedRowId,
+        );
 
-    setDraft((prev) => {
-      const base = prev || createNewPurchaseRequest();
-      const list = toArray(base[detailKey]).filter(
-        (row) => toSafeString(row?.id) !== normalizedRowId,
-      );
-
-      return {
-        ...base,
-        [detailKey]: list,
-      };
-    });
-  }, []);
-
-  const handleCreate = useCallback(() => {
-    const fresh = createNewPurchaseRequest();
-    setDraft(fresh);
-    setSelectedId('');
-    setError('');
-    setNotice('New purchase request draft created');
-  }, []);
+        return {
+          ...base,
+          [detailKey]: list,
+        };
+      });
+    },
+    [createNewPurchaseRequest, setDraft],
+  );
 
   const buildDefaultUploadFiles = useCallback((files, nameField, urlField) => {
     return toArray(files)
@@ -1292,322 +1077,6 @@ const Main_PurchaseRequest = () => {
     [setDetailFieldById],
   );
 
-  const buildPayloadFromWorking = useCallback((workingInput) => {
-    const working = workingInput || createNewPurchaseRequest();
-
-    return stripAuditTimestamps({
-      ...working,
-      sales_quotation_id: toNullableId(working?.sales_quotation_id),
-      supplier_address_id: toNullableId(working?.supplier_address_id),
-      purchase_shipping_details: toArray(working.purchase_shipping_details)
-        .filter((row) => !row?._delete)
-        .map((row) => ({
-          ...row,
-          purchase_request_id:
-            toSafeString(row?.purchase_request_id) || toSafeString(working.id),
-          currency_id: toNullableId(row?.currency_id),
-          purchase_shipping_images: toArray(
-            row?.purchase_shipping_images,
-          ).filter((image) => !image?._delete),
-        })),
-      purchase_product_details: toArray(working.purchase_product_details)
-        .filter((row) => !row?._delete)
-        .map((row) => ({
-          ...row,
-          purchase_request_id:
-            toSafeString(row?.purchase_request_id) || toSafeString(working.id),
-          currency_id: toNullableId(row?.currency_id),
-          purchase_product_images: toArray(row?.purchase_product_images).filter(
-            (image) => !image?._delete,
-          ),
-        })),
-      purchase_service_details: toArray(working.purchase_service_details)
-        .filter((row) => !row?._delete)
-        .map((row) => ({
-          ...row,
-          purchase_request_id:
-            toSafeString(row?.purchase_request_id) || toSafeString(working.id),
-          supplier_id: toNullableId(row?.supplier_id),
-          currency_id: toNullableId(row?.currency_id),
-          purchase_service_images: toArray(row?.purchase_service_images).filter(
-            (image) => !image?._delete,
-          ),
-        })),
-    });
-  }, []);
-
-  const buildDeletePayloadFromDiff = useCallback(
-    (workingInput, existingInput) => {
-      if (!existingInput) {
-        return null;
-      }
-
-      const workingPayload = buildPayloadFromWorking(
-        workingInput || createNewPurchaseRequest(),
-      );
-      const existingPayload = buildPayloadFromWorking(existingInput);
-
-      const buildDetailDeletes = (currentRows, previousRows, imageKey) => {
-        const currentById = new Map(
-          toArray(currentRows)
-            .map((row) => [toSafeString(row?.id), row])
-            .filter(([id]) => id),
-        );
-
-        return toArray(previousRows)
-          .map((previousRow) => {
-            const previousId = toSafeString(previousRow?.id);
-            if (!previousId) {
-              return null;
-            }
-
-            const currentRow = currentById.get(previousId);
-            if (!currentRow) {
-              return { id: previousId };
-            }
-
-            const activeCurrentImageIds = new Set(
-              toArray(currentRow?.[imageKey])
-                .filter((item) => !item?._delete)
-                .map((item) => toSafeString(item?.id))
-                .filter(Boolean),
-            );
-
-            const removedImageRows = toArray(previousRow?.[imageKey])
-              .map((item) => toSafeString(item?.id))
-              .filter(Boolean)
-              .filter((id) => !activeCurrentImageIds.has(id))
-              .map((id) => ({ id }));
-
-            if (removedImageRows.length === 0) {
-              return null;
-            }
-
-            return {
-              id: previousId,
-              [imageKey]: removedImageRows,
-            };
-          })
-          .filter(Boolean);
-      };
-
-      const purchase_shipping_details = buildDetailDeletes(
-        workingPayload?.purchase_shipping_details,
-        existingPayload?.purchase_shipping_details,
-        'purchase_shipping_images',
-      );
-      const purchase_product_details = buildDetailDeletes(
-        workingPayload?.purchase_product_details,
-        existingPayload?.purchase_product_details,
-        'purchase_product_images',
-      );
-      const purchase_service_details = buildDetailDeletes(
-        workingPayload?.purchase_service_details,
-        existingPayload?.purchase_service_details,
-        'purchase_service_images',
-      );
-
-      const rootDeleteRow = {
-        id: toSafeString(existingPayload?.id || workingPayload?.id),
-      };
-
-      if (purchase_shipping_details.length > 0) {
-        rootDeleteRow.purchase_shipping_details = purchase_shipping_details;
-      }
-
-      if (purchase_product_details.length > 0) {
-        rootDeleteRow.purchase_product_details = purchase_product_details;
-      }
-
-      if (purchase_service_details.length > 0) {
-        rootDeleteRow.purchase_service_details = purchase_service_details;
-      }
-
-      const hasNestedDeletePayload =
-        Boolean(rootDeleteRow.purchase_shipping_details?.length) ||
-        Boolean(rootDeleteRow.purchase_product_details?.length) ||
-        Boolean(rootDeleteRow.purchase_service_details?.length);
-
-      if (!rootDeleteRow.id || !hasNestedDeletePayload) {
-        return null;
-      }
-
-      return {
-        purchase_requests: [rootDeleteRow],
-      };
-    },
-    [buildPayloadFromWorking],
-  );
-
-  const buildPayloadWithBase64 = useCallback(
-    async (workingInput) => {
-      const normalizedPayload = buildPayloadFromWorking(
-        workingInput || createNewPurchaseRequest(),
-      );
-
-      return processChangesWithBase64(
-        normalizedPayload,
-        DEFAULT_PURCHASE_FILE_MAPPINGS,
-      );
-    },
-    [buildPayloadFromWorking],
-  );
-
-  const getPurchaseRequestDryRunData = useCallback(async () => {
-    if (!draft) {
-      return {
-        endpoint: PURCHASE_API_BASE,
-        method: 'POST / PATCH',
-        create: {},
-        update: {},
-        delete: {},
-        message: 'No purchase request selected',
-      };
-    }
-
-    const normalizedDraftPayload = buildPayloadFromWorking(draft);
-    const normalizedPayloadId = toSafeString(normalizedDraftPayload?.id);
-    const existingRow = toArray(rows).find(
-      (row) => toSafeString(row?.id) === normalizedPayloadId,
-    );
-    const exists = Boolean(existingRow);
-
-    const normalizedPayload = buildPayloadFromWorking(draft);
-    const deletePayload = exists
-      ? buildDeletePayloadFromDiff(draft, existingRow)
-      : null;
-
-    if (exists) {
-      const normalizedExisting = buildPayloadFromWorking(existingRow);
-      const noChanges =
-        JSON.stringify(normalizedExisting) ===
-        JSON.stringify(normalizedPayload);
-
-      if (noChanges) {
-        if (deletePayload) {
-          return {
-            endpoint: `${PURCHASE_API_BASE}/ids`,
-            method: 'PATCH + DELETE',
-            create: {},
-            update: { purchase_requests: [normalizedPayload] },
-            delete: deletePayload,
-            payload: {
-              data: {
-                purchase_requests: [normalizedPayload],
-              },
-            },
-          };
-        }
-
-        return {
-          endpoint: `${PURCHASE_API_BASE}/ids`,
-          method: 'PATCH',
-          create: {},
-          update: {},
-          delete: {},
-          message: 'No changes detected',
-        };
-      }
-    }
-
-    const payload = await processChangesWithBase64(
-      normalizedPayload,
-      DEFAULT_PURCHASE_FILE_MAPPINGS,
-    );
-
-    return {
-      endpoint: exists ? `${PURCHASE_API_BASE}/ids` : PURCHASE_API_BASE,
-      method:
-        exists && deletePayload ? 'PATCH + DELETE' : exists ? 'PATCH' : 'POST',
-      create: exists ? {} : { purchase_requests: [payload] },
-      update: exists ? { purchase_requests: [payload] } : {},
-      delete: deletePayload || {},
-      payload: {
-        data: {
-          purchase_requests: [payload],
-        },
-      },
-    };
-  }, [buildDeletePayloadFromDiff, buildPayloadFromWorking, draft, rows]);
-
-  const handleSave = useCallback(async () => {
-    if (!token || !draft) return;
-
-    setError('');
-
-    try {
-      const existingRow = rows.find(
-        (row) => toSafeString(row?.id) === toSafeString(draft?.id),
-      );
-      const payload = await buildPayloadWithBase64(draft);
-      const exists = Boolean(existingRow);
-      const deletePayload = exists
-        ? buildDeletePayloadFromDiff(draft, existingRow)
-        : null;
-
-      if (exists) {
-        if (deletePayload) {
-          await apiDelete(`${PURCHASE_API_BASE}/ids`, {
-            token,
-            body: { data: deletePayload },
-          });
-        }
-
-        await apiPatch(
-          `${PURCHASE_API_BASE}/ids`,
-          { data: { purchase_requests: [payload] } },
-          { token },
-        );
-      } else {
-        await apiPost(
-          PURCHASE_API_BASE,
-          { data: { purchase_requests: [payload] } },
-          { token },
-        );
-      }
-
-      await refreshAll(payload?.id);
-    } catch (err) {
-      console.error(err);
-      setError(err?.message || 'Failed to save purchase request');
-      throw err;
-    }
-  }, [
-    buildDeletePayloadFromDiff,
-    buildPayloadWithBase64,
-    draft,
-    refreshAll,
-    rows,
-    token,
-  ]);
-
-  const handleDelete = useCallback(async () => {
-    if (!token || !draft?.id || isDeleting) return;
-
-    const confirmed = window.confirm(
-      'Delete this purchase request? This action cannot be undone.',
-    );
-
-    if (!confirmed) return;
-
-    setIsDeleting(true);
-    setError('');
-
-    try {
-      await apiDelete(`${PURCHASE_API_BASE}/ids`, {
-        token,
-        body: { data: { purchase_requests: [{ id: draft.id }] } },
-      });
-      setNotice('Purchase request deleted');
-      await refreshAll('');
-    } catch (err) {
-      console.error(err);
-      setError(err?.message || 'Failed to delete purchase request');
-    } finally {
-      setIsDeleting(false);
-    }
-  }, [draft?.id, isDeleting, refreshAll, token]);
-
   const filteredRows = useMemo(() => {
     const query = toSafeString(sidebarSearch).toLowerCase();
     if (!query) return rows;
@@ -1666,35 +1135,42 @@ const Main_PurchaseRequest = () => {
     [],
   );
 
-  const handleSupplierInputChange = useCallback((nextValue) => {
-    if (!toSafeString(nextValue)) {
-      setDraft((prev) => ({
-        ...(prev || createNewPurchaseRequest()),
-        supplier_id: '',
-        supplier_address_id: '',
-      }));
-    }
-  }, []);
+  const handleSupplierInputChange = useCallback(
+    (nextValue) => {
+      if (!toSafeString(nextValue)) {
+        setDraft((prev) => ({
+          ...(prev || createNewPurchaseRequest()),
+          supplier_id: '',
+          supplier_address_id: '',
+        }));
+      }
+    },
+    [createNewPurchaseRequest, setDraft],
+  );
 
-  const handleSupplierSelect = useCallback((suggestion) => {
-    const nextSupplierId = toSafeString(suggestion?.id);
+  const handleSupplierSelect = useCallback(
+    (suggestion) => {
+      const nextSupplierId = toSafeString(suggestion?.id);
 
-    setDraft((prev) => {
-      const base = prev || createNewPurchaseRequest();
-      const hasAddress = toArray(suggestion?.supplier_addresses).some(
-        (address) =>
-          toSafeString(address?.id) === toSafeString(base?.supplier_address_id),
-      );
+      setDraft((prev) => {
+        const base = prev || createNewPurchaseRequest();
+        const hasAddress = toArray(suggestion?.supplier_addresses).some(
+          (address) =>
+            toSafeString(address?.id) ===
+            toSafeString(base?.supplier_address_id),
+        );
 
-      return {
-        ...base,
-        supplier_id: nextSupplierId,
-        supplier_address_id: hasAddress
-          ? toSafeString(base?.supplier_address_id)
-          : '',
-      };
-    });
-  }, []);
+        return {
+          ...base,
+          supplier_id: nextSupplierId,
+          supplier_address_id: hasAddress
+            ? toSafeString(base?.supplier_address_id)
+            : '',
+        };
+      });
+    },
+    [createNewPurchaseRequest, setDraft],
+  );
 
   const handleSupplierAddressInputChange = useCallback(
     (nextValue) => {
@@ -1731,6 +1207,7 @@ const Main_PurchaseRequest = () => {
       details: '',
       remark: '',
       purchase_shipping_images: [],
+      purchase_shipping_files: [],
     }));
   }, [appendDetailRow]);
 
@@ -1747,6 +1224,7 @@ const Main_PurchaseRequest = () => {
       details: '',
       remark: '',
       purchase_product_images: [],
+      purchase_product_files: [],
     }));
   }, [appendDetailRow]);
 
@@ -1764,6 +1242,7 @@ const Main_PurchaseRequest = () => {
       details: '',
       remark: '',
       purchase_service_images: [],
+      purchase_service_files: [],
     }));
   }, [appendDetailRow]);
 
@@ -1823,9 +1302,10 @@ const Main_PurchaseRequest = () => {
         details: toSafeString(sourceRow?.details),
         remark: toSafeString(sourceRow?.remark),
         purchase_shipping_images: [],
+        purchase_shipping_files: [],
       }));
     },
-    [appendDetailRow],
+    [appendDetailRow, createNewPurchaseRequest, setDraft],
   );
 
   const handleSelectProductFromQuotation = useCallback(
@@ -1883,9 +1363,10 @@ const Main_PurchaseRequest = () => {
         details: toSafeString(sourceRow?.details),
         remark: toSafeString(sourceRow?.remark),
         purchase_product_images: [],
+        purchase_product_files: [],
       }));
     },
-    [appendDetailRow],
+    [appendDetailRow, createNewPurchaseRequest, setDraft],
   );
 
   const handleSelectServiceFromQuotation = useCallback(
@@ -1949,9 +1430,10 @@ const Main_PurchaseRequest = () => {
         details: toSafeString(sourceRow?.details),
         remark: toSafeString(sourceRow?.remark),
         purchase_service_images: [],
+        purchase_service_files: [],
       }));
     },
-    [appendDetailRow],
+    [appendDetailRow, createNewPurchaseRequest, setDraft],
   );
 
   const handlePreviewApInvoice = useCallback(() => {
@@ -2022,6 +1504,7 @@ const Main_PurchaseRequest = () => {
     exchangeRateMap,
     isPreparingPreview,
     rows,
+    setError,
     suppliers,
   ]);
 
@@ -2034,7 +1517,7 @@ const Main_PurchaseRequest = () => {
 
     iframeWindow.focus();
     iframeWindow.print();
-  }, []);
+  }, [setError]);
 
   const handleClosePreview = useCallback(() => {
     setIsPreviewOpen(false);
@@ -2207,7 +1690,7 @@ const Main_PurchaseRequest = () => {
                   removeDetailRow('purchase_shipping_details', rowId)
                 }
                 buildDefaultUploadFiles={buildDefaultUploadFiles}
-                onFilesChange={(rowId, oldFiles, newFiles) =>
+                onImageFilesChange={(rowId, oldFiles, newFiles) =>
                   handleNestedFilesChange(
                     'purchase_shipping_details',
                     rowId,
@@ -2215,6 +1698,16 @@ const Main_PurchaseRequest = () => {
                     oldFiles,
                     newFiles,
                     { nameField: 'image_name', urlField: 'image_url' },
+                  )
+                }
+                onFilesChange={(rowId, oldFiles, newFiles) =>
+                  handleNestedFilesChange(
+                    'purchase_shipping_details',
+                    rowId,
+                    'purchase_shipping_files',
+                    oldFiles,
+                    newFiles,
+                    { nameField: 'file_name', urlField: 'file_url' },
                   )
                 }
               />
@@ -2239,7 +1732,7 @@ const Main_PurchaseRequest = () => {
                   removeDetailRow('purchase_product_details', rowId)
                 }
                 buildDefaultUploadFiles={buildDefaultUploadFiles}
-                onFilesChange={(rowId, oldFiles, newFiles) =>
+                onImageFilesChange={(rowId, oldFiles, newFiles) =>
                   handleNestedFilesChange(
                     'purchase_product_details',
                     rowId,
@@ -2247,6 +1740,16 @@ const Main_PurchaseRequest = () => {
                     oldFiles,
                     newFiles,
                     { nameField: 'image_name', urlField: 'image_url' },
+                  )
+                }
+                onFilesChange={(rowId, oldFiles, newFiles) =>
+                  handleNestedFilesChange(
+                    'purchase_product_details',
+                    rowId,
+                    'purchase_product_files',
+                    oldFiles,
+                    newFiles,
+                    { nameField: 'file_name', urlField: 'file_url' },
                   )
                 }
                 resolveFileUrl={resolveFileUrl}
@@ -2272,7 +1775,7 @@ const Main_PurchaseRequest = () => {
                   removeDetailRow('purchase_service_details', rowId)
                 }
                 buildDefaultUploadFiles={buildDefaultUploadFiles}
-                onFilesChange={(rowId, oldFiles, newFiles) =>
+                onImageFilesChange={(rowId, oldFiles, newFiles) =>
                   handleNestedFilesChange(
                     'purchase_service_details',
                     rowId,
@@ -2280,6 +1783,16 @@ const Main_PurchaseRequest = () => {
                     oldFiles,
                     newFiles,
                     { nameField: 'image_name', urlField: 'image_url' },
+                  )
+                }
+                onFilesChange={(rowId, oldFiles, newFiles) =>
+                  handleNestedFilesChange(
+                    'purchase_service_details',
+                    rowId,
+                    'purchase_service_files',
+                    oldFiles,
+                    newFiles,
+                    { nameField: 'file_name', urlField: 'file_url' },
                   )
                 }
               />

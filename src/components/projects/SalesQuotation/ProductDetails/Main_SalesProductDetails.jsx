@@ -62,6 +62,10 @@ const Main_SalesProductDetails = ({
     () => quotation?.sales_product_detail_internal_images || [],
     [quotation?.sales_product_detail_internal_images],
   );
+  const productInternalFiles = useMemo(
+    () => quotation?.sales_product_detail_internal_files || [],
+    [quotation?.sales_product_detail_internal_files],
+  );
 
   const setProductDetails = useCallback(
     (nextRowsOrUpdater) => {
@@ -88,6 +92,13 @@ const Main_SalesProductDetails = ({
   const setProductInternalImages = useCallback(
     (nextRows) => {
       onPatchQuotation({ sales_product_detail_internal_images: nextRows });
+    },
+    [onPatchQuotation],
+  );
+
+  const setProductInternalFiles = useCallback(
+    (nextRows) => {
+      onPatchQuotation({ sales_product_detail_internal_files: nextRows });
     },
     [onPatchQuotation],
   );
@@ -146,14 +157,21 @@ const Main_SalesProductDetails = ({
           (item) => String(item?.sales_product_detail_id || '') !== rowId,
         ),
       );
+      setProductInternalFiles(
+        productInternalFiles.filter(
+          (item) => String(item?.sales_product_detail_id || '') !== rowId,
+        ),
+      );
     },
     [
       productDetails,
       productImages,
       productInternalImages,
+      productInternalFiles,
       setProductDetails,
       setProductImages,
       setProductInternalImages,
+      setProductInternalFiles,
     ],
   );
 
@@ -220,6 +238,28 @@ const Main_SalesProductDetails = ({
       setProductInternalImages([...preservedRows, ...mappedRows]);
     },
     [productInternalImages, setProductInternalImages],
+  );
+
+  const handleProductInternalFilesChange = useCallback(
+    (salesProductDetailId, newFiles = []) => {
+      const detailId = String(salesProductDetailId || '').trim();
+      if (!detailId) return;
+
+      const preservedRows = productInternalFiles.filter(
+        (item) => String(item?.sales_product_detail_id || '') !== detailId,
+      );
+
+      const mappedRows = (newFiles || []).map((file, index) => ({
+        id: file?.id || uuidv4(),
+        sales_product_detail_id: detailId,
+        file_name: file?.name || `product-internal-${index + 1}`,
+        file_url: file?.url || '',
+        display_order: index + 1,
+      }));
+
+      setProductInternalFiles([...preservedRows, ...mappedRows]);
+    },
+    [productInternalFiles, setProductInternalFiles],
   );
 
   const productDropdownOptions = useMemo(
@@ -616,6 +656,56 @@ const Main_SalesProductDetails = ({
         },
       },
       {
+        key: 'internal_files',
+        label: 'Internal Files',
+        size: 'XL',
+        sortable: false,
+        nextRow: true,
+        renderCell: (row) => {
+          const defaultFiles = productInternalFiles
+            .filter(
+              (file) =>
+                String(file?.sales_product_detail_id || '') ===
+                String(row?.id || ''),
+            )
+            .sort(
+              (a, b) =>
+                Number(a.display_order || 0) - Number(b.display_order || 0),
+            )
+            .map((file) => ({
+              id: file.id,
+              name: file.file_name,
+              url: file.file_url,
+              display_order: file.display_order,
+            }));
+
+          return (
+            <div className={styles.uploadsCell}>
+              <Main_FileUploads
+                mode="file"
+                label=""
+                compact
+                tableCell
+                hoverPreview
+                showDownloadButton={false}
+                compactButtonText="Upload"
+                defaultFiles={defaultFiles}
+                onChange={(ov, nv) =>
+                  handleProductInternalFilesChange(row?.id, nv)
+                }
+                onError={(error) => {
+                  console.error(
+                    'Sales product internal file upload error:',
+                    error,
+                  );
+                }}
+                fileUrlBase={FILE_SERVER_BASE_URL}
+              />
+            </div>
+          );
+        },
+      },
+      {
         key: 'actions',
         label: 'Actions',
         size: 'S',
@@ -630,10 +720,12 @@ const Main_SalesProductDetails = ({
       currencyDropdownOptions,
       productImages,
       productInternalImages,
+      productInternalFiles,
       handleUpsertProductDetail,
       handleDeleteProductDetail,
       handleProductImagesChange,
       handleProductInternalImagesChange,
+      handleProductInternalFilesChange,
     ],
   );
 

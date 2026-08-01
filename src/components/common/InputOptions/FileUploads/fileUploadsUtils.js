@@ -22,6 +22,13 @@ export const processDefaultImages = (imgs) => {
         image.name || (image.url ? image.url.split('/').pop() : null);
 
       return {
+        // Keep all incoming metadata from API/context (e.g. _original_image_url,
+        // _original_file_url, base64_*). The uploader may replace url with a
+        // blob preview URL for UI display, but download logic relies on original
+        // persisted URLs to fetch non-compressed binaries from the server.
+        // Removing these fields can cause downloads to fallback to compressed
+        // preview blobs and produce size mismatches.
+        ...image,
         id: image.id || uuidv4(),
         url: image.url || '',
         name: name || `image-${index + 1}`,

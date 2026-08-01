@@ -46,20 +46,33 @@ const SALES_TABLE_NAME = 'sales_quotations';
 const DEFAULT_QUOTATION_FILE_MAPPINGS = {
   sales_shipping_images: { url: 'image_url', base64: 'base64_image' },
   sales_shipping_internal_images: { url: 'image_url', base64: 'base64_image' },
+  sales_shipping_internal_files: { url: 'file_url', base64: 'base64_file' },
   sales_shipping_price_images: { url: 'image_url', base64: 'base64_image' },
   sales_shipping_price_internal_images: {
     url: 'image_url',
     base64: 'base64_image',
+  },
+  sales_shipping_price_internal_files: {
+    url: 'file_url',
+    base64: 'base64_file',
   },
   sales_product_detail_images: { url: 'image_url', base64: 'base64_image' },
   sales_product_detail_internal_images: {
     url: 'image_url',
     base64: 'base64_image',
   },
+  sales_product_detail_internal_files: {
+    url: 'file_url',
+    base64: 'base64_file',
+  },
   sales_service_detail_images: { url: 'image_url', base64: 'base64_image' },
   sales_service_detail_internal_images: {
     url: 'image_url',
     base64: 'base64_image',
+  },
+  sales_service_detail_internal_files: {
+    url: 'file_url',
+    base64: 'base64_file',
   },
 };
 
@@ -75,6 +88,12 @@ const SALES_CHILD_TABLE_RENEST_CONFIG = [
     detailKey: 'sales_shipping_prices',
     parentField: 'sales_shipping_price_id',
     nestedChildKey: 'sales_shipping_price_internal_images',
+  },
+  {
+    rootChildKey: 'sales_shipping_price_internal_files',
+    detailKey: 'sales_shipping_prices',
+    parentField: 'sales_shipping_price_id',
+    nestedChildKey: 'sales_shipping_price_internal_files',
   },
   {
     rootChildKey: 'sales_shipping_prices',
@@ -95,6 +114,12 @@ const SALES_CHILD_TABLE_RENEST_CONFIG = [
     nestedChildKey: 'sales_shipping_internal_images',
   },
   {
+    rootChildKey: 'sales_shipping_internal_files',
+    detailKey: 'sales_shipping_details',
+    parentField: 'sales_shipping_detail_id',
+    nestedChildKey: 'sales_shipping_internal_files',
+  },
+  {
     rootChildKey: 'sales_product_detail_images',
     detailKey: 'sales_product_details',
     parentField: 'sales_product_detail_id',
@@ -107,6 +132,12 @@ const SALES_CHILD_TABLE_RENEST_CONFIG = [
     nestedChildKey: 'sales_product_detail_internal_images',
   },
   {
+    rootChildKey: 'sales_product_detail_internal_files',
+    detailKey: 'sales_product_details',
+    parentField: 'sales_product_detail_id',
+    nestedChildKey: 'sales_product_detail_internal_files',
+  },
+  {
     rootChildKey: 'sales_service_detail_images',
     detailKey: 'sales_service_details',
     parentField: 'sales_service_detail_id',
@@ -117,6 +148,12 @@ const SALES_CHILD_TABLE_RENEST_CONFIG = [
     detailKey: 'sales_service_details',
     parentField: 'sales_service_detail_id',
     nestedChildKey: 'sales_service_detail_internal_images',
+  },
+  {
+    rootChildKey: 'sales_service_detail_internal_files',
+    detailKey: 'sales_service_details',
+    parentField: 'sales_service_detail_id',
+    nestedChildKey: 'sales_service_detail_internal_files',
   },
 ];
 
@@ -132,6 +169,44 @@ const toSafeString = (value) => String(value || '').trim();
 const toIsoNow = () => new Date().toISOString();
 
 const deepClone = (value) => JSON.parse(JSON.stringify(value));
+
+const addSyncChildrenFlagsDeep = (value) => {
+  if (Array.isArray(value)) {
+    return value.map((item) => addSyncChildrenFlagsDeep(item));
+  }
+
+  if (!value || typeof value !== 'object') {
+    return value;
+  }
+
+  const nextValue = { ...value };
+  Object.keys(nextValue).forEach((key) => {
+    nextValue[key] = addSyncChildrenFlagsDeep(nextValue[key]);
+  });
+
+  // DataModelUtils checks this flag on each current row during update sync.
+  nextValue._sync_children = true;
+  return nextValue;
+};
+
+const stripCreatedAtDeep = (value) => {
+  if (Array.isArray(value)) {
+    return value.map((item) => stripCreatedAtDeep(item));
+  }
+
+  if (!value || typeof value !== 'object') {
+    return value;
+  }
+
+  const nextValue = { ...value };
+  delete nextValue.created_at;
+
+  Object.keys(nextValue).forEach((key) => {
+    nextValue[key] = stripCreatedAtDeep(nextValue[key]);
+  });
+
+  return nextValue;
+};
 
 const cloneRowsWithNewIds = (
   rows = [],
@@ -313,6 +388,16 @@ const normalizeSalesQuotation = (row = {}) => {
           'shipping_detail_id',
         );
 
+  const shippingInternalFiles =
+    toArray(row?.sales_shipping_internal_files).length > 0
+      ? toArray(row?.sales_shipping_internal_files)
+      : flattenNestedRows(
+          shippingDetails,
+          'sales_shipping_internal_files',
+          'sales_shipping_detail_id',
+          'shipping_detail_id',
+        );
+
   const shippingPriceImages =
     toArray(row?.sales_shipping_price_images).length > 0
       ? toArray(row?.sales_shipping_price_images)
@@ -329,6 +414,16 @@ const normalizeSalesQuotation = (row = {}) => {
       : flattenNestedRows(
           shippingPrices,
           'sales_shipping_price_internal_images',
+          'sales_shipping_price_id',
+          'shipping_price_id',
+        );
+
+  const shippingPriceInternalFiles =
+    toArray(row?.sales_shipping_price_internal_files).length > 0
+      ? toArray(row?.sales_shipping_price_internal_files)
+      : flattenNestedRows(
+          shippingPrices,
+          'sales_shipping_price_internal_files',
           'sales_shipping_price_id',
           'shipping_price_id',
         );
@@ -353,6 +448,16 @@ const normalizeSalesQuotation = (row = {}) => {
           'product_detail_id',
         );
 
+  const productInternalFiles =
+    toArray(row?.sales_product_detail_internal_files).length > 0
+      ? toArray(row?.sales_product_detail_internal_files)
+      : flattenNestedRows(
+          productDetails,
+          'sales_product_detail_internal_files',
+          'sales_product_detail_id',
+          'product_detail_id',
+        );
+
   const serviceImages =
     toArray(row?.sales_service_detail_images).length > 0
       ? toArray(row?.sales_service_detail_images)
@@ -373,6 +478,16 @@ const normalizeSalesQuotation = (row = {}) => {
           'service_detail_id',
         );
 
+  const serviceInternalFiles =
+    toArray(row?.sales_service_detail_internal_files).length > 0
+      ? toArray(row?.sales_service_detail_internal_files)
+      : flattenNestedRows(
+          serviceDetails,
+          'sales_service_detail_internal_files',
+          'sales_service_detail_id',
+          'service_detail_id',
+        );
+
   return {
     id: toSafeString(row?.id),
     to_order: Boolean(row?.to_order),
@@ -386,14 +501,18 @@ const normalizeSalesQuotation = (row = {}) => {
     sales_shipping_prices: shippingPrices,
     sales_shipping_images: shippingImages,
     sales_shipping_internal_images: shippingInternalImages,
+    sales_shipping_internal_files: shippingInternalFiles,
     sales_shipping_price_images: shippingPriceImages,
     sales_shipping_price_internal_images: shippingPriceInternalImages,
+    sales_shipping_price_internal_files: shippingPriceInternalFiles,
     sales_product_details: productDetails,
     sales_product_detail_images: productImages,
     sales_product_detail_internal_images: productInternalImages,
+    sales_product_detail_internal_files: productInternalFiles,
     sales_service_details: serviceDetails,
     sales_service_detail_images: serviceImages,
     sales_service_detail_internal_images: serviceInternalImages,
+    sales_service_detail_internal_files: serviceInternalFiles,
   };
 };
 
@@ -467,9 +586,6 @@ const renestSalesQuotationRowForApi = (row = {}, fallbackRows = []) => {
 
   SALES_CHILD_TABLE_RENEST_CONFIG.forEach((config) => {
     const rootRows = toArray(nextRow?.[config.rootChildKey]);
-    if (rootRows.length === 0) {
-      return;
-    }
 
     const details = toArray(nextRow?.[config.detailKey]).map((detail) => ({
       ...detail,
@@ -489,35 +605,74 @@ const renestSalesQuotationRowForApi = (row = {}, fallbackRows = []) => {
       config.parentField,
     );
 
-    rootRows.forEach((childRow) => {
-      const nextChildRow = { ...childRow };
-      const childId = toSafeString(nextChildRow?.id);
-      const parentId =
-        toSafeString(nextChildRow?.[config.parentField]) ||
-        (childId ? childParentLookup.get(childId) : '');
+    if (rootRows.length === 0) {
+      // When the child array is empty (all rows were deleted), we still
+      // need to propagate empty arrays into the nested detail structure
+      // so that _sync_children flags on parent rows can instruct the
+      // server to remove orphaned children.
+      const parentIds = new Set(childParentLookup.values());
+      let hasEmptyNested = false;
 
-      if (!parentId) {
-        return;
+      parentIds.forEach((parentId) => {
+        let detailIndex = detailIndexById.get(parentId);
+        if (detailIndex === undefined) {
+          details.push({ id: parentId });
+          detailIndex = details.length - 1;
+          detailIndexById.set(parentId, detailIndex);
+        }
+
+        const detailRow = details[detailIndex] || { id: parentId };
+        details[detailIndex] = {
+          ...detailRow,
+          [config.nestedChildKey]: [],
+        };
+        hasEmptyNested = true;
+      });
+
+      if (hasEmptyNested) {
+        nextRow[config.detailKey] = details;
       }
+    } else {
+      const resetParents = new Set();
 
-      nextChildRow[config.parentField] = parentId;
+      rootRows.forEach((childRow) => {
+        const nextChildRow = { ...childRow };
+        const childId = toSafeString(nextChildRow?.id);
+        const parentId =
+          toSafeString(nextChildRow?.[config.parentField]) ||
+          (childId ? childParentLookup.get(childId) : '');
 
-      let detailIndex = detailIndexById.get(parentId);
-      if (detailIndex === undefined) {
-        details.push({ id: parentId });
-        detailIndex = details.length - 1;
-        detailIndexById.set(parentId, detailIndex);
-      }
+        if (!parentId) {
+          return;
+        }
 
-      const detailRow = details[detailIndex] || { id: parentId };
-      const nestedRows = toArray(detailRow?.[config.nestedChildKey]);
-      details[detailIndex] = {
-        ...detailRow,
-        [config.nestedChildKey]: upsertRowsById(nestedRows, [nextChildRow]),
-      };
-    });
+        nextChildRow[config.parentField] = parentId;
 
-    nextRow[config.detailKey] = details;
+        let detailIndex = detailIndexById.get(parentId);
+        if (detailIndex === undefined) {
+          details.push({ id: parentId });
+          detailIndex = details.length - 1;
+          detailIndexById.set(parentId, detailIndex);
+        }
+
+        const detailRow = details[detailIndex] || { id: parentId };
+
+        // Root child arrays are the source of truth. Reset nested children
+        // once per parent so stale rows do not survive after deletions.
+        const nestedRows = resetParents.has(parentId)
+          ? toArray(detailRow?.[config.nestedChildKey])
+          : [];
+
+        details[detailIndex] = {
+          ...detailRow,
+          [config.nestedChildKey]: upsertRowsById(nestedRows, [nextChildRow]),
+        };
+        resetParents.add(parentId);
+      });
+
+      nextRow[config.detailKey] = details;
+    }
+
     delete nextRow[config.rootChildKey];
   });
 
@@ -549,7 +704,8 @@ const renestSalesPayloadForApi = (
 
 export const SalesQuotationContext_Provider = ({ children }) => {
   const { token } = useAuthContext();
-  const { fileMappings } = useGeneralContext();
+  const { fileMappings, resolveAuthoritativeEntityAfterSave } =
+    useGeneralContext();
   const {
     services,
     currencies,
@@ -1367,20 +1523,34 @@ export const SalesQuotationContext_Provider = ({ children }) => {
       });
 
       if (normalizedDeletions) {
-        try {
-          await apiDelete(`${SALES_API_BASE}/data/ids`, {
-            token,
-            body: { data: normalizedDeletions },
-          });
-        } catch {
-          await apiDelete(`${SALES_API_BASE}/data`, {
-            token,
-            body: { data: normalizedDeletions },
-          });
-        }
-      }
+        // Use update-sync for nested deletions to ensure omitted child rows are removed.
+        const syncPatchPayload = renestSalesPayloadForApi(
+          {
+            sales_quotations: [
+              stripCreatedAtDeep(
+                addSyncChildrenFlagsDeep(
+                  cleanupQuotationFlags(selectedQuotation),
+                ),
+              ),
+            ],
+          },
+          {
+            currentRow: selectedQuotation,
+            originalRow: originalPageData,
+          },
+        );
 
-      if (normalizedChanges) {
+        const processedSyncPatchPayload = await processChangesWithBase64(
+          syncPatchPayload,
+          quotationBase64Config,
+        );
+
+        await apiPatch(
+          `${SALES_API_BASE}/data/ids`,
+          { data: processedSyncPatchPayload },
+          { token },
+        );
+      } else if (normalizedChanges) {
         // Process base64 fields in changes before sending to server (e.g., blob URLs -> data URIs for images)
         const processedChanges = await processChangesWithBase64(
           normalizedChanges,
@@ -1394,8 +1564,17 @@ export const SalesQuotationContext_Provider = ({ children }) => {
         );
       }
 
-      const normalizedSavedRow = normalizeSalesQuotation(cleanedPageData);
+      // Always sync local state from backend after save so UI reflects
+      // authoritative nested file/image rows (avoids stale ghost previews).
+      const refreshedRow = await resolveAuthoritativeEntityAfterSave({
+        refreshList: refreshSalesQuotationList,
+        targetId,
+        fallbackEntity: null,
+      });
 
+      if (refreshedRow) return refreshedRow;
+
+      const normalizedSavedRow = normalizeSalesQuotation(cleanedPageData);
       setQuotations((previousRows) =>
         previousRows.map((row) =>
           toSafeString(row?.id) === targetId ? normalizedSavedRow : row,
@@ -1419,6 +1598,8 @@ export const SalesQuotationContext_Provider = ({ children }) => {
     getChangedData,
     cleanupQuotationFlags,
     quotationBase64Config,
+    refreshSalesQuotationList,
+    resolveAuthoritativeEntityAfterSave,
   ]);
 
   const createSalesQuotation = useCallback(async () => {
@@ -1513,11 +1694,17 @@ export const SalesQuotationContext_Provider = ({ children }) => {
     const sourceShippingInternalImages = toArray(
       sourceQuotation?.sales_shipping_internal_images,
     );
+    const sourceShippingInternalFiles = toArray(
+      sourceQuotation?.sales_shipping_internal_files,
+    );
     const sourceProductImages = toArray(
       sourceQuotation?.sales_product_detail_images,
     );
     const sourceProductInternalImages = toArray(
       sourceQuotation?.sales_product_detail_internal_images,
+    );
+    const sourceProductInternalFiles = toArray(
+      sourceQuotation?.sales_product_detail_internal_files,
     );
     const sourceServiceImages = toArray(
       sourceQuotation?.sales_service_detail_images,
@@ -1525,11 +1712,17 @@ export const SalesQuotationContext_Provider = ({ children }) => {
     const sourceServiceInternalImages = toArray(
       sourceQuotation?.sales_service_detail_internal_images,
     );
+    const sourceServiceInternalFiles = toArray(
+      sourceQuotation?.sales_service_detail_internal_files,
+    );
     const sourceShippingPriceImages = toArray(
       sourceQuotation?.sales_shipping_price_images,
     );
     const sourceShippingPriceInternalImages = toArray(
       sourceQuotation?.sales_shipping_price_internal_images,
+    );
+    const sourceShippingPriceInternalFiles = toArray(
+      sourceQuotation?.sales_shipping_price_internal_files,
     );
 
     const shippingDetailIdMap = new Map();
@@ -1544,6 +1737,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
       delete rest.sales_shipping_prices;
       delete rest.sales_shipping_images;
       delete rest.sales_shipping_internal_images;
+      delete rest.sales_shipping_internal_files;
       delete rest.created_at;
       delete rest.updated_at;
       return {
@@ -1561,6 +1755,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
       const rest = deepClone(row || {});
       delete rest.sales_product_detail_images;
       delete rest.sales_product_detail_internal_images;
+      delete rest.sales_product_detail_internal_files;
       delete rest.created_at;
       delete rest.updated_at;
       return {
@@ -1578,6 +1773,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
       const rest = deepClone(row || {});
       delete rest.sales_service_detail_images;
       delete rest.sales_service_detail_internal_images;
+      delete rest.sales_service_detail_internal_files;
       delete rest.created_at;
       delete rest.updated_at;
       return {
@@ -1603,6 +1799,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
         const rest = deepClone(row || {});
         delete rest.sales_shipping_price_images;
         delete rest.sales_shipping_price_internal_images;
+        delete rest.sales_shipping_price_internal_files;
         delete rest.created_at;
         delete rest.updated_at;
         return {
@@ -1632,6 +1829,22 @@ export const SalesQuotationContext_Provider = ({ children }) => {
       .filter(Boolean);
 
     const sales_shipping_internal_images = sourceShippingInternalImages
+      .map((row) => {
+        const sourceDetailId = toSafeString(row?.sales_shipping_detail_id);
+        const nextDetailId = shippingDetailIdMap.get(sourceDetailId);
+        if (!nextDetailId) {
+          return null;
+        }
+
+        return cloneRowsWithNewIds([row], {
+          parentField: 'sales_shipping_detail_id',
+          nextParentId: nextDetailId,
+          now,
+        })[0];
+      })
+      .filter(Boolean);
+
+    const sales_shipping_internal_files = sourceShippingInternalFiles
       .map((row) => {
         const sourceDetailId = toSafeString(row?.sales_shipping_detail_id);
         const nextDetailId = shippingDetailIdMap.get(sourceDetailId);
@@ -1679,6 +1892,22 @@ export const SalesQuotationContext_Provider = ({ children }) => {
       })
       .filter(Boolean);
 
+    const sales_product_detail_internal_files = sourceProductInternalFiles
+      .map((row) => {
+        const sourceDetailId = toSafeString(row?.sales_product_detail_id);
+        const nextDetailId = productDetailIdMap.get(sourceDetailId);
+        if (!nextDetailId) {
+          return null;
+        }
+
+        return cloneRowsWithNewIds([row], {
+          parentField: 'sales_product_detail_id',
+          nextParentId: nextDetailId,
+          now,
+        })[0];
+      })
+      .filter(Boolean);
+
     const sales_service_detail_images = sourceServiceImages
       .map((row) => {
         const sourceDetailId = toSafeString(row?.sales_service_detail_id);
@@ -1696,6 +1925,22 @@ export const SalesQuotationContext_Provider = ({ children }) => {
       .filter(Boolean);
 
     const sales_service_detail_internal_images = sourceServiceInternalImages
+      .map((row) => {
+        const sourceDetailId = toSafeString(row?.sales_service_detail_id);
+        const nextDetailId = serviceDetailIdMap.get(sourceDetailId);
+        if (!nextDetailId) {
+          return null;
+        }
+
+        return cloneRowsWithNewIds([row], {
+          parentField: 'sales_service_detail_id',
+          nextParentId: nextDetailId,
+          now,
+        })[0];
+      })
+      .filter(Boolean);
+
+    const sales_service_detail_internal_files = sourceServiceInternalFiles
       .map((row) => {
         const sourceDetailId = toSafeString(row?.sales_service_detail_id);
         const nextDetailId = serviceDetailIdMap.get(sourceDetailId);
@@ -1744,6 +1989,22 @@ export const SalesQuotationContext_Provider = ({ children }) => {
         })
         .filter(Boolean);
 
+    const sales_shipping_price_internal_files = sourceShippingPriceInternalFiles
+      .map((row) => {
+        const sourcePriceId = toSafeString(row?.sales_shipping_price_id);
+        const nextPriceId = shippingPriceIdMap.get(sourcePriceId);
+        if (!nextPriceId) {
+          return null;
+        }
+
+        return cloneRowsWithNewIds([row], {
+          parentField: 'sales_shipping_price_id',
+          nextParentId: nextPriceId,
+          now,
+        })[0];
+      })
+      .filter(Boolean);
+
     const duplicatedRow = normalizeSalesQuotation({
       id: nextQuotationId,
       to_order: Boolean(sourceQuotation?.to_order),
@@ -1754,14 +2015,18 @@ export const SalesQuotationContext_Provider = ({ children }) => {
       sales_shipping_prices,
       sales_shipping_images,
       sales_shipping_internal_images,
+      sales_shipping_internal_files,
       sales_shipping_price_images,
       sales_shipping_price_internal_images,
+      sales_shipping_price_internal_files,
       sales_product_details,
       sales_product_detail_images,
       sales_product_detail_internal_images,
+      sales_product_detail_internal_files,
       sales_service_details,
       sales_service_detail_images,
       sales_service_detail_internal_images,
+      sales_service_detail_internal_files,
     });
 
     setQuotations((previousRows) => {

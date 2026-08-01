@@ -290,6 +290,10 @@ const Main_SalesShippingDetails = ({
     () => quotation?.sales_shipping_internal_images || [],
     [quotation?.sales_shipping_internal_images],
   );
+  const shippingInternalFiles = useMemo(
+    () => quotation?.sales_shipping_internal_files || [],
+    [quotation?.sales_shipping_internal_files],
+  );
   const shippingPriceImages = useMemo(
     () => quotation?.sales_shipping_price_images || [],
     [quotation?.sales_shipping_price_images],
@@ -297,6 +301,10 @@ const Main_SalesShippingDetails = ({
   const shippingPriceInternalImages = useMemo(
     () => quotation?.sales_shipping_price_internal_images || [],
     [quotation?.sales_shipping_price_internal_images],
+  );
+  const shippingPriceInternalFiles = useMemo(
+    () => quotation?.sales_shipping_price_internal_files || [],
+    [quotation?.sales_shipping_price_internal_files],
   );
   const selectedCustomerId = String(quotation?.customer_id || '').trim();
 
@@ -336,6 +344,13 @@ const Main_SalesShippingDetails = ({
     [onPatchQuotation],
   );
 
+  const setShippingInternalFiles = useCallback(
+    (nextRows) => {
+      onPatchQuotation({ sales_shipping_internal_files: nextRows });
+    },
+    [onPatchQuotation],
+  );
+
   const setShippingPriceImages = useCallback(
     (nextRows) => {
       onPatchQuotation({ sales_shipping_price_images: nextRows });
@@ -346,6 +361,13 @@ const Main_SalesShippingDetails = ({
   const setShippingPriceInternalImages = useCallback(
     (nextRows) => {
       onPatchQuotation({ sales_shipping_price_internal_images: nextRows });
+    },
+    [onPatchQuotation],
+  );
+
+  const setShippingPriceInternalFiles = useCallback(
+    (nextRows) => {
+      onPatchQuotation({ sales_shipping_price_internal_files: nextRows });
     },
     [onPatchQuotation],
   );
@@ -404,6 +426,11 @@ const Main_SalesShippingDetails = ({
           (item) => String(item?.sales_shipping_detail_id || '') !== rowId,
         ),
       );
+      setShippingInternalFiles(
+        shippingInternalFiles.filter(
+          (item) => String(item?.sales_shipping_detail_id || '') !== rowId,
+        ),
+      );
       setShippingPriceImages(
         shippingPriceImages.filter(
           (item) =>
@@ -416,20 +443,30 @@ const Main_SalesShippingDetails = ({
             !removedPriceIdSet.has(String(item?.sales_shipping_price_id || '')),
         ),
       );
+      setShippingPriceInternalFiles(
+        shippingPriceInternalFiles.filter(
+          (item) =>
+            !removedPriceIdSet.has(String(item?.sales_shipping_price_id || '')),
+        ),
+      );
     },
     [
       shippingDetails,
       shippingPrices,
       shippingImages,
       shippingInternalImages,
+      shippingInternalFiles,
       shippingPriceImages,
       shippingPriceInternalImages,
+      shippingPriceInternalFiles,
       setShippingDetails,
       setShippingPrices,
       setShippingImages,
       setShippingInternalImages,
+      setShippingInternalFiles,
       setShippingPriceImages,
       setShippingPriceInternalImages,
+      setShippingPriceInternalFiles,
     ],
   );
 
@@ -503,6 +540,28 @@ const Main_SalesShippingDetails = ({
     [shippingInternalImages, setShippingInternalImages],
   );
 
+  const handleShippingInternalFilesChange = useCallback(
+    (shippingDetailId, newFiles = []) => {
+      const detailId = String(shippingDetailId || '').trim();
+      if (!detailId) return;
+
+      const preservedRows = shippingInternalFiles.filter(
+        (item) => String(item?.sales_shipping_detail_id || '') !== detailId,
+      );
+
+      const mappedRows = (newFiles || []).map((file, index) => ({
+        id: file?.id || uuidv4(),
+        sales_shipping_detail_id: detailId,
+        file_url: file?.url || '',
+        file_name: file?.name || `shipping-internal-${index + 1}`,
+        display_order: index + 1,
+      }));
+
+      setShippingInternalFiles([...preservedRows, ...mappedRows]);
+    },
+    [shippingInternalFiles, setShippingInternalFiles],
+  );
+
   const handleUpsertShippingPrice = useCallback(
     (row, patch) => {
       const rowId = String(row?.id || uuidv4());
@@ -562,13 +621,20 @@ const Main_SalesShippingDetails = ({
           (item) => String(item?.sales_shipping_price_id || '') !== rowId,
         ),
       );
+      setShippingPriceInternalFiles(
+        shippingPriceInternalFiles.filter(
+          (item) => String(item?.sales_shipping_price_id || '') !== rowId,
+        ),
+      );
     },
     [
       shippingPriceImages,
       shippingPriceInternalImages,
+      shippingPriceInternalFiles,
       setShippingPrices,
       setShippingPriceImages,
       setShippingPriceInternalImages,
+      setShippingPriceInternalFiles,
     ],
   );
 
@@ -614,6 +680,28 @@ const Main_SalesShippingDetails = ({
       setShippingPriceInternalImages([...preservedRows, ...mappedRows]);
     },
     [shippingPriceInternalImages, setShippingPriceInternalImages],
+  );
+
+  const handleShippingPriceInternalFilesChange = useCallback(
+    (shippingPriceId, newFiles = []) => {
+      const priceId = String(shippingPriceId || '').trim();
+      if (!priceId) return;
+
+      const preservedRows = shippingPriceInternalFiles.filter(
+        (item) => String(item?.sales_shipping_price_id || '') !== priceId,
+      );
+
+      const mappedRows = (newFiles || []).map((file, index) => ({
+        id: file?.id || uuidv4(),
+        sales_shipping_price_id: priceId,
+        file_url: file?.url || '',
+        file_name: file?.name || `shipping-price-internal-${index + 1}`,
+        display_order: index + 1,
+      }));
+
+      setShippingPriceInternalFiles([...preservedRows, ...mappedRows]);
+    },
+    [shippingPriceInternalFiles, setShippingPriceInternalFiles],
   );
 
   const handleAddShippingPrice = useCallback(
@@ -1027,6 +1115,53 @@ const Main_SalesShippingDetails = ({
         },
       },
       {
+        key: 'internal_files',
+        label: 'Internal Files',
+        size: 'XL',
+        nextRow: true,
+        sortable: false,
+        renderCell: (row) => {
+          const defaultFiles = shippingInternalFiles
+            .filter(
+              (file) =>
+                String(file?.sales_shipping_detail_id || '') ===
+                String(row?.id || ''),
+            )
+            .sort(
+              (a, b) =>
+                Number(a.display_order || 0) - Number(b.display_order || 0),
+            )
+            .map((file) => ({
+              id: file.id,
+              name: file.file_name,
+              url: file.file_url,
+              display_order: file.display_order,
+            }));
+
+          return (
+            <div className={styles.uploadsCell}>
+              <Main_FileUploads
+                mode="file"
+                label=""
+                compact
+                tableCell
+                hoverPreview
+                showDownloadButton={false}
+                compactButtonText="Upload"
+                fileUrlBase={FILE_SERVER_BASE_URL}
+                defaultFiles={defaultFiles}
+                onChange={(ov, nv) =>
+                  handleShippingInternalFilesChange(row?.id, nv)
+                }
+                onError={(error) => {
+                  console.error('Shipping internal file upload error:', error);
+                }}
+              />
+            </div>
+          );
+        },
+      },
+      {
         key: 'chargeable_weight_panel',
         label: 'Chargeable Weight',
         size: 'XXL',
@@ -1183,9 +1318,11 @@ const Main_SalesShippingDetails = ({
       addressSuggestionOptions,
       shippingImages,
       shippingInternalImages,
+      shippingInternalFiles,
       onRefreshReferenceOptions,
       handleShippingImagesChange,
       handleShippingInternalImagesChange,
+      handleShippingInternalFilesChange,
       handleUpsertShippingDetail,
       handleDeleteShippingDetail,
     ],
@@ -1616,6 +1753,56 @@ const Main_SalesShippingDetails = ({
         },
       },
       {
+        key: 'internal_files',
+        label: 'Internal Files',
+        size: 'XL',
+        nextRow: true,
+        sortable: false,
+        renderCell: (row) => {
+          const defaultFiles = shippingPriceInternalFiles
+            .filter(
+              (file) =>
+                String(file?.sales_shipping_price_id || '') ===
+                String(row?.id || ''),
+            )
+            .sort(
+              (a, b) =>
+                Number(a.display_order || 0) - Number(b.display_order || 0),
+            )
+            .map((file) => ({
+              id: file.id,
+              name: file.file_name,
+              url: file.file_url,
+              display_order: file.display_order,
+            }));
+
+          return (
+            <div className={styles.uploadsCell}>
+              <Main_FileUploads
+                mode="file"
+                label=""
+                compact
+                tableCell
+                hoverPreview
+                showDownloadButton={false}
+                compactButtonText="Upload"
+                fileUrlBase={FILE_SERVER_BASE_URL}
+                defaultFiles={defaultFiles}
+                onChange={(ov, nv) =>
+                  handleShippingPriceInternalFilesChange(row?.id, nv)
+                }
+                onError={(error) => {
+                  console.error(
+                    'Shipping price internal file upload error:',
+                    error,
+                  );
+                }}
+              />
+            </div>
+          );
+        },
+      },
+      {
         key: 'actions',
         label: 'Actions',
         size: 'S',
@@ -1632,10 +1819,12 @@ const Main_SalesShippingDetails = ({
       currencyDropdownOptions,
       shippingPriceImages,
       shippingPriceInternalImages,
+      shippingPriceInternalFiles,
       handleUpsertShippingPrice,
       handleToggleShippingPriceSelected,
       handleShippingPriceImagesChange,
       handleShippingPriceInternalImagesChange,
+      handleShippingPriceInternalFilesChange,
       handleDeleteShippingPrice,
     ],
   );

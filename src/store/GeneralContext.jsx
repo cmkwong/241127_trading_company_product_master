@@ -94,6 +94,36 @@ export const GeneralContext_Provider = ({ children }) => {
     [fileMappings],
   );
 
+  const resolveAuthoritativeEntityAfterSave = useCallback(
+    async ({
+      refreshList,
+      targetId,
+      fallbackEntity = null,
+      idSelector = (row) => row?.id,
+    } = {}) => {
+      if (typeof refreshList !== 'function') {
+        return fallbackEntity;
+      }
+
+      const normalizedTargetId = String(targetId || '').trim();
+      if (!normalizedTargetId) {
+        return fallbackEntity;
+      }
+
+      const refreshedRows = await refreshList();
+      if (!Array.isArray(refreshedRows) || refreshedRows.length === 0) {
+        return fallbackEntity;
+      }
+
+      const authoritativeRow = refreshedRows.find(
+        (row) => String(idSelector(row) || '').trim() === normalizedTargetId,
+      );
+
+      return authoritativeRow || fallbackEntity;
+    },
+    [],
+  );
+
   return (
     <GeneralContext.Provider
       value={{
@@ -104,6 +134,7 @@ export const GeneralContext_Provider = ({ children }) => {
         getFileMapping,
         getBase64ConfigByPrefix,
         getBase64ConfigForTables,
+        resolveAuthoritativeEntityAfterSave,
       }}
     >
       {children}

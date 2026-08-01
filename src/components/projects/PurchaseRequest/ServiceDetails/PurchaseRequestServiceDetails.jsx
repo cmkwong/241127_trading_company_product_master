@@ -44,6 +44,7 @@ const PurchaseRequestServiceDetails = ({
   onSetField,
   onRemove,
   buildDefaultUploadFiles,
+  onImageFilesChange,
   onFilesChange,
   fileUrlBase = '',
 }) => {
@@ -247,6 +248,33 @@ const PurchaseRequestServiceDetails = ({
         renderCell: (row) => (
           <div className={styles.uploadsCell}>
             <Main_FileUploads
+              mode="image"
+              compact
+              tableCell
+              hoverPreview
+              compactButtonText="Upload"
+              fileUrlBase={fileUrlBase}
+              defaultImages={buildDefaultUploadFiles?.(
+                row?.purchase_service_images,
+                'image_name',
+                'image_url',
+              )}
+              onChange={(oldFiles, newFiles) =>
+                onImageFilesChange?.(row?.id, oldFiles, newFiles)
+              }
+            />
+          </div>
+        ),
+      },
+      {
+        key: 'files',
+        label: 'Service Files',
+        size: 'XL',
+        nextRow: true,
+        sortable: false,
+        renderCell: (row) => (
+          <div className={styles.uploadsCell}>
+            <Main_FileUploads
               mode="file"
               compact
               tableCell
@@ -254,9 +282,9 @@ const PurchaseRequestServiceDetails = ({
               compactButtonText="Upload"
               fileUrlBase={fileUrlBase}
               defaultFiles={buildDefaultUploadFiles?.(
-                row?.purchase_service_images,
-                'image_name',
-                'image_url',
+                row?.purchase_service_files,
+                'file_name',
+                'file_url',
               )}
               onChange={(oldFiles, newFiles) =>
                 onFilesChange?.(row?.id, oldFiles, newFiles)
@@ -270,6 +298,7 @@ const PurchaseRequestServiceDetails = ({
       buildDefaultUploadFiles,
       currencyDropdownOptions,
       fileUrlBase,
+      onImageFilesChange,
       onFilesChange,
       onRemove,
       onSetField,

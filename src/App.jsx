@@ -12,6 +12,7 @@ import { GeneralContext_Provider } from './store/GeneralContext';
 import { MasterContext_Provider } from './store/MasterContext';
 import { CustomerContext_Provider } from './store/CustomerContext';
 import { ProductContext_Provider } from './store/ProductContext';
+import { PurchaseRequestContext_Provider } from './store/PurchaseRequestContext';
 import { SalesQuotationContext_Provider } from './store/SalesQuotationContext';
 import { SupplierContext_Provider } from './store/SupplierContext';
 import styles from './App.module.css';
@@ -39,30 +40,32 @@ function App() {
               <SupplierContext_Provider>
                 <CustomerContext_Provider>
                   <SalesQuotationContext_Provider>
-                    <TopBar
-                      title={pageTitleByView[currentView] || 'Product Master'}
-                      activeView={currentView}
-                      onViewChange={setCurrentView}
-                    />
-                    <div className={styles.contentArea}>
-                      {currentView === 'product' ? (
-                        <Main_ProductMaster />
-                      ) : currentView === 'supplier' ? (
-                        <Main_SupplierMaster />
-                      ) : currentView === 'customer' ? (
-                        <Main_CustomerMaster />
-                      ) : currentView === 'salesQuotation' ? (
-                        <Main_SalesQuotation />
-                      ) : currentView === 'purchaseRequest' ? (
-                        <Main_PurchaseRequest />
-                      ) : currentView === 'apInvoice' ? (
-                        <Main_APInvoice />
-                      ) : currentView === 'masterControl' ? (
-                        <Main_MasterControl />
-                      ) : (
-                        <React.Fragment />
-                      )}
-                    </div>
+                    <PurchaseRequestContext_Provider>
+                      <TopBar
+                        title={pageTitleByView[currentView] || 'Product Master'}
+                        activeView={currentView}
+                        onViewChange={setCurrentView}
+                      />
+                      <div className={styles.contentArea}>
+                        {currentView === 'product' ? (
+                          <Main_ProductMaster />
+                        ) : currentView === 'supplier' ? (
+                          <Main_SupplierMaster />
+                        ) : currentView === 'customer' ? (
+                          <Main_CustomerMaster />
+                        ) : currentView === 'salesQuotation' ? (
+                          <Main_SalesQuotation />
+                        ) : currentView === 'purchaseRequest' ? (
+                          <Main_PurchaseRequest />
+                        ) : currentView === 'apInvoice' ? (
+                          <Main_APInvoice />
+                        ) : currentView === 'masterControl' ? (
+                          <Main_MasterControl />
+                        ) : (
+                          <React.Fragment />
+                        )}
+                      </div>
+                    </PurchaseRequestContext_Provider>
                   </SalesQuotationContext_Provider>
                 </CustomerContext_Provider>
               </SupplierContext_Provider>

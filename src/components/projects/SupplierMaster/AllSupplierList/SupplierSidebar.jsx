@@ -346,18 +346,12 @@ const SupplierSidebar = ({
           matchedService?.name ||
           `Service ${index + 1}`;
 
-        // Only use blob URLs (image_url) as set by context loader
-        const images = (service?.supplier_service_images || [])
-          .filter(
-            (image) =>
-              typeof image?.image_url === 'string' &&
-              image.image_url.startsWith('blob:'),
-          )
-          .map((image) => ({
-            type: 'image',
-            url: image.image_url,
-            text: image?.image_name || '',
-            alt: image?.image_name || 'service-image',
+        const files = (service?.supplier_service_files || [])
+          .filter((file) => typeof file?.file_url === 'string')
+          .map((file) => ({
+            type: 'link',
+            href: file.file_url,
+            text: file?.file_name || file?.file_url || '',
           }));
 
         return {
@@ -385,8 +379,8 @@ const SupplierSidebar = ({
               value: service?.remark || '',
             },
             {
-              label: 'Images',
-              value: images,
+              label: 'Files',
+              value: files,
             },
           ],
         };

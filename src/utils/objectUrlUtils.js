@@ -122,8 +122,19 @@ const applyBase64Config = (node, configKey, config, urlRegistry) => {
     return node;
   }
 
+  const originalUrlField =
+    typeof configEntry.url === 'string' && configEntry.url
+      ? `_original_${configEntry.url}`
+      : null;
+  const originalUrlValue = node?.[configEntry.url];
+
   return {
     ...node,
+    ...(originalUrlField
+      ? {
+          [originalUrlField]: originalUrlValue,
+        }
+      : {}),
     [configEntry.url]: objectUrl,
     _file_size: size,
     _file_type: type,

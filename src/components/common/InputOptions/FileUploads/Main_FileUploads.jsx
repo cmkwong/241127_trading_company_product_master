@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import PropTypes from 'prop-types';
 import styles from './Main_FileUploads.module.css';
 import Main_DropZone from '../DropZone/Main_DropZone';
@@ -69,6 +69,7 @@ const Main_FileUploads = (props) => {
 
   // State to store uploaded files/images
   const [fileList, setFileList] = useState(getInitialState);
+  const fileListRef = useRef(getInitialState());
   const [selectedFileIds, setSelectedFileIds] = useState(() =>
     getInitialState()
       .map((file) => file?.id)
@@ -82,6 +83,10 @@ const Main_FileUploads = (props) => {
   const { addWatermarkToImageBlob } = useWatermarkFile({
     watermarkImagePath,
   });
+
+  useEffect(() => {
+    fileListRef.current = fileList;
+  }, [fileList]);
 
   const createBlobFromBase64 = useCallback((base64Value, filename = '') => {
     if (!base64Value || typeof base64Value !== 'string') return null;
@@ -185,25 +190,93 @@ const Main_FileUploads = (props) => {
     document.body.appendChild(anchor);
     anchor.click();
     anchor.remove();
-    URL.revokeObjectURL(url);
+    // Delay revoke so the browser can finish reading the blob before it's freed.
+    // Revoking immediately causes truncated/corrupted downloads.
+    window.setTimeout(() => URL.revokeObjectURL(url), 2000);
   }, []);
+
+  const resolveFileUrl = useCallback(
+    (rawUrl) => {
+      const url = String(rawUrl || '').trim();
+      if (!url) {
+        return '';
+      }
+
+      if (/^(blob:|data:|https?:\/\/)/i.test(url)) {
+        return url;
+      }
+
+      const base = String(fileUrlBase || '')
+        .trim()
+        .replace(/\/+$/, '');
+      if (!base) {
+        return url;
+      }
+
+      const normalizedPath = url.replace(/^\/+/, '');
+      return `${base}/${normalizedPath}`;
+    },
+    [fileUrlBase],
+  );
 
   // Helper function to fetch blob from a given path (absolute URL or relative path with origin)
   const fetchBlobFromPath = useCallback(
-    async (path, endpointForOrigin = '') => {
+    async (path, endpointForOrigin = '', fallbackName = '') => {
       if (!path) return null;
-      const isAbsolute = /^https?:\/\//i.test(path);
+
+      const normalizedPath = resolveFileUrl(path);
+
+      if (/^blob:/i.test(normalizedPath)) {
+        const blobResponse = await fetch(normalizedPath);
+        if (!blobResponse.ok) {
+          throw new Error(`Download blob failed: ${blobResponse.status}`);
+        }
+        return blobResponse.blob();
+      }
+
+      if (/^data:/i.test(normalizedPath)) {
+        const dataBlob = createBlobFromBase64(normalizedPath, fallbackName);
+        if (!dataBlob) {
+          throw new Error('Failed to parse data URL for download.');
+        }
+        return dataBlob;
+      }
+
+      const isAbsolute = /^https?:\/\//i.test(normalizedPath);
       const origin = endpointForOrigin ? new URL(endpointForOrigin).origin : '';
-      const targetUrl = isAbsolute ? path : `${origin}${path}`;
+      const targetUrl = isAbsolute
+        ? normalizedPath
+        : `${origin}${normalizedPath.startsWith('/') ? '' : '/'}${normalizedPath}`;
+
       const response = await fetch(targetUrl, {
         headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       });
       if (!response.ok) {
         throw new Error(`Download file failed: ${response.status}`);
       }
-      return response.blob();
+
+      const contentType = String(
+        response.headers.get('content-type') || '',
+      ).toLowerCase();
+      const blob = await response.blob();
+      const lowerName = String(fallbackName || '').toLowerCase();
+      const looksLikeHtmlName =
+        lowerName.endsWith('.html') || lowerName.endsWith('.htm');
+
+      // Guard against accidentally downloading frontend HTML fallback pages.
+      if (
+        contentType.includes('text/html') &&
+        !looksLikeHtmlName &&
+        blob.size <= 64 * 1024
+      ) {
+        throw new Error(
+          'Download returned HTML instead of file binary. Please verify file server base URL.',
+        );
+      }
+
+      return blob;
     },
-    [token],
+    [token, resolveFileUrl, createBlobFromBase64],
   );
 
   const handleDownload = useCallback(async () => {
@@ -247,6 +320,7 @@ const Main_FileUploads = (props) => {
         const record = selectedRecords[index];
         const fallbackName =
           record?.name ||
+          record?.file_name ||
           record?.image_name ||
           `file-${record?.id || Math.random().toString(36).slice(2)}.bin`;
 
@@ -255,16 +329,33 @@ const Main_FileUploads = (props) => {
           blob = record.file;
         }
 
-        if (record?.base64_image) {
-          blob = createBlobFromBase64(record.base64_image, fallbackName);
+        const candidateUrl =
+          record?._original_file_url ||
+          record?.file_url ||
+          record?._original_image_url ||
+          record?.image_url ||
+          record?._original_url ||
+          record?.url ||
+          '';
+        const normalizedCandidateUrl = String(candidateUrl || '').trim();
+        const hasPersistedFileUrl =
+          normalizedCandidateUrl.length > 0 &&
+          !/^(blob:|data:)/i.test(normalizedCandidateUrl);
+
+        if (!blob && normalizedCandidateUrl) {
+          blob = await fetchBlobFromPath(
+            normalizedCandidateUrl,
+            sourceMode === 'api' ? downloadEndpoint : window.location.origin,
+            fallbackName,
+          );
         }
 
-        const candidateUrl = record?.image_url || record?.url;
-        if (!blob && candidateUrl) {
-          blob = await fetchBlobFromPath(
-            candidateUrl,
-            sourceMode === 'api' ? downloadEndpoint : window.location.origin,
-          );
+        // Use base64 only when we do not have a persisted file URL.
+        // Persisted URLs should download the original binary (non-compressed).
+        const base64Payload =
+          record?.base64_image || record?.base64_file || record?.base64;
+        if (!blob && !hasPersistedFileUrl && base64Payload) {
+          blob = createBlobFromBase64(base64Payload, fallbackName);
         }
 
         if (blob) {
@@ -376,8 +467,8 @@ const Main_FileUploads = (props) => {
   // Handle file/image reordering (for image mode with drag-and-drop)
   const handleMoveItem = useCallback(
     (dragIndex, insertIndex) => {
-      const oldFiles = [...fileList];
-      const updatedFiles = [...fileList];
+      const oldFiles = [...fileListRef.current];
+      const updatedFiles = [...fileListRef.current];
       const [draggedItem] = updatedFiles.splice(dragIndex, 1);
 
       let finalIndex = insertIndex;
@@ -387,10 +478,11 @@ const Main_FileUploads = (props) => {
 
       updatedFiles.splice(finalIndex, 0, draggedItem);
 
+      fileListRef.current = updatedFiles;
       setFileList(updatedFiles);
       onChange(oldFiles, updatedFiles);
     },
-    [fileList, onChange],
+    [onChange],
   );
 
   // Handle file selection
@@ -403,7 +495,7 @@ const Main_FileUploads = (props) => {
       let newFile = null;
 
       // Check if adding these files would exceed the max count
-      if (fileList.length + selectedFiles.length > maxFiles) {
+      if (fileListRef.current.length + selectedFiles.length > maxFiles) {
         onError(
           `You can only upload a maximum of ${maxFiles} ${mode === 'image' ? 'images' : 'files'}.`,
         );
@@ -451,8 +543,9 @@ const Main_FileUploads = (props) => {
 
       // Update state with new files
       if (newFiles.length > 0) {
-        const oldFiles = [...fileList];
-        const updatedFiles = [...fileList, ...newFiles];
+        const oldFiles = [...fileListRef.current];
+        const updatedFiles = [...fileListRef.current, ...newFiles];
+        fileListRef.current = updatedFiles;
         setFileList(updatedFiles);
         setSelectedFileIds((prev) => [
           ...(prev || []),
@@ -461,7 +554,7 @@ const Main_FileUploads = (props) => {
         onChange(oldFiles, updatedFiles);
       }
     },
-    [fileList, maxFiles, acceptedTypes, maxSizeInMB, mode, onError, onChange],
+    [maxFiles, acceptedTypes, maxSizeInMB, mode, onError, onChange],
   );
 
   // Handle file removal
@@ -469,9 +562,11 @@ const Main_FileUploads = (props) => {
     (index) => {
       if (disabled) return;
 
-      const oldFiles = [...fileList];
-      const updatedFiles = fileList.filter((_, i) => i !== index);
-      const removedId = String(fileList[index]?.id || '').trim();
+      const sourceFiles = [...fileListRef.current];
+      const oldFiles = [...sourceFiles];
+      const updatedFiles = sourceFiles.filter((_, i) => i !== index);
+      const removedId = String(sourceFiles[index]?.id || '').trim();
+      fileListRef.current = updatedFiles;
       setFileList(updatedFiles);
       if (removedId) {
         setSelectedFileIds((prev) =>
@@ -480,7 +575,7 @@ const Main_FileUploads = (props) => {
       }
       onChange(oldFiles, updatedFiles);
     },
-    [fileList, disabled, onChange],
+    [disabled, onChange],
   );
 
   const handleToggleSelectFile = useCallback((fileId) => {
@@ -501,25 +596,26 @@ const Main_FileUploads = (props) => {
   }, []);
 
   const handleSortByName = useCallback(() => {
-    if (fileList.length < 2) return;
+    if (fileListRef.current.length < 2) return;
 
-    const oldFiles = [...fileList];
-    const updatedFiles = [...fileList].sort((a, b) =>
+    const oldFiles = [...fileListRef.current];
+    const updatedFiles = [...fileListRef.current].sort((a, b) =>
       String(a?.name || '').localeCompare(String(b?.name || ''), undefined, {
         sensitivity: 'base',
         numeric: true,
       }),
     );
 
+    fileListRef.current = updatedFiles;
     setFileList(updatedFiles);
     onChange(oldFiles, updatedFiles);
-  }, [fileList, onChange]);
+  }, [onChange]);
 
   const handleSortBySize = useCallback(() => {
-    if (fileList.length < 2) return;
+    if (fileListRef.current.length < 2) return;
 
-    const oldFiles = [...fileList];
-    const updatedFiles = [...fileList].sort((a, b) => {
+    const oldFiles = [...fileListRef.current];
+    const updatedFiles = [...fileListRef.current].sort((a, b) => {
       const sizeA = Number(a?.size || 0);
       const sizeB = Number(b?.size || 0);
       if (sizeA !== sizeB) return sizeA - sizeB;
@@ -534,9 +630,10 @@ const Main_FileUploads = (props) => {
       );
     });
 
+    fileListRef.current = updatedFiles;
     setFileList(updatedFiles);
     onChange(oldFiles, updatedFiles);
-  }, [fileList, onChange]);
+  }, [onChange]);
 
   // Determine item type label for DropZone
   const itemType = mode === 'image' ? 'images' : 'files';
@@ -545,8 +642,9 @@ const Main_FileUploads = (props) => {
   const canOpenSequenceEditor =
     enableSequenceEditor && (mode === 'image' || tableCell || isFigmaStripMode);
   const showSelectionTools =
-    showDownloadButton &&
-    (mode === 'image' || (mode === 'file' && (tableCell || isFigmaStripMode)));
+    tableCell || mode === 'image' || (mode === 'file' && isFigmaStripMode);
+  const effectiveShowDownloadButton =
+    tableCell || isFigmaStripMode ? true : showDownloadButton;
   const showHeaderEditorButton = canOpenSequenceEditor;
   const selectableIds = useMemo(
     () => fileList.map((file) => String(file?.id || '').trim()).filter(Boolean),
@@ -563,7 +661,7 @@ const Main_FileUploads = (props) => {
     () => selectableIds.filter((id) => selectedSet.has(id)).length,
     [selectableIds, selectedSet],
   );
-  const showRemoveSelectedButton = mode === 'image' && showSelectionTools;
+  const showRemoveSelectedButton = showSelectionTools;
   const disableRemoveSelectedButton = disabled || selectedCount === 0;
 
   const handleToggleSelectAll = useCallback(() => {
@@ -604,47 +702,20 @@ const Main_FileUploads = (props) => {
     );
     if (selectedIdSet.size === 0) return;
 
-    const oldFiles = [...fileList];
+    const oldFiles = [...fileListRef.current];
     const updatedFiles = oldFiles.filter(
       (file) => !selectedIdSet.has(String(file?.id || '').trim()),
     );
 
     if (updatedFiles.length === oldFiles.length) return;
 
+    fileListRef.current = updatedFiles;
     setFileList(updatedFiles);
     setSelectedFileIds(
       updatedFiles.map((file) => String(file?.id || '').trim()).filter(Boolean),
     );
     onChange(oldFiles, updatedFiles);
-  }, [disabled, selectedFileIds, fileList, onChange]);
-
-  const resolveFileUrl = useCallback(
-    (rawUrl) => {
-      const url = String(rawUrl || '').trim();
-      if (!url) {
-        return '';
-      }
-
-      if (/^(blob:|data:|https?:\/\/)/i.test(url)) {
-        return url;
-      }
-
-      const base = String(fileUrlBase || '')
-        .trim()
-        .replace(/\/+$/, '');
-      if (!base) {
-        return url;
-      }
-
-      const normalizedPath = url.replace(/^\/+/, '');
-      if (url.startsWith('/')) {
-        return `${base}/${normalizedPath}`;
-      }
-
-      return `${base}/${normalizedPath}`;
-    },
-    [fileUrlBase],
-  );
+  }, [disabled, selectedFileIds, onChange]);
 
   const sequencePreviewItems = useMemo(() => {
     if (mode !== 'image') return [];
@@ -733,7 +804,7 @@ const Main_FileUploads = (props) => {
         maxFiles={maxFiles}
         canOpenSequenceEditor={showHeaderEditorButton}
         onOpenSequenceEditor={() => setIsSequenceEditorOpen(true)}
-        showDownloadButton={showDownloadButton}
+        showDownloadButton={effectiveShowDownloadButton}
         isDownloading={isDownloading}
         onDownload={handleDownload}
         showSelectAll={showSelectionTools}
@@ -746,7 +817,7 @@ const Main_FileUploads = (props) => {
         showRemoveSelectedButton={showRemoveSelectedButton}
         onRemoveSelected={handleRemoveSelected}
         disableRemoveSelected={disableRemoveSelectedButton}
-        showWatermarkToggle={showDownloadButton && mode === 'image'}
+        showWatermarkToggle={effectiveShowDownloadButton && mode === 'image'}
         applyWatermarkOnDownload={applyWatermarkOnDownload}
         onToggleApplyWatermark={() =>
           setApplyWatermarkOnDownload((prev) => !prev)
@@ -769,7 +840,7 @@ const Main_FileUploads = (props) => {
         <Sub_SequenceEditorModal
           isOpen={isSequenceEditorOpen}
           onClose={() => setIsSequenceEditorOpen(false)}
-          showDownloadButton={showDownloadButton}
+          showDownloadButton={effectiveShowDownloadButton}
           isDownloading={isDownloading}
           onDownload={handleDownload}
           showSortButton
@@ -786,7 +857,7 @@ const Main_FileUploads = (props) => {
           showRemoveSelectedButton={showRemoveSelectedButton}
           onRemoveSelected={handleRemoveSelected}
           disableRemoveSelected={disableRemoveSelectedButton}
-          showWatermarkToggle={showDownloadButton && mode === 'image'}
+          showWatermarkToggle={effectiveShowDownloadButton && mode === 'image'}
           applyWatermarkOnDownload={applyWatermarkOnDownload}
           onToggleApplyWatermark={() =>
             setApplyWatermarkOnDownload((prev) => !prev)

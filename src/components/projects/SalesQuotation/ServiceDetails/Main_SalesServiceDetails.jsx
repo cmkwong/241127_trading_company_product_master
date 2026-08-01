@@ -46,6 +46,10 @@ const Main_SalesServiceDetails = ({
     () => quotation?.sales_service_detail_internal_images || [],
     [quotation?.sales_service_detail_internal_images],
   );
+  const serviceInternalFiles = useMemo(
+    () => quotation?.sales_service_detail_internal_files || [],
+    [quotation?.sales_service_detail_internal_files],
+  );
 
   const setServiceDetails = useCallback(
     (nextRowsOrUpdater) => {
@@ -72,6 +76,13 @@ const Main_SalesServiceDetails = ({
   const setServiceInternalImages = useCallback(
     (nextRows) => {
       onPatchQuotation({ sales_service_detail_internal_images: nextRows });
+    },
+    [onPatchQuotation],
+  );
+
+  const setServiceInternalFiles = useCallback(
+    (nextRows) => {
+      onPatchQuotation({ sales_service_detail_internal_files: nextRows });
     },
     [onPatchQuotation],
   );
@@ -131,14 +142,21 @@ const Main_SalesServiceDetails = ({
           (item) => String(item?.sales_service_detail_id || '') !== rowId,
         ),
       );
+      setServiceInternalFiles(
+        serviceInternalFiles.filter(
+          (item) => String(item?.sales_service_detail_id || '') !== rowId,
+        ),
+      );
     },
     [
       serviceDetails,
       serviceImages,
       serviceInternalImages,
+      serviceInternalFiles,
       setServiceDetails,
       setServiceImages,
       setServiceInternalImages,
+      setServiceInternalFiles,
     ],
   );
 
@@ -212,6 +230,28 @@ const Main_SalesServiceDetails = ({
       setServiceInternalImages([...preservedRows, ...mappedRows]);
     },
     [serviceInternalImages, setServiceInternalImages],
+  );
+
+  const handleServiceInternalFilesChange = useCallback(
+    (salesServiceDetailId, newFiles = []) => {
+      const detailId = String(salesServiceDetailId || '').trim();
+      if (!detailId) return;
+
+      const preservedRows = serviceInternalFiles.filter(
+        (item) => String(item?.sales_service_detail_id || '') !== detailId,
+      );
+
+      const mappedRows = (newFiles || []).map((file, index) => ({
+        id: file?.id || uuidv4(),
+        sales_service_detail_id: detailId,
+        file_name: file?.name || `service-internal-${index + 1}`,
+        file_url: file?.url || '',
+        display_order: index + 1,
+      }));
+
+      setServiceInternalFiles([...preservedRows, ...mappedRows]);
+    },
+    [serviceInternalFiles, setServiceInternalFiles],
   );
 
   const supplierDropdownOptions = useMemo(
@@ -638,6 +678,56 @@ const Main_SalesServiceDetails = ({
         },
       },
       {
+        key: 'internal_files',
+        label: 'Internal Files',
+        size: 'XL',
+        sortable: false,
+        nextRow: true,
+        renderCell: (row) => {
+          const defaultFiles = serviceInternalFiles
+            .filter(
+              (file) =>
+                String(file?.sales_service_detail_id || '') ===
+                String(row?.id || ''),
+            )
+            .sort(
+              (a, b) =>
+                Number(a.display_order || 0) - Number(b.display_order || 0),
+            )
+            .map((file) => ({
+              id: file.id,
+              name: file.file_name,
+              url: file.file_url,
+              display_order: file.display_order,
+            }));
+
+          return (
+            <div className={styles.uploadsCell}>
+              <Main_FileUploads
+                mode="file"
+                label=""
+                compact
+                tableCell
+                hoverPreview
+                showDownloadButton={false}
+                compactButtonText="Upload"
+                defaultFiles={defaultFiles}
+                onChange={(ov, nv) =>
+                  handleServiceInternalFilesChange(row?.id, nv)
+                }
+                onError={(error) => {
+                  console.error(
+                    'Sales service internal file upload error:',
+                    error,
+                  );
+                }}
+                fileUrlBase={FILE_SERVER_BASE_URL}
+              />
+            </div>
+          );
+        },
+      },
+      {
         key: 'actions',
         label: 'Actions',
         size: 'S',
@@ -653,10 +743,12 @@ const Main_SalesServiceDetails = ({
       currencyDropdownOptions,
       serviceImages,
       serviceInternalImages,
+      serviceInternalFiles,
       handleUpsertServiceDetail,
       handleDeleteServiceDetail,
       handleServiceImagesChange,
       handleServiceInternalImagesChange,
+      handleServiceInternalFilesChange,
     ],
   );
 

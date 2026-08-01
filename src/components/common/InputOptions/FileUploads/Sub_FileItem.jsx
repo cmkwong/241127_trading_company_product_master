@@ -37,6 +37,8 @@ const Sub_FileItem = ({
   const [isSelfDragging, setIsSelfDragging] = useState(false);
   const [showHoverPreview, setShowHoverPreview] = useState(false);
   const [hoverPreviewStyle, setHoverPreviewStyle] = useState(null);
+  const [isPreviewImageBroken, setIsPreviewImageBroken] = useState(false);
+  const [isHoverImageBroken, setIsHoverImageBroken] = useState(false);
 
   // Format file size for display
   const formatFileSize = (bytes) => {
@@ -77,6 +79,14 @@ const Sub_FileItem = ({
       ['mp4', 'webm', 'ogg', 'mov', 'm4v'].includes(ext)
     );
   }, [file?.name, file?.type]);
+
+  useEffect(() => {
+    setIsPreviewImageBroken(false);
+  }, [resolvedFileUrl]);
+
+  useEffect(() => {
+    setIsHoverImageBroken(false);
+  }, [hoverImageUrl]);
 
   useEffect(() => {
     return () => {
@@ -403,7 +413,16 @@ const Sub_FileItem = ({
           </button>
         )}
 
-        <img src={resolvedFileUrl} alt={name} className={styles.previewImg} />
+        {!isPreviewImageBroken && resolvedFileUrl ? (
+          <img
+            src={resolvedFileUrl}
+            alt={name}
+            className={styles.previewImg}
+            onError={() => setIsPreviewImageBroken(true)}
+          />
+        ) : (
+          <div className={styles.previewImg} aria-hidden="true" />
+        )}
         <div className={styles.imageIndexBadge}>{index + 1}</div>
         <div className={styles.imageInfo}>
           <div className={styles.imageName} title={name}>
@@ -454,11 +473,19 @@ const Sub_FileItem = ({
                   editMode ? styles.hoverPreviewCardEditMode : ''
                 }`}
               >
-                <img
-                  src={hoverImageUrl}
-                  alt={name}
-                  className={styles.hoverPreviewImage}
-                />
+                {!isHoverImageBroken ? (
+                  <img
+                    src={hoverImageUrl}
+                    alt={name}
+                    className={styles.hoverPreviewImage}
+                    onError={() => setIsHoverImageBroken(true)}
+                  />
+                ) : (
+                  <div
+                    className={styles.hoverPreviewImage}
+                    aria-hidden="true"
+                  />
+                )}
                 <div className={styles.hoverPreviewName} title={name}>
                   {name}
                 </div>

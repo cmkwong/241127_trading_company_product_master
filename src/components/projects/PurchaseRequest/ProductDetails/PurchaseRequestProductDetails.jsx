@@ -44,6 +44,7 @@ const PurchaseRequestProductDetails = ({
   onSetField,
   onRemove,
   buildDefaultUploadFiles,
+  onImageFilesChange,
   onFilesChange,
   resolveFileUrl,
   fileUrlBase = '',
@@ -282,23 +283,43 @@ const PurchaseRequestProductDetails = ({
         renderCell: (row) => (
           <div className={styles.uploadsCell}>
             <Main_FileUploads
+              mode="image"
+              compact
+              tableCell
+              hoverPreview
+              compactButtonText="Upload"
+              fileUrlBase={fileUrlBase}
+              defaultImages={buildDefaultUploadFiles?.(
+                row?.purchase_product_images,
+                'image_name',
+                'image_url',
+              )}
+              onChange={(oldFiles, newFiles) =>
+                onImageFilesChange?.(row?.id, oldFiles, newFiles)
+              }
+            />
+          </div>
+        ),
+      },
+      {
+        key: 'files',
+        label: 'Product Files',
+        size: 'XL',
+        nextRow: true,
+        sortable: false,
+        renderCell: (row) => (
+          <div className={styles.uploadsCell}>
+            <Main_FileUploads
               mode="file"
-              acceptedTypes={[
-                'application/pdf',
-                'image/png',
-                'image/jpeg',
-                'image/jpg',
-                'image/webp',
-              ]}
               compact
               tableCell
               hoverPreview
               compactButtonText="Upload"
               fileUrlBase={fileUrlBase}
               defaultFiles={buildDefaultUploadFiles?.(
-                row?.purchase_product_images,
-                'image_name',
-                'image_url',
+                row?.purchase_product_files,
+                'file_name',
+                'file_url',
               )}
               onChange={(oldFiles, newFiles) =>
                 onFilesChange?.(row?.id, oldFiles, newFiles)
@@ -311,6 +332,7 @@ const PurchaseRequestProductDetails = ({
     [
       buildDefaultUploadFiles,
       currencyDropdownOptions,
+      onImageFilesChange,
       onFilesChange,
       onRemove,
       onSetField,

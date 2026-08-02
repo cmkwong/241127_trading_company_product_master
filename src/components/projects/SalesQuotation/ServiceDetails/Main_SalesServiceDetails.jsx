@@ -478,39 +478,6 @@ const Main_SalesServiceDetails = ({
         ),
       },
       {
-        key: 'cost_currency_id',
-        label: 'Cost Currency',
-        size: 'L',
-        sortType: 'string',
-        renderCell: (row) => (
-          <Main_Dropdown
-            matchParentWidth
-            defaultOptions={currencyDropdownOptions}
-            defaultSelectedOption={row.cost_currency_id || ''}
-            onChange={(ov, nv) =>
-              handleUpsertServiceDetail(row, { cost_currency_id: nv })
-            }
-          />
-        ),
-      },
-      {
-        key: 'cost_price',
-        label: 'Cost Price',
-        size: 'M',
-        sortType: 'number',
-        renderCell: (row) => (
-          <Main_TextField
-            className={styles.cellInput}
-            type="number"
-            defaultValue={String(row.cost_price ?? '')}
-            placeholder="Cost Price"
-            onChange={(ov, nv) =>
-              handleUpsertServiceDetail(row, { cost_price: toNumber(nv) })
-            }
-          />
-        ),
-      },
-      {
         key: 'selected',
         label: 'Selected',
         size: 'S',
@@ -549,6 +516,40 @@ const Main_SalesServiceDetails = ({
         ),
       },
       {
+        key: 'cost_currency_id',
+        label: 'Cost Currency',
+        size: 'L',
+        sortType: 'string',
+        nextRow: true,
+        renderCell: (row) => (
+          <Main_Dropdown
+            matchParentWidth
+            defaultOptions={currencyDropdownOptions}
+            defaultSelectedOption={row.cost_currency_id || ''}
+            onChange={(ov, nv) =>
+              handleUpsertServiceDetail(row, { cost_currency_id: nv })
+            }
+          />
+        ),
+      },
+      {
+        key: 'cost_price',
+        label: 'Cost Price',
+        size: 'M',
+        sortType: 'number',
+        renderCell: (row) => (
+          <Main_TextField
+            className={styles.cellInput}
+            type="number"
+            defaultValue={String(row.cost_price ?? '')}
+            placeholder="Cost Price"
+            onChange={(ov, nv) =>
+              handleUpsertServiceDetail(row, { cost_price: toNumber(nv) })
+            }
+          />
+        ),
+      },
+      {
         key: 'details',
         label: 'Details',
         size: 'XL',
@@ -570,7 +571,6 @@ const Main_SalesServiceDetails = ({
         label: 'Internal Remark',
         size: 'XL',
         sortType: 'string',
-        nextRow: true,
         renderCell: (row) => (
           <Main_TextArea
             defaultValue={row.remark || ''}
@@ -682,7 +682,6 @@ const Main_SalesServiceDetails = ({
         label: 'Internal Files',
         size: 'XL',
         sortable: false,
-        nextRow: true,
         renderCell: (row) => {
           const defaultFiles = serviceInternalFiles
             .filter(
@@ -732,6 +731,7 @@ const Main_SalesServiceDetails = ({
         label: 'Actions',
         size: 'S',
         sortable: false,
+        nextRow: true,
         renderCell: (row) => (
           <DeleteBtn onClick={() => handleDeleteServiceDetail(row)} />
         ),

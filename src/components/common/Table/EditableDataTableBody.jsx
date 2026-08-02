@@ -4,7 +4,7 @@ import styles from './EditableDataTable.module.css';
 const EditableDataTableBody = ({
   rows,
   columns,
-  tailColumns = [],
+  tailColumnGroups = [],
   rowKey,
   emptyMessage,
   getFillCellClassName,
@@ -79,12 +79,12 @@ const EditableDataTableBody = ({
             })}
           </tr>
 
-          {tailColumns.length > 0 && (
+          {tailColumnGroups.map((tailColumns, tailGroupIndex) => (
             <tr
               key={
                 typeof rowKey === 'function'
-                  ? `${String(rowKey(row, rowIndex))}-tail`
-                  : `${String(row?.[rowKey])}-tail`
+                  ? `${String(rowKey(row, rowIndex))}-tail-${String(tailGroupIndex)}`
+                  : `${String(row?.[rowKey])}-tail-${String(tailGroupIndex)}`
               }
               className={styles.nextRowTr}
             >
@@ -134,7 +134,7 @@ const EditableDataTableBody = ({
                 </div>
               </td>
             </tr>
-          )}
+          ))}
         </Fragment>
       ))}
     </tbody>

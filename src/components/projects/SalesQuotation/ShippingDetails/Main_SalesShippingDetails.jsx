@@ -1009,7 +1009,7 @@ const Main_SalesShippingDetails = ({
         key: 'remark',
         label: 'Internal Remark',
         size: 'XL',
-        nextRow: true,
+        // nextRow: true,
         sortType: 'string',
         renderCell: (row) => (
           <Main_TextArea
@@ -1118,7 +1118,7 @@ const Main_SalesShippingDetails = ({
         key: 'internal_files',
         label: 'Internal Files',
         size: 'XL',
-        nextRow: true,
+        // nextRow: true,
         sortable: false,
         renderCell: (row) => {
           const defaultFiles = shippingInternalFiles
@@ -1308,6 +1308,7 @@ const Main_SalesShippingDetails = ({
         key: 'actions',
         label: 'Actions',
         size: 'S',
+        nextRow: true,
         sortable: false,
         renderCell: (row) => (
           <DeleteBtn onClick={() => handleDeleteShippingDetail(row)} />
@@ -1515,10 +1516,47 @@ const Main_SalesShippingDetails = ({
         ),
       },
       {
+        key: 'selected',
+        label: 'Selected',
+        size: 'S',
+        sortType: 'string',
+        renderCell: (row) => (
+          <div className={styles.checkboxCell}>
+            <input
+              type="checkbox"
+              checked={isCheckedBoolean(row?.selected, false)}
+              onChange={(event) =>
+                handleToggleShippingPriceSelected(row, event.target.checked)
+              }
+            />
+          </div>
+        ),
+      },
+      {
+        key: 'ari_selected',
+        label: 'AR Invoice',
+        size: 'S',
+        sortType: 'string',
+        renderCell: (row) => (
+          <div className={styles.checkboxCell}>
+            <input
+              type="checkbox"
+              checked={isCheckedBoolean(row?.ari_selected, true)}
+              onChange={(event) =>
+                handleUpsertShippingPrice(row, {
+                  ari_selected: event.target.checked,
+                })
+              }
+            />
+          </div>
+        ),
+      },
+      {
         key: 'cost_currency_id',
         label: 'Cost Currency',
         size: 'L',
         sortType: 'string',
+        nextRow: true,
         renderCell: (row) => (
           <Main_Dropdown
             matchParentWidth
@@ -1586,42 +1624,6 @@ const Main_SalesShippingDetails = ({
         ),
       },
       {
-        key: 'selected',
-        label: 'Selected',
-        size: 'S',
-        sortType: 'string',
-        renderCell: (row) => (
-          <div className={styles.checkboxCell}>
-            <input
-              type="checkbox"
-              checked={isCheckedBoolean(row?.selected, false)}
-              onChange={(event) =>
-                handleToggleShippingPriceSelected(row, event.target.checked)
-              }
-            />
-          </div>
-        ),
-      },
-      {
-        key: 'ari_selected',
-        label: 'AR Invoice',
-        size: 'S',
-        sortType: 'string',
-        renderCell: (row) => (
-          <div className={styles.checkboxCell}>
-            <input
-              type="checkbox"
-              checked={isCheckedBoolean(row?.ari_selected, true)}
-              onChange={(event) =>
-                handleUpsertShippingPrice(row, {
-                  ari_selected: event.target.checked,
-                })
-              }
-            />
-          </div>
-        ),
-      },
-      {
         key: 'details',
         label: 'Details',
         size: 'XL',
@@ -1642,7 +1644,6 @@ const Main_SalesShippingDetails = ({
         key: 'remark',
         label: 'Internal Remark',
         size: 'XL',
-        nextRow: true,
         sortType: 'string',
         renderCell: (row) => (
           <Main_TextArea
@@ -1756,7 +1757,6 @@ const Main_SalesShippingDetails = ({
         key: 'internal_files',
         label: 'Internal Files',
         size: 'XL',
-        nextRow: true,
         sortable: false,
         renderCell: (row) => {
           const defaultFiles = shippingPriceInternalFiles
@@ -1806,6 +1806,7 @@ const Main_SalesShippingDetails = ({
         key: 'actions',
         label: 'Actions',
         size: 'S',
+        nextRow: true,
         sortable: false,
         renderCell: (row) => (
           <DeleteBtn onClick={() => handleDeleteShippingPrice(row)} />

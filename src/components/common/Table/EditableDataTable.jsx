@@ -63,14 +63,38 @@ const EditableDataTable = ({
     });
   }, [columns]);
 
-  const primaryColumns = useMemo(() => {
-    const rows = normalizedColumns.filter((column) => !column?.nextRow);
-    return rows.length > 0 ? rows : normalizedColumns;
+  const rowSegments = useMemo(() => {
+    if (!Array.isArray(normalizedColumns) || normalizedColumns.length === 0) {
+      return [];
+    }
+
+    const segments = [];
+    let currentSegment = [];
+
+    normalizedColumns.forEach((column) => {
+      if (column?.nextRow && currentSegment.length > 0) {
+        segments.push(currentSegment);
+        currentSegment = [column];
+        return;
+      }
+
+      currentSegment.push(column);
+    });
+
+    if (currentSegment.length > 0) {
+      segments.push(currentSegment);
+    }
+
+    return segments;
   }, [normalizedColumns]);
 
-  const tailColumns = useMemo(() => {
-    return normalizedColumns.filter((column) => column?.nextRow);
-  }, [normalizedColumns]);
+  const primaryColumns = useMemo(() => {
+    return rowSegments[0] || normalizedColumns;
+  }, [rowSegments, normalizedColumns]);
+
+  const tailColumnGroups = useMemo(() => {
+    return rowSegments.slice(1);
+  }, [rowSegments]);
 
   const filteredRows = useMemo(() => {
     const activeFilters = Object.entries(columnFilters).filter(([, value]) =>
@@ -283,7 +307,7 @@ const EditableDataTable = ({
         <EditableDataTableBody
           rows={sortedRows}
           columns={primaryColumns}
-          tailColumns={tailColumns}
+          tailColumnGroups={tailColumnGroups}
           rowKey={rowKey}
           emptyMessage={emptyMessage}
           getFillCellClassName={getFillCellClassName}

@@ -1,4 +1,5 @@
 import { Fragment } from 'react';
+import Frame from '../Layouts/Frame';
 import styles from './EditableDataTable.module.css';
 
 const EditableDataTableBody = ({
@@ -11,20 +12,52 @@ const EditableDataTableBody = ({
   handleCellMouseEnter,
   wrapWithFill,
 }) => {
+  const getColumnLayoutStyle = (column) => {
+    if (column.width) {
+      return {
+        flex: `0 0 ${column.width}`,
+        width: column.width,
+        minWidth: column.minWidth || column.width,
+        maxWidth: column.maxWidth || column.width,
+      };
+    }
+
+    if (column.minWidth && column.maxWidth) {
+      return {
+        flex: `1 1 ${column.minWidth}`,
+        minWidth: column.minWidth,
+        maxWidth: column.maxWidth,
+      };
+    }
+
+    if (column.minWidth) {
+      return {
+        flex: `1 1 ${column.minWidth}`,
+        minWidth: column.minWidth,
+      };
+    }
+
+    return {
+      flex: '1 1 120px',
+      minWidth: '120px',
+    };
+  };
+
   if (rows.length === 0) {
     return (
-      <tbody>
-        <tr>
-          <td colSpan={columns.length} className={styles.emptyRow}>
-            {emptyMessage}
-          </td>
-        </tr>
-      </tbody>
+      <div className={styles.tableBody} role="rowgroup">
+        <div className={styles.emptyRow}>{emptyMessage}</div>
+      </div>
     );
   }
 
   return (
-    <tbody>
+    <Frame
+      direction="vertical"
+      gap={0}
+      className={styles.tableBody}
+      role="rowgroup"
+    >
       {rows.map((row, rowIndex) => (
         <Fragment
           key={
@@ -33,16 +66,20 @@ const EditableDataTableBody = ({
               : String(row?.[rowKey])
           }
         >
-          <tr
+          <Frame
+            direction="horizontal"
+            gap={0}
             key={
               typeof rowKey === 'function'
                 ? `${String(rowKey(row, rowIndex))}-primary`
                 : `${String(row?.[rowKey])}-primary`
             }
+            className={styles.dataRow}
+            role="row"
           >
             {columns.map((column) => {
               const fillField = column.fillField;
-              const tdClassName = fillField
+              const cellClassName = fillField
                 ? getFillCellClassName(fillField, rowIndex)
                 : '';
 
@@ -54,44 +91,40 @@ const EditableDataTableBody = ({
                 : row?.[column.key];
 
               return (
-                <td
+                <div
                   key={column.key}
                   className={[
-                    tdClassName,
+                    styles.dataCell,
+                    cellClassName,
                     column.cellClassName || column.columnClassName,
                   ]
                     .filter(Boolean)
                     .join(' ')}
-                  style={{
-                    width: column.width,
-                    minWidth: column.minWidth,
-                    maxWidth: column.maxWidth,
-                  }}
+                  style={getColumnLayoutStyle(column)}
                   onMouseEnter={
                     fillField
                       ? () => handleCellMouseEnter(fillField, rowIndex)
                       : undefined
                   }
+                  role="cell"
                 >
                   {content}
-                </td>
+                </div>
               );
             })}
-          </tr>
+          </Frame>
 
           {tailColumnGroups.map((tailColumns, tailGroupIndex) => (
-            <tr
+            <div
               key={
                 typeof rowKey === 'function'
                   ? `${String(rowKey(row, rowIndex))}-tail-${String(tailGroupIndex)}`
                   : `${String(row?.[rowKey])}-tail-${String(tailGroupIndex)}`
               }
               className={styles.nextRowTr}
+              role="row"
             >
-              <td
-                colSpan={Math.max(columns.length, 1)}
-                className={styles.nextRowCell}
-              >
+              <div className={styles.nextRowCell} role="cell">
                 <div className={styles.nextRowGrid}>
                   {tailColumns.map((column) => {
                     const content = column.renderCell
@@ -132,12 +165,12 @@ const EditableDataTableBody = ({
                     );
                   })}
                 </div>
-              </td>
-            </tr>
+              </div>
+            </div>
           ))}
         </Fragment>
       ))}
-    </tbody>
+    </Frame>
   );
 };
 

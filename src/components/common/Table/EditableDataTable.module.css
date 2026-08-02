@@ -1,8 +1,9 @@
 .tableWrap {
   overflow-x: auto;
-  overflow-y: auto;
+  overflow-y: hidden;
   border: 1px solid #e5e7eb;
   border-radius: 6px;
+  background: #fff;
 }
 
 .tableControlsRow {
@@ -33,34 +34,49 @@
 }
 
 .dataTable {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
   width: max-content;
   min-width: 780px;
   max-width: none;
-  border-collapse: collapse;
   font-size: 12px;
   background: #fff;
 }
 
-.dataTable th,
-.dataTable td {
+.tableHeader,
+.tableBody {
+  width: 100%;
+}
+
+.dataRow {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  min-width: max-content;
+}
+
+.headerCell,
+.dataCell {
+  display: block;
+  flex: 0 0 auto;
   border-bottom: 1px solid #f0f0f0;
   padding: 8px;
   text-align: left;
-  vertical-align: middle;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
-.dataTable th {
-  white-space: nowrap;
-}
-
-.dataTable td {
-  white-space: normal;
-}
-
-.dataTable thead th {
+.headerCell {
   background: #fafafa;
   color: #555;
   font-weight: 600;
+  white-space: nowrap;
+}
+
+.dataCell {
+  white-space: normal;
+  background: #fff;
 }
 
 .sortButton {
@@ -87,7 +103,7 @@
   font-size: 11px;
 }
 
-.filterRow th {
+.filterRow .headerCell {
   padding-top: 6px;
   padding-bottom: 6px;
 }
@@ -142,18 +158,22 @@
 }
 
 .emptyRow {
+  border-bottom: 1px solid #f0f0f0;
   text-align: center !important;
   color: #888;
   padding: 20px 10px !important;
 }
 
-.nextRowTr td {
+.nextRowTr {
   border-top: none;
 }
 
 .nextRowCell {
+  border-bottom: 1px solid #f0f0f0;
   padding-top: 6px !important;
   padding-bottom: 10px !important;
+  padding-left: 8px;
+  padding-right: 8px;
   background: #fcfcfd;
 }
 

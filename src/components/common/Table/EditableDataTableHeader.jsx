@@ -1,4 +1,5 @@
 import styles from './EditableDataTable.module.css';
+import Frame from '../Layouts/Frame';
 
 const EditableDataTableHeader = ({
   columns,
@@ -8,23 +9,61 @@ const EditableDataTableHeader = ({
   onFilterChange,
   isFilterRowOpen,
 }) => {
+  const getColumnLayoutStyle = (column) => {
+    if (column.width) {
+      return {
+        flex: `0 0 ${column.width}`,
+        width: column.width,
+        minWidth: column.minWidth || column.width,
+        maxWidth: column.maxWidth || column.width,
+      };
+    }
+
+    if (column.minWidth && column.maxWidth) {
+      return {
+        flex: `1 1 ${column.minWidth}`,
+        minWidth: column.minWidth,
+        maxWidth: column.maxWidth,
+      };
+    }
+
+    if (column.minWidth) {
+      return {
+        flex: `1 1 ${column.minWidth}`,
+        minWidth: column.minWidth,
+      };
+    }
+
+    return {
+      flex: '1 1 120px',
+      minWidth: '120px',
+    };
+  };
+
   const getSortIndicator = (columnKey) => {
     if (sortConfig.key !== columnKey) return '';
     return sortConfig.direction === 'asc' ? '↑' : '↓';
   };
 
   return (
-    <thead>
-      <tr>
+    <Frame direction="vertical" gap={0} className={styles.tableHeader}>
+      <Frame
+        direction="horizontal"
+        gap={0}
+        className={styles.dataRow}
+        role="row"
+      >
         {columns.map((column) => (
-          <th
+          <div
             key={column.key}
-            className={column.headerClassName || column.columnClassName}
-            style={{
-              width: column.width,
-              minWidth: column.minWidth,
-              maxWidth: column.maxWidth,
-            }}
+            className={[
+              styles.headerCell,
+              column.headerClassName || column.columnClassName,
+            ]
+              .filter(Boolean)
+              .join(' ')}
+            style={getColumnLayoutStyle(column)}
+            role="columnheader"
           >
             <button
               type="button"
@@ -37,23 +76,31 @@ const EditableDataTableHeader = ({
                 {getSortIndicator(column.key)}
               </span>
             </button>
-          </th>
+          </div>
         ))}
-      </tr>
+      </Frame>
+
       {isFilterRowOpen && (
-        <tr className={styles.filterRow}>
+        <Frame
+          direction="horizontal"
+          gap={0}
+          className={`${styles.dataRow} ${styles.filterRow}`}
+          role="row"
+        >
           {columns.map((column) => {
             const isFilterable = column.filterable !== false;
 
             return (
-              <th
+              <div
                 key={`${column.key}-filter`}
-                className={column.headerClassName || column.columnClassName}
-                style={{
-                  width: column.width,
-                  minWidth: column.minWidth,
-                  maxWidth: column.maxWidth,
-                }}
+                className={[
+                  styles.headerCell,
+                  column.headerClassName || column.columnClassName,
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
+                style={getColumnLayoutStyle(column)}
+                role="cell"
               >
                 {isFilterable ? (
                   <input
@@ -69,12 +116,12 @@ const EditableDataTableHeader = ({
                 ) : (
                   <div className={styles.filterInputPlaceholder} />
                 )}
-              </th>
+              </div>
             );
           })}
-        </tr>
+        </Frame>
       )}
-    </thead>
+    </Frame>
   );
 };
 

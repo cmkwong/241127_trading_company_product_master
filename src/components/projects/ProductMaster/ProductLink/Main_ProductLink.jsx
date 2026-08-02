@@ -120,6 +120,7 @@ const Main_ProductLink = () => {
         label: 'Name',
         sortType: 'string',
         minWidth: '220px',
+        maxWidth: '400px',
         cellClassName: styles.middleCell,
         renderCell: (row) => (
           <Main_TextField
@@ -135,6 +136,7 @@ const Main_ProductLink = () => {
         label: 'Link',
         sortType: 'string',
         minWidth: '280px',
+        maxWidth: '800px',
         cellClassName: styles.middleCell,
         renderCell: (row) => (
           <Main_TextField
@@ -150,7 +152,8 @@ const Main_ProductLink = () => {
         key: 'score',
         label: 'Scores',
         sortType: 'number',
-        minWidth: '130px',
+        minWidth: '100px',
+        maxWidth: '280px',
         cellClassName: styles.middleCell,
         renderCell: (row) => (
           <Main_TextField
@@ -169,12 +172,65 @@ const Main_ProductLink = () => {
         ),
       },
       {
+        key: 'actions',
+        label: 'Actions',
+        sortable: false,
+        width: '90px',
+        minWidth: '90px',
+        maxWidth: '90px',
+        cellClassName: styles.middleCell,
+        renderCell: (row) => (
+          <DeleteBtn onClick={() => handleDeleteLinkRow(row)} />
+        ),
+      },
+      {
+        key: 'remark',
+        label: 'Remark',
+        sortable: false,
+        nextRow: true,
+        minWidth: '260px',
+        maxWidth: '800px',
+        cellClassName: styles.middleCell,
+        renderCell: (row) => (
+          <div className={styles.remarkCell}>
+            <Main_TextArea
+              defaultValue={row.remark || ''}
+              placeholder="Remark"
+              rows={2}
+              resize="none"
+              onChange={(ov, nv) => upsertLinkRow(row, { remark: nv })}
+            />
+          </div>
+        ),
+      },
+      {
+        key: 'updated_at',
+        label: 'Updated Date',
+        sortable: false,
+        width: '160px',
+        minWidth: '160px',
+        maxWidth: '260px',
+        nextRow: true,
+        cellClassName: styles.middleCell,
+        renderCell: (row) => (
+          <div className={styles.dateCell}>
+            <Main_DateSelector
+              defaultValue={row.updated_at || ''}
+              disabled
+              enableTime
+              includeSeconds
+            />
+          </div>
+        ),
+      },
+      {
         key: 'product_link_images',
         label: 'Images',
         sortable: false,
         width: '560px',
+        nextRow: true,
         minWidth: '240px',
-        maxWidth: '8000px',
+        maxWidth: '100%',
         cellClassName: styles.middleCell,
         renderCell: (row) => {
           const defaultImages = sortByDisplayOrder(
@@ -208,53 +264,6 @@ const Main_ProductLink = () => {
             </div>
           );
         },
-      },
-      {
-        key: 'remark',
-        label: 'Remark',
-        sortable: false,
-        minWidth: '260px',
-        cellClassName: styles.middleCell,
-        renderCell: (row) => (
-          <div className={styles.remarkCell}>
-            <Main_TextArea
-              defaultValue={row.remark || ''}
-              placeholder="Remark"
-              rows={2}
-              resize="none"
-              onChange={(ov, nv) => upsertLinkRow(row, { remark: nv })}
-            />
-          </div>
-        ),
-      },
-      {
-        key: 'updated_at',
-        label: 'Updated Date',
-        sortable: false,
-        width: '160px',
-        minWidth: '160px',
-        cellClassName: styles.middleCell,
-        renderCell: (row) => (
-          <div className={styles.dateCell}>
-            <Main_DateSelector
-              defaultValue={row.updated_at || ''}
-              disabled
-              enableTime
-              includeSeconds
-            />
-          </div>
-        ),
-      },
-      {
-        key: 'actions',
-        label: 'Actions',
-        sortable: false,
-        width: '90px',
-        minWidth: '90px',
-        cellClassName: styles.middleCell,
-        renderCell: (row) => (
-          <DeleteBtn onClick={() => handleDeleteLinkRow(row)} />
-        ),
       },
     ],
     [upsertLinkRow, handleLinkImagesChange, handleDeleteLinkRow, pageData.id],

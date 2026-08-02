@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import EditableDataTableBody from './EditableDataTableBody';
 import EditableDataTableHeader from './EditableDataTableHeader';
+import Frame from '../Layouts/Frame';
 import styles from './EditableDataTable.module.css';
 
 const getDefaultRowKey = (row, index) => row?.id || index;
@@ -264,7 +265,7 @@ const EditableDataTable = ({
   );
 
   return (
-    <div className={styles.tableWrap}>
+    <Frame direction="vertical" gap={0} className={styles.tableWrap}>
       <div className={styles.tableControlsRow}>
         <button
           type="button"
@@ -295,7 +296,7 @@ const EditableDataTable = ({
         </button>
       </div>
 
-      <table className={styles.dataTable}>
+      <Frame direction="vertical" gap={0} className={styles.dataTable}>
         <EditableDataTableHeader
           columns={primaryColumns}
           sortConfig={sortConfig}
@@ -314,8 +315,8 @@ const EditableDataTable = ({
           handleCellMouseEnter={handleCellMouseEnter}
           wrapWithFill={wrapWithFill}
         />
-      </table>
-    </div>
+      </Frame>
+    </Frame>
   );
 };
 

@@ -261,15 +261,15 @@ const SalesQuotationSidebar = ({
         },
         {
           label: 'Shipping:',
-          value: String(quotation?.sales_shipping_details?.length || 0),
+          value: `${summary.baseCurrencyCode} ${formatMoney(summary.shipping)}`,
         },
         {
           label: 'Products:',
-          value: String(quotation?.sales_product_details?.length || 0),
+          value: `${summary.baseCurrencyCode} ${formatMoney(summary.product)}`,
         },
         {
           label: 'Services:',
-          value: String(quotation?.sales_service_details?.length || 0),
+          value: `${summary.baseCurrencyCode} ${formatMoney(summary.service)}`,
         },
         {
           label: 'Sales:',

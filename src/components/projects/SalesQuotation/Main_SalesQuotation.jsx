@@ -6,31 +6,22 @@ import Main_SalesBasicInfo from './SalesBasicInfo/Main_SalesBasicInfo';
 import Main_SalesShippingDetails from './ShippingDetails/Main_SalesShippingDetails';
 import Main_SalesProductDetails from './ProductDetails/Main_SalesProductDetails';
 import Main_SalesServiceDetails from './ServiceDetails/Main_SalesServiceDetails';
+import SalesQuotationSummaryBar from './SalesQuotationSummaryBar/SalesQuotationSummaryBar';
 import { useSalesQuotationContext } from '../../../store/SalesQuotationContext';
 import { useMasterContext } from '../../../store/MasterContext';
 import DeleteBtn from '../../common/Buttons/DeleteBtn';
-import Main_Dropdown from '../../common/InputOptions/Dropdown/Main_Dropdown';
 import {
   buildBaseCurrencyOptions,
   buildCurrencyCodeById,
   buildExchangeRateMap,
   buildNormalizedCurrencies,
   computeQuotationTotals,
-  formatMoney,
   getLatestExchangeRateRow,
   isSelectedFlag,
   toSafeString,
 } from './utils/quotationTotals';
 import { buildQuotationDocumentA4Html } from './utils/quotationPrint';
 import { buildArInvoiceDocumentA4Html } from './utils/arInvoicePrint';
-
-const formatPercent = (value) => {
-  if (!Number.isFinite(value)) {
-    return '-';
-  }
-
-  return `${value.toFixed(2)}%`;
-};
 
 const Main_SalesQuotation = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -448,135 +439,14 @@ const Main_SalesQuotation = () => {
           <div className={styles.inputSide} onScroll={handleInputScroll}>
             {selectedQuotation ? (
               <>
-                <div
-                  className={`${styles.currencySummaryBar} ${
-                    isSummaryCompact ? styles.currencySummaryBarCompact : ''
-                  }`}
-                >
-                  {!isSummaryCompact ? (
-                    <div className={styles.baseCurrencyPicker}>
-                      <span className={styles.baseCurrencyLabel}>
-                        Base Currency
-                      </span>
-                      <Main_Dropdown
-                        defaultOptions={baseCurrencyOptions}
-                        defaultSelectedOption={baseCurrencyCode}
-                        onChange={(ov, nv) =>
-                          setBaseCurrencyCode(
-                            toSafeString(nv).toUpperCase() || 'USD',
-                          )
-                        }
-                        size="S"
-                      />
-                      <span className={styles.rateMetaText}>
-                        Rate Date:{' '}
-                        {toSafeString(latestExchangeRateRow?.Date) || '-'}
-                      </span>
-                    </div>
-                  ) : null}
-
-                  <div
-                    className={`${styles.totalsSummaryGrid} ${
-                      isSummaryCompact ? styles.totalsSummaryGridCompact : ''
-                    }`}
-                  >
-                    {isSummaryCompact ? (
-                      <>
-                        <div className={styles.totalCard}>
-                          <span className={styles.totalLabel}>Total Cost</span>
-                          <span className={styles.totalValue}>
-                            {totalsSummary.baseCurrencyCode}{' '}
-                            {formatMoney(totalsSummary.costGrandTotal)}
-                          </span>
-                        </div>
-                        <div className={styles.totalCard}>
-                          <span className={styles.totalLabel}>Profit</span>
-                          <span className={styles.totalValue}>
-                            {totalsSummary.baseCurrencyCode}{' '}
-                            {formatMoney(totalsSummary.profitAmount)}
-                          </span>
-                        </div>
-                        <div className={styles.totalCard}>
-                          <span className={styles.totalLabel}>
-                            Profit % (vs Cost)
-                          </span>
-                          <span className={styles.totalValue}>
-                            {formatPercent(totalsSummary.profitPercent)}
-                          </span>
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <div className={styles.totalCard}>
-                          <span className={styles.totalLabel}>
-                            Shipping Sales (Selected)
-                          </span>
-                          <span className={styles.totalValue}>
-                            {totalsSummary.baseCurrencyCode}{' '}
-                            {formatMoney(totalsSummary.shipping)}
-                          </span>
-                        </div>
-                        <div className={styles.totalCard}>
-                          <span className={styles.totalLabel}>
-                            Product Sales (Selected)
-                          </span>
-                          <span className={styles.totalValue}>
-                            {totalsSummary.baseCurrencyCode}{' '}
-                            {formatMoney(totalsSummary.product)}
-                          </span>
-                        </div>
-                        <div className={styles.totalCard}>
-                          <span className={styles.totalLabel}>
-                            Service Sales (Selected)
-                          </span>
-                          <span className={styles.totalValue}>
-                            {totalsSummary.baseCurrencyCode}{' '}
-                            {formatMoney(totalsSummary.service)}
-                          </span>
-                        </div>
-                        <div
-                          className={`${styles.totalCard} ${styles.totalCardHighlight}`}
-                        >
-                          <span className={styles.totalLabel}>Total Sales</span>
-                          <span className={styles.totalValueStrong}>
-                            {totalsSummary.baseCurrencyCode}{' '}
-                            {formatMoney(totalsSummary.grandTotal)}
-                          </span>
-                        </div>
-                        <div className={styles.totalCard}>
-                          <span className={styles.totalLabel}>Total Cost</span>
-                          <span className={styles.totalValue}>
-                            {totalsSummary.baseCurrencyCode}{' '}
-                            {formatMoney(totalsSummary.costGrandTotal)}
-                          </span>
-                        </div>
-                        <div className={styles.totalCard}>
-                          <span className={styles.totalLabel}>Profit</span>
-                          <span className={styles.totalValue}>
-                            {totalsSummary.baseCurrencyCode}{' '}
-                            {formatMoney(totalsSummary.profitAmount)}
-                          </span>
-                        </div>
-                        <div className={styles.totalCard}>
-                          <span className={styles.totalLabel}>
-                            Profit % (vs Cost)
-                          </span>
-                          <span className={styles.totalValue}>
-                            {formatPercent(totalsSummary.profitPercent)}
-                          </span>
-                        </div>
-                      </>
-                    )}
-                  </div>
-
-                  {!isSummaryCompact && totalsSummary.missingCount > 0 ? (
-                    <div className={styles.totalWarningText}>
-                      Sales skipped: {totalsSummary.salesMissingCount} row(s),
-                      Cost skipped: {totalsSummary.costMissingCount} row(s) due
-                      to missing currency or exchange rate.
-                    </div>
-                  ) : null}
-                </div>
+                <SalesQuotationSummaryBar
+                  totalsSummary={totalsSummary}
+                  baseCurrencyCode={baseCurrencyCode}
+                  onBaseCurrencyChange={setBaseCurrencyCode}
+                  baseCurrencyOptions={baseCurrencyOptions}
+                  latestExchangeRateRow={latestExchangeRateRow}
+                  isCompact={isSummaryCompact}
+                />
 
                 <Main_SalesBasicInfo
                   quotation={selectedQuotation}

@@ -208,6 +208,8 @@ const Main_PurchaseRequest = () => {
     getPurchaseRequestDryRunData,
     handleSave,
     handleDelete,
+    refreshSuppliers,
+    refreshSalesQuotations,
   } = usePurchaseRequestContext();
 
   const [sidebarSearch, setSidebarSearch] = useState('');
@@ -1648,6 +1650,8 @@ const Main_PurchaseRequest = () => {
                   salesQuotationSuggestionOptions
                 }
                 selectedSalesQuotationOption={selectedSalesQuotationOption}
+                onFetchSupplierSuggestions={refreshSuppliers}
+                onFetchSalesQuotationSuggestions={refreshSalesQuotations}
                 onIdChange={(value) => setHeaderField('id', value)}
                 onSupplierInputChange={handleSupplierInputChange}
                 onSupplierSelect={handleSupplierSelect}

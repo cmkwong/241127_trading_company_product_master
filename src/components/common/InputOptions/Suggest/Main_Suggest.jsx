@@ -62,6 +62,7 @@ const Main_Suggest = (props) => {
     renderSuggestion,
     inputRef,
     showSuggestionList = true,
+    onFetchSuggestions,
   } = props;
 
   // Internal state
@@ -110,7 +111,10 @@ const Main_Suggest = (props) => {
   const handleFocus = useCallback(() => {
     setIsFocused(true);
     onFocus?.();
-  }, [onFocus]);
+    if (typeof onFetchSuggestions === 'function') {
+      onFetchSuggestions();
+    }
+  }, [onFocus, onFetchSuggestions]);
 
   const handleBlur = () => {
     // Delay to allow click on suggestion items
@@ -259,6 +263,7 @@ Main_Suggest.propTypes = {
     PropTypes.shape({ current: PropTypes.any }),
   ]),
   showSuggestionList: PropTypes.bool,
+  onFetchSuggestions: PropTypes.func,
 };
 
 export default Main_Suggest;

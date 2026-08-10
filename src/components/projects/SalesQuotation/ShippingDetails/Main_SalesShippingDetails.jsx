@@ -956,7 +956,7 @@ const Main_SalesShippingDetails = ({
       },
       {
         key: 'qty',
-        label: 'Qty',
+        label: 'Cartons',
         size: 'M',
         sortType: 'number',
         renderCell: (row) => (
@@ -973,7 +973,7 @@ const Main_SalesShippingDetails = ({
       },
       {
         key: 'weight',
-        label: 'Weight',
+        label: 'Weight / Carton',
         size: 'M',
         sortType: 'number',
         renderCell: (row) => (
@@ -981,7 +981,7 @@ const Main_SalesShippingDetails = ({
             className={styles.cellInput}
             type="number"
             defaultValue={String(row.weight ?? '')}
-            placeholder="Weight"
+            placeholder="kg"
             onChange={(ov, nv) =>
               handleUpsertShippingDetail(row, { weight: toNumber(nv) })
             }

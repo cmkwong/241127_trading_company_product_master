@@ -194,37 +194,6 @@ const PurchaseRequestShippingDetails = ({
         ),
       },
       {
-        key: 'currency_id',
-        label: 'Currency',
-        size: 'L',
-        sortType: 'string',
-        renderCell: (row) => (
-          <Main_Dropdown
-            matchParentWidth
-            defaultOptions={currencyDropdownOptions}
-            defaultSelectedOption={toSafeString(row?.currency_id)}
-            onChange={(ov, nv) => onSetField?.(row?.id, 'currency_id', nv)}
-          />
-        ),
-      },
-      {
-        key: 'price',
-        label: 'Price',
-        size: 'M',
-        sortType: 'number',
-        renderCell: (row) => (
-          <Main_TextField
-            className={styles.cellInput}
-            type="number"
-            defaultValue={toSafeString(row?.price)}
-            placeholder="Price"
-            onChange={(ov, nv) =>
-              onSetField?.(row?.id, 'price', toNumberOrEmpty(nv))
-            }
-          />
-        ),
-      },
-      {
         key: 'api_selected',
         label: 'AP Invoice',
         size: 'S',
@@ -239,6 +208,38 @@ const PurchaseRequestShippingDetails = ({
               }
             />
           </div>
+        ),
+      },
+      {
+        key: 'currency_id',
+        label: 'Currency',
+        size: 'L',
+        sortType: 'string',
+        nextRow: true,
+        renderCell: (row) => (
+          <Main_Dropdown
+            matchParentWidth
+            defaultOptions={currencyDropdownOptions}
+            defaultSelectedOption={toSafeString(row?.currency_id)}
+            onChange={(ov, nv) => onSetField?.(row?.id, 'currency_id', nv)}
+          />
+        ),
+      },
+      {
+        key: 'price',
+        label: 'Total Cost',
+        size: 'M',
+        sortType: 'number',
+        renderCell: (row) => (
+          <Main_TextField
+            className={styles.cellInput}
+            type="number"
+            defaultValue={toSafeString(row?.price)}
+            placeholder="Price"
+            onChange={(ov, nv) =>
+              onSetField?.(row?.id, 'price', toNumberOrEmpty(nv))
+            }
+          />
         ),
       },
       {
@@ -260,7 +261,6 @@ const PurchaseRequestShippingDetails = ({
         key: 'remark',
         label: 'Internal Remark',
         size: 'XL',
-        nextRow: true,
         sortType: 'string',
         renderCell: (row) => (
           <Main_TextArea
@@ -302,7 +302,6 @@ const PurchaseRequestShippingDetails = ({
         key: 'files',
         label: 'Shipping Files',
         size: 'XL',
-        nextRow: true,
         sortable: false,
         renderCell: (row) => (
           <div className={styles.uploadsCell}>
@@ -330,6 +329,7 @@ const PurchaseRequestShippingDetails = ({
         label: 'Actions',
         size: 'S',
         sortable: false,
+        nextRow: true,
         renderCell: (row) => <DeleteBtn onClick={() => onRemove?.(row?.id)} />,
       },
     ],

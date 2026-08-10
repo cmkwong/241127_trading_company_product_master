@@ -229,6 +229,7 @@ const Main_SalesBasicInfo = ({
                     : '',
                 });
               }}
+              onFetchSuggestions={onRefreshReferenceOptions}
             />
           </Main_InputContainer>
 
@@ -251,9 +252,6 @@ const Main_SalesBasicInfo = ({
               }
               placeholder="Search customer address"
               autoComplete="new-password"
-              onFocus={() => {
-                onRefreshReferenceOptions?.();
-              }}
               getSuggestionLabel={(suggestion) => suggestion?.name || ''}
               getSuggestionSearchText={(suggestion) =>
                 String(
@@ -291,6 +289,7 @@ const Main_SalesBasicInfo = ({
                   customer_address_id: String(suggestion?.id || '').trim(),
                 });
               }}
+              onFetchSuggestions={onRefreshReferenceOptions}
             />
           </Main_InputContainer>
         </VerticalLayout>

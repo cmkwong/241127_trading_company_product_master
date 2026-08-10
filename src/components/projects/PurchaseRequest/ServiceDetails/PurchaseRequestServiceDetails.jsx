@@ -172,7 +172,7 @@ const PurchaseRequestServiceDetails = ({
       },
       {
         key: 'price',
-        label: 'Price',
+        label: 'Total Cost',
         size: 'M',
         sortType: 'number',
         renderCell: (row) => (

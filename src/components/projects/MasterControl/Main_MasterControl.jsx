@@ -399,6 +399,99 @@ const MasterControlContent = () => {
     [selfReferenceSuggestionMaps.labelToId],
   );
 
+  const foreignKeyConfigByColumn = useMemo(() => {
+    const configs = {};
+
+    for (const [column, fieldSchema] of Object.entries(schemaFieldByColumn)) {
+      const refTarget = normalizeReferenceTarget(fieldSchema);
+      if (!refTarget) continue;
+
+      // Skip self-references — handled separately
+      if (refTarget.includes(String(selectedTable).toLowerCase())) continue;
+
+      const referencedData = masterDataMap?.[refTarget] || [];
+      if (referencedData.length === 0) continue;
+
+      // Determine the best display field from the referenced table
+      const firstRow = referencedData[0] || {};
+      const rowKeys = Object.keys(firstRow);
+      const displayField =
+        rowKeys.find((k) => k === 'label') ||
+        rowKeys.find((k) => k === 'name') ||
+        rowKeys.find((k) => String(k).endsWith('_name')) ||
+        'id';
+
+      const labelToId = new Map();
+      const idToLabel = new Map();
+      const suggestions = [];
+
+      referencedData.forEach((row) => {
+        const id = String(row?.id || '').trim();
+        if (!id) return;
+
+        const label = String(row?.[displayField] || id).trim();
+        const suggestionLabel = `${label} (${id.slice(0, 8)})`;
+
+        labelToId.set(suggestionLabel, id);
+        idToLabel.set(id, suggestionLabel);
+        suggestions.push(suggestionLabel);
+      });
+
+      configs[column] = {
+        referencedTable: refTarget,
+        displayField,
+        suggestions,
+        labelToId,
+        idToLabel,
+      };
+    }
+
+    return configs;
+  }, [schemaFieldByColumn, selectedTable, masterDataMap]);
+
+  const resolveForeignKeySuggestion = useCallback(
+    (columnName, rawValue) => {
+      const config = foreignKeyConfigByColumn[columnName];
+      const text = String(rawValue || '').trim();
+      if (!text) {
+        return { resolved: true, value: '' };
+      }
+
+      if (config) {
+        const matchedId = config.labelToId.get(text);
+        if (matchedId) {
+          return { resolved: true, value: matchedId };
+        }
+      }
+
+      // Allow raw UUID to pass through directly
+      const fullUuidMatch = text.match(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+      );
+      if (fullUuidMatch) {
+        return { resolved: true, value: text };
+      }
+
+      // Try to resolve by short UUID suffix seen in suggestions
+      if (config) {
+        const uuidInSuffix = text.match(/\(([0-9a-f]{8})\)\s*$/i);
+        if (uuidInSuffix?.[1]) {
+          for (const suggestion of config.suggestions) {
+            if (suggestion.includes(uuidInSuffix[1])) {
+              const id = config.labelToId.get(suggestion);
+              if (id) {
+                return { resolved: true, value: id };
+              }
+            }
+          }
+        }
+      }
+
+      return { resolved: false, value: text };
+    },
+    [foreignKeyConfigByColumn],
+  );
+
   const serviceImageRows = useMemo(() => {
     return masterDataMap?.master_service_images || [];
   }, [masterDataMap]);
@@ -971,6 +1064,26 @@ const MasterControlContent = () => {
           );
         }
 
+        const foreignKeyConfig = foreignKeyConfigByColumn[column];
+        if (foreignKeyConfig) {
+          const currentId = String(row?.[column] || '').trim();
+          const displayValue =
+            foreignKeyConfig.idToLabel.get(currentId) || currentId;
+
+          return (
+            <Main_Suggest
+              defaultSuggestions={foreignKeyConfig.suggestions}
+              defaultValue={displayValue}
+              onChange={(ov, nv) => {
+                const resolved = resolveForeignKeySuggestion(column, nv);
+                if (!resolved.resolved) return;
+                handleCellChange(rowIndex, column, resolved.value);
+              }}
+              placeholder={`Type to search ${foreignKeyConfig.referencedTable}...`}
+            />
+          );
+        }
+
         return (
           <Main_TextField
             defaultValue={asInputValue(row?.[column])}
@@ -1072,6 +1185,8 @@ const MasterControlContent = () => {
     pendingServiceImagesByServiceId,
     selectedTable,
     schemaFieldByColumn,
+    foreignKeyConfigByColumn,
+    resolveForeignKeySuggestion,
   ]);
 
   const sanitizeRowForSave = useCallback(

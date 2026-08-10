@@ -30,6 +30,8 @@ const PurchaseRequestBasicInfo = ({
   onSupplierAddressSelect,
   onSalesQuotationInputChange,
   onSalesQuotationSelect,
+  onFetchSupplierSuggestions,
+  onFetchSalesQuotationSuggestions,
   onOrderStatusChange,
   onRemarkChange,
 }) => {
@@ -82,6 +84,7 @@ const PurchaseRequestBasicInfo = ({
               )}
               onChange={(ov, nv) => onSupplierInputChange?.(nv)}
               onSelectSuggestion={onSupplierSelect}
+              onFetchSuggestions={onFetchSupplierSuggestions}
             />
           </Main_InputContainer>
 
@@ -156,6 +159,7 @@ const PurchaseRequestBasicInfo = ({
               )}
               onChange={(ov, nv) => onSalesQuotationInputChange?.(nv)}
               onSelectSuggestion={onSalesQuotationSelect}
+              onFetchSuggestions={onFetchSalesQuotationSuggestions}
             />
           </Main_InputContainer>
 

@@ -41,6 +41,9 @@ const DEFAULT_TABLE_NAMES = [
   'master_invoice_types',
   'master_shipping_method',
   'master_exchange_rate_hkd',
+  'master_product_attributes',
+  'master_product_attribute_dropdown',
+  'master_product_category_attribute_assign',
 ];
 
 const TABLE_INITIAL_DATA = {
@@ -70,6 +73,9 @@ const TABLE_INITIAL_DATA = {
   master_invoice_types: [],
   master_shipping_method: [],
   master_exchange_rate_hkd: [],
+  master_product_attributes: [],
+  master_product_attribute_dropdown: [],
+  master_product_category_attribute_assign: [],
 };
 
 const LEGACY_TABLE_BINDINGS = [
@@ -247,6 +253,27 @@ const LEGACY_TABLE_BINDINGS = [
     updateName: 'updateExchangeRateHkd',
     addName: 'addExchangeRateHkd',
     removeName: 'removeExchangeRateHkd',
+  },
+  {
+    tableName: 'master_product_attributes',
+    getName: 'getProductAttributes',
+    updateName: 'updateProductAttributes',
+    addName: 'addProductAttribute',
+    removeName: 'removeProductAttribute',
+  },
+  {
+    tableName: 'master_product_attribute_dropdown',
+    getName: 'getProductAttributeDropdowns',
+    updateName: 'updateProductAttributeDropdowns',
+    addName: 'addProductAttributeDropdown',
+    removeName: 'removeProductAttributeDropdown',
+  },
+  {
+    tableName: 'master_product_category_attribute_assign',
+    getName: 'getProductCategoryAttributeAssigns',
+    updateName: 'updateProductCategoryAttributeAssigns',
+    addName: 'addProductCategoryAttributeAssign',
+    removeName: 'removeProductCategoryAttributeAssign',
   },
 ];
 

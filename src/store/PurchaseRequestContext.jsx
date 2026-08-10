@@ -276,6 +276,28 @@ export const PurchaseRequestContext_Provider = ({ children }) => {
     [token],
   );
 
+  const refreshSuppliers = useCallback(async () => {
+    if (!token) return;
+    try {
+      const res = await apiPost(SUPPLIERS_API_BASE, {}, { token });
+      const supplierRows = extractRowsFromResponse(res, 'suppliers');
+      setSuppliers(supplierRows);
+    } catch (err) {
+      console.error('Failed to refresh suppliers:', err);
+    }
+  }, [token]);
+
+  const refreshSalesQuotations = useCallback(async () => {
+    if (!token) return;
+    try {
+      const res = await apiGet(SALES_API_BASE, { token });
+      const salesRows = extractRowsFromResponse(res, 'sales_quotations');
+      setSalesQuotations(salesRows);
+    } catch (err) {
+      console.error('Failed to refresh sales quotations:', err);
+    }
+  }, [token]);
+
   useEffect(() => {
     refreshAll();
   }, [refreshAll]);
@@ -697,6 +719,8 @@ export const PurchaseRequestContext_Provider = ({ children }) => {
       createNewPurchaseRequest,
       handleSelectRow,
       refreshAll,
+      refreshSuppliers,
+      refreshSalesQuotations,
       handleCreate,
       getPurchaseRequestDryRunData,
       handleSave,
@@ -721,6 +745,8 @@ export const PurchaseRequestContext_Provider = ({ children }) => {
       exchangeRateRows,
       handleSelectRow,
       refreshAll,
+      refreshSuppliers,
+      refreshSalesQuotations,
       handleCreate,
       getPurchaseRequestDryRunData,
       handleSave,

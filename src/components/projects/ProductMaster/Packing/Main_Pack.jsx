@@ -330,7 +330,7 @@ const Main_Pack = () => {
                   <div
                     className={`${styles.fieldBlock} ${styles.metricFieldSmall}`}
                   >
-                    <label className={styles.fieldLabel}>Qty</label>
+                    <label className={styles.fieldLabel}>Qty / Pack</label>
                     <Main_TextField
                       type="number"
                       className={styles.metricInput}

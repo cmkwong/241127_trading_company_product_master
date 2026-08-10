@@ -1863,8 +1863,25 @@ const Main_SalesShippingDetails = ({
 
             {shippingDetails.map((detailRow, detailIndex) => {
               const detailId = String(detailRow?.id || '').trim();
+              const dimensionParts = [];
+              const l = toNumber(detailRow?.length);
+              const w = toNumber(detailRow?.width);
+              const h = toNumber(detailRow?.height);
+              const qty = toNumber(detailRow?.qty);
+              if (l !== '' || w !== '' || h !== '') {
+                dimensionParts.push(
+                  `${l || '-'} x ${w || '-'} x ${h || '-'} cm`,
+                );
+              }
+              if (qty !== '') {
+                dimensionParts.push(`Qty: ${qty}`);
+              }
+              const dimensionLabel =
+                dimensionParts.length > 0 ? dimensionParts.join(', ') : '';
+
               const detailLabel =
                 String(detailRow?.details || '').trim() ||
+                dimensionLabel ||
                 `Shipping Detail ${String(detailIndex + 1)}`;
 
               return (

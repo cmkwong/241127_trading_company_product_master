@@ -57,6 +57,7 @@ const Main_SalesQuotation = () => {
     deleteSalesQuotation,
     getSalesQuotationDryRunData,
     refreshReferenceOptions,
+    purchaseCosts,
   } = useSalesQuotationContext();
   const { companyInfo, currencies, exchangeRateHkd, fetchMasterData } =
     useMasterContext();
@@ -445,7 +446,9 @@ const Main_SalesQuotation = () => {
                   onBaseCurrencyChange={setBaseCurrencyCode}
                   baseCurrencyOptions={baseCurrencyOptions}
                   latestExchangeRateRow={latestExchangeRateRow}
+                  exchangeRateMap={exchangeRateMap}
                   isCompact={isSummaryCompact}
+                  purchaseCosts={purchaseCosts}
                 />
 
                 <Main_SalesBasicInfo

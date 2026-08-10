@@ -725,6 +725,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
   const [supplierOptions, setSupplierOptions] = useState([]);
   const [productOptions, setProductOptions] = useState([]);
   const [saveError, setSaveError] = useState('');
+  const [purchaseCosts, setPurchaseCosts] = useState(null);
 
   const salesFetchSeqRef = useRef(0);
   const optionsFetchSeqRef = useRef(0);
@@ -774,6 +775,28 @@ export const SalesQuotationContext_Provider = ({ children }) => {
   const isDataUnchanged = useCallback(() => {
     return getChangedData() === null;
   }, [getChangedData]);
+
+  const fetchPurchaseCosts = useCallback(
+    async (salesQuotationId) => {
+      if (!token || !salesQuotationId) {
+        setPurchaseCosts(null);
+        return;
+      }
+
+      try {
+        const response = await apiGet(
+          `${SALES_API_BASE}/data/${salesQuotationId}/purchase-costs`,
+          { token },
+        );
+
+        setPurchaseCosts(response);
+      } catch (error) {
+        console.error('Failed to fetch purchase costs:', error);
+        setPurchaseCosts(null);
+      }
+    },
+    [token],
+  );
 
   const refreshSalesQuotationList = useCallback(async () => {
     if (!token) {
@@ -1328,6 +1351,14 @@ export const SalesQuotationContext_Provider = ({ children }) => {
     supplierType,
     token,
   ]);
+
+  useEffect(() => {
+    if (token && selectedQuotationId) {
+      fetchPurchaseCosts(selectedQuotationId);
+    } else {
+      setPurchaseCosts(null);
+    }
+  }, [token, selectedQuotationId, fetchPurchaseCosts]);
 
   useEffect(() => {
     if (!token) {
@@ -2268,6 +2299,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
     incotermOptions,
     shippingMethodOptions,
     saveError,
+    purchaseCosts,
     isDataUnchanged,
     getChangedData,
     refreshSalesQuotationList,

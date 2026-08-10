@@ -1,6 +1,7 @@
+import { useMemo } from 'react';
 import styles from './SalesQuotationSummaryBar.module.css';
 import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
-import { formatMoney, toSafeString } from '../utils/quotationTotals';
+import { formatMoney, toSafeString, toNumber } from '../utils/quotationTotals';
 
 const formatPercent = (value) => {
   if (!Number.isFinite(value)) {
@@ -10,132 +11,290 @@ const formatPercent = (value) => {
   return `${value.toFixed(2)}%`;
 };
 
+const toArray = (value) => (Array.isArray(value) ? value : []);
+
+const convertToBase = (
+  amount,
+  currencyCode,
+  baseCurrencyCode,
+  exchangeRateMap,
+) => {
+  const parsed = toNumber(amount);
+  if (!Number.isFinite(parsed)) return null;
+
+  const sourceCode = toSafeString(currencyCode).toUpperCase();
+  const targetCode = toSafeString(baseCurrencyCode).toUpperCase();
+  if (!sourceCode || !targetCode) return null;
+
+  const sourceRate = exchangeRateMap[sourceCode];
+  const targetRate = exchangeRateMap[targetCode];
+  if (!Number.isFinite(sourceRate) || sourceRate <= 0) return null;
+  if (!Number.isFinite(targetRate) || targetRate <= 0) return null;
+
+  return (parsed / sourceRate) * targetRate;
+};
+
+const sumPoCosts = (costRows, baseCurrencyCode, exchangeRateMap) => {
+  return toArray(costRows).reduce((total, row) => {
+    const converted = convertToBase(
+      row?.price,
+      row?.currency_code,
+      baseCurrencyCode,
+      exchangeRateMap,
+    );
+    return Number.isFinite(converted) ? total + converted : total;
+  }, 0);
+};
+
+const formatEstimated = (value) => `(${formatMoney(value)})`;
+
+const BalanceCard = ({
+  label,
+  labelHighlight,
+  salesValue,
+  estimatedCost,
+  actualPoCost,
+  hasPoData,
+  isHighlight,
+  currencyCode,
+}) => {
+  currencyCode = currencyCode || 'USD';
+  const estimatedBalance =
+    Number.isFinite(salesValue) && Number.isFinite(estimatedCost)
+      ? salesValue - estimatedCost
+      : null;
+  const actualBalance =
+    Number.isFinite(salesValue) && Number.isFinite(actualPoCost)
+      ? salesValue - actualPoCost
+      : null;
+  const estimatedProfitPercent =
+    estimatedBalance !== null &&
+    Number.isFinite(estimatedCost) &&
+    estimatedCost > 0
+      ? (estimatedBalance / estimatedCost) * 100
+      : null;
+  const actualProfitPercent =
+    actualBalance !== null && Number.isFinite(actualPoCost) && actualPoCost > 0
+      ? (actualBalance / actualPoCost) * 100
+      : null;
+  const showRealColumn = hasPoData && Number.isFinite(actualPoCost);
+
+  return (
+    <div
+      className={`${styles.balanceCard} ${isHighlight ? styles.balanceCardHighlight : ''}`}
+    >
+      <span
+        className={`${styles.cardLabel} ${labelHighlight ? styles.cardLabelHighlight : ''}`}
+      >
+        {label}
+      </span>
+
+      <div className={styles.cardGrid}>
+        <div className={styles.gridHeaderRow}>
+          <span className={styles.gridRowLabel} />
+          <span className={styles.gridHeaderEstimated}>Estimated</span>
+          <span className={styles.gridHeaderReal}>Real</span>
+        </div>
+
+        <div className={styles.gridDataRow}>
+          <span className={styles.gridRowLabel}>Sales</span>
+          <span className={styles.gridCellEstimated}>-</span>
+          <span
+            className={`${styles.gridCellReal} ${isHighlight ? styles.gridCellRealHighlight : ''}`}
+          >
+            {currencyCode} {formatMoney(salesValue)}
+          </span>
+        </div>
+
+        <div className={styles.gridDataRow}>
+          <span className={styles.gridRowLabel}>Cost</span>
+          <span className={styles.gridCellEstimated}>
+            {estimatedCost !== null ? formatEstimated(estimatedCost) : '-'}
+          </span>
+          <span className={styles.gridCellReal}>
+            {showRealColumn
+              ? `${currencyCode} ${formatMoney(actualPoCost)}`
+              : `${currencyCode} ${formatMoney(estimatedCost)}`}
+          </span>
+        </div>
+
+        <div className={styles.gridSeparator} />
+
+        <div className={styles.gridDataRow}>
+          <span className={styles.gridRowLabel}>Balance</span>
+          <span className={styles.gridCellEstimated}>
+            {estimatedBalance !== null
+              ? formatEstimated(estimatedBalance)
+              : '-'}
+          </span>
+          <span className={styles.gridCellReal}>
+            {showRealColumn && actualBalance !== null
+              ? `${currencyCode} ${formatMoney(actualBalance)}`
+              : `${currencyCode} ${formatMoney(estimatedBalance)}`}
+          </span>
+        </div>
+
+        <div className={styles.gridDataRow}>
+          <span className={styles.gridRowLabel}>Profit %</span>
+          <span className={styles.gridCellEstimated}>
+            {estimatedProfitPercent !== null
+              ? formatEstimated(estimatedProfitPercent)
+              : '-'}
+          </span>
+          <span className={styles.gridCellReal}>
+            {showRealColumn && actualProfitPercent !== null
+              ? formatPercent(actualProfitPercent)
+              : formatPercent(estimatedProfitPercent)}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const SalesQuotationSummaryBar = ({
   totalsSummary,
   baseCurrencyCode,
   onBaseCurrencyChange,
   baseCurrencyOptions,
   latestExchangeRateRow,
+  exchangeRateMap,
   isCompact,
+  purchaseCosts,
 }) => {
-  return (
-    <div
-      className={`${styles.currencySummaryBar} ${
-        isCompact ? styles.currencySummaryBarCompact : ''
-      }`}
-    >
-      {!isCompact ? (
-        <div className={styles.baseCurrencyPicker}>
-          <span className={styles.baseCurrencyLabel}>Base Currency</span>
-          <Main_Dropdown
-            defaultOptions={baseCurrencyOptions}
-            defaultSelectedOption={baseCurrencyCode}
-            onChange={(ov, nv) =>
-              onBaseCurrencyChange(toSafeString(nv).toUpperCase() || 'USD')
-            }
-            size="S"
-          />
-          <span className={styles.rateMetaText}>
-            Rate Date: {toSafeString(latestExchangeRateRow?.Date) || '-'}
-          </span>
-        </div>
-      ) : null}
+  const hasPoData =
+    purchaseCosts &&
+    (toArray(purchaseCosts?.shipping_costs).length > 0 ||
+      toArray(purchaseCosts?.product_costs).length > 0 ||
+      toArray(purchaseCosts?.service_costs).length > 0);
 
-      <div
-        className={`${styles.totalsSummaryGrid} ${
-          isCompact ? styles.totalsSummaryGridCompact : ''
-        }`}
-      >
-        {isCompact ? (
-          <>
-            <div className={styles.totalCard}>
-              <span className={styles.totalLabel}>Total Cost</span>
-              <span className={styles.totalValue}>
+  const poShippingTotal = useMemo(
+    () =>
+      sumPoCosts(
+        purchaseCosts?.shipping_costs,
+        baseCurrencyCode,
+        exchangeRateMap,
+      ),
+    [purchaseCosts, baseCurrencyCode, exchangeRateMap],
+  );
+  const poProductTotal = useMemo(
+    () =>
+      sumPoCosts(
+        purchaseCosts?.product_costs,
+        baseCurrencyCode,
+        exchangeRateMap,
+      ),
+    [purchaseCosts, baseCurrencyCode, exchangeRateMap],
+  );
+  const poServiceTotal = useMemo(
+    () =>
+      sumPoCosts(
+        purchaseCosts?.service_costs,
+        baseCurrencyCode,
+        exchangeRateMap,
+      ),
+    [purchaseCosts, baseCurrencyCode, exchangeRateMap],
+  );
+  const poGrandTotal = poShippingTotal + poProductTotal + poServiceTotal;
+
+  if (isCompact) {
+    return (
+      <div className={`${styles.summaryBar} ${styles.summaryBarCompact}`}>
+        <div className={styles.metricsRow}>
+          <div className={styles.balanceCard}>
+            <span className={styles.cardLabel}>Total Cost</span>
+            <div className={styles.salesRow}>
+              <span className={styles.salesValue}>
                 {totalsSummary.baseCurrencyCode}{' '}
                 {formatMoney(totalsSummary.costGrandTotal)}
               </span>
             </div>
-            <div className={styles.totalCard}>
-              <span className={styles.totalLabel}>Profit</span>
-              <span className={styles.totalValue}>
+          </div>
+          <div className={styles.balanceCard}>
+            <span className={styles.cardLabel}>Profit</span>
+            <div className={styles.salesRow}>
+              <span className={styles.salesValue}>
                 {totalsSummary.baseCurrencyCode}{' '}
                 {formatMoney(totalsSummary.profitAmount)}
               </span>
             </div>
-            <div className={styles.totalCard}>
-              <span className={styles.totalLabel}>Profit % (vs Cost)</span>
-              <span className={styles.totalValue}>
-                {formatPercent(totalsSummary.profitPercent)}
+          </div>
+          <div className={styles.balanceCard}>
+            <span className={styles.cardLabel}>Profit % (vs Cost)</span>
+            <div className={styles.salesRow}>
+              <span className={styles.salesValue}>
+                {totalsSummary.profitPercent !== null
+                  ? `${totalsSummary.profitPercent.toFixed(2)}%`
+                  : '-'}
               </span>
             </div>
-          </>
-        ) : (
-          <>
-            <div className={styles.totalCard}>
-              <span className={styles.totalLabel}>
-                Shipping Sales (Selected)
-              </span>
-              <span className={styles.totalValue}>
-                {totalsSummary.baseCurrencyCode}{' '}
-                {formatMoney(totalsSummary.shipping)}
-              </span>
-            </div>
-            <div className={styles.totalCard}>
-              <span className={styles.totalLabel}>
-                Product Sales (Selected)
-              </span>
-              <span className={styles.totalValue}>
-                {totalsSummary.baseCurrencyCode}{' '}
-                {formatMoney(totalsSummary.product)}
-              </span>
-            </div>
-            <div className={styles.totalCard}>
-              <span className={styles.totalLabel}>
-                Service Sales (Selected)
-              </span>
-              <span className={styles.totalValue}>
-                {totalsSummary.baseCurrencyCode}{' '}
-                {formatMoney(totalsSummary.service)}
-              </span>
-            </div>
-            <div className={`${styles.totalCard} ${styles.totalCardHighlight}`}>
-              <span className={styles.totalLabel}>Total Sales</span>
-              <span className={styles.totalValueStrong}>
-                {totalsSummary.baseCurrencyCode}{' '}
-                {formatMoney(totalsSummary.grandTotal)}
-              </span>
-            </div>
-            <div className={styles.totalCard}>
-              <span className={styles.totalLabel}>Total Cost</span>
-              <span className={styles.totalValue}>
-                {totalsSummary.baseCurrencyCode}{' '}
-                {formatMoney(totalsSummary.costGrandTotal)}
-              </span>
-            </div>
-            <div className={styles.totalCard}>
-              <span className={styles.totalLabel}>Profit</span>
-              <span className={styles.totalValue}>
-                {totalsSummary.baseCurrencyCode}{' '}
-                {formatMoney(totalsSummary.profitAmount)}
-              </span>
-            </div>
-            <div className={styles.totalCard}>
-              <span className={styles.totalLabel}>Profit % (vs Cost)</span>
-              <span className={styles.totalValue}>
-                {formatPercent(totalsSummary.profitPercent)}
-              </span>
-            </div>
-          </>
-        )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.summaryBar}>
+      <div className={styles.currencyRow}>
+        <span className={styles.baseCurrencyLabel}>Base Currency</span>
+        <Main_Dropdown
+          defaultOptions={baseCurrencyOptions}
+          defaultSelectedOption={baseCurrencyCode}
+          onChange={(ov, nv) =>
+            onBaseCurrencyChange(toSafeString(nv).toUpperCase() || 'USD')
+          }
+          size="S"
+        />
+        <span className={styles.rateMetaText}>
+          Rate Date: {toSafeString(latestExchangeRateRow?.Date) || '-'}
+        </span>
       </div>
 
-      {!isCompact && totalsSummary.missingCount > 0 ? (
+      <div className={styles.metricsRow}>
+        <BalanceCard
+          label="Shipping Balance (Selected)"
+          salesValue={totalsSummary.shipping}
+          estimatedCost={totalsSummary.costShipping}
+          actualPoCost={poShippingTotal}
+          hasPoData={hasPoData}
+          currencyCode={totalsSummary.baseCurrencyCode}
+        />
+        <BalanceCard
+          label="Product Balance (Selected)"
+          salesValue={totalsSummary.product}
+          estimatedCost={totalsSummary.costProduct}
+          actualPoCost={poProductTotal}
+          hasPoData={hasPoData}
+          currencyCode={totalsSummary.baseCurrencyCode}
+        />
+        <BalanceCard
+          label="Service Balance (Selected)"
+          salesValue={totalsSummary.service}
+          estimatedCost={totalsSummary.costService}
+          actualPoCost={poServiceTotal}
+          hasPoData={hasPoData}
+          currencyCode={totalsSummary.baseCurrencyCode}
+        />
+        <BalanceCard
+          label="Total Balance"
+          labelHighlight
+          salesValue={totalsSummary.grandTotal}
+          estimatedCost={totalsSummary.costGrandTotal}
+          actualPoCost={poGrandTotal}
+          hasPoData={hasPoData}
+          isHighlight
+          currencyCode={totalsSummary.baseCurrencyCode}
+        />
+      </div>
+
+      {totalsSummary.missingCount > 0 && (
         <div className={styles.totalWarningText}>
           Sales skipped: {totalsSummary.salesMissingCount} row(s), Cost skipped:{' '}
           {totalsSummary.costMissingCount} row(s) due to missing currency or
           exchange rate.
         </div>
-      ) : null}
+      )}
     </div>
   );
 };

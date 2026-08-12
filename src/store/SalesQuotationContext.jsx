@@ -491,6 +491,9 @@ const normalizeSalesQuotation = (row = {}) => {
   return {
     id: toSafeString(row?.id),
     to_order: Boolean(row?.to_order),
+    status:
+      toSafeString(row?.status) ||
+      (Boolean(row?.to_order) ? 'ordered' : 'quotation'),
     remark: toSafeString(row?.remark),
     customer_id: toSafeString(row?.customer_id),
     customer_address_id: toSafeString(row?.customer_address_id),
@@ -1652,7 +1655,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
     discardSelectedQuotationUnsavedChanges();
 
     const newPayload = {
-      to_order: false,
+      status: 'draft',
       remark: '',
     };
 

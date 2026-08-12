@@ -9,9 +9,11 @@ import SplitLayout from '../../../common/Layouts/SplitLayout';
 import VerticalLayout from '../../../common/Layouts/VerticalLayout';
 import styles from './Main_SalesBasicInfo.module.css';
 
-const ORDER_STATUS_OPTIONS = [
-  { id: 'false', name: 'Quotation' },
-  { id: 'true', name: 'Ordered' },
+export const STATUS_OPTIONS = [
+  { id: 'quotation', name: 'Quotation', color: '#2563eb' },
+  { id: 'ordered', name: 'Ordered', color: '#16a34a' },
+  { id: 'pending', name: 'Pending', color: '#f59e0b' },
+  { id: 'draft', name: 'Draft', color: '#6b7280' },
 ];
 
 const toDateInputValue = (value) => {
@@ -175,10 +177,10 @@ const Main_SalesBasicInfo = ({
 
           <Main_InputContainer label="Order Status">
             <Main_Dropdown
-              defaultOptions={ORDER_STATUS_OPTIONS}
-              defaultSelectedOption={quotation?.to_order ? 'true' : 'false'}
+              defaultOptions={STATUS_OPTIONS}
+              defaultSelectedOption={quotation?.status || 'draft'}
               onChange={(ov, nv) => {
-                onPatchQuotation({ to_order: nv === 'true' });
+                onPatchQuotation({ status: nv });
               }}
             />
           </Main_InputContainer>

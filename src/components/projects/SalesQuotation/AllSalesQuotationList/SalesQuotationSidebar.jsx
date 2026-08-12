@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import SearchSideBarList from '../../../common/SearchSideBarList/SearchSideBarList';
 import styles from './SalesQuotationSidebar.module.css';
 import { computeQuotationTotals, formatMoney } from '../utils/quotationTotals';
+import { STATUS_OPTIONS } from '../SalesBasicInfo/Main_SalesBasicInfo';
 
 const SALES_QUOTATION_SEARCH_HISTORY_KEY =
   'sales_quotation_sidebar_search_history';
@@ -167,7 +168,7 @@ const SalesQuotationSidebar = ({
         quotation?.customer_id,
         quotation?.customer_address_id,
         customerName,
-        quotation?.to_order ? 'ordered' : 'pending',
+        quotation?.status || (quotation?.to_order ? 'ordered' : 'draft'),
         quotation?.created_at,
         quotation?.updated_at,
       ]
@@ -240,6 +241,14 @@ const SalesQuotationSidebar = ({
     [quotations, getQuotationTitle, handleQuotationSelect],
   );
 
+  const statusColorMap = useMemo(() => {
+    const map = {};
+    STATUS_OPTIONS.forEach((opt) => {
+      map[opt.id] = opt.color;
+    });
+    return map;
+  }, []);
+
   const getQuotationRows = useCallback(
     (quotation) => {
       const summary = computeQuotationTotals(quotation, {
@@ -248,10 +257,20 @@ const SalesQuotationSidebar = ({
         exchangeRateMap,
       });
 
+      const statusId = quotation?.status || 'draft';
+
       return [
         {
           label: 'Status:',
-          value: quotation?.to_order ? 'Ordered' : 'Open Quotation',
+          value:
+            quotation?.status === 'ordered'
+              ? 'Ordered'
+              : quotation?.status === 'pending'
+                ? 'Pending'
+                : quotation?.status === 'draft'
+                  ? 'Draft'
+                  : 'Quotation',
+          color: statusColorMap[statusId],
         },
         {
           label: 'Customer:',

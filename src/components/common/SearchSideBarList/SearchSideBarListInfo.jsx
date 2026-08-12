@@ -96,6 +96,18 @@ const SearchSideBarListInfo = ({ title, rows = [] }) => {
                   rowView.fullText || rowView.displayValue,
                 )}`}
                 title={rowView.isTruncated ? rowView.fullText : undefined}
+                style={
+                  row.color
+                    ? {
+                        backgroundColor: row.color,
+                        color: '#fff',
+                        padding: '1px 8px',
+                        borderRadius: '10px',
+                        fontWeight: 600,
+                        fontSize: '0.75rem',
+                      }
+                    : undefined
+                }
               >
                 {rowView.displayValue}
               </span>

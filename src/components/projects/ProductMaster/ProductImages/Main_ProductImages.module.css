@@ -1,0 +1,65 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+}
+
+.rowBadge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  border-radius: 14px;
+  background-color: #f1f5f9;
+}
+
+.rowBadgeText {
+  font-size: 13px;
+  font-weight: 700;
+  color: #475569;
+}
+
+.removeButton {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background-color: #ffffff;
+  color: #475569;
+  cursor: pointer;
+  flex: 0 0 28px;
+}
+
+.removeButton:hover {
+  color: #e85b49;
+  border-color: #fecaca;
+  background: #fff7f6;
+}
+
+.removeButton svg {
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.removeButton:focus-visible {
+  outline: 2px solid #93c5fd;
+  outline-offset: 2px;
+}

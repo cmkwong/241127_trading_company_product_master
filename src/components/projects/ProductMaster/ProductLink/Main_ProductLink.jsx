@@ -5,7 +5,6 @@ import Main_TextField from '../../../common/InputOptions/TextField/Main_TextFiel
 import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
 import Main_DateSelector from '../../../common/InputOptions/Date/Main_DateSelector';
 import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_FileUploads';
-import AddNewBtn from '../../../common/Buttons/AddNewBtn';
 import DeleteBtn from '../../../common/Buttons/DeleteBtn';
 import EditableDataTable from '../../../common/Table/EditableDataTable';
 import { useProductContext } from '../../../../store/ProductContext';
@@ -270,17 +269,12 @@ const Main_ProductLink = () => {
   );
 
   return (
-    <Main_InputContainer label="Product Links">
+    <Main_InputContainer
+      label="Product Links"
+      onAddNew={handleAddLinkRow}
+      addNewText="Add Product Link"
+    >
       <div className={styles.tableSection}>
-        <div className={styles.actionsBar}>
-          <AddNewBtn
-            onClick={handleAddLinkRow}
-            text="Add Product Link"
-            ariaLabel="Add new product link"
-            title="Add Product Link"
-          />
-        </div>
-
         <EditableDataTable
           rows={productLinks}
           columns={columns}

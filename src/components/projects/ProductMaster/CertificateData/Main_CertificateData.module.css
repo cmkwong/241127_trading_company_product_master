@@ -1,42 +1,5 @@
-.cardRoot {
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  background: #ffffff;
-}
-
-.headerRow {
-  width: 100%;
-}
-
-.title {
-  margin: 0;
-  color: #0c1e36;
-  font-size: 18px;
-  font-weight: 700;
-  line-height: 1.25;
-}
-
-.actionsBar {
-  display: inline-flex;
-  justify-content: flex-end;
-}
-
-.addActionBtn {
-  align-self: center;
-}
-
 .certificateRows {
   width: 100%;
-}
-
-.emptyState {
-  border: 1px dashed #cbd5e1;
-  border-radius: 8px;
-  padding: 16px;
-  color: #64748b;
-  font-size: 13px;
-  text-align: center;
-  background: #f8fafc;
 }
 
 .certificateRowCard {
@@ -152,10 +115,6 @@
 }
 
 @media (max-width: 640px) {
-  .cardRoot {
-    padding: 20px !important;
-  }
-
   .title {
     font-size: 16px;
   }

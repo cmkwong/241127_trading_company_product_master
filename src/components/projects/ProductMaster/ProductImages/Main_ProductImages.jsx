@@ -1,17 +1,17 @@
 import { useCallback, useEffect, useState } from 'react';
-import ControlRowBtn from '../../../common/Buttons/ControlRowBtn';
+import { v4 as uuidv4 } from 'uuid';
 import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
+import EmptyState from '../../../common/State/EmptyState';
 import { useProductContext } from '../../../../store/ProductContext';
 import Sub_ProductImagesRow from './Sub_ProductImagesRow';
+import styles from './Main_ProductImages.module.css';
 
 const Main_ProductImages = () => {
   const { pageData, upsertProductPageData } = useProductContext();
 
   const [rowIds, setRowIds] = useState([]);
-
   const [processedImageData, setProcessedImageData] = useState([]);
 
-  // prepare the image data grouped by image_row
   useEffect(() => {
     const images = pageData?.product_images || [];
 
@@ -41,12 +41,8 @@ const Main_ProductImages = () => {
     setRowIds(validRowIds);
   }, [pageData?.product_images]);
 
-  const handleRowIdsChange = useCallback(() => {
-    // Handle any additional logic when row IDs change, if necessary
-  }, []);
-
-  const handleRowAdd = useCallback((newId) => {
-    // Logic to add a new product image row
+  const handleRowAdd = useCallback(() => {
+    const newId = uuidv4();
     setProcessedImageData((prevData) => [
       ...prevData,
       { id: newId, images: [] },
@@ -54,7 +50,6 @@ const Main_ProductImages = () => {
     setRowIds((prevRowIds) => [...prevRowIds, newId]);
   }, []);
 
-  // Logic to remove a product image row
   const handleRowRemove = useCallback(
     (rowId) => {
       setProcessedImageData((prevData) =>
@@ -62,7 +57,6 @@ const Main_ProductImages = () => {
       );
       setRowIds((prevRowIds) => prevRowIds.filter((id) => id !== rowId));
 
-      // get all the image id from the array
       const imagesToRemove =
         processedImageData
           .find((d) => d.id === rowId)
@@ -83,15 +77,40 @@ const Main_ProductImages = () => {
   );
 
   return (
-    <Main_InputContainer label="Product Images">
-      <ControlRowBtn
-        rowIds={rowIds}
-        onRowIdsChange={handleRowIdsChange}
-        onRowAdd={handleRowAdd}
-        onRowRemove={handleRowRemove}
-      >
-        <Sub_ProductImagesRow imageData={processedImageData} />
-      </ControlRowBtn>
+    <Main_InputContainer
+      label="Product Images"
+      onAddNew={handleRowAdd}
+      addNewText="Add Image Row"
+    >
+      <div className={styles.list}>
+        {rowIds.length === 0 ? (
+          <EmptyState message="No image rows added yet." />
+        ) : (
+          rowIds.map((rowId, rowIndex) => (
+            <div key={rowId} className={styles.row}>
+              <Sub_ProductImagesRow
+                imageData={processedImageData}
+                rowId={rowId}
+                rowindex={rowIndex}
+              />
+              <div className={styles.rowBadge}>
+                <span className={styles.rowBadgeText}>{rowIndex + 1}</span>
+              </div>
+              <button
+                type="button"
+                className={styles.removeButton}
+                onClick={() => handleRowRemove(rowId)}
+                title="Remove row"
+                aria-label={`Remove row ${rowIndex + 1}`}
+              >
+                <svg viewBox="0 0 16 16" aria-hidden="true">
+                  <path d="M3 8h10" />
+                </svg>
+              </button>
+            </div>
+          ))
+        )}
+      </div>
     </Main_InputContainer>
   );
 };

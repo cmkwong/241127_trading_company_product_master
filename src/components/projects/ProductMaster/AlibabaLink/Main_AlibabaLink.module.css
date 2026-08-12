@@ -1,15 +1,125 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+}
+
+.dragOver {
+  background-color: #eff6ff;
+  border-radius: 8px;
+}
+
+.dragHandle {
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #94a3b8;
+  cursor: grab;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+}
+
+.dragHandle:hover {
+  color: #475569;
+  background: #f8fafc;
+}
+
+.dragHandle:active {
+  cursor: grabbing;
+}
+
+.dragHandle svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+}
+
+.childrenContainer {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+}
+
 .inputContainer {
   display: flex;
-  width: 100%;
-  gap: 8px; /* Small gap between fields */
+  flex: 1;
+  gap: 12px;
+  min-width: 0;
 }
 
 .idField {
-  width: 20%;
-  flex: 0 0 20%; /* Fixed at 20% width */
+  flex: 1;
 }
 
 .linkField {
-  width: 80%;
-  flex: 0 0 80%; /* Fixed at 80% width */
+  flex: 1;
+}
+
+.rowBadge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  border-radius: 14px;
+  background-color: #f1f5f9;
+}
+
+.rowBadgeText {
+  font-size: 13px;
+  font-weight: 700;
+  color: #475569;
+}
+
+.removeButton {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background-color: #ffffff;
+  color: #475569;
+  cursor: pointer;
+  flex: 0 0 28px;
+}
+
+.removeButton:hover {
+  color: #e85b49;
+  border-color: #fecaca;
+  background: #fff7f6;
+}
+
+.removeButton svg {
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.dragHandle:focus-visible,
+.removeButton:focus-visible {
+  outline: 2px solid #93c5fd;
+  outline-offset: 2px;
 }

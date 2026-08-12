@@ -3,13 +3,13 @@ import { v4 as uuidv4 } from 'uuid';
 import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
 import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
 import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_FileUploads';
-import AddNewBtn from '../../../common/Buttons/AddNewBtn';
+import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
+import EmptyState from '../../../common/State/EmptyState';
 import RemoveRowBtn from '../../../common/Buttons/RemoveRowBtn';
 import styles from './Main_CertificateData.module.css';
 import { useProductContext } from '../../../../store/ProductContext';
 import { useMasterContext } from '../../../../store/MasterContext';
 import { sortByDisplayOrder } from '../../../../utils/arr';
-import Frame from '../../../common/Layouts/Frame';
 
 const Main_CertificateData = () => {
   const { pageData, upsertProductPageData } = useProductContext();
@@ -132,36 +132,14 @@ const Main_CertificateData = () => {
   );
 
   return (
-    <Frame
-      direction="vertical"
-      gap={24}
-      className={styles.cardRoot}
-      horizontal_padding={32}
-      vertical_padding={32}
+    <Main_InputContainer
+      label="Certificates"
+      onAddNew={handleAddCertificateRow}
+      addNewText="Add Certificate"
     >
-      <Frame
-        direction="horizontal"
-        gap="auto"
-        alignment="center"
-        className={styles.headerRow}
-      >
-        <h3 className={styles.title}>Certificates</h3>
-        <div className={styles.actionsBar}>
-          <AddNewBtn
-            onClick={handleAddCertificateRow}
-            text="Add Certificate"
-            ariaLabel="Add new certificate"
-            title="Add Certificate"
-            className={styles.addActionBtn}
-          />
-        </div>
-      </Frame>
-
-      <Frame direction="vertical" gap={16} className={styles.certificateRows}>
+      <div className={styles.certificateRows}>
         {certificateRows.length === 0 ? (
-          <div className={styles.emptyState}>
-            No certificates yet. Click Add Certificate.
-          </div>
+          <EmptyState message="No certificates yet. Click Add Certificate." />
         ) : (
           certificateRows.map((row, index) => {
             const defaultFiles = sortByDisplayOrder(
@@ -177,27 +155,18 @@ const Main_CertificateData = () => {
             }));
 
             return (
-              <Frame
+              <div
                 key={row?.id || `certificate-row-${index}`}
-                direction="vertical"
-                gap={16}
                 className={styles.certificateRowCard}
-                horizontal_padding={16}
-                vertical_padding={16}
               >
-                <Frame
-                  direction="horizontal"
-                  gap="auto"
-                  alignment="center"
-                  className={styles.rowTools}
-                >
+                <div className={styles.rowTools}>
                   <span className={styles.rowToolsSpacer} aria-hidden="true" />
                   <RemoveRowBtn
                     ariaLabel="Delete certificate row"
                     title="Delete certificate row"
                     onClick={() => handleDeleteCertificateRow(row)}
                   />
-                </Frame>
+                </div>
 
                 <div className={styles.certificateTypeField}>
                   <label className={styles.fieldLabel}>Certificate Type</label>
@@ -268,12 +237,12 @@ const Main_CertificateData = () => {
                     </div>
                   </div>
                 </div>
-              </Frame>
+              </div>
             );
           })
         )}
-      </Frame>
-    </Frame>
+      </div>
+    </Main_InputContainer>
   );
 };
 

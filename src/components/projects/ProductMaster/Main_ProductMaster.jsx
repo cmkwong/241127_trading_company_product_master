@@ -174,18 +174,11 @@ const Main_ProductMaster = () => {
           </button>
 
           <div className={`${styles.inputSide} ${styles.withIconOverlay}`}>
-            <Frame direction="horizontal" gap={12} alignment="Top left">
-              <Frame direction="vertical" gap={12}>
-                <Main_ProductName />
-                <Main_Category />
-                <Main_Keywords />
-              </Frame>
-              <Frame>
-                <Main_AlibabaLink />
-              </Frame>
-            </Frame>
-
+            <Main_ProductName />
+            <Main_Category />
+            <Main_Keywords />
             <Main_ProductLink />
+            <Main_AlibabaLink />
             <Main_ProductImages />
 
             <Main_Customization />

@@ -3,13 +3,13 @@ import Main_TextField from '../../../common/InputOptions/TextField/Main_TextFiel
 import Main_Suggest from '../../../common/InputOptions/Suggest/Main_Suggest';
 import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
 import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_FileUploads';
-import AddNewBtn from '../../../common/Buttons/AddNewBtn';
-import RemoveRowBtn from '../../../common/Buttons/RemoveRowBtn';
+import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
+import DeleteBtn from '../../../common/Buttons/DeleteBtn';
+import EditableDataTable from '../../../common/Table/EditableDataTable';
 import { useProductContext } from '../../../../store/ProductContext';
 import { v4 as uuidv4 } from 'uuid';
 import { sortByDisplayOrder } from '../../../../utils/arr';
 import { mockSuppliers } from '../../../../datas/Suppliers/mockSuppliers';
-import Frame from '../../../common/Layouts/Frame';
 import styles from './Main_Customization.module.css';
 
 const Main_Customization = () => {
@@ -125,170 +125,152 @@ const Main_Customization = () => {
     [upsertCustomizationRow],
   );
 
-  return (
-    <Frame
-      direction="vertical"
-      gap={24}
-      className={styles.cardRoot}
-      horizontal_padding={32}
-      vertical_padding={32}
-    >
-      <Frame
-        direction="horizontal"
-        gap="auto"
-        alignment="center"
-        className={styles.headerRow}
-      >
-        <h3 className={styles.title}>Customization Options</h3>
-        <div className={styles.actionsBar}>
-          <AddNewBtn
-            onClick={handleAddCustomizationRow}
-            text="Add Customization"
-            ariaLabel="Add new customization"
-            title="Add Customization"
-            className={styles.addActionBtn}
+  const columns = useMemo(
+    () => [
+      {
+        key: 'name',
+        label: 'Customization Title',
+        sortType: 'string',
+        minWidth: '220px',
+        maxWidth: '400px',
+        cellClassName: styles.tableCell,
+        renderCell: (row) => (
+          <Main_TextField
+            defaultValue={row.name || ''}
+            placeholder="Customization Title"
+            onChange={(ov, nv) => upsertCustomizationRow(row, { name: nv })}
           />
-        </div>
-      </Frame>
+        ),
+      },
+      {
+        key: 'code',
+        label: 'Supplier',
+        sortType: 'string',
+        minWidth: '200px',
+        maxWidth: '300px',
+        cellClassName: styles.tableCell,
+        renderCell: (row) => (
+          <Main_Suggest
+            defaultSuggestions={supplierSuggestions}
+            placeholder="Suppliers"
+            autoComplete="new-password"
+            defaultValue={row.code || ''}
+            getSuggestionLabel={(suggestion) => suggestion?.code || ''}
+            getSuggestionSearchText={(suggestion) =>
+              String(suggestion?.searchText || suggestion?.code || '')
+            }
+            renderSuggestion={(suggestion) => (
+              <div className={styles.suggestionItemWrap}>
+                <span className={styles.suggestionCode}>
+                  {suggestion?.code || ''}
+                </span>
+                <span className={styles.suggestionName}>
+                  {suggestion?.companyName || ''}
+                </span>
+              </div>
+            )}
+            onChange={(ov, nv) => upsertCustomizationRow(row, { code: nv })}
+            onSelectSuggestion={(suggestion) =>
+              upsertCustomizationRow(row, {
+                code: String(suggestion?.code || '').trim(),
+              })
+            }
+          />
+        ),
+      },
+      {
+        key: 'actions',
+        label: 'Actions',
+        sortable: false,
+        width: '90px',
+        minWidth: '90px',
+        maxWidth: '90px',
+        cellClassName: styles.tableCell,
+        renderCell: (row) => (
+          <DeleteBtn onClick={() => handleDeleteCustomizationRow(row)} />
+        ),
+      },
+      {
+        key: 'remark',
+        label: 'Remark',
+        sortable: false,
+        nextRow: true,
+        minWidth: '260px',
+        maxWidth: '100%',
+        cellClassName: styles.tableCell,
+        renderCell: (row) => (
+          <Main_TextArea
+            defaultValue={row.remark || ''}
+            placeholder="Add remarks..."
+            rows={2}
+            resize="none"
+            onChange={(ov, nv) => upsertCustomizationRow(row, { remark: nv })}
+          />
+        ),
+      },
+      {
+        key: 'product_customization_images',
+        label: 'Images',
+        sortable: false,
+        nextRow: true,
+        minWidth: '300px',
+        maxWidth: '100%',
+        cellClassName: styles.tableCell,
+        renderCell: (row) => {
+          const defaultImages = sortByDisplayOrder(
+            row.product_customization_images || [],
+          ).map((img) => ({
+            id: img.id,
+            url: img.image_url,
+            name: img.image_name,
+            display_order: img.display_order,
+          }));
 
-      <Frame direction="vertical" gap={12} className={styles.customizationList}>
-        {customizations.length === 0 ? (
-          <div className={styles.emptyState}>
-            No customizations yet. Click Add Customization.
-          </div>
-        ) : (
-          customizations.map((row, index) => {
-            const defaultImages = sortByDisplayOrder(
-              row.product_customization_images || [],
-            ).map((img) => ({
-              id: img.id,
-              url: img.image_url,
-              name: img.image_name,
-              display_order: img.display_order,
-            }));
+          return (
+            <Main_FileUploads
+              mode="image"
+              label=""
+              compact
+              tableCell
+              hoverPreview
+              compactButtonText="Upload"
+              maxFiles={12}
+              maxSizeInMB={5}
+              defaultImages={defaultImages}
+              onError={(error) => {
+                console.error('Customization image upload error:', error);
+              }}
+              onChange={(ov, nv) =>
+                handleCustomizationImagesChange(row, ov, nv)
+              }
+            />
+          );
+        },
+      },
+    ],
+    [
+      supplierSuggestions,
+      upsertCustomizationRow,
+      handleDeleteCustomizationRow,
+      handleCustomizationImagesChange,
+    ],
+  );
 
-            return (
-              <Frame
-                key={row?.id || `customization-row-${index}`}
-                direction="vertical"
-                gap={12}
-                className={styles.customizationRow}
-                horizontal_padding={16}
-                vertical_padding={16}
-              >
-                <Frame
-                  direction="horizontal"
-                  gap="auto"
-                  alignment="center"
-                  className={styles.rowTools}
-                >
-                  <span className={styles.rowToolsSpacer} aria-hidden="true" />
-                  <RemoveRowBtn
-                    ariaLabel="Delete customization row"
-                    title="Delete customization row"
-                    onClick={() => handleDeleteCustomizationRow(row)}
-                  />
-                </Frame>
-
-                <Frame
-                  direction="horizontal"
-                  gap={12}
-                  alignment="top left"
-                  className={styles.primaryFieldsRow}
-                >
-                  <div className={styles.titleFieldBlock}>
-                    <label className={styles.fieldLabel}>
-                      Customization Title
-                    </label>
-                    <Main_TextField
-                      className={styles.fieldInput}
-                      defaultValue={row.name || ''}
-                      placeholder="Customization Title"
-                      onChange={(ov, nv) =>
-                        upsertCustomizationRow(row, { name: nv })
-                      }
-                    />
-                  </div>
-
-                  <div className={styles.supplierFieldBlock}>
-                    <label className={styles.fieldLabel}>Suppliers</label>
-                    <div className={styles.supplierSuggestCell}>
-                      <Main_Suggest
-                        defaultSuggestions={supplierSuggestions}
-                        placeholder="Suppliers"
-                        autoComplete="new-password"
-                        defaultValue={row.code || ''}
-                        getSuggestionLabel={(suggestion) =>
-                          suggestion?.code || ''
-                        }
-                        getSuggestionSearchText={(suggestion) =>
-                          String(
-                            suggestion?.searchText || suggestion?.code || '',
-                          )
-                        }
-                        renderSuggestion={(suggestion) => (
-                          <div className={styles.suggestionItemWrap}>
-                            <span className={styles.suggestionCode}>
-                              {suggestion?.code || ''}
-                            </span>
-                            <span className={styles.suggestionName}>
-                              {suggestion?.companyName || ''}
-                            </span>
-                          </div>
-                        )}
-                        onChange={(ov, nv) =>
-                          upsertCustomizationRow(row, { code: nv })
-                        }
-                        onSelectSuggestion={(suggestion) =>
-                          upsertCustomizationRow(row, {
-                            code: String(suggestion?.code || '').trim(),
-                          })
-                        }
-                      />
-                    </div>
-                  </div>
-                </Frame>
-
-                <div className={styles.remarkFieldBlock}>
-                  <label className={styles.fieldLabel}>Remark</label>
-                  <div className={styles.remarkInputWrap}>
-                    <Main_TextArea
-                      defaultValue={row.remark || ''}
-                      placeholder="Add remarks..."
-                      rows={2}
-                      resize="none"
-                      onChange={(ov, nv) =>
-                        upsertCustomizationRow(row, { remark: nv })
-                      }
-                    />
-                  </div>
-                </div>
-
-                <div className={styles.filesFieldBlock}>
-                  <Main_FileUploads
-                    mode="image"
-                    label="Files"
-                    compact
-                    tableCell
-                    hoverPreview
-                    compactButtonText="Upload"
-                    maxFiles={12}
-                    maxSizeInMB={5}
-                    defaultImages={defaultImages}
-                    onError={(error) => {
-                      console.error('Customization image upload error:', error);
-                    }}
-                    onChange={(ov, nv) =>
-                      handleCustomizationImagesChange(row, ov, nv)
-                    }
-                  />
-                </div>
-              </Frame>
-            );
-          })
-        )}
-      </Frame>
-    </Frame>
+  return (
+    <Main_InputContainer
+      label="Customization Options"
+      onAddNew={handleAddCustomizationRow}
+      addNewText="Add Customization"
+    >
+      <div className={styles.tableSection}>
+        <EditableDataTable
+          rows={customizations}
+          columns={columns}
+          rowKey="id"
+          emptyMessage="No customizations yet. Click + Add Customization."
+        />
+      </div>
+    </Main_InputContainer>
   );
 };
 

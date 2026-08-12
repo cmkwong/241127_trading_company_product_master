@@ -1,1 +1,104 @@
+.namesList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
 
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+}
+
+.dragOver {
+  background-color: #eff6ff;
+  border-radius: 8px;
+}
+
+.dragHandle {
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #94a3b8;
+  cursor: grab;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+}
+
+.dragHandle:hover {
+  color: #475569;
+  background: #f8fafc;
+}
+
+.dragHandle:active {
+  cursor: grabbing;
+}
+
+.dragHandle svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+}
+
+.inputWrapper {
+  flex-grow: 1;
+  flex-basis: 70%;
+}
+
+.rowBadge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  border-radius: 14px;
+  background-color: #f1f5f9;
+}
+
+.rowBadgeText {
+  font-size: 13px;
+  font-weight: 700;
+  color: #475569;
+}
+
+.compactDeleteBtn {
+  width: 28px !important;
+  height: 28px !important;
+  padding: 6px !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 6px !important;
+  background-color: #ffffff !important;
+  color: #475569 !important;
+  font-size: 0 !important;
+  flex: 0 0 28px;
+}
+
+.compactDeleteBtn:hover {
+  color: #e85b49 !important;
+  border-color: #fecaca !important;
+  background: #fff7f6 !important;
+}
+
+.compactDeleteBtn svg {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+}
+
+.dragHandle:focus-visible,
+.compactDeleteBtn:focus-visible {
+  outline: 2px solid #93c5fd;
+  outline-offset: 2px;
+}

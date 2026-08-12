@@ -1,13 +1,17 @@
 import { useCallback, useEffect, useState } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
-import ControlRowBtn from '../../../common/Buttons/ControlRowBtn';
+import EmptyState from '../../../common/State/EmptyState';
 import Sub_AlibabaLink from './Sub_AlibabaLink';
 import { useProductContext } from '../../../../store/ProductContext';
+import styles from './Main_AlibabaLink.module.css';
 
 const Main_AlibabaLink = () => {
   const { pageData, upsertProductPageData } = useProductContext();
   const [rowIds, setRowIds] = useState([]);
   const [rowDatas, setRowDatas] = useState([]);
+  const [draggedId, setDraggedId] = useState(null);
+  const [dragOverId, setDragOverId] = useState(null);
 
   const sortByDisplayOrder = useCallback((rows = []) => {
     return [...rows].sort((a, b) => {
@@ -29,15 +33,6 @@ const Main_AlibabaLink = () => {
     setRowDatas(sortByDisplayOrder(pageData.product_alibaba_ids || []));
   }, [pageData.product_alibaba_ids, sortByDisplayOrder]);
 
-  const handleRowIdsChange = useCallback((ov = [], nv = []) => {
-    if (!Array.isArray(nv) || nv.length === 0) {
-      setRowIds([]);
-      return;
-    }
-    if (ov.join('|') === nv.join('|')) return;
-    setRowIds(nv);
-  }, []);
-
   const upsertDisplayOrders = useCallback(
     (orderedRowIds = []) => {
       const patches = orderedRowIds.filter(Boolean).map((id, index) => ({
@@ -54,7 +49,6 @@ const Main_AlibabaLink = () => {
     [upsertProductPageData],
   );
 
-  // handle adding a new product alibaba id row
   const handleRowAdd = useCallback(
     (newId) => {
       const nextDisplayOrder = (rowIds?.length || 0) + 1;
@@ -70,7 +64,6 @@ const Main_AlibabaLink = () => {
     [upsertProductPageData, rowIds],
   );
 
-  // Handle removing a product alibaba id row
   const handleRowRemove = useCallback(
     (rowId) => {
       const remainingIds = rowIds.filter((id) => id !== rowId);
@@ -89,28 +82,125 @@ const Main_AlibabaLink = () => {
     [upsertProductPageData, rowIds, upsertDisplayOrders],
   );
 
-  const handleRowsReorder = useCallback(
-    (ov = [], nv = []) => {
-      if (!Array.isArray(nv) || nv.length === 0) return;
-      if (ov.join('|') === nv.join('|')) return;
-      setRowIds(nv);
-      upsertDisplayOrders(nv);
+  const handleDragStart = useCallback((rowId) => {
+    setDraggedId(rowId);
+  }, []);
+
+  const handleDragOver = useCallback(
+    (event, rowId) => {
+      event.preventDefault();
+      if (dragOverId !== rowId) {
+        setDragOverId(rowId);
+      }
     },
-    [upsertDisplayOrders],
+    [dragOverId],
   );
 
+  const handleDrop = useCallback(
+    (event, targetRowId) => {
+      event.preventDefault();
+
+      if (!draggedId || draggedId === targetRowId) {
+        setDraggedId(null);
+        setDragOverId(null);
+        return;
+      }
+
+      const draggedIndex = rowIds.indexOf(draggedId);
+      const targetIndex = rowIds.indexOf(targetRowId);
+
+      if (draggedIndex < 0 || targetIndex < 0) {
+        setDraggedId(null);
+        setDragOverId(null);
+        return;
+      }
+
+      const newRowIds = [...rowIds];
+      newRowIds.splice(draggedIndex, 1);
+      newRowIds.splice(targetIndex, 0, draggedId);
+
+      setRowIds(newRowIds);
+      upsertDisplayOrders(newRowIds);
+
+      setDraggedId(null);
+      setDragOverId(null);
+    },
+    [draggedId, rowIds, upsertDisplayOrders],
+  );
+
+  const handleDragEnd = useCallback(() => {
+    setDraggedId(null);
+    setDragOverId(null);
+  }, []);
+
+  const handleAdd = useCallback(() => {
+    const newId = uuidv4();
+    handleRowAdd(newId);
+  }, [handleRowAdd]);
+
   return (
-    <Main_InputContainer label={'Alibaba'}>
-      <ControlRowBtn
-        rowIds={rowIds}
-        onRowIdsChange={handleRowIdsChange}
-        onRowAdd={handleRowAdd}
-        onRowRemove={handleRowRemove}
-        onRowsReorder={handleRowsReorder}
-        draggableRows
-      >
-        <Sub_AlibabaLink product_alibaba_ids={rowDatas} />
-      </ControlRowBtn>
+    <Main_InputContainer
+      label="Alibaba"
+      onAddNew={handleAdd}
+      addNewText="Add Alibaba ID"
+    >
+      <div className={styles.list}>
+        {rowIds.length === 0 ? (
+          <EmptyState message="No Alibaba IDs yet." />
+        ) : (
+          rowIds.map((rowId, rowIndex) => (
+            <div
+              key={rowId}
+              className={`${styles.row} ${dragOverId === rowId ? styles.dragOver : ''}`}
+              onDragOver={(event) => handleDragOver(event, rowId)}
+              onDrop={(event) => handleDrop(event, rowId)}
+            >
+              <button
+                type="button"
+                draggable
+                className={styles.dragHandle}
+                onDragStart={() => handleDragStart(rowId)}
+                onDragEnd={handleDragEnd}
+                title="Drag to reorder"
+                aria-label="Drag to reorder row"
+              >
+                <svg viewBox="0 0 16 16" aria-hidden="true">
+                  <circle cx="5" cy="4" r="1.2" />
+                  <circle cx="11" cy="4" r="1.2" />
+                  <circle cx="5" cy="8" r="1.2" />
+                  <circle cx="11" cy="8" r="1.2" />
+                  <circle cx="5" cy="12" r="1.2" />
+                  <circle cx="11" cy="12" r="1.2" />
+                </svg>
+              </button>
+
+              <div className={styles.childrenContainer}>
+                <Sub_AlibabaLink
+                  product_alibaba_ids={rowDatas}
+                  rowId={rowId}
+                  rowindex={rowIndex}
+                />
+              </div>
+
+              <div className={styles.rowBadge}>
+                <span className={styles.rowBadgeText}>{rowIndex + 1}</span>
+              </div>
+
+              <button
+                type="button"
+                className={styles.removeButton}
+                onClick={() => handleRowRemove(rowId)}
+                title="Remove row"
+                aria-label={`Remove row ${rowIndex + 1}`}
+              >
+                <svg viewBox="0 0 16 16" aria-hidden="true">
+                  <path d="M3 8h10" />
+                </svg>
+              </button>
+            </div>
+          ))
+        )}
+      </div>
     </Main_InputContainer>
   );
 };

@@ -168,7 +168,7 @@ const SalesQuotationSidebar = ({
         quotation?.customer_id,
         quotation?.customer_address_id,
         customerName,
-        quotation?.status || (quotation?.to_order ? 'ordered' : 'draft'),
+        quotation?.status || 'draft',
         quotation?.created_at,
         quotation?.updated_at,
       ]

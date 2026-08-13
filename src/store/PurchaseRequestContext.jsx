@@ -47,7 +47,6 @@ const newId = () => {
 
 const createNewPurchaseRequest = () => ({
   id: newId(),
-  to_order: false,
   status: 'draft',
   remark: '',
   sales_quotation_id: '',
@@ -188,13 +187,28 @@ export const PurchaseRequestContext_Provider = ({ children }) => {
           apiGet(PURCHASE_API_BASE, { token }),
           apiPost(SUPPLIERS_API_BASE, {}, { token }),
           apiPost(PRODUCTS_API_BASE, {}, { token }),
-          apiGet(`${MASTER_API_BASE}/master_services`, { token }),
-          apiGet(`${MASTER_API_BASE}/master_categories`, { token }),
-          apiGet(`${MASTER_API_BASE}/master_supplier_types`, { token }),
-          apiGet(`${MASTER_API_BASE}/master_currencies`, { token }),
+          apiGet(`${MASTER_API_BASE}/rows`, {
+            token,
+            params: { tableName: 'master_services' },
+          }),
+          apiGet(`${MASTER_API_BASE}/rows`, {
+            token,
+            params: { tableName: 'master_categories' },
+          }),
+          apiGet(`${MASTER_API_BASE}/rows`, {
+            token,
+            params: { tableName: 'master_supplier_types' },
+          }),
+          apiGet(`${MASTER_API_BASE}/rows`, {
+            token,
+            params: { tableName: 'master_currencies' },
+          }),
           apiGet(SALES_API_BASE, { token }),
           apiGet(CUSTOMERS_API_BASE, { token }),
-          apiGet(`${MASTER_API_BASE}/master_exchange_rate_hkd`, { token }),
+          apiGet(`${MASTER_API_BASE}/rows`, {
+            token,
+            params: { tableName: 'master_exchange_rate_hkd' },
+          }),
         ]);
 
         const purchaseRows = extractRowsFromResponse(

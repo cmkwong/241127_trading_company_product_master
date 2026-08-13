@@ -490,10 +490,7 @@ const normalizeSalesQuotation = (row = {}) => {
 
   return {
     id: toSafeString(row?.id),
-    to_order: Boolean(row?.to_order),
-    status:
-      toSafeString(row?.status) ||
-      (Boolean(row?.to_order) ? 'ordered' : 'quotation'),
+    status: toSafeString(row?.status),
     remark: toSafeString(row?.remark),
     customer_id: toSafeString(row?.customer_id),
     customer_address_id: toSafeString(row?.customer_address_id),
@@ -895,13 +892,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
         params: { tableName: 'master_customer_types' },
       });
     } catch {
-      try {
-        return await apiGet(`${MASTER_API_BASE}/master_customer_types`, {
-          token,
-        });
-      } catch {
-        return null;
-      }
+      return null;
     }
   }, [token]);
 
@@ -2041,7 +2032,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
 
     const duplicatedRow = normalizeSalesQuotation({
       id: nextQuotationId,
-      to_order: Boolean(sourceQuotation?.to_order),
+      status: toSafeString(sourceQuotation?.status),
       remark: toSafeString(sourceQuotation?.remark),
       customer_id: toSafeString(sourceQuotation?.customer_id),
       customer_address_id: toSafeString(sourceQuotation?.customer_address_id),

@@ -1128,14 +1128,12 @@ const Main_PurchaseRequest = () => {
       {
         label: 'Status:',
         value: (() => {
-          const statusId =
-            toSafeString(row?.status) || (row?.to_order ? 'ordered' : 'draft');
+          const statusId = toSafeString(row?.status) || 'draft';
           const option = STATUS_OPTIONS.find((opt) => opt.id === statusId);
           return option?.name || statusId;
         })(),
         color: (() => {
-          const statusId =
-            toSafeString(row?.status) || (row?.to_order ? 'ordered' : 'draft');
+          const statusId = toSafeString(row?.status) || 'draft';
           return STATUS_OPTIONS.find((opt) => opt.id === statusId)?.color;
         })(),
       },

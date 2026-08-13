@@ -122,7 +122,7 @@ const BalanceCard = ({
           <span className={styles.gridCellReal}>
             {showRealColumn
               ? `${currencyCode} ${formatMoney(actualPoCost)}`
-              : `${currencyCode} ${formatMoney(estimatedCost)}`}
+              : `${currencyCode} ${formatMoney(0)}`}
           </span>
         </div>
 
@@ -138,7 +138,7 @@ const BalanceCard = ({
           <span className={styles.gridCellReal}>
             {showRealColumn && actualBalance !== null
               ? `${currencyCode} ${formatMoney(actualBalance)}`
-              : `${currencyCode} ${formatMoney(estimatedBalance)}`}
+              : `${currencyCode} ${formatMoney(0)}`}
           </span>
         </div>
 
@@ -152,7 +152,7 @@ const BalanceCard = ({
           <span className={styles.gridCellReal}>
             {showRealColumn && actualProfitPercent !== null
               ? formatPercent(actualProfitPercent)
-              : formatPercent(estimatedProfitPercent)}
+              : '0.00%'}
           </span>
         </div>
       </div>

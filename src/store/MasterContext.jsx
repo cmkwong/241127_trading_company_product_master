@@ -350,57 +350,12 @@ export const MasterContext_Provider = ({ children }) => {
 
   const fetchMasterData = useCallback(
     async (tableName) => {
-      const dedicatedEndpointMap = {
-        master_incoterms: `${DEFAULT_MASTER_API_BASE}/incoterms`,
-        master_exchange_rate_hkd: `${DEFAULT_MASTER_API_BASE}/exchange_rate_hkd`,
-      };
-
-      const rowsEndpointCandidate = {
-        url: `${DEFAULT_MASTER_API_BASE}/rows`,
-        params: { tableName },
-      };
-
-      const endpointCandidates = dedicatedEndpointMap[tableName]
-        ? [
-            { url: dedicatedEndpointMap[tableName] },
-            rowsEndpointCandidate,
-            { url: `${DEFAULT_MASTER_API_BASE}/${tableName}` },
-          ]
-        : [
-            rowsEndpointCandidate,
-            { url: `${DEFAULT_MASTER_API_BASE}/${tableName}` },
-          ];
-
-      let lastError = null;
       let response = null;
 
-      for (const endpoint of endpointCandidates) {
-        for (let attempt = 1; attempt <= 2; attempt += 1) {
-          try {
-            response = await apiGet(endpoint.url, {
-              ...(token ? { token } : {}),
-              ...(endpoint.params ? { params: endpoint.params } : {}),
-            });
-            lastError = null;
-            break;
-          } catch (error) {
-            lastError = error;
-          }
-        }
-
-        if (!lastError) {
-          break;
-        }
-      }
-
-      if (lastError) {
-        if (isMissingTableError(lastError)) {
-          updateLocalMasterTableData(tableName, []);
-          return [];
-        }
-
-        throw lastError;
-      }
+      response = await apiGet(`${DEFAULT_MASTER_API_BASE}/rows`, {
+        ...(token ? { token } : {}),
+        ...(tableName ? { params: { tableName } } : {}),
+      });
 
       const payload = response?.results ?? response?.data?.results ?? [];
 
@@ -410,7 +365,7 @@ export const MasterContext_Provider = ({ children }) => {
 
       return normalizedData;
     },
-    [isMissingTableError, token, updateLocalMasterTableData],
+    [token, updateLocalMasterTableData],
   );
 
   const updateMasterTableData = useCallback(

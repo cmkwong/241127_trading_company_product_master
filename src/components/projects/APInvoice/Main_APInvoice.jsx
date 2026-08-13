@@ -309,17 +309,20 @@ const Main_APInvoice = () => {
           apiGet(AP_API_BASE, { token, cache: 'no-store' }),
           apiGet(PURCHASE_API_BASE, { token, cache: 'no-store' }),
           apiPost(SUPPLIERS_API_BASE, {}, { token, cache: 'no-store' }),
-          apiGet(`${MASTER_API_BASE}/master_currencies`, {
+          apiGet(`${MASTER_API_BASE}/rows`, {
             token,
             cache: 'no-store',
+            params: { tableName: 'master_currencies' },
           }),
-          apiGet(`${MASTER_API_BASE}/master_exchange_rate_hkd`, {
+          apiGet(`${MASTER_API_BASE}/rows`, {
             token,
             cache: 'no-store',
+            params: { tableName: 'master_exchange_rate_hkd' },
           }),
-          apiGet(`${MASTER_API_BASE}/master_invoice_types`, {
+          apiGet(`${MASTER_API_BASE}/rows`, {
             token,
             cache: 'no-store',
+            params: { tableName: 'master_invoice_types' },
           }),
         ]);
 

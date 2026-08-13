@@ -69,7 +69,6 @@ export const createEmptySalesQuotation = ({ id, customerId = '' } = {}) => {
 
   return {
     id: nextId,
-    to_order: false,
     status: 'draft',
     remark: '',
     customer_id: customerId,
@@ -97,7 +96,6 @@ const serviceDetailIdA1 = 'svc-detail-0001';
 export const mockSalesQuotations = [
   {
     id: quotationIdA,
-    to_order: false,
     status: 'quotation',
     remark: 'Customer requested mixed carton packing and fast lead-time.',
     customer_id: 'cust-001',
@@ -185,7 +183,6 @@ export const mockSalesQuotations = [
   },
   {
     id: quotationIdB,
-    to_order: true,
     status: 'ordered',
     remark: 'Second quotation approved and converted to order.',
     customer_id: 'cust-003',

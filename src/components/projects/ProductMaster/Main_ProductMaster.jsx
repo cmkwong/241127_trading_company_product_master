@@ -3,6 +3,7 @@ import Main_Pack from './Packing/Main_Pack';
 import styles from './Main_ProductMaster.module.css';
 import Main_ProductName from './ProductName/Main_ProductName';
 import Main_Category from './Categories/Main_Category';
+import Main_ProductAttributes from './Attributes/Main_ProductAttributes';
 import Main_Customization from './Customization/Main_Customization';
 import Main_ProductLink from './ProductLink/Main_ProductLink';
 import Main_AlibabaLink from './AlibabaLink/Main_AlibabaLink';
@@ -16,7 +17,6 @@ import ProductMasterSavePageContainer from './Container/ProductMasterSavePageCon
 import Main_ProductCosts from './ProductCosts/Main_ProductCosts';
 import DeleteBtn from '../../common/Buttons/DeleteBtn';
 import { useProductContext } from '../../../store/ProductContext';
-import Frame from '../../common/Layouts/Frame';
 
 const Main_ProductMaster = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -176,6 +176,7 @@ const Main_ProductMaster = () => {
           <div className={`${styles.inputSide} ${styles.withIconOverlay}`}>
             <Main_ProductName />
             <Main_Category />
+            <Main_ProductAttributes />
             <Main_Keywords />
             <Main_ProductLink />
             <Main_AlibabaLink />

@@ -316,6 +316,7 @@ const SalesQuotationSidebar = ({
       customerNameById,
       exchangeRateMap,
       formatDateTime,
+      statusColorMap,
     ],
   );
 

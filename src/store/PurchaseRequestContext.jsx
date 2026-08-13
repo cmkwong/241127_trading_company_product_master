@@ -48,6 +48,7 @@ const newId = () => {
 const createNewPurchaseRequest = () => ({
   id: newId(),
   to_order: false,
+  status: 'draft',
   remark: '',
   sales_quotation_id: '',
   supplier_id: '',

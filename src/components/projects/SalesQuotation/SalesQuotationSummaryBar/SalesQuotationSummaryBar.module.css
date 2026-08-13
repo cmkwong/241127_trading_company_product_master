@@ -161,6 +161,197 @@
   color: #b45309;
 }
 
+.viewCostsButton {
+  margin-left: auto;
+  padding: 4px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #0c1e36;
+  font-size: 11px;
+  font-weight: 500;
+  font-family: Inter, sans-serif;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.viewCostsButton:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+.rundownModalBackdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 48px 24px;
+  z-index: 1000;
+}
+
+.rundownModalWindow {
+  background: #ffffff;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 2080px;
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0px 20px 50px 0px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+}
+
+.rundownModalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.rundownModalTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0c1e36;
+}
+
+.rundownModalClose {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #64748b;
+  font-size: 16px;
+  line-height: 1;
+  padding: 4px;
+}
+
+.rundownModalClose:hover {
+  color: #0c1e36;
+}
+
+.rundownModalBody {
+  display: flex;
+  gap: 16px;
+  padding: 20px;
+  overflow: auto;
+}
+
+.rundownCard {
+  flex: 1 0 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #ffffff;
+  overflow: clip;
+}
+
+.rundownCardHeader {
+  background: #0c1e36;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 12px 16px;
+  white-space: nowrap;
+}
+
+.rundownColHeader,
+.rundownDataRow {
+  display: grid;
+  grid-template-columns: 160px 144px 130px minmax(0, 1fr) 120px;
+  align-items: center;
+  padding: 10px 16px;
+}
+
+.rundownColHeader {
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  color: #64748b;
+  font-size: 16px;
+  font-weight: 600;
+  text-transform: none;
+}
+
+.rundownDataRow {
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 16px;
+}
+
+.rundownDataRowAlt {
+  background: #f8fafc;
+}
+
+.rundownPrId {
+  color: #3b82f6;
+  font-weight: 500;
+  text-decoration: underline;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rundownDate {
+  color: #64748b;
+  font-weight: 400;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rundownSupplier {
+  color: #0c1e36;
+  font-weight: 400;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rundownItem {
+  color: #0c1e36;
+  font-weight: 400;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rundownCost {
+  color: #0c1e36;
+  font-weight: 500;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.rundownColHeader .rundownCost {
+  color: #64748b;
+  font-weight: 600;
+}
+
+.rundownTotalRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: #f1f5f9;
+  font-size: 16px;
+  font-weight: 700;
+  color: #0c1e36;
+}
+
+.rundownTotalValue {
+  white-space: nowrap;
+}
+
 @media (max-width: 768px) {
   .metricsRow {
     flex-wrap: wrap;

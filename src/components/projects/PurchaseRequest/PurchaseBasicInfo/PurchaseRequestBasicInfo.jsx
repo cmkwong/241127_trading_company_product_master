@@ -8,9 +8,12 @@ import VerticalLayout from '../../../common/Layouts/VerticalLayout';
 import { formatMoney } from '../../SalesQuotation/utils/quotationTotals';
 import styles from '../Main_PurchaseRequest.module.css';
 
-const ORDER_STATUS_OPTIONS = [
-  { id: 'false', name: 'Purchase Request' },
-  { id: 'true', name: 'To Order' },
+export const STATUS_OPTIONS = [
+  { id: 'draft', name: 'Draft', color: '#6b7280' },
+  { id: 'ordered', name: 'Ordered', color: '#16a34a' },
+  { id: 'pending', name: 'Pending', color: '#f59e0b' },
+  { id: 'cancelled', name: 'Cancelled', color: '#383131' },
+  { id: 'ap_invoiced', name: 'AP Invoiced', color: '#2563eb' },
 ];
 
 const toSafeString = (value) => String(value || '').trim();
@@ -32,7 +35,7 @@ const PurchaseRequestBasicInfo = ({
   onSalesQuotationSelect,
   onFetchSupplierSuggestions,
   onFetchSalesQuotationSuggestions,
-  onOrderStatusChange,
+  onStatusChange,
   onRemarkChange,
 }) => {
   return (
@@ -165,9 +168,9 @@ const PurchaseRequestBasicInfo = ({
 
           <Main_InputContainer label="Order Status">
             <Main_Dropdown
-              defaultOptions={ORDER_STATUS_OPTIONS}
-              defaultSelectedOption={draft?.to_order ? 'true' : 'false'}
-              onChange={(ov, nv) => onOrderStatusChange?.(nv === 'true')}
+              defaultOptions={STATUS_OPTIONS}
+              defaultSelectedOption={draft?.status || 'draft'}
+              onChange={(ov, nv) => onStatusChange?.(nv)}
             />
           </Main_InputContainer>
 

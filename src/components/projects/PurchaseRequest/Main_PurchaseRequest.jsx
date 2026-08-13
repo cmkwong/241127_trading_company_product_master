@@ -4,7 +4,9 @@ import DeleteBtn from '../../common/Buttons/DeleteBtn';
 import Main_Dropdown from '../../common/InputOptions/Dropdown/Main_Dropdown';
 import PurchaseRequestSavePageContainer from './Container/PurchaseRequestSavePageContainer';
 import PurchaseRequestSidebar from './AllPurchaseRequestList/PurchaseRequestSidebar';
-import PurchaseRequestBasicInfo from './PurchaseBasicInfo/PurchaseRequestBasicInfo';
+import PurchaseRequestBasicInfo, {
+  STATUS_OPTIONS,
+} from './PurchaseBasicInfo/PurchaseRequestBasicInfo';
 import PurchaseRequestShippingDetails from './ShippingDetails/PurchaseRequestShippingDetails';
 import PurchaseRequestProductDetails from './ProductDetails/PurchaseRequestProductDetails';
 import PurchaseRequestServiceDetails from './ServiceDetails/PurchaseRequestServiceDetails';
@@ -1125,7 +1127,17 @@ const Main_PurchaseRequest = () => {
       },
       {
         label: 'Status:',
-        value: row?.to_order ? 'To Order' : 'Purchase Request',
+        value: (() => {
+          const statusId =
+            toSafeString(row?.status) || (row?.to_order ? 'ordered' : 'draft');
+          const option = STATUS_OPTIONS.find((opt) => opt.id === statusId);
+          return option?.name || statusId;
+        })(),
+        color: (() => {
+          const statusId =
+            toSafeString(row?.status) || (row?.to_order ? 'ordered' : 'draft');
+          return STATUS_OPTIONS.find((opt) => opt.id === statusId)?.color;
+        })(),
       },
       {
         label: 'Details:',
@@ -1669,9 +1681,7 @@ const Main_PurchaseRequest = () => {
                     toSafeString(suggestion?.id),
                   )
                 }
-                onOrderStatusChange={(value) =>
-                  setHeaderField('to_order', value)
-                }
+                onStatusChange={(value) => setHeaderField('status', value)}
                 onRemarkChange={(value) => setHeaderField('remark', value)}
               />
 

@@ -5,6 +5,7 @@ import Main_TagInputField from '../../../common/InputOptions/Tagging/Main_TagInp
 import Main_Suggest from '../../../common/InputOptions/Suggest/Main_Suggest';
 import { useProductContext } from '../../../../store/ProductContext';
 import { useMasterContext } from '../../../../store/MasterContext';
+import EmptyState from '../../../common/State/EmptyState';
 import styles from './Main_ProductAttributes.module.css';
 
 // Preserve the user's case (trim only) for the stored value.
@@ -295,9 +296,7 @@ const Main_ProductAttributes = () => {
   return (
     <Main_InputContainer label="Product Attributes">
       {attributeRows.length === 0 ? (
-        <p className={styles.empty}>
-          No attributes configured for the selected category.
-        </p>
+        <EmptyState message="No attributes configured for the selected category." />
       ) : (
         <div className={styles.grid}>
           {attributeRows.map((attribute) => {

@@ -6,10 +6,11 @@ import { useMasterContext } from '../../../../store/MasterContext';
 import styles from './PriceByQtyTable.module.css';
 
 const MAX_TIERS = 4;
+const DEFAULT_UNIT_LABEL = 'Pcs';
 
 const PriceByQtyTable = () => {
   const { pageData, upsertProductPageData } = useProductContext();
-  const { currencies } = useMasterContext();
+  const { currencies, sellingUnitType } = useMasterContext();
 
   const productId = pageData?.id || null;
   const rows = useMemo(
@@ -17,6 +18,48 @@ const PriceByQtyTable = () => {
       (pageData?.product_sale_prices_by_qty || []).filter((r) => !r?._delete),
     [pageData?.product_sale_prices_by_qty],
   );
+
+  const currencyLabelMap = useMemo(
+    () =>
+      (currencies || []).reduce((acc, currency) => {
+        acc[currency.id] =
+          currency?.code || currency?.name || currency?.label || currency?.id;
+        return acc;
+      }, {}),
+    [currencies],
+  );
+
+  const unitLabel = useMemo(() => {
+    const selected = (sellingUnitType || []).find(
+      (unit) => unit?.id === pageData?.selling_unit_type_id,
+    );
+    return selected?.name || DEFAULT_UNIT_LABEL;
+  }, [sellingUnitType, pageData?.selling_unit_type_id]);
+
+  const previewTiers = useMemo(() => {
+    return [...rows]
+      .filter((row) => Number(row?.min_order_qty) > 0)
+      .sort((a, b) => Number(a.min_order_qty) - Number(b.min_order_qty));
+  }, [rows]);
+
+  const previewRows = useMemo(() => {
+    return previewTiers.map((tier, index) => {
+      const min = Number(tier.min_order_qty);
+      const isLast = index === previewTiers.length - 1;
+      const nextMin = isLast
+        ? null
+        : Number(previewTiers[index + 1].min_order_qty);
+
+      const rangeLabel = isLast ? `≥ ${min}` : `${min} ~ ${nextMin - 1}`;
+
+      const currencyCode = currencyLabelMap[tier.currency_id] || '';
+      const price = tier?.sale_price ?? '';
+      const priceLabel =
+        currencyCode || price ? `${currencyCode} ${price}`.trim() : '—';
+
+      return { id: tier.id, rangeLabel, priceLabel };
+    });
+  }, [previewTiers, currencyLabelMap]);
 
   const handleFieldChange = useCallback(
     (row, field, value) => {
@@ -158,24 +201,43 @@ const PriceByQtyTable = () => {
 
   return (
     <div className={styles.container}>
-      <EditableDataTable
-        rows={rows}
-        columns={columns}
-        rowKey="id"
-        emptyMessage="No price tiers yet."
-      />
-      <div className={styles.addTierRow}>
-        <button
-          type="button"
-          className={styles.addTierBtn}
-          disabled={rows.length >= MAX_TIERS}
-          onClick={handleAddTier}
-        >
-          + Add Price Tier
-        </button>
-        <span className={styles.addTierHint}>
-          Max {MAX_TIERS} tiers allowed
-        </span>
+      <div className={styles.mainRow}>
+        <div className={styles.tableSection}>
+          <EditableDataTable
+            rows={rows}
+            columns={columns}
+            rowKey="id"
+            emptyMessage="No price tiers yet."
+            onFillCellChange={(row, field, value) =>
+              handleFieldChange(row, field, value)
+            }
+          />
+          <div className={styles.addTierRow}>
+            <button
+              type="button"
+              className={styles.addTierBtn}
+              disabled={rows.length >= MAX_TIERS}
+              onClick={handleAddTier}
+            >
+              + Add Price Tier
+            </button>
+            <span className={styles.addTierHint}>
+              Max {MAX_TIERS} tiers allowed
+            </span>
+          </div>
+        </div>
+
+        {previewRows.length > 0 && (
+          <div className={styles.previewPanel}>
+            <p className={styles.previewTitle}>Preview (Unit: {unitLabel})</p>
+            {previewRows.map((tier) => (
+              <div key={tier.id} className={styles.previewRow}>
+                <span className={styles.previewRange}>{tier.rangeLabel}</span>
+                <span className={styles.previewPrice}>{tier.priceLabel}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

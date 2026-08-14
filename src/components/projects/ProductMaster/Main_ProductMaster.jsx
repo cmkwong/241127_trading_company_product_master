@@ -10,6 +10,7 @@ import Main_AlibabaLink from './AlibabaLink/Main_AlibabaLink';
 import Main_Remark from './Remarks/Main_Remark';
 import Main_ProductIcon from './ProductIcon/Main_ProductIcon';
 import Main_CertificateData from './CertificateData/Main_CertificateData';
+import Main_SellingPrice from './ProductSales/Main_SellingPrice';
 import ProductSidebar from './AllProductList/ProductSidebar';
 import Main_ProductImages from './ProductImages/Main_ProductImages';
 import Main_Keywords from './Keywords/Main_Keywords';
@@ -181,14 +182,11 @@ const Main_ProductMaster = () => {
             <Main_ProductLink />
             <Main_AlibabaLink />
             <Main_ProductImages />
-
             <Main_Customization />
-
             <Main_Pack />
-
             <Main_CertificateData />
-
             <Main_ProductCosts />
+            <Main_SellingPrice />
             <Main_Remark />
           </div>
 

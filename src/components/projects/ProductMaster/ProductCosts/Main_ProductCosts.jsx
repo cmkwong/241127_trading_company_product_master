@@ -583,6 +583,8 @@ const Main_ProductCosts = () => {
             stock_qty: found?.stock_qty ?? 0,
             min_order_qty: found?.min_order_qty ?? 1,
             currency_id: found?.currency_id ?? '',
+            // sales_price: found?.sales_price ?? '',
+            // sales_currency_id: found?.sales_currency_id ?? '',
           });
         });
       });
@@ -685,6 +687,14 @@ const Main_ProductCosts = () => {
               field === 'currency_id'
                 ? value
                 : (existing?.currency_id ?? row.currency_id ?? ''),
+            // sales_price:
+            //   field === 'sales_price'
+            //     ? value
+            //     : (existing?.sales_price ?? row.sales_price ?? ''),
+            // sales_currency_id:
+            //   field === 'sales_currency_id'
+            //     ? value
+            //     : (existing?.sales_currency_id ?? row.sales_currency_id ?? ''),
           },
         ],
       });

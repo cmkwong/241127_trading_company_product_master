@@ -44,6 +44,7 @@ const DEFAULT_TABLE_NAMES = [
   'master_product_attributes',
   'master_product_attribute_dropdown',
   'master_product_category_attribute_assign',
+  'master_selling_unit_types',
 ];
 
 const TABLE_INITIAL_DATA = {
@@ -76,6 +77,7 @@ const TABLE_INITIAL_DATA = {
   master_product_attributes: [],
   master_product_attribute_dropdown: [],
   master_product_category_attribute_assign: [],
+  master_selling_unit_types: [],
 };
 
 const LEGACY_TABLE_BINDINGS = [
@@ -275,6 +277,13 @@ const LEGACY_TABLE_BINDINGS = [
     addName: 'addProductCategoryAttributeAssign',
     removeName: 'removeProductCategoryAttributeAssign',
   },
+  {
+    tableName: 'master_selling_unit_types',
+    getName: 'getSellingUnitTypes',
+    updateName: 'updateSellingUnitTypes',
+    addName: 'addSellingUnitType',
+    removeName: 'removeSellingUnitType',
+  },
 ];
 
 export const MasterContext_Provider = ({ children }) => {
@@ -314,6 +323,7 @@ export const MasterContext_Provider = ({ children }) => {
   const shippingMethods = masterDataMap.master_shipping_method || [];
   const exchangeRateHkd = masterDataMap.master_exchange_rate_hkd || [];
   const productImageType = masterDataMap.master_product_image_types || [];
+  const sellingUnitType = masterDataMap.master_selling_unit_types || [];
 
   const getMasterTableData = useCallback(
     (tableName) => {
@@ -556,6 +566,7 @@ export const MasterContext_Provider = ({ children }) => {
     customerImageType,
     customerNameType,
     productImageType,
+    sellingUnitType,
     productStatus,
     productKeywords,
     serviceImages,

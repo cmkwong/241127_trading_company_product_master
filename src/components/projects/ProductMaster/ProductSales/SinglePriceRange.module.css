@@ -1,0 +1,39 @@
+.row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+}
+
+.currencySelect {
+  flex-shrink: 0;
+  min-width: 120px;
+  height: 34px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #f8fafc;
+  padding: 0 10px;
+  font-size: 13px;
+  color: #0c1e36;
+}
+
+.priceInput {
+  flex: 1 0 0;
+  min-width: 0;
+  height: 34px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #f8fafc;
+  padding: 0 10px;
+  font-size: 13px;
+  color: #0c1e36;
+}
+
+.priceInput::placeholder {
+  color: #94a3b8;
+}
+
+.separator {
+  color: #94a3b8;
+  font-size: 14px;
+}

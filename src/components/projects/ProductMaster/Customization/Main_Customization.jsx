@@ -1,5 +1,4 @@
 import { useCallback, useMemo } from 'react';
-import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
 import Main_Suggest from '../../../common/InputOptions/Suggest/Main_Suggest';
 import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
 import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_FileUploads';
@@ -7,6 +6,7 @@ import Main_InputContainer from '../../../common/InputOptions/InputContainer/Mai
 import DeleteBtn from '../../../common/Buttons/DeleteBtn';
 import EditableDataTable from '../../../common/Table/EditableDataTable';
 import { useProductContext } from '../../../../store/ProductContext';
+import { useMasterContext } from '../../../../store/MasterContext';
 import { v4 as uuidv4 } from 'uuid';
 import { sortByDisplayOrder } from '../../../../utils/arr';
 import { mockSuppliers } from '../../../../datas/Suppliers/mockSuppliers';
@@ -14,7 +14,17 @@ import styles from './Main_Customization.module.css';
 
 const Main_Customization = () => {
   const { pageData, upsertProductPageData } = useProductContext();
+  const { productCustomizationOptions } = useMasterContext();
   const customizations = pageData.product_customizations || [];
+
+  const customizationOptionSuggestions = useMemo(
+    () =>
+      (productCustomizationOptions || []).map((item) => ({
+        id: item.id,
+        name: item.name ?? item.label ?? '',
+      })),
+    [productCustomizationOptions],
+  );
   const supplierSuggestions = useMemo(
     () =>
       (mockSuppliers || []).map((supplier, index) => ({
@@ -135,10 +145,21 @@ const Main_Customization = () => {
         maxWidth: '400px',
         cellClassName: styles.tableCell,
         renderCell: (row) => (
-          <Main_TextField
-            defaultValue={row.name || ''}
+          <Main_Suggest
+            defaultSuggestions={customizationOptionSuggestions}
             placeholder="Customization Title"
+            autoComplete="off"
+            defaultValue={row.name || ''}
+            getSuggestionLabel={(suggestion) => suggestion?.name || ''}
+            getSuggestionSearchText={(suggestion) =>
+              String(suggestion?.name || '')
+            }
             onChange={(ov, nv) => upsertCustomizationRow(row, { name: nv })}
+            onSelectSuggestion={(suggestion) =>
+              upsertCustomizationRow(row, {
+                name: String(suggestion?.name || '').trim(),
+              })
+            }
           />
         ),
       },
@@ -250,6 +271,7 @@ const Main_Customization = () => {
     ],
     [
       supplierSuggestions,
+      customizationOptionSuggestions,
       upsertCustomizationRow,
       handleDeleteCustomizationRow,
       handleCustomizationImagesChange,

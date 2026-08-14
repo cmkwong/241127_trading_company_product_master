@@ -45,6 +45,8 @@ const DEFAULT_TABLE_NAMES = [
   'master_product_attribute_dropdown',
   'master_product_category_attribute_assign',
   'master_selling_unit_types',
+  'master_product_logistics_attributes',
+  'master_product_customization_options',
 ];
 
 const TABLE_INITIAL_DATA = {
@@ -78,6 +80,8 @@ const TABLE_INITIAL_DATA = {
   master_product_attribute_dropdown: [],
   master_product_category_attribute_assign: [],
   master_selling_unit_types: [],
+  master_product_logistics_attributes: [],
+  master_product_customization_options: [],
 };
 
 const LEGACY_TABLE_BINDINGS = [
@@ -284,6 +288,20 @@ const LEGACY_TABLE_BINDINGS = [
     addName: 'addSellingUnitType',
     removeName: 'removeSellingUnitType',
   },
+  {
+    tableName: 'master_product_logistics_attributes',
+    getName: 'getProductLogisticsAttributes',
+    updateName: 'updateProductLogisticsAttributes',
+    addName: 'addProductLogisticsAttribute',
+    removeName: 'removeProductLogisticsAttribute',
+  },
+  {
+    tableName: 'master_product_customization_options',
+    getName: 'getProductCustomizationOptions',
+    updateName: 'updateProductCustomizationOptions',
+    addName: 'addProductCustomizationOption',
+    removeName: 'removeProductCustomizationOption',
+  },
 ];
 
 export const MasterContext_Provider = ({ children }) => {
@@ -324,6 +342,10 @@ export const MasterContext_Provider = ({ children }) => {
   const exchangeRateHkd = masterDataMap.master_exchange_rate_hkd || [];
   const productImageType = masterDataMap.master_product_image_types || [];
   const sellingUnitType = masterDataMap.master_selling_unit_types || [];
+  const productLogisticsAttributes =
+    masterDataMap.master_product_logistics_attributes || [];
+  const productCustomizationOptions =
+    masterDataMap.master_product_customization_options || [];
 
   const getMasterTableData = useCallback(
     (tableName) => {
@@ -567,6 +589,8 @@ export const MasterContext_Provider = ({ children }) => {
     customerNameType,
     productImageType,
     sellingUnitType,
+    productLogisticsAttributes,
+    productCustomizationOptions,
     productStatus,
     productKeywords,
     serviceImages,

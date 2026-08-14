@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
+import Main_TagInputField from '../../../common/InputOptions/Tagging/Main_TagInputField';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
 import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
 import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_FileUploads';
@@ -23,7 +24,8 @@ const parseNumericInput = (value) => {
 
 const Main_Pack = () => {
   const { pageData, upsertProductPageData } = useProductContext();
-  const { packType, packingReliabilityType } = useMasterContext();
+  const { packType, packingReliabilityType, productLogisticsAttributes } =
+    useMasterContext();
   const packRows = pageData.product_packings || [];
 
   const dropdownPackTypeOptions = useMemo(
@@ -42,6 +44,25 @@ const Main_Pack = () => {
         name: item.label ?? item.name ?? '',
       })),
     [packingReliabilityType],
+  );
+
+  const selectedLogisticsIds = pageData.product_logistics_attributes_id
+    ? [pageData.product_logistics_attributes_id]
+    : [];
+
+  const handleLogisticsChange = useCallback(
+    (ov, nv) => {
+      const nextIds = Array.isArray(nv) ? nv : [];
+      const newId = nextIds.find((id) => !(ov || []).includes(id));
+      const removedId = (ov || []).find((id) => !nextIds.includes(id));
+
+      if (newId) {
+        upsertProductPageData({ product_logistics_attributes_id: newId });
+      } else if (removedId) {
+        upsertProductPageData({ product_logistics_attributes_id: '' });
+      }
+    },
+    [upsertProductPageData],
   );
 
   const upsertPackRow = useCallback(
@@ -363,6 +384,16 @@ const Main_Pack = () => {
       onAddNew={handleAddPackRow}
       addNewText="Add Packing"
     >
+      <Main_TagInputField
+        defaultOptions={productLogisticsAttributes}
+        defaultSelectedOptions={selectedLogisticsIds}
+        onChange={handleLogisticsChange}
+        canAddNewOptions={false}
+        enableHierarchyViewToggle={true}
+        hierarchyToggleLabel="Show Hierarchy"
+        placeholder="Search logistics attributes..."
+      />
+
       <div className={styles.tableSection}>
         <EditableDataTable
           rows={packRows}

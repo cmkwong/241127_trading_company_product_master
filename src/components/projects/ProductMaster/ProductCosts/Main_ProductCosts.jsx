@@ -581,7 +581,6 @@ const Main_ProductCosts = () => {
             sizeTypeId: sizeVar ? getVariantTypeId(sizeVar, 'size') : null,
             unit_cost: found?.unit_cost ?? '',
             stock_qty: found?.stock_qty ?? 0,
-            min_order_qty: found?.min_order_qty ?? 1,
             currency_id: found?.currency_id ?? '',
             // sales_price: found?.sales_price ?? '',
             // sales_currency_id: found?.sales_currency_id ?? '',
@@ -624,7 +623,6 @@ const Main_ProductCosts = () => {
         unit_cost: '',
         stock_qty: 0,
         currency_id: '',
-        min_order_qty: 1,
       }));
 
     const deletions = productCosts
@@ -679,10 +677,6 @@ const Main_ProductCosts = () => {
               field === 'stock_qty'
                 ? Number(value) || 0
                 : Number(existing?.stock_qty ?? row.stock_qty) || 0,
-            min_order_qty:
-              field === 'min_order_qty'
-                ? Number(value) || 0
-                : Number(existing?.min_order_qty ?? row.min_order_qty) || 0,
             currency_id:
               field === 'currency_id'
                 ? value

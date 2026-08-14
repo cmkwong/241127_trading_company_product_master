@@ -123,26 +123,6 @@ const CostsTable = ({
             row.stock_qty,
           ),
       },
-      {
-        key: 'min_order_qty',
-        label: 'MOQ',
-        sortType: 'number',
-        fillField: 'min_order_qty',
-        renderCell: (row, { rowIndex, wrapWithFill }) =>
-          wrapWithFill(
-            <input
-              className={styles.cellInput}
-              value={row.min_order_qty}
-              onChange={(e) =>
-                onCostFieldChange(row, 'min_order_qty', e.target.value)
-              }
-              placeholder="Enter value"
-            />,
-            'min_order_qty',
-            rowIndex,
-            row.min_order_qty,
-          ),
-      },
     ],
     [
       colorTypeMap,

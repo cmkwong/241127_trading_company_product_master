@@ -1,0 +1,147 @@
+.title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fa6d5a;
+  font-family: 'Inter', sans-serif;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.mainRow {
+  display: flex;
+  gap: 16px;
+  align-items: stretch;
+  width: 100%;
+}
+
+.tableSection {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.previewPanel {
+  flex-shrink: 0;
+  width: 220px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  white-space: nowrap;
+  align-self: stretch;
+}
+
+.previewTitle {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.previewRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 8px;
+}
+
+.previewRange {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.previewValue {
+  font-size: 12px;
+  font-weight: 700;
+  color: #fa6d5a;
+}
+
+.previewBadge {
+  background: #fffbeb;
+  border-radius: 4px;
+  padding: 3px 8px;
+  font-size: 10px;
+  font-weight: 500;
+  color: #f59e0b;
+}
+
+.qtyCell {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+}
+
+.qtyPrefix {
+  color: #94a3b8;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.cellInput {
+  width: 100%;
+  min-width: 100px;
+  height: 30px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  padding: 0 8px;
+  font-size: 12px;
+}
+
+.cellInput:focus {
+  outline: none;
+  border-color: #4a90e2;
+}
+
+.addRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.addBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #fa6d5a;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 0;
+}
+
+.addHint {
+  color: #94a3b8;
+  font-size: 11px;
+}
+
+.deleteBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #ef4444;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 0;
+}
+
+@media (max-width: 768px) {
+  .mainRow {
+    flex-direction: column;
+  }
+
+  .previewPanel {
+    width: 100%;
+  }
+}

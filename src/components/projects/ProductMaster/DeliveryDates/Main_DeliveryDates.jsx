@@ -5,6 +5,7 @@ import { useProductContext } from '../../../../store/ProductContext';
 import { useMasterContext } from '../../../../store/MasterContext';
 import styles from './Main_DeliveryDates.module.css';
 import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
+import DeleteBtn from '../../../common/Buttons/DeleteBtn';
 
 const MAX_RANGES = 3;
 const DEFAULT_UNIT_LABEL = 'Pcs';
@@ -118,6 +119,8 @@ const Main_DeliveryDates = () => {
         label: '* Quantity (Pcs)',
         sortType: 'number',
         fillField: 'min_order_qty',
+        minWidth: '160px',
+        maxWidth: '320px',
         renderCell: (row, { rowIndex, wrapWithFill }) =>
           wrapWithFill(
             <div className={styles.qtyCell}>
@@ -142,6 +145,8 @@ const Main_DeliveryDates = () => {
         label: '* Est. Lead Time (Days)',
         sortType: 'number',
         fillField: 'delivery_day',
+        minWidth: '160px',
+        maxWidth: '320px',
         renderCell: (row, { rowIndex, wrapWithFill }) =>
           wrapWithFill(
             <input
@@ -166,13 +171,7 @@ const Main_DeliveryDates = () => {
         minWidth: '80px',
         maxWidth: '80px',
         renderCell: (row) => (
-          <button
-            type="button"
-            className={styles.deleteBtn}
-            onClick={() => handleDelete(row)}
-          >
-            Delete
-          </button>
+          <DeleteBtn text="Delete" onClick={() => handleDelete(row)} />
         ),
       },
     ],
@@ -181,53 +180,47 @@ const Main_DeliveryDates = () => {
 
   return (
     <Main_InputContainer label="Delivery Dates">
-      <div className={styles.container}>
-        <div className={styles.mainRow}>
-          <div className={styles.tableSection}>
-            <EditableDataTable
-              rows={rows}
-              columns={columns}
-              rowKey="id"
-              emptyMessage="No delivery ranges yet."
-              onFillCellChange={(row, field, value) =>
-                handleFieldChange(row, field, value)
-              }
-            />
-            <div className={styles.addRow}>
-              <button
-                type="button"
-                className={styles.addBtn}
-                disabled={rows.length >= MAX_RANGES}
-                onClick={handleAddRange}
-              >
-                + Add Quantity Range
-              </button>
-              <span className={styles.addHint}>
-                Max {MAX_RANGES} ranges allowed
-              </span>
-            </div>
+      <div className={styles.layout}>
+        <div className={styles.left}>
+          <EditableDataTable
+            rows={rows}
+            columns={columns}
+            rowKey="id"
+            emptyMessage="No delivery ranges yet."
+            onFillCellChange={(row, field, value) =>
+              handleFieldChange(row, field, value)
+            }
+          />
+          <div className={styles.addRow}>
+            <button
+              type="button"
+              className={styles.addBtn}
+              disabled={rows.length >= MAX_RANGES}
+              onClick={handleAddRange}
+            >
+              + Add Quantity Range
+            </button>
+            <span className={styles.addHint}>
+              Max {MAX_RANGES} ranges allowed
+            </span>
           </div>
-
-          {previewRows.length > 0 && (
-            <div className={styles.previewPanel}>
-              <p className={styles.previewTitle}>Preview (Unit: {unitLabel})</p>
-              {previewRows.map((tier) => (
-                <div key={tier.id} className={styles.previewRow}>
-                  <span className={styles.previewRange}>{tier.rangeLabel}</span>
-                  {tier.negotiated ? (
-                    <span className={styles.previewBadge}>
-                      To be negotiated
-                    </span>
-                  ) : (
-                    <span className={styles.previewValue}>
-                      {tier.valueLabel}
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
         </div>
+
+        {previewRows.length > 0 && (
+          <div className={styles.previewPanel}>
+            <p className={styles.previewTitle}>Preview (Unit: {unitLabel})</p>
+            {previewRows.map((tier) => (
+              <div key={tier.id} className={styles.previewRow}>
+                <span className={styles.previewRange}>{tier.rangeLabel}</span>
+                {tier.negotiated ? (
+                  <span className={styles.previewBadge}>To be negotiated</span>
+                ) : (
+                  <span className={styles.previewValue}>{tier.valueLabel}</span>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </Main_InputContainer>
   );

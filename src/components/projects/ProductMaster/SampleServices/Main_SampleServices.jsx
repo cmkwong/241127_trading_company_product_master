@@ -313,6 +313,8 @@ const Main_SampleServices = () => {
         key: 'variant',
         label: 'Color-Capacity-Size',
         sortType: 'string',
+        minWidth: '160px',
+        maxWidth: '320px',
         getSortValue: (row) => row.variantLabel || '',
         renderCell: (row) => (
           <div className={styles.variantCell}>
@@ -328,6 +330,8 @@ const Main_SampleServices = () => {
         key: 'sample_currency_id',
         label: 'Currency',
         sortType: 'string',
+        minWidth: '160px',
+        maxWidth: '320px',
         getSortValue: (row) => currencyLabelMap[row.sample_currency_id] || '',
         fillField: 'sample_currency_id',
         renderCell: (row, { rowIndex, wrapWithFill }) =>
@@ -350,6 +354,8 @@ const Main_SampleServices = () => {
         label: 'Sample Price',
         sortType: 'number',
         fillField: 'sample_price',
+        minWidth: '160px',
+        maxWidth: '320px',
         renderCell: (row, { rowIndex, wrapWithFill }) =>
           wrapWithFill(
             <Main_TextField

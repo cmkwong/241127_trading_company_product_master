@@ -265,7 +265,14 @@ const EditableDataTable = ({
   );
 
   return (
-    <Frame direction="vertical" gap={0} className={styles.tableWrap}>
+    <Frame
+      direction="vertical"
+      gap={0}
+      className={styles.tableWrap}
+      width="fit-content"
+      horizontal_padding={'10px'}
+      vertical_padding={'10px'}
+    >
       <button
         type="button"
         className={styles.filterCollapseButton}

@@ -9,7 +9,7 @@ import {
 } from 'react';
 import { apiDelete, apiGet, apiPatch, apiPost } from '../utils/crud';
 import { processChangesWithBase64 } from '../utils/objectUrlUtils';
-import { toSafeString } from '../components/projects/SalesQuotation/utils/quotationTotals';
+import { toSafeString } from '../components/panels/SalesQuotation/utils/quotationTotals';
 import { useAuthContext } from './AuthContext';
 import { useGeneralContext } from './GeneralContext';
 

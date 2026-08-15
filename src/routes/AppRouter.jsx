@@ -1,11 +1,11 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
-import Main_ProductMaster from '../components/projects/ProductMaster/Main_ProductMaster';
-import Main_SupplierMaster from '../components/projects/SupplierMaster/Main_SupplierMaster';
-import Main_CustomerMaster from '../components/projects/CustomerMaster/Main_CustomerMaster';
-import Main_SalesQuotation from '../components/projects/SalesQuotation/Main_SalesQuotation';
-import Main_PurchaseRequest from '../components/projects/PurchaseRequest/Main_PurchaseRequest';
-import Main_APInvoice from '../components/projects/APInvoice/Main_APInvoice';
-import Main_MasterControl from '../components/projects/MasterControl/Main_MasterControl';
+import Main_ProductMaster from '../components/panels/ProductMaster/Main_ProductMaster';
+import Main_SupplierMaster from '../components/panels/SupplierMaster/Main_SupplierMaster';
+import Main_CustomerMaster from '../components/panels/CustomerMaster/Main_CustomerMaster';
+import Main_SalesQuotation from '../components/panels/SalesQuotation/Main_SalesQuotation';
+import Main_PurchaseRequest from '../components/panels/PurchaseRequest/Main_PurchaseRequest';
+import Main_APInvoice from '../components/panels/APInvoice/Main_APInvoice';
+import Main_MasterControl from '../components/panels/MasterControl/Main_MasterControl';
 
 const AppRouter = () => {
   return (

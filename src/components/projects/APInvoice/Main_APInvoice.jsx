@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { apiDelete, apiGet, apiPatch, apiPost } from '../../../utils/crud';
 import { useAuthContext } from '../../../store/AuthContext';
 import DeleteBtn from '../../common/Buttons/DeleteBtn';
@@ -40,6 +41,8 @@ import styles from './Main_APInvoice.module.css';
 
 const Main_APInvoice = () => {
   const { token } = useAuthContext();
+  const navigate = useNavigate();
+  const { ap_invoice_id } = useParams();
 
   const [rows, setRows] = useState([]);
   const [selectedId, setSelectedId] = useState('');
@@ -388,6 +391,23 @@ const Main_APInvoice = () => {
   useEffect(() => {
     refreshAll();
   }, [refreshAll]);
+
+  useEffect(() => {
+    const routeId = toSafeString(ap_invoice_id);
+    if (!routeId) return;
+    if (toSafeString(selectedId) === routeId) return;
+
+    const exists = toArray(rows).some(
+      (row) => toSafeString(row?.id) === routeId,
+    );
+
+    if (exists) {
+      handleSelectRow(routeId);
+      return;
+    }
+
+    refreshAll(routeId);
+  }, [ap_invoice_id, selectedId, rows, handleSelectRow, refreshAll]);
 
   useEffect(() => {
     if (!notice) return;
@@ -763,7 +783,10 @@ const Main_APInvoice = () => {
       dryRunAction={getApInvoiceDryRunData}
       saveButtonText="Save AP Invoice"
       successMessage="AP invoice saved successfully!"
-      onCreate={handleCreate}
+      onCreate={() => {
+        handleCreate();
+        navigate('/ap_invoice', { replace: true });
+      }}
       createButtonText="Add AP Invoice"
       showCreateButton
       onPrint={handlePreview}
@@ -772,7 +795,10 @@ const Main_APInvoice = () => {
       leftBottomAction={
         <DeleteBtn
           text={isDeleting ? 'Deleting...' : 'Delete AP Invoice'}
-          onClick={handleDelete}
+          onClick={async () => {
+            await handleDelete();
+            navigate('/ap_invoice', { replace: true });
+          }}
           disabled={!draft?.id || isDeleting}
           title="Delete selected AP invoice"
           ariaLabel="Delete selected AP invoice"
@@ -785,7 +811,12 @@ const Main_APInvoice = () => {
           selectedId={selectedId}
           searchValue={sidebarSearch}
           onSearchChange={setSidebarSearch}
-          onSelectRow={handleSelectRow}
+          onSelectRow={(row) => {
+            handleSelectRow(row);
+            navigate(`/ap_invoice/${toSafeString(row?.id || row)}`, {
+              replace: true,
+            });
+          }}
           supplierNameById={supplierNameById}
         />
 

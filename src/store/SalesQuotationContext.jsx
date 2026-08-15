@@ -824,10 +824,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
       setOriginalQuotationMap(buildOriginalMap(sortedRows));
       setSelectedQuotationId((previousId) => {
         const previousExists = sortedRows.some((row) => row.id === previousId);
-        if (previousExists) {
-          return previousId;
-        }
-        return sortedRows[0]?.id || null;
+        return previousExists ? previousId : null;
       });
 
       return sortedRows;

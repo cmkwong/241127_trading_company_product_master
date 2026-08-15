@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import SearchSideBarList from '../../../common/SearchSideBarList/SearchSideBarList';
 import { useCustomerContext } from '../../../../store/CustomerContext';
 import { useMasterContext } from '../../../../store/MasterContext';
@@ -44,6 +45,7 @@ const getPrimaryCustomerName = (customer) => {
 };
 
 const CustomerSidebar = ({ isCollapsed, onToggleCollapse }) => {
+  const navigate = useNavigate();
   const { customers, getCustomerData, selectedCustomerId } =
     useCustomerContext();
   const { customerType = [], getMasterTableData } = useMasterContext();
@@ -201,6 +203,8 @@ const CustomerSidebar = ({ isCollapsed, onToggleCollapse }) => {
       const success = getCustomerData(customer.id);
       if (!success) return;
 
+      navigate(`/customer_master/${customer.id}`, { replace: true });
+
       if (windowWidth <= 768) {
         onToggleCollapse(true);
       }
@@ -228,7 +232,13 @@ const CustomerSidebar = ({ isCollapsed, onToggleCollapse }) => {
         return [entry, ...deduped].slice(0, MAX_SEARCH_HISTORY_ITEMS);
       });
     },
-    [getCustomerData, onToggleCollapse, saveSearchHistory, windowWidth],
+    [
+      getCustomerData,
+      onToggleCollapse,
+      saveSearchHistory,
+      windowWidth,
+      navigate,
+    ],
   );
 
   const handleSelectSearchHistory = useCallback(

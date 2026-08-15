@@ -1,5 +1,5 @@
 import { useContext, useState } from 'react';
-import PropTypes from 'prop-types';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuthContext } from '../../../store/AuthContext';
 import { CustomerContext } from '../../../store/CustomerContext';
 import { ProductContext } from '../../../store/ProductContext';
@@ -10,7 +10,47 @@ import { canProceedWithRecordSwitch } from '../../../utils/contextDataUtils';
 import ModuleTopBar from './ModuleTopBar';
 import styles from './TopBar.module.css';
 
-const TopBar = ({ title, activeView, onViewChange }) => {
+const VIEW_PATH_BY_KEY = {
+  product: '/product_master',
+  supplier: '/supplier_master',
+  customer: '/customer_master',
+  salesQuotation: '/sales_quotation',
+  purchaseRequest: '/purchase_request',
+  apInvoice: '/ap_invoice',
+  masterControl: '/master_control',
+};
+
+const VIEW_KEY_BY_PATH_PREFIX = {
+  '/product_master': 'product',
+  '/supplier_master': 'supplier',
+  '/customer_master': 'customer',
+  '/sales_quotation': 'salesQuotation',
+  '/purchase_request': 'purchaseRequest',
+  '/ap_invoice': 'apInvoice',
+  '/master_control': 'masterControl',
+};
+
+const PAGE_TITLE_BY_VIEW = {
+  product: 'Product Master',
+  supplier: 'Supplier Master',
+  customer: 'Customer Master',
+  salesQuotation: 'Sales Quotation',
+  purchaseRequest: 'Purchase Request',
+  apInvoice: 'AP Invoice',
+  masterControl: 'Master Control',
+};
+
+const resolveActiveView = (pathname) => {
+  const normalizedPath = String(pathname || '/');
+  for (const [prefix, viewKey] of Object.entries(VIEW_KEY_BY_PATH_PREFIX)) {
+    if (normalizedPath === prefix || normalizedPath.startsWith(`${prefix}/`)) {
+      return viewKey;
+    }
+  }
+  return 'product';
+};
+
+const TopBar = () => {
   const { token, refreshToken, isLoading, error, clearToken } =
     useAuthContext();
   const productContext = useContext(ProductContext);
@@ -29,6 +69,11 @@ const TopBar = ({ title, activeView, onViewChange }) => {
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const navigate = useNavigate();
+  const location = useLocation();
+  const activeView = resolveActiveView(location.pathname);
+  const title = PAGE_TITLE_BY_VIEW[activeView] || 'Product Master';
 
   const handleLoginClick = () => {
     setShowLogin(!showLogin);
@@ -79,19 +124,14 @@ const TopBar = ({ title, activeView, onViewChange }) => {
     e.preventDefault();
     setLoginError(null);
 
-    // Create a body object with the input credentials
     const credentials = {
       username,
       password,
-      payload: '', // Optional payload if your API needs it
+      payload: '',
     };
 
     try {
-      // Use the new AuthContext capability to pass manual credentials
       await refreshToken(credentials);
-      // Removed setShowLogin(false) so the user can see validation or result if needed,
-      // but usually closing it on success is fine.
-      // However user might want "input username and password", so let's keep it standard.
       setShowLogin(false);
     } catch (err) {
       setLoginError('Login failed. Check console or credentials.');
@@ -100,7 +140,8 @@ const TopBar = ({ title, activeView, onViewChange }) => {
   };
 
   const handleViewSwitch = (nextView) => {
-    if (!onViewChange || nextView === activeView) {
+    const nextPath = VIEW_PATH_BY_KEY[nextView];
+    if (!nextPath || nextView === activeView) {
       return;
     }
 
@@ -127,7 +168,7 @@ const TopBar = ({ title, activeView, onViewChange }) => {
       return;
     }
 
-    onViewChange(nextView);
+    navigate(nextPath);
   };
 
   return (
@@ -258,18 +299,12 @@ const TopBar = ({ title, activeView, onViewChange }) => {
       </div>
 
       <ModuleTopBar
-        moduleName={title || 'Product Master'}
+        moduleName={title}
         onRefresh={handleRefresh}
         isRefreshing={isRefreshing}
       />
     </div>
   );
-};
-
-TopBar.propTypes = {
-  title: PropTypes.string,
-  activeView: PropTypes.string,
-  onViewChange: PropTypes.func,
 };
 
 export default TopBar;

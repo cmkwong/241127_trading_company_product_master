@@ -1,5 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import styles from './Main_SupplierMaster.module.css';
 import SupplierMasterSavePageContainer from './Container/SupplierMasterSavePageContainer';
 import Main_SupplierAddresses from './Addresses/Main_SupplierAddresses';
@@ -43,8 +44,47 @@ const SupplierMasterContent = ({ onSelectSupplier }) => {
 const Main_SupplierMaster = () => {
   const [selectedSupplier, setSelectedSupplier] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const { pageData, getAllSuppliers, deleteSupplierById, createNewSupplier } =
-    useSupplierContext();
+  const navigate = useNavigate();
+  const { supplier_id } = useParams();
+  const {
+    pageData,
+    selectedSupplierId,
+    getSupplierData,
+    getAllSuppliers,
+    deleteSupplierById,
+    createNewSupplier,
+  } = useSupplierContext();
+
+  const getSupplierDataRef = useRef(getSupplierData);
+  useEffect(() => {
+    getSupplierDataRef.current = getSupplierData;
+  }, [getSupplierData]);
+
+  const handledSupplierIdRef = useRef(null);
+
+  useEffect(() => {
+    const routeId = String(supplier_id || '').trim();
+    if (!routeId) {
+      handledSupplierIdRef.current = '';
+      return;
+    }
+
+    if (String(selectedSupplierId || '').trim() === routeId) {
+      handledSupplierIdRef.current = routeId;
+      return;
+    }
+
+    if (handledSupplierIdRef.current === routeId) {
+      return;
+    }
+
+    handledSupplierIdRef.current = routeId;
+    const loaded = getSupplierDataRef.current(routeId);
+    if (!loaded) {
+      navigate('/supplier_master', { replace: true });
+      handledSupplierIdRef.current = '';
+    }
+  }, [supplier_id, selectedSupplierId, navigate]);
 
   const supplierId = String(pageData?.id || '').trim();
   const hasPersistedSupplier = (getAllSuppliers() || []).some(
@@ -66,6 +106,7 @@ const Main_SupplierMaster = () => {
     setIsDeleting(true);
     try {
       await deleteSupplierById(supplierId);
+      navigate('/supplier_master', { replace: true });
       alert('Supplier deleted successfully.');
     } catch (error) {
       console.error('Failed to delete supplier:', error);
@@ -73,7 +114,13 @@ const Main_SupplierMaster = () => {
     } finally {
       setIsDeleting(false);
     }
-  }, [deleteSupplierById, hasPersistedSupplier, isDeleting, supplierId]);
+  }, [
+    deleteSupplierById,
+    hasPersistedSupplier,
+    isDeleting,
+    supplierId,
+    navigate,
+  ]);
 
   const onSaveSupplier = async () => {
     return new Promise((resolve) => {
@@ -88,7 +135,12 @@ const Main_SupplierMaster = () => {
       onSave={onSaveSupplier}
       saveButtonText="Save Supplier"
       successMessage="Supplier saved successfully!"
-      onCreate={createNewSupplier}
+      onCreate={() => {
+        const created = createNewSupplier();
+        if (created) {
+          navigate('/supplier_master', { replace: true });
+        }
+      }}
       createButtonText="Add Supplier"
       showCreateButton
       leftBottomAction={

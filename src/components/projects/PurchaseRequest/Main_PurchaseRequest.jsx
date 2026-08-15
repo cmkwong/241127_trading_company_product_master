@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { usePurchaseRequestContext } from '../../../store/PurchaseRequestContext';
 import DeleteBtn from '../../common/Buttons/DeleteBtn';
 import Main_Dropdown from '../../common/InputOptions/Dropdown/Main_Dropdown';
@@ -185,6 +186,8 @@ const isTruthyFlag = (value, defaultWhenMissing = true) => {
 };
 
 const Main_PurchaseRequest = () => {
+  const navigate = useNavigate();
+  const { purchase_request_id } = useParams();
   const {
     rows,
     selectedId,
@@ -212,7 +215,25 @@ const Main_PurchaseRequest = () => {
     handleDelete,
     refreshSuppliers,
     refreshSalesQuotations,
+    refreshAll,
   } = usePurchaseRequestContext();
+
+  useEffect(() => {
+    const routeId = toSafeString(purchase_request_id);
+    if (!routeId) return;
+    if (toSafeString(selectedId) === routeId) return;
+
+    const exists = toArray(rows).some(
+      (row) => toSafeString(row?.id) === routeId,
+    );
+
+    if (exists) {
+      handleSelectRow(routeId);
+      return;
+    }
+
+    refreshAll(routeId);
+  }, [purchase_request_id, selectedId, rows, handleSelectRow, refreshAll]);
 
   const [sidebarSearch, setSidebarSearch] = useState('');
   const [baseCurrencyCode, setBaseCurrencyCode] = useState('HKD');
@@ -1541,7 +1562,10 @@ const Main_PurchaseRequest = () => {
       dryRunAction={getPurchaseRequestDryRunData}
       saveButtonText="Save Purchase Request"
       successMessage="Purchase request saved successfully!"
-      onCreate={handleCreate}
+      onCreate={() => {
+        handleCreate();
+        navigate('/purchase_request', { replace: true });
+      }}
       createButtonText="Add Purchase Request"
       showCreateButton
       onPrint={handlePreviewApInvoice}
@@ -1550,7 +1574,10 @@ const Main_PurchaseRequest = () => {
       leftBottomAction={
         <DeleteBtn
           text={isDeleting ? 'Deleting...' : 'Delete Purchase Request'}
-          onClick={handleDelete}
+          onClick={async () => {
+            await handleDelete();
+            navigate('/purchase_request', { replace: true });
+          }}
           disabled={!draft?.id || isDeleting}
           title="Delete selected purchase request"
           ariaLabel="Delete selected purchase request"
@@ -1563,7 +1590,12 @@ const Main_PurchaseRequest = () => {
           selectedId={selectedId}
           searchValue={sidebarSearch}
           onSearchChange={setSidebarSearch}
-          onSelectRow={handleSelectRow}
+          onSelectRow={(row) => {
+            handleSelectRow(row);
+            navigate(`/purchase_request/${toSafeString(row?.id || row)}`, {
+              replace: true,
+            });
+          }}
           getItemTitle={getSidebarItemTitle}
           getItemRows={getSidebarItemRows}
         />

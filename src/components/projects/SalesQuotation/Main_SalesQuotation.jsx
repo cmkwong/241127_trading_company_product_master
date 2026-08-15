@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import styles from './Main_SalesQuotation.module.css';
 import SalesQuotationSavePageContainer from './Container/SalesQuotationSavePageContainer';
 import SalesQuotationSidebar from './AllSalesQuotationList/SalesQuotationSidebar';
@@ -36,6 +37,9 @@ const Main_SalesQuotation = () => {
   const [previewPrintArInvoice, setPreviewPrintArInvoice] = useState(false);
   const [baseCurrencyCode, setBaseCurrencyCode] = useState('USD');
   const previewIframeRef = useRef(null);
+  const handledQuotationIdRef = useRef(null);
+  const navigate = useNavigate();
+  const { quotation_id } = useParams();
   const {
     quotations,
     selectedQuotationId,
@@ -59,6 +63,8 @@ const Main_SalesQuotation = () => {
     refreshReferenceOptions,
     purchaseCosts,
   } = useSalesQuotationContext();
+
+  const selectSalesQuotationRef = useRef(selectSalesQuotation);
   const { companyInfo, currencies, exchangeRateHkd, fetchMasterData } =
     useMasterContext();
 
@@ -141,14 +147,50 @@ const Main_SalesQuotation = () => {
 
   const handleSelectQuotation = useCallback(
     (quotation) => {
-      selectSalesQuotation(String(quotation?.id || ''));
+      const id = String(quotation?.id || '');
+      const selected = selectSalesQuotation(id);
+      if (selected) {
+        navigate(`/sales_quotation/${id}`, { replace: true });
+      }
     },
-    [selectSalesQuotation],
+    [selectSalesQuotation, navigate],
   );
 
+  useEffect(() => {
+    selectSalesQuotationRef.current = selectSalesQuotation;
+  }, [selectSalesQuotation]);
+
+  useEffect(() => {
+    const routeId = String(quotation_id || '').trim();
+    if (!routeId) {
+      handledQuotationIdRef.current = '';
+      return;
+    }
+
+    if (String(selectedQuotationId || '').trim() === routeId) {
+      handledQuotationIdRef.current = routeId;
+      return;
+    }
+
+    if (handledQuotationIdRef.current === routeId) {
+      return;
+    }
+
+    const exists = (quotations || []).some(
+      (item) => String(item?.id || '').trim() === routeId,
+    );
+    if (!exists) return;
+
+    handledQuotationIdRef.current = routeId;
+    selectSalesQuotationRef.current(routeId);
+  }, [quotation_id, quotations, selectedQuotationId, selectSalesQuotation]);
+
   const handleCreateQuotation = useCallback(async () => {
-    await createSalesQuotation();
-  }, [createSalesQuotation]);
+    const created = await createSalesQuotation();
+    if (created?.id) {
+      navigate(`/sales_quotation/${created.id}`, { replace: true });
+    }
+  }, [createSalesQuotation, navigate]);
 
   const handleSaveQuotation = useCallback(async () => {
     await saveSelectedQuotation();
@@ -161,14 +203,22 @@ const Main_SalesQuotation = () => {
 
     setIsDuplicating(true);
     try {
-      await duplicateSelectedSalesQuotation();
+      const duplicated = await duplicateSelectedSalesQuotation();
+      if (duplicated?.id) {
+        navigate(`/sales_quotation/${duplicated.id}`, { replace: true });
+      }
     } catch (error) {
       console.error('Failed to duplicate sales quotation:', error);
       alert(error?.message || 'Failed to duplicate sales quotation.');
     } finally {
       setIsDuplicating(false);
     }
-  }, [duplicateSelectedSalesQuotation, isDuplicating, selectedQuotation]);
+  }, [
+    duplicateSelectedSalesQuotation,
+    isDuplicating,
+    selectedQuotation,
+    navigate,
+  ]);
 
   const handleDeleteQuotation = useCallback(async () => {
     const quotationId = String(selectedQuotation?.id || '').trim();
@@ -187,13 +237,14 @@ const Main_SalesQuotation = () => {
     setIsDeleting(true);
     try {
       await deleteSalesQuotation(quotationId);
+      navigate('/sales_quotation', { replace: true });
     } catch (error) {
       console.error('Failed to delete sales quotation:', error);
       alert(error?.message || 'Failed to delete sales quotation.');
     } finally {
       setIsDeleting(false);
     }
-  }, [deleteSalesQuotation, isDeleting, selectedQuotation]);
+  }, [deleteSalesQuotation, isDeleting, selectedQuotation, navigate]);
 
   const handlePreviewQuotation = useCallback(() => {
     if (!selectedQuotation || isPreparingPreview) {

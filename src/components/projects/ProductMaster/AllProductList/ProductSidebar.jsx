@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styles from './ProductSidebar.module.css';
 import SearchSideBarList from '../../../common/SearchSideBarList/SearchSideBarList';
 import { useProductContext } from '../../../../store/ProductContext';
@@ -28,6 +29,7 @@ const normalizeHistoryEntry = (entry) => {
 };
 
 const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
+  const navigate = useNavigate();
   const {
     getProductData,
     products,
@@ -330,6 +332,8 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
       const getProductDataSuccess = getProductData(product.id);
       if (!getProductDataSuccess) return;
 
+      navigate(`/product_master/${product.id}`, { replace: true });
+
       // On mobile, collapse the sidebar after selection
       if (windowWidth <= 768) {
         onToggleCollapse(true);
@@ -369,6 +373,7 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
       onSelectProduct,
       saveSearchHistory,
       getProductName,
+      navigate,
     ],
   );
 

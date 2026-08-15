@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styles from './SupplierSidebar.module.css';
 import SearchSideBarList from '../../../common/SearchSideBarList/SearchSideBarList';
 import { useSupplierContext } from '../../../../store/SupplierContext';
@@ -31,6 +32,7 @@ const SupplierSidebar = ({
   isCollapsed,
   onToggleCollapse,
 }) => {
+  const navigate = useNavigate();
   const { getSupplierData, suppliers, selectedSupplierId } =
     useSupplierContext();
   const { supplierType, services } = useMasterContext();
@@ -214,6 +216,8 @@ const SupplierSidebar = ({
       const getSupplierDataSuccess = getSupplierData(supplier.id);
       if (!getSupplierDataSuccess) return;
 
+      navigate(`/supplier_master/${supplier.id}`, { replace: true });
+
       if (windowWidth <= 768) {
         onToggleCollapse(true);
       }
@@ -250,6 +254,7 @@ const SupplierSidebar = ({
       onSelectSupplier,
       saveSearchHistory,
       getSupplierName,
+      navigate,
     ],
   );
 

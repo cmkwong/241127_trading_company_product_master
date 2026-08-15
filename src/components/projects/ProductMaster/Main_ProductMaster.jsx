@@ -20,6 +20,7 @@ import ProductMasterSavePageContainer from './Container/ProductMasterSavePageCon
 import Main_ProductCosts from './ProductCosts/Main_ProductCosts';
 import DeleteBtn from '../../common/Buttons/DeleteBtn';
 import { useProductContext } from '../../../store/ProductContext';
+import { useNavigate, useParams } from 'react-router-dom';
 
 const Main_ProductMaster = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -28,13 +29,50 @@ const Main_ProductMaster = () => {
   const [isDuplicating, setIsDuplicating] = useState(false);
   const iconOverlayRef = useRef(null);
   const iconToggleBtnRef = useRef(null);
+  const navigate = useNavigate();
+  const { product_id } = useParams();
   const {
     pageData,
+    selectedProductId,
+    getProductData,
     getAllProducts,
     deleteProductById,
     createNewProduct,
     duplicateSelectedProduct,
   } = useProductContext();
+
+  const getProductDataRef = useRef(getProductData);
+  useEffect(() => {
+    getProductDataRef.current = getProductData;
+  }, [getProductData]);
+
+  const handledProductIdRef = useRef(null);
+
+  useEffect(() => {
+    const routeId = String(product_id || '').trim();
+    if (!routeId) {
+      handledProductIdRef.current = '';
+      return;
+    }
+
+    // If an in-app sidebar selection already initiated the load for this id,
+    // do not fetch again (avoids double fetch + duplicate unsaved-changes prompt).
+    if (String(selectedProductId || '').trim() === routeId) {
+      handledProductIdRef.current = routeId;
+      return;
+    }
+
+    if (handledProductIdRef.current === routeId) {
+      return;
+    }
+
+    handledProductIdRef.current = routeId;
+    const loaded = getProductDataRef.current(routeId);
+    if (!loaded) {
+      navigate('/product_master', { replace: true });
+      handledProductIdRef.current = '';
+    }
+  }, [product_id, selectedProductId, navigate]);
 
   const productId = String(pageData?.id || '').trim();
   const hasPersistedProduct = (getAllProducts() || []).some(
@@ -56,6 +94,7 @@ const Main_ProductMaster = () => {
     setIsDeleting(true);
     try {
       await deleteProductById(productId);
+      navigate('/product_master', { replace: true });
       alert('Product deleted successfully.');
     } catch (error) {
       console.error('Failed to delete product:', error);
@@ -63,7 +102,7 @@ const Main_ProductMaster = () => {
     } finally {
       setIsDeleting(false);
     }
-  }, [deleteProductById, hasPersistedProduct, isDeleting, productId]);
+  }, [deleteProductById, hasPersistedProduct, isDeleting, productId, navigate]);
 
   const handleDuplicateProduct = useCallback(async () => {
     if (!hasPersistedProduct || isDuplicating) {
@@ -73,13 +112,14 @@ const Main_ProductMaster = () => {
     setIsDuplicating(true);
     try {
       await duplicateSelectedProduct();
+      navigate('/product_master', { replace: true });
     } catch (error) {
       console.error('Failed to duplicate product:', error);
       alert(error?.message || 'Failed to duplicate product.');
     } finally {
       setIsDuplicating(false);
     }
-  }, [duplicateSelectedProduct, hasPersistedProduct, isDuplicating]);
+  }, [duplicateSelectedProduct, hasPersistedProduct, isDuplicating, navigate]);
 
   useEffect(() => {
     if (!showIconPanel) return;
@@ -125,7 +165,12 @@ const Main_ProductMaster = () => {
       onSave={onSaveProduct}
       saveButtonText="Save Product"
       successMessage="Product saved successfully!"
-      onCreate={createNewProduct}
+      onCreate={() => {
+        const created = createNewProduct();
+        if (created) {
+          navigate('/product_master', { replace: true });
+        }
+      }}
       createButtonText="Add Product"
       showCreateButton
       leftBottomAction={

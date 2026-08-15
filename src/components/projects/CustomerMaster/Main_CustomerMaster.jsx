@@ -1,4 +1,5 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import CustomerMasterSavePageContainer from './Container/CustomerMasterSavePageContainer';
 import CustomerSidebar from './AllCustomerList/CustomerSidebar';
 import Main_CustomerBasicInfo from './CustomerBasicInfo/Main_CustomerBasicInfo';
@@ -14,8 +15,47 @@ import styles from './Main_CustomerMaster.module.css';
 const Main_CustomerMaster = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const { pageData, getAllCustomers, deleteCustomerById, createNewCustomer } =
-    useCustomerContext();
+  const navigate = useNavigate();
+  const { customer_id } = useParams();
+  const {
+    pageData,
+    selectedCustomerId,
+    getCustomerData,
+    getAllCustomers,
+    deleteCustomerById,
+    createNewCustomer,
+  } = useCustomerContext();
+
+  const getCustomerDataRef = useRef(getCustomerData);
+  useEffect(() => {
+    getCustomerDataRef.current = getCustomerData;
+  }, [getCustomerData]);
+
+  const handledCustomerIdRef = useRef(null);
+
+  useEffect(() => {
+    const routeId = String(customer_id || '').trim();
+    if (!routeId) {
+      handledCustomerIdRef.current = '';
+      return;
+    }
+
+    if (String(selectedCustomerId || '').trim() === routeId) {
+      handledCustomerIdRef.current = routeId;
+      return;
+    }
+
+    if (handledCustomerIdRef.current === routeId) {
+      return;
+    }
+
+    handledCustomerIdRef.current = routeId;
+    const loaded = getCustomerDataRef.current(routeId);
+    if (!loaded) {
+      navigate('/customer_master', { replace: true });
+      handledCustomerIdRef.current = '';
+    }
+  }, [customer_id, selectedCustomerId, navigate]);
 
   const customerId = String(pageData?.id || '').trim();
   const hasPersistedCustomer = (getAllCustomers() || []).some(
@@ -37,6 +77,7 @@ const Main_CustomerMaster = () => {
     setIsDeleting(true);
     try {
       await deleteCustomerById(customerId);
+      navigate('/customer_master', { replace: true });
       alert('Customer deleted successfully.');
     } catch (error) {
       console.error('Failed to delete customer:', error);
@@ -44,7 +85,13 @@ const Main_CustomerMaster = () => {
     } finally {
       setIsDeleting(false);
     }
-  }, [customerId, deleteCustomerById, hasPersistedCustomer, isDeleting]);
+  }, [
+    customerId,
+    deleteCustomerById,
+    hasPersistedCustomer,
+    isDeleting,
+    navigate,
+  ]);
 
   const onSaveCustomer = async () => {
     return new Promise((resolve) => {
@@ -59,7 +106,12 @@ const Main_CustomerMaster = () => {
       onSave={onSaveCustomer}
       saveButtonText="Save Customer"
       successMessage="Customer saved successfully!"
-      onCreate={createNewCustomer}
+      onCreate={() => {
+        const created = createNewCustomer();
+        if (created) {
+          navigate('/customer_master', { replace: true });
+        }
+      }}
       createButtonText="Add Customer"
       showCreateButton
       leftBottomAction={

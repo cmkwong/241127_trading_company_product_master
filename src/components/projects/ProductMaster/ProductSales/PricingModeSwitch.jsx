@@ -1,5 +1,5 @@
+import Main_RadioGroup from '../../../common/InputOptions/RadioGroup/Main_RadioGroup';
 import { useProductContext } from '../../../../store/ProductContext';
-import styles from './PricingModeSwitch.module.css';
 
 const MODES = [
   { value: 'by_qty', label: 'Price by Quantity' },
@@ -16,34 +16,14 @@ const PricingModeSwitch = () => {
   };
 
   return (
-    <div
-      className={styles.segment}
-      role="radiogroup"
-      aria-label="Selling by mode"
-    >
-      {MODES.map((mode) => {
-        const isActive = mode.value === activeMode;
-        return (
-          <button
-            key={mode.value}
-            type="button"
-            role="radio"
-            aria-checked={isActive}
-            className={`${styles.segmentItem} ${isActive ? styles.active : ''}`}
-            onClick={() => handleSelect(mode.value)}
-          >
-            <span className={styles.radio}>
-              <span
-                className={
-                  isActive ? styles.radioInner : styles.inactiveRadioInner
-                }
-              />
-            </span>
-            {mode.label}
-          </button>
-        );
-      })}
-    </div>
+    <Main_RadioGroup
+      options={MODES}
+      value={activeMode}
+      onChange={handleSelect}
+      ariaLabel="Selling by mode"
+      variant="segment"
+      size="100%"
+    />
   );
 };
 

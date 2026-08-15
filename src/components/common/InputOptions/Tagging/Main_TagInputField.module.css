@@ -4,8 +4,9 @@
 
 .hierarchyToggle {
   position: absolute;
-  top: -32px;
-  right: 0;
+  bottom: 10px;
+  right: 10px;
+  z-index: 10;
   display: inline-flex;
   align-items: center;
   gap: 6px;

@@ -21,7 +21,6 @@ const SellingUnitDropdown = () => {
       defaultSelectedOption={
         pageData?.selling_unit_type_id || 'cf5edd88-97b9-11f1-9854-04d9f5f8e870'
       }
-      matchParentWidth
       onChange={(ov, nv) =>
         upsertProductPageData({ selling_unit_type_id: nv || '' })
       }

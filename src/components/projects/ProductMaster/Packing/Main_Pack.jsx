@@ -379,11 +379,7 @@ const Main_Pack = () => {
   );
 
   return (
-    <Main_InputContainer
-      label="Packing Information"
-      onAddNew={handleAddPackRow}
-      addNewText="Add Packing"
-    >
+    <Main_InputContainer label="Packing Information">
       <Main_TagInputField
         defaultOptions={productLogisticsAttributes}
         defaultSelectedOptions={selectedLogisticsIds}
@@ -394,14 +390,19 @@ const Main_Pack = () => {
         placeholder="Search logistics attributes..."
       />
 
-      <div className={styles.tableSection}>
+      <Main_InputContainer
+        label="Packing Details"
+        layout="column"
+        onAddNew={handleAddPackRow}
+        addNewText="Add Packing"
+      >
         <EditableDataTable
           rows={packRows}
           columns={columns}
           rowKey="id"
           emptyMessage="No packing rows yet. Click + Add Packing."
         />
-      </div>
+      </Main_InputContainer>
     </Main_InputContainer>
   );
 };

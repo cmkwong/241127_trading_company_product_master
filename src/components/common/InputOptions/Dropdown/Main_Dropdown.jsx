@@ -50,8 +50,26 @@ const Main_Dropdown = (props) => {
     return 200;
   }, [normalizedSize]);
 
+  // Canonical full-width is expressed as a size value ("100%"), replacing the
+  // deprecated matchParentWidth flag. matchParentWidth is still honored for
+  // backward compatibility only when no explicit size is provided.
+  const sizeWasProvided = props.size !== undefined;
+
+  const isFullWidthSize = useMemo(() => {
+    const candidate = String(size ?? '')
+      .trim()
+      .toUpperCase();
+    return ['100%', 'FULL', 'FULLWIDTH'].includes(candidate);
+  }, [size]);
+
+  const isFullWidth = useMemo(() => {
+    if (isFullWidthSize) return true;
+    if (sizeWasProvided) return false;
+    return !!matchParentWidth;
+  }, [isFullWidthSize, sizeWasProvided, matchParentWidth]);
+
   const resolvedButtonStyle = useMemo(() => {
-    if (matchParentWidth) {
+    if (isFullWidth) {
       return {
         width: '100%',
         minWidth: 0,
@@ -63,7 +81,21 @@ const Main_Dropdown = (props) => {
       width: `${sizeWidth}px`,
       maxWidth: '100%',
     };
-  }, [matchParentWidth, sizeWidth]);
+  }, [isFullWidth, sizeWidth]);
+
+  const resolvedContainerStyle = useMemo(() => {
+    if (isFullWidth) {
+      return {
+        width: '100%',
+        maxWidth: '100%',
+      };
+    }
+
+    return {
+      width: `${sizeWidth}px`,
+      maxWidth: '100%',
+    };
+  }, [isFullWidth, sizeWidth]);
 
   // Simple helper keeps ids unique per render without relying on external state
   const makeId = (prefix = 'input-list') =>
@@ -123,8 +155,9 @@ const Main_Dropdown = (props) => {
   return (
     <div
       className={`${styles.inputList} ${
-        matchParentWidth ? styles.inputListFullWidth : ''
+        isFullWidth ? styles.inputListFullWidth : ''
       }`.trim()}
+      style={resolvedContainerStyle}
       data-testid="input-list-container"
     >
       {label && (
@@ -151,8 +184,23 @@ Main_Dropdown.propTypes = {
   // UI
   label: PropTypes.string,
   dropdownId: PropTypes.string,
-  size: PropTypes.oneOf(['S', 'M', 'L', 'XL', 's', 'm', 'l', 'xl']),
+  size: PropTypes.oneOf([
+    'S',
+    'M',
+    'L',
+    'XL',
+    '100%',
+    'FULL',
+    'FULLWIDTH',
+    's',
+    'm',
+    'l',
+    'xl',
+    'full',
+    'fullwidth',
+  ]),
   disabled: PropTypes.bool,
+  /** @deprecated Use size="100%" instead. */
   matchParentWidth: PropTypes.bool,
 };
 

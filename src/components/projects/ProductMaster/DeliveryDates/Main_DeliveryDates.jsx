@@ -182,7 +182,6 @@ const Main_DeliveryDates = () => {
   return (
     <Main_InputContainer label="Delivery Dates">
       <div className={styles.container}>
-        <p className={styles.title}>* Delivery Date</p>
         <div className={styles.mainRow}>
           <div className={styles.tableSection}>
             <EditableDataTable

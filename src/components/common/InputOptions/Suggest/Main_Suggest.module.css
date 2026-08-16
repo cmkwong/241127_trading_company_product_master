@@ -4,13 +4,6 @@
   width: 100%;
 }
 
-.label {
-  color: #475569;
-  font-size: 12px;
-  font-weight: 500;
-  margin-bottom: 4px;
-}
-
 .rowContainer {
   display: flex;
   align-items: center;

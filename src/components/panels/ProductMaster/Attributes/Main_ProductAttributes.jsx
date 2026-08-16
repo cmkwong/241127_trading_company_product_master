@@ -1,6 +1,6 @@
 import { useRef, useMemo, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
+import Main_InputContainer from '../../../common/Container/Main_InputContainer';
 import { useProductContext } from '../../../../store/ProductContext';
 import { useMasterContext } from '../../../../store/MasterContext';
 import EmptyState from '../../../common/State/EmptyState';
@@ -8,6 +8,7 @@ import Sub_AttributeSingleField from './Sub_AttributeSingleField';
 import Sub_AttributeTagField from './Sub_AttributeTagField';
 import { normalize, keyOf } from './attributeUtils';
 import styles from './Main_ProductAttributes.module.css';
+import Label from '../../../common/Texts/Label';
 
 const Main_ProductAttributes = () => {
   const { pageData, upsertProductPageData } = useProductContext();
@@ -209,7 +210,7 @@ const Main_ProductAttributes = () => {
 
             return (
               <div key={attribute.id} className={styles.field}>
-                <label className={styles.fieldLabel}>{label}</label>
+                <Label className={styles.fieldLabel}>{label}</Label>
                 {multiple ? (
                   <Sub_AttributeTagField
                     attributeId={attribute.id}

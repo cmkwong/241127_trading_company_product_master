@@ -1,5 +1,6 @@
-import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
+import Main_InputContainer from '../../../common/Container/Main_InputContainer';
 import { useProductContext } from '../../../../store/ProductContext';
+import Label from '../../../common/Texts/Label';
 import SellingUnitDropdown from './SellingUnitDropdown';
 import PricingModeSwitch from './PricingModeSwitch';
 import PriceByQtyTable from './PriceByQtyTable';
@@ -26,7 +27,7 @@ const Main_SellingPrice = () => {
           {sellingByMode === 'by_variants' && <PriceByVariantsTable />}
         </div>
         {showMinOrderQty && (
-          <label className={styles.moqField}>
+          <Label className={styles.moqField}>
             <span className={styles.moqLabel}>Min Order Qty</span>
             <input
               className={styles.moqInput}
@@ -39,7 +40,7 @@ const Main_SellingPrice = () => {
               }
               placeholder="0"
             />
-          </label>
+          </Label>
         )}
       </div>
     </Main_InputContainer>

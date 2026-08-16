@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
+import Main_InputContainer from '../../../common/Container/Main_InputContainer';
 import EmptyState from '../../../common/State/EmptyState';
 import Sub_AlibabaLink from './Sub_AlibabaLink';
 import { useProductContext } from '../../../../store/ProductContext';
@@ -140,7 +140,7 @@ const Main_AlibabaLink = () => {
 
   return (
     <Main_InputContainer
-      label="Alibaba"
+      label="Alibaba IDs"
       onAddNew={handleAdd}
       addNewText="Add Alibaba ID"
     >

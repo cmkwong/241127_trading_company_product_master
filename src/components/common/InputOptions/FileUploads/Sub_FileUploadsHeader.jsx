@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import styles from './Main_FileUploads.module.css';
+import Label from '../../Texts/Label';
 
 const FIGMA_DESELECT_ICON = '/assets/figma/table-deselect.svg';
 const FIGMA_DOWNLOAD_ICON = '/assets/figma/table-download.svg';
@@ -42,13 +43,13 @@ const Sub_FileUploadsHeader = ({
     <div
       className={`${styles.headerRow} ${tableCell ? styles.tableCellHeaderRow : ''} ${useFigmaImageHeader ? styles.figmaImageHeaderRow : ''}`}
     >
-      {label && <label className={styles.label}>{label}</label>}
+      {label && <Label>{label}</Label>}
       <div
         className={`${styles.headerActions} ${useFigmaImageHeader ? styles.figmaImageHeaderActions : ''}`}
       >
         <div className={useFigmaImageHeader ? styles.figmaImageToolbar : ''}>
           {showSelectAll && (
-            <label
+            <Label
               className={`${styles.selectAllWrap} ${tableCell ? styles.tableCellTool : ''} ${useFigmaImageHeader ? styles.figmaSelectAllWrap : ''}`}
               title={`Select all ${selectionLabel}`}
             >
@@ -60,7 +61,7 @@ const Sub_FileUploadsHeader = ({
               {!tableCell && !useFigmaImageHeader && (
                 <span>{`All (${selectedCount}/${totalCount})`}</span>
               )}
-            </label>
+            </Label>
           )}
           {showToggleSelectButton && (
             <button

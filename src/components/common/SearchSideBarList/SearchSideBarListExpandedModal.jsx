@@ -194,7 +194,7 @@ const SearchSideBarListExpandedModal = ({
   onResolveExportImagesBatch,
   onVisibleItemIdsChange,
 }) => {
-  const [sortKey, setSortKey] = useState('Title');
+  const [sortKey, setSortKey] = useState('Header');
   const [sortDirection, setSortDirection] = useState('asc');
   const [columnFilters, setColumnFilters] = useState({});
   const [previewImage, setPreviewImage] = useState(null);
@@ -220,7 +220,7 @@ const SearchSideBarListExpandedModal = ({
       });
     });
 
-    return ['Icon', 'Title', ...Array.from(labels)];
+    return ['Icon', 'Header', ...Array.from(labels)];
   }, [items, getItemRows]);
 
   const filterableColumns = useMemo(() => {
@@ -257,7 +257,7 @@ const SearchSideBarListExpandedModal = ({
         return String(getItemIconUrl(item) || '').trim();
       }
 
-      if (column === 'Title') {
+      if (column === 'Header') {
         return getItemTitle(item);
       }
 
@@ -1083,7 +1083,7 @@ const SearchSideBarListExpandedModal = ({
   const getColumnClassName = (column) => {
     const map = {
       Icon: styles.overlayColIcon,
-      Title: styles.overlayColTitle,
+      Header: styles.overlayColTitle,
       'Product Keywords': styles.overlayColProductKeywords,
       ID: styles.overlayColId,
       Status: styles.overlayColStatus,

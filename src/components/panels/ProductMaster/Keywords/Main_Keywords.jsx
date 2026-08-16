@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
+import Main_InputContainer from '../../../common/Container/Main_InputContainer';
 import { useProductContext } from '../../../../store/ProductContext';
 import { useMasterContext } from '../../../../store/MasterContext';
 import { v4 as uuidv4 } from 'uuid';
@@ -176,7 +176,7 @@ const Main_Keywords = () => {
   }, []);
 
   return (
-    <Main_InputContainer label={'Product Keywords'}>
+    <Main_InputContainer label="Product Keywords">
       <div className={styles.keywordsContainer}>
         <KeywordsTagInput
           productKeywords={productKeywords}

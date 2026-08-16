@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
+import Main_InputContainer from '../../../common/Container/Main_InputContainer';
 import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
 import Main_RadioGroup from '../../../common/InputOptions/RadioGroup/Main_RadioGroup';
@@ -378,7 +378,7 @@ const Main_SampleServices = () => {
   const supported = !!pageData?.sampling_service_available;
 
   return (
-    <Main_InputContainer label="Sample Service">
+    <Main_InputContainer label="Sample Services">
       <div className={styles.container}>
         <Main_RadioGroup
           options={[

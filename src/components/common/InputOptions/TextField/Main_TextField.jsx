@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import styles from './Main_TextField.module.css';
 import Sub_TextField from './Sub_TextField.jsx';
+import Label from '../../Texts/Label';
 
 /**
  * Main_TextField Component
@@ -65,12 +66,19 @@ const Main_TextField = (props) => {
         }`}
       >
         {label && (
-          <label
+          <Label
             htmlFor={inputId}
-            className={`${styles.label} ${required ? styles.required : ''}`}
-          >
-            {label}
-          </label>
+            text={label}
+            size="S"
+            weight="medium"
+            color={error ? '#dc2626' : '#475569'}
+            required={required}
+            className={
+              labelPosition === 'left'
+                ? styles.fieldLabelLeft
+                : styles.fieldLabel
+            }
+          />
         )}
         <div className={styles.inputWrapper}>
           <Sub_TextField

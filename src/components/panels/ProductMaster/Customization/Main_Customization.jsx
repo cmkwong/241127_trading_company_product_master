@@ -2,14 +2,13 @@ import { useCallback, useMemo } from 'react';
 import Main_Suggest from '../../../common/InputOptions/Suggest/Main_Suggest';
 import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
 import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_FileUploads';
-import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
+import Main_InputContainer from '../../../common/Container/Main_InputContainer';
 import DeleteBtn from '../../../common/Buttons/DeleteBtn';
 import EditableDataTable from '../../../common/Table/EditableDataTable';
 import { useProductContext } from '../../../../store/ProductContext';
 import { useMasterContext } from '../../../../store/MasterContext';
 import { v4 as uuidv4 } from 'uuid';
 import { sortByDisplayOrder } from '../../../../utils/arr';
-import { mockSuppliers } from '../../../../datas/Suppliers/mockSuppliers';
 import styles from './Main_Customization.module.css';
 
 const Main_Customization = () => {
@@ -27,7 +26,7 @@ const Main_Customization = () => {
   );
   const supplierSuggestions = useMemo(
     () =>
-      (mockSuppliers || []).map((supplier, index) => ({
+      [].map((supplier, index) => ({
         id: `${supplier.code || 'supplier'}-${index + 1}`,
         code: String(supplier.code || '').trim(),
         companyName: String(supplier.companyName || '').trim(),
@@ -139,7 +138,7 @@ const Main_Customization = () => {
     () => [
       {
         key: 'name',
-        label: 'Customization Title',
+        label: 'Customization Header',
         sortType: 'string',
         minWidth: '220px',
         maxWidth: '400px',
@@ -147,7 +146,7 @@ const Main_Customization = () => {
         renderCell: (row) => (
           <Main_Suggest
             defaultSuggestions={customizationOptionSuggestions}
-            placeholder="Customization Title"
+            placeholder="Customization Header"
             autoComplete="off"
             defaultValue={row.name || ''}
             getSuggestionLabel={(suggestion) => suggestion?.name || ''}

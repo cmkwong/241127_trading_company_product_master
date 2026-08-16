@@ -23,6 +23,7 @@ import {
 } from './utils/quotationTotals';
 import { buildQuotationDocumentA4Html } from './utils/quotationPrint';
 import { buildArInvoiceDocumentA4Html } from './utils/arInvoicePrint';
+import Label from '../../common/Texts/Label';
 
 const Main_SalesQuotation = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -563,7 +564,7 @@ const Main_SalesQuotation = () => {
                   : 'Quotation A4 Preview'}
               </div>
               <div className={styles.previewModalActions}>
-                <label className={styles.previewOptionToggle}>
+                <Label className={styles.previewOptionToggle}>
                   <input
                     type="checkbox"
                     checked={previewShowTotalPrice}
@@ -572,15 +573,15 @@ const Main_SalesQuotation = () => {
                     }
                   />
                   <span>Show Total Price</span>
-                </label>
-                <label className={styles.previewOptionToggle}>
+                </Label>
+                <Label className={styles.previewOptionToggle}>
                   <input
                     type="checkbox"
                     checked={previewPrintArInvoice}
                     onChange={handlePreviewArInvoiceChange}
                   />
                   <span>Print AR Invoice</span>
-                </label>
+                </Label>
                 <button
                   type="button"
                   className={styles.previewActionBtn}

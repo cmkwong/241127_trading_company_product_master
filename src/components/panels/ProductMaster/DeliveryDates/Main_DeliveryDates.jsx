@@ -4,7 +4,7 @@ import EditableDataTable from '../../../common/Table/EditableDataTable';
 import { useProductContext } from '../../../../store/ProductContext';
 import { useMasterContext } from '../../../../store/MasterContext';
 import styles from './Main_DeliveryDates.module.css';
-import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
+import Main_InputContainer from '../../../common/Container/Main_InputContainer';
 import DeleteBtn from '../../../common/Buttons/DeleteBtn';
 
 const MAX_RANGES = 3;

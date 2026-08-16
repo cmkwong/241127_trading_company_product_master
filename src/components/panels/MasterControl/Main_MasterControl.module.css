@@ -237,12 +237,6 @@
   gap: 6px;
 }
 
-.companyInfoFieldLabel {
-  font-size: 12px;
-  font-weight: 600;
-  color: #334155;
-}
-
 @media (max-width: 980px) {
   .companyInfoForm {
     grid-template-columns: 1fr;

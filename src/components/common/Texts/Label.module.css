@@ -1,0 +1,85 @@
+.label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Inter', sans-serif;
+  line-height: 1.2;
+  color: #361b0c;
+}
+
+.size_xl {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.size_l {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.size_m {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.size_s {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.size_xs {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.colorPrimary {
+  color: #0c1e36;
+}
+
+.colorMuted {
+  color: #64748b;
+}
+
+.colorAccent {
+  color: #fa6d5a;
+}
+
+.colorBlue {
+  color: #3b82f6;
+}
+
+.colorSuccess {
+  color: #166534;
+}
+
+.colorError {
+  color: #b42318;
+}
+
+.weight_regular {
+  font-weight: 400;
+}
+
+.weight_medium {
+  font-weight: 500;
+}
+
+.weight_semibold {
+  font-weight: 600;
+}
+
+.weight_bold {
+  font-weight: 700;
+}
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.requiredMark {
+  color: #fa6d5a;
+  font-weight: 700;
+  line-height: 1;
+}

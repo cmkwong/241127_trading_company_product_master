@@ -1,5 +1,6 @@
 import styles from './VariantCheckboxSection.module.css';
 import AddNewBtn from '../../../common/Buttons/AddNewBtn';
+import Label from '../../../common/Texts/Label';
 
 const VariantCheckboxSection = ({
   title,
@@ -28,7 +29,8 @@ const VariantCheckboxSection = ({
         {options.map((item) => {
           const checked = selectedIds.includes(item.id);
           return (
-            <label
+            <Label
+              htmlFor={`checkbox-${item.id}`}
               key={item.id}
               className={`${styles.checkboxItem} ${checked ? styles.checked : ''}`}
             >
@@ -39,7 +41,7 @@ const VariantCheckboxSection = ({
                 onChange={(e) => onToggle(item.id, e.target.checked)}
               />
               <span className={styles.checkboxLabel}>{getLabel(item)}</span>
-            </label>
+            </Label>
           );
         })}
 

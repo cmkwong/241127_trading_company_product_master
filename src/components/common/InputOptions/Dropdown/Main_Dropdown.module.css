@@ -8,14 +8,6 @@
   width: 100%;
 }
 
-.label {
-  display: inline-block;
-  margin-bottom: 4px;
-  color: #475569;
-  font-size: 12px;
-  font-weight: 500;
-}
-
 .sizeS {
   width: 140px;
 }

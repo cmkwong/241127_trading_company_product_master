@@ -32,7 +32,7 @@ const IconUpload = ({
     () =>
       Number(sizePx) > 0
         ? Number(sizePx)
-        : (SIZE_PRESETS[selectedSize] || SIZE_PRESETS.M),
+        : SIZE_PRESETS[selectedSize] || SIZE_PRESETS.M,
     [selectedSize, sizePx],
   );
 
@@ -50,7 +50,7 @@ const IconUpload = ({
         }}
       />
 
-      <label
+      <div
         htmlFor={inputId}
         className={styles.thumbBtn}
         title={title}
@@ -79,7 +79,7 @@ const IconUpload = ({
             </svg>
           </span>
         )}
-      </label>
+      </div>
     </div>
   );
 };

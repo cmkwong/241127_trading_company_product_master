@@ -24,31 +24,19 @@
   gap: 6px;
 }
 
-.label {
-  font-size: 12px;
-  font-weight: 500;
+.fieldLabel {
   margin-bottom: 4px;
-  color: #475569;
 }
 
-.labelLeft .label {
+.fieldLabelLeft {
   margin-bottom: 0;
   min-width: 100px;
-}
-
-.required:after {
-  content: ' *';
-  color: #fa6d5a;
 }
 
 .helperText {
   font-size: 12px;
   margin-top: 4px;
   color: #64748b;
-}
-
-.error .label {
-  color: #dc2626;
 }
 
 .error input {

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
+import Main_InputContainer from '../../../common/Container/Main_InputContainer';
 import { useMasterContext } from '../../../../store/MasterContext';
 import { useProductContext } from '../../../../store/ProductContext';
 import ColorRowsSection from './ColorRowsSection';

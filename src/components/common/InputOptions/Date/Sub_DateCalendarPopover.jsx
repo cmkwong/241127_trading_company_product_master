@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import { createPortal } from 'react-dom';
 import styles from './Sub_DateField.module.css';
 import { sameDay } from './dateHelpers';
+import Label from '../../Texts/Label';
 
 const weekdays = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
@@ -106,9 +107,9 @@ const Sub_DateCalendarPopover = ({
 
       {enableTime ? (
         <div className={styles.timeRow}>
-          <label htmlFor={`${id}-time`} className={styles.timeLabel}>
+          <Label htmlFor={`${id}-time`} className={styles.timeLabel}>
             Time
-          </label>
+          </Label>
           <input
             id={`${id}-time`}
             type="time"

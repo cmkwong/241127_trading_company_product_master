@@ -4,6 +4,7 @@ import SearchSideBarListNoResults from './SearchSideBarListNoResults';
 import SearchSideBarListSearchBar from './SearchSideBarListSearchBar';
 import SearchSideBarListExpandedModal from './SearchSideBarListExpandedModal';
 import styles from './SearchSideBarList.module.css';
+import Header from '../../common/Texts/Header';
 
 const toItemKey = (value) =>
   value === undefined || value === null ? '' : String(value);
@@ -238,7 +239,7 @@ const SearchSideBarList = ({
     <div className={`${styles.container} ${className}`}>
       <div className={styles.toolbar}>
         <div className={styles.toolbarHeaderRow}>
-          <div className={styles.toolbarTitle}>{sidebarTitle}</div>
+          <Header>{sidebarTitle}</Header>
 
           <div className={styles.toolbarActions}>
             <button

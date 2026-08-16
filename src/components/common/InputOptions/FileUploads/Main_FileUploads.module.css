@@ -49,12 +49,6 @@
   font-size: 12px;
 }
 
-.label {
-  font-weight: 500;
-  margin-bottom: 4px;
-  color: #333;
-}
-
 .headerRow {
   display: flex;
   align-items: center;

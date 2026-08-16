@@ -27,13 +27,6 @@
   width: 100%;
 }
 
-.label {
-  font-size: 18px;
-  font-weight: bold;
-  color: #0c1e36;
-  font-family: 'Instrument Sans', sans-serif;
-}
-
 .inputContainer {
   display: flex;
   flex-direction: column;

@@ -1,4 +1,5 @@
 import styles from './Main_Keywords.module.css';
+import Label from '../../../common/Texts/Label';
 
 const KeywordsActions = ({
   keywords,
@@ -31,7 +32,7 @@ const KeywordsActions = ({
           → Load Keywords as Text
         </button>
 
-        <label className={styles.splitterLabel}>Splitter</label>
+        <Label>Splitter</Label>
         <input
           className={styles.splitterInput}
           type="text"

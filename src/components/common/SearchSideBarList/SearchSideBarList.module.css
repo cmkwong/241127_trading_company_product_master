@@ -31,13 +31,6 @@
   gap: 12px;
 }
 
-.toolbarTitle {
-  color: #0c1e36;
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 1.1;
-}
-
 .toolbarTop {
   width: 100%;
 }
@@ -1072,9 +1065,5 @@
     width: 100%;
     height: 100%;
     border-radius: 10px;
-  }
-
-  .toolbarTitle {
-    font-size: 13px;
   }
 }

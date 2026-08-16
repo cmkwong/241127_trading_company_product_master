@@ -1,7 +1,15 @@
+import Notice from '../Texts/Notice';
 import styles from './EmptyState.module.css';
 
 const EmptyState = ({ message }) => {
-  return <div className={styles.emptyState}>{message}</div>;
+  return (
+    <Notice
+      variant="neutral"
+      icon={false}
+      text={message}
+      className={styles.emptyState}
+    />
+  );
 };
 
 export default EmptyState;

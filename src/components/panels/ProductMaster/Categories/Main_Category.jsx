@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import Main_InputContainer from '../../../common/InputOptions/InputContainer/Main_InputContainer';
+import Main_InputContainer from '../../../common/Container/Main_InputContainer';
 import Main_TagInputField from '../../../common/InputOptions/Tagging/Main_TagInputField';
 import { useProductContext } from '../../../../store/ProductContext';
 import { useMasterContext } from '../../../../store/MasterContext';
@@ -59,7 +59,7 @@ const Main_Category = () => {
   };
 
   return (
-    <Main_InputContainer label={'Product Category'}>
+    <Main_InputContainer label="Product Category">
       <Main_TagInputField
         key={`category-input`}
         defaultOptions={category}

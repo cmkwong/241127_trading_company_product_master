@@ -32,6 +32,7 @@ import {
 } from './utils/masterServiceUtils';
 import { canProceedAndDiscardUnsavedChanges } from '../../../utils/contextDataUtils';
 import styles from './Main_MasterControl.module.css';
+import Label from '../../common/Texts/Label';
 
 const COMPANY_INFO_TABLE_NAME = 'master_company_info';
 const FILE_SERVER_BASE_URL = 'http://localhost:3001';
@@ -1488,9 +1489,7 @@ const MasterControlContent = () => {
 
                 <div className={styles.companyInfoFieldsGrid}>
                   <div className={styles.companyInfoFieldBlock}>
-                    <label className={styles.companyInfoFieldLabel}>
-                      Company Name
-                    </label>
+                    <Label>Company Name</Label>
                     <Main_TextField
                       defaultValue={asInputValue(
                         companyInfoDraftRow.company_name,
@@ -1504,9 +1503,7 @@ const MasterControlContent = () => {
                   </div>
 
                   <div className={styles.companyInfoFieldBlock}>
-                    <label className={styles.companyInfoFieldLabel}>
-                      Contact Person
-                    </label>
+                    <Label>Contact Person</Label>
                     <Main_TextField
                       defaultValue={asInputValue(
                         companyInfoDraftRow.contact_person,
@@ -1520,9 +1517,7 @@ const MasterControlContent = () => {
                   </div>
 
                   <div className={styles.companyInfoFieldBlockFull}>
-                    <label className={styles.companyInfoFieldLabel}>
-                      Company Address
-                    </label>
+                    <Label>Company Address</Label>
                     <Main_TextArea
                       defaultValue={asInputValue(
                         companyInfoDraftRow.company_address,

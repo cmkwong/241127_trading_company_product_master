@@ -2,7 +2,7 @@ import { useRef, useState, useCallback, useMemo, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import styles from './Main_Dropdown.module.css';
 import Sub_SelectField from './Sub_SelectField';
-// import TextField from './TextField'; // optional
+import Label from '../../Texts/Label';
 
 /**
  * Main_Dropdown Component
@@ -160,11 +160,7 @@ const Main_Dropdown = (props) => {
       style={resolvedContainerStyle}
       data-testid="input-list-container"
     >
-      {label && (
-        <label htmlFor={dropdownId} className={styles.label}>
-          {label}
-        </label>
-      )}
+      {label && <Label htmlFor={dropdownId}>{label}</Label>}
       <Sub_SelectField {...dropdownProps} />
     </div>
   );

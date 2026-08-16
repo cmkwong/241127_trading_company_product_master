@@ -2,6 +2,7 @@ import { useState, useRef, useMemo, useCallback, useEffect } from 'react';
 import Sub_TagPlate from './Sub_TagPlate';
 import Sub_TagList from './Sub_TagList';
 import Main_Suggest from '../Suggest/Main_Suggest';
+import Main_Checkbox from '../Checkbox/Main_Checkbox';
 import styles from './Main_TagInputField.module.css';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -356,14 +357,14 @@ const Main_TagInputField = (props) => {
     <>
       <div ref={containerRef} className={styles.inputOption}>
         {enableHierarchyViewToggle && (
-          <label className={styles.hierarchyToggle}>
-            <input
-              type="checkbox"
+          <div className={styles.hierarchyToggle}>
+            <Main_Checkbox
+              label={hierarchyToggleLabel}
               checked={showHierarchy}
-              onChange={(e) => setShowHierarchy(e.target.checked)}
+              onChange={(checked) => setShowHierarchy(checked)}
+              size="M"
             />
-            <span>{hierarchyToggleLabel}</span>
-          </label>
+          </div>
         )}
 
         <Main_Suggest

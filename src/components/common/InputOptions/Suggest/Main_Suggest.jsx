@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { createPortal } from 'react-dom';
 import styles from './Main_Suggest.module.css';
 import Main_TextField from '../TextField/Main_TextField';
+import Label from '../../Texts/Label';
 import { v4 as uuidv4 } from 'uuid';
 
 const getDefaultSuggestionLabel = (suggestion) => {
@@ -179,7 +180,7 @@ const Main_Suggest = (props) => {
 
   return (
     <div className={styles.suggestContainer} data-testid="suggest-container">
-      {label && <label className={styles.label}>{label}</label>}
+      {label && <Label>{label}</Label>}
       <div className={styles.inputWrapper}>
         <div className={styles.inputContainer} ref={inputContainerRef}>
           <span className={styles.searchIcon} aria-hidden="true">

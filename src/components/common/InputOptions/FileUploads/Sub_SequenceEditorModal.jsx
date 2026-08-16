@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { createPortal } from 'react-dom';
 import styles from './Main_FileUploads.module.css';
 import Main_DropZone from '../DropZone/Main_DropZone';
+import Label from '../../Texts/Label';
 
 const FIGMA_SORT_ICON = '/assets/figma/modal-sort.svg';
 const FIGMA_DESELECT_ICON = '/assets/figma/table-deselect.svg';
@@ -110,7 +111,7 @@ const Sub_SequenceEditorModal = ({
               )}
 
               {showSelectAll && (
-                <label
+                <Label
                   className={`${styles.selectAllWrap} ${styles.figmaSelectAllWrap}`}
                 >
                   <input
@@ -118,7 +119,7 @@ const Sub_SequenceEditorModal = ({
                     checked={Boolean(allSelected)}
                     onChange={onToggleSelectAll}
                   />
-                </label>
+                </Label>
               )}
               {showToggleSelectButton && (
                 <button

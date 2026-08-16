@@ -15,13 +15,13 @@
   box-sizing: border-box;
   min-height: 120px;
   padding: 12px 12px 32px;
-  border: 1px solid #e2e8f0;
-  background: #ffffff;
+  border: 1px solid var(--color-border);
+  background: var(--color-white);
   border-radius: 8px;
   font-family: inherit;
-  font-size: 14px;
-  font-weight: 400;
-  color: #0c1e36;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-regular);
+  color: var(--color-primary);
   line-height: normal;
   transition:
     border-color 0.16s ease,
@@ -30,7 +30,7 @@
 }
 
 .textarea:hover:not(:disabled):not(:read-only) {
-  border-color: #cbd5e1;
+  border-color: var(--color-border-strong);
 }
 
 .textareaFullHeight {
@@ -41,17 +41,17 @@
 
 .textarea:focus {
   outline: none;
-  border-color: #94a3b8;
+  border-color: var(--color-text-subtle);
   box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.22);
 }
 
 .textarea::placeholder {
-  color: #94a3b8;
+  color: var(--color-text-subtle);
 }
 
 .textarea:disabled {
-  background: #f8fafc;
-  color: #94a3b8;
+  background: var(--color-surface-subtle);
+  color: var(--color-text-subtle);
   cursor: not-allowed;
 }
 
@@ -59,10 +59,10 @@
   position: absolute;
   right: 19px;
   bottom: 9px;
-  font-size: 12px;
-  font-weight: 400;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-regular);
   line-height: normal;
-  color: #94a3b8;
+  color: var(--color-text-subtle);
   background: transparent;
   padding: 0;
   pointer-events: none;

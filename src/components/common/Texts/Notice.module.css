@@ -3,9 +3,9 @@
   align-items: flex-start;
   gap: 10px;
   padding: 10px 12px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-border);
   border-radius: 8px;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-family-base);
   box-sizing: border-box;
 }
 
@@ -28,13 +28,13 @@
 }
 
 .title {
-  font-weight: 700;
-  font-size: 13px;
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-base);
   line-height: 1.3;
 }
 
 .message {
-  font-size: 12px;
+  font-size: var(--font-size-md);
   line-height: 1.45;
 }
 
@@ -63,31 +63,31 @@
 
 /* Variant color schemes (align with existing site tokens). */
 .variantInfo {
-  background: #eff6ff;
-  border-color: #bfdbfe;
-  color: #1e40af;
+  background: var(--color-info-bg);
+  border-color: var(--color-info-border);
+  color: var(--color-info-text);
 }
 
 .variantSuccess {
-  background: #f0fdf4;
-  border-color: #bbf7d0;
-  color: #166534;
+  background: var(--color-success-bg);
+  border-color: var(--color-success-border);
+  color: var(--color-success-text);
 }
 
 .variantWarning {
-  background: #fffbeb;
-  border-color: #fde68a;
-  color: #92400e;
+  background: var(--color-warning-bg);
+  border-color: var(--color-warning-border);
+  color: var(--color-warning-text);
 }
 
 .variantError {
-  background: #fef2f2;
-  border-color: #fecaca;
-  color: #b42318;
+  background: var(--color-error-bg);
+  border-color: var(--color-error-border);
+  color: var(--color-danger);
 }
 
 .variantNeutral {
-  background: #f8fafc;
-  border-color: #e2e8f0;
-  color: #475569;
+  background: var(--color-surface-subtle);
+  border-color: var(--color-border);
+  color: var(--color-text-neutral);
 }

@@ -123,31 +123,6 @@
   max-width: calc(100vw - 310px);
 }
 
-.navBtn {
-  padding: 8px 14px;
-  border: none;
-  background: none;
-  cursor: pointer;
-  font-size: 12px;
-  white-space: nowrap;
-  color: #d7e2f3;
-  font-weight: 500;
-  line-height: 1.25;
-  border-radius: 6px;
-  transition: all 0.2s;
-}
-
-.navBtn:hover {
-  background-color: rgba(255, 255, 255, 0.12);
-  color: #ffffff;
-}
-
-.navBtn.active {
-  background-color: #fa6d5a;
-  color: #ffffff;
-  font-weight: 600;
-}
-
 .authContainer {
   position: relative;
   display: flex;

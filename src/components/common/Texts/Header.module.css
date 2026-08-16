@@ -22,69 +22,69 @@
 
 .title {
   margin: 0;
-  font-family: 'Inter', sans-serif;
-  line-height: 1.2;
-  color: #0c1e36;
+  font-family: var(--font-family-base);
+  line-height: var(--line-height-tight);
+  color: var(--color-primary);
   display: inline-flex;
   align-items: center;
   gap: 8px;
 }
 
 .size_xl {
-  font-size: 28px;
-  font-weight: 600;
+  font-size: var(--font-size-5xl);
+  font-weight: var(--font-weight-semibold);
 }
 
 .size_l {
-  font-size: 20px;
-  font-weight: 600;
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-semibold);
 }
 
 .size_m {
-  font-size: 16px;
-  font-weight: 600;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
 }
 
 .size_s {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
 }
 
 .size_xs {
-  font-size: 13px;
-  font-weight: 700;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
 }
 
 .colorPrimary {
-  color: #0c1e36;
+  color: var(--color-primary);
 }
 
 .colorMuted {
-  color: #64748b;
+  color: var(--color-text-muted);
 }
 
 .colorAccent {
-  color: #fa6d5a;
+  color: var(--color-accent);
 }
 
 .colorBlue {
-  color: #3b82f6;
+  color: var(--color-blue);
 }
 
 .weight_regular {
-  font-weight: 400;
+  font-weight: var(--font-weight-regular);
 }
 
 .weight_medium {
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
 }
 
 .weight_semibold {
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
 }
 
 .weight_bold {
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
 }
 
 .icon {
@@ -95,8 +95,8 @@
 
 .subtitle {
   margin: 0;
-  font-size: 12px;
-  font-family: 'Inter', sans-serif;
-  color: #64748b;
-  line-height: 1.4;
+  font-size: var(--font-size-md);
+  font-family: var(--font-family-base);
+  color: var(--color-text-muted);
+  line-height: var(--line-height-relaxed);
 }

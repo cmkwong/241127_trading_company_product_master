@@ -19,7 +19,7 @@
   align-items: center;
   gap: 16px;
   padding: 14px 28px;
-  background-color: #ffffff;
+  background-color: var(--color-white);
   border: 0;
   box-shadow:
     0 -1px 2px rgba(0, 0, 0, 0.03),
@@ -61,9 +61,9 @@
   border: 1px solid transparent;
   border-radius: 8px;
   padding: 9px 20px;
-  font-family: Inter, sans-serif;
-  font-size: 13px;
-  font-weight: 500;
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
   line-height: normal;
   white-space: nowrap;
   cursor: pointer;
@@ -78,47 +78,47 @@
   gap: 6px;
   padding-left: 14px;
   padding-right: 16px;
-  background-color: #f0fdf4;
-  color: #22c55e;
+  background-color: var(--color-success-bg);
+  color: var(--color-success);
 }
 
 .dryRunButton {
   gap: 6px;
-  border: 1.5px solid #0c1e36;
-  background-color: #ffffff;
-  color: #0c1e36;
+  border: 1.5px solid var(--color-primary);
+  background-color: var(--color-white);
+  color: var(--color-primary);
 }
 
 .printButton {
   gap: 6px;
-  border-color: #cbd5e1;
-  background-color: #ffffff;
-  color: #64748b;
+  border-color: var(--color-border-strong);
+  background-color: var(--color-white);
+  color: var(--color-text-muted);
 }
 
 .saveButton {
   padding-inline: 24px;
-  background-color: #fa6d5a;
-  color: #ffffff;
+  background-color: var(--color-accent);
+  color: var(--color-white);
   box-shadow: 0 2px 6px rgba(250, 109, 90, 0.25);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
 }
 
 .createButton:hover:not(:disabled) {
-  background-color: #dcfce7;
+  background-color: var(--color-success-bg-hover);
 }
 
 .dryRunButton:hover:not(:disabled) {
-  background-color: #f8fafc;
+  background-color: var(--color-surface-subtle);
 }
 
 .printButton:hover:not(:disabled) {
-  border-color: #94a3b8;
-  background-color: #f8fafc;
+  border-color: var(--color-text-subtle);
+  background-color: var(--color-surface-subtle);
 }
 
 .saveButton:hover:not(:disabled) {
-  background-color: #e85b49;
+  background-color: var(--color-accent-hover);
 }
 
 .createButton:focus-visible,
@@ -161,14 +161,14 @@
 }
 
 .successMessage {
-  color: #4caf50;
-  font-weight: 500;
+  color: var(--color-success-material);
+  font-weight: var(--font-weight-medium);
   margin-right: 16px;
 }
 
 .errorMessage {
-  color: #f44336;
-  font-weight: 500;
+  color: var(--color-error-material);
+  font-weight: var(--font-weight-medium);
   margin-right: 16px;
 }
 
@@ -185,10 +185,10 @@
 .dryRunModalWindow {
   width: min(1600px, 95vw);
   height: min(800px, 92vh);
-  background: #ffffff;
+  background: var(--color-white);
   border-radius: 10px;
   box-shadow: 0 20px 48px rgba(0, 0, 0, 0.28);
-  border: 1px solid #d9d9d9;
+  border: 1px solid var(--color-border-muted);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -199,43 +199,43 @@
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  border-bottom: 1px solid #ececec;
-  background: #f7f7f7;
+  border-bottom: 1px solid var(--color-border-hairline);
+  background: var(--color-surface-grey-warm);
 }
 
 .dryRunTitle {
-  font-weight: 700;
-  color: #333;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-dark);
   margin: 0;
 }
 
 .dryRunCloseBtn {
-  border: 1px solid #cfcfcf;
-  background: #fff;
+  border: 1px solid var(--color-border-faint);
+  background: var(--color-white);
   border-radius: 6px;
   padding: 4px 10px;
-  font-size: 14px;
+  font-size: var(--font-size-lg);
   cursor: pointer;
 }
 
 .dryRunCloseBtn:hover {
-  background: #f0f0f0;
+  background: var(--color-surface-grey-hairline);
 }
 
 .dryRunModalBody {
   flex: 1;
   overflow: auto;
   padding: 16px;
-  background: #fcfcfc;
+  background: var(--color-surface-soft);
 }
 
 .dryRunJson {
   margin: 0;
   white-space: pre;
-  font-size: 13px;
-  line-height: 1.5;
-  color: #222;
-  font-family: Consolas, 'Courier New', monospace;
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-relaxed-2);
+  color: var(--color-text-code);
+  font-family: var(--font-family-code);
 }
 
 @media (max-width: 768px) {

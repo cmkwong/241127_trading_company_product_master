@@ -34,13 +34,13 @@
 }
 
 .helperText {
-  font-size: 12px;
+  font-size: var(--font-size-md);
   margin-top: 4px;
-  color: #64748b;
+  color: var(--color-text-muted);
 }
 
 .error input {
-  border-color: #dc2626;
+  border-color: var(--color-danger-bright);
 }
 
 .error input:focus {
@@ -48,5 +48,5 @@
 }
 
 .errorText {
-  color: #dc2626;
+  color: var(--color-danger-bright);
 }

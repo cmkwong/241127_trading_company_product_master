@@ -2,74 +2,74 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-family: 'Inter', sans-serif;
-  line-height: 1.2;
-  color: #361b0c;
+  font-family: var(--font-family-base);
+  line-height: var(--line-height-tight);
+  color: var(--color-primary);
 }
 
 .size_xl {
-  font-size: 18px;
-  font-weight: 700;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
 }
 
 .size_l {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
 }
 
 .size_m {
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
 }
 
 .size_s {
-  font-size: 12px;
-  font-weight: 600;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
 }
 
 .size_xs {
-  font-size: 11px;
-  font-weight: 600;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
 }
 
 .colorPrimary {
-  color: #0c1e36;
+  color: var(--color-primary);
 }
 
 .colorMuted {
-  color: #64748b;
+  color: var(--color-text-muted);
 }
 
 .colorAccent {
-  color: #fa6d5a;
+  color: var(--color-accent);
 }
 
 .colorBlue {
-  color: #3b82f6;
+  color: var(--color-blue);
 }
 
 .colorSuccess {
-  color: #166534;
+  color: var(--color-success-text);
 }
 
 .colorError {
-  color: #b42318;
+  color: var(--color-danger);
 }
 
 .weight_regular {
-  font-weight: 400;
+  font-weight: var(--font-weight-regular);
 }
 
 .weight_medium {
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
 }
 
 .weight_semibold {
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
 }
 
 .weight_bold {
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
 }
 
 .icon {
@@ -79,7 +79,7 @@
 }
 
 .requiredMark {
-  color: #fa6d5a;
-  font-weight: 700;
+  color: var(--color-accent);
+  font-weight: var(--font-weight-bold);
   line-height: 1;
 }

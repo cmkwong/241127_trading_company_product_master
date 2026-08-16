@@ -20,8 +20,8 @@
 }
 
 .dragOverRow {
-  background-color: #eff6ff;
-  border: 1px dashed #3b82f6;
+  background-color: var(--color-info-bg);
+  border: 1px dashed var(--color-blue);
   border-radius: 8px;
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
   transform: translateY(-1px);
@@ -48,10 +48,10 @@
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background-color: #f1f5f9;
-  color: #475569;
-  font-size: 13px;
-  font-weight: 700;
+  background-color: var(--color-surface-muted);
+  color: var(--color-text-neutral);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
 }
 
 .buttonsContainer {
@@ -67,7 +67,7 @@
   border: none;
   border-radius: 6px;
   background: transparent;
-  color: #94a3b8;
+  color: var(--color-text-subtle);
   cursor: grab;
   display: flex;
   align-items: center;
@@ -86,8 +86,8 @@
 }
 
 .dragHandleButton:hover {
-  color: #475569;
-  background: #f8fafc;
+  color: var(--color-text-neutral);
+  background: var(--color-surface-subtle);
 }
 
 .dragHandleButton:active {
@@ -98,11 +98,11 @@
   position: absolute;
   top: -28px;
   left: 0;
-  font-size: 11px;
-  font-weight: 600;
-  color: #1e5aa8;
-  background: #e9f3ff;
-  border: 1px solid #b8d7ff;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-blue-text-deep);
+  background: var(--color-blue-bg-light);
+  border: 1px solid var(--color-blue-border-light);
   border-radius: 999px;
   padding: 2px 8px;
   pointer-events: none;
@@ -123,7 +123,7 @@
 .addButton:focus-visible,
 .removeButton:focus-visible,
 .dragHandleButton:focus-visible {
-  outline: 2px solid #93c5fd;
+  outline: 2px solid var(--color-blue-focus);
   outline-offset: 2px;
 }
 
@@ -134,22 +134,22 @@
   align-items: center;
   justify-content: center;
   padding: 6px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-border);
   border-radius: 6px;
-  background-color: #ffffff;
-  color: #475569;
+  background-color: var(--color-white);
+  color: var(--color-text-neutral);
   cursor: pointer;
 }
 
 .removeButton:hover {
-  color: #e85b49;
-  border-color: #fecaca;
-  background: #fff7f6;
+  color: var(--color-accent-hover);
+  border-color: var(--color-error-border);
+  background: var(--color-accent-bg-soft-2);
 }
 
 .emptyRowMessage {
-  color: #94a3b8;
-  font-size: 13px;
+  color: var(--color-text-subtle);
+  font-size: var(--font-size-base);
   line-height: 20px;
 }
 

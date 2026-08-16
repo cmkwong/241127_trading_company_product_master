@@ -4,9 +4,9 @@
   align-items: stretch;
   justify-content: flex-start;
   padding: 24px;
-  border: 2px dashed #ccc;
+  border: 2px dashed var(--color-border-grey-faint);
   border-radius: 8px;
-  background-color: #f9f9f9;
+  background-color: var(--color-surface-grey);
   transition: all 0.2s ease;
   min-height: 150px;
   width: 100%;
@@ -20,8 +20,8 @@
   padding: 6px;
   border-style: solid;
   border-width: 1px;
-  border-color: #d1d5db;
-  background-color: #fff;
+  border-color: var(--color-border-soft);
+  background-color: var(--color-white);
 }
 
 .compact .dropZoneContent {
@@ -39,7 +39,7 @@
 }
 
 .compact .uploadText {
-  font-size: 12px;
+  font-size: var(--font-size-md);
   margin-bottom: 0;
 }
 
@@ -96,7 +96,7 @@
   flex: 1;
   border-bottom: none;
   scrollbar-width: thin;
-  scrollbar-color: #c6cfde transparent;
+  scrollbar-color: var(--color-scrollbar) transparent;
 }
 
 .tableCellPreviewRail::-webkit-scrollbar {
@@ -109,7 +109,7 @@
 }
 
 .tableCellPreviewRail::-webkit-scrollbar-thumb {
-  background: #c6cfde;
+  background: var(--color-scrollbar);
   border-radius: 999px;
 }
 
@@ -125,15 +125,15 @@
 .tableCell .uploadPromptWithItems {
   flex: 0 0 auto;
   padding: 0;
-  border: 1px dashed #e2e8f0;
-  background: #f1f5f9;
+  border: 1px dashed var(--color-border);
+  background: var(--color-surface-muted);
 }
 
 .tableCell .uploadIcon {
   width: 18px;
   height: 18px;
   margin-bottom: 0;
-  color: #94a3b8;
+  color: var(--color-text-subtle);
 }
 
 .tableCell .uploadText {
@@ -144,12 +144,12 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px dashed #e2e8f0;
-  background: #f1f5f9;
+  border: 1px dashed var(--color-border);
+  background: var(--color-surface-muted);
 }
 
 .tableCellUploadButton:hover {
-  background: #f6f9ff;
+  background: var(--color-surface-blue-soft);
 }
 
 .figmaImageStrip {
@@ -175,25 +175,25 @@
   margin-top: 0;
   padding: 0;
   border-radius: 12px;
-  border: 1px dashed #e2e8f0;
-  background: #f1f5f9;
+  border: 1px dashed var(--color-border);
+  background: var(--color-surface-muted);
 }
 
 .figmaImageStrip .uploadPromptWithItems {
   flex: 0 0 auto;
-  border: 1px dashed #e2e8f0;
-  background: #f1f5f9;
+  border: 1px dashed var(--color-border);
+  background: var(--color-surface-muted);
 }
 
 .figmaImageStrip .uploadPrompt:hover {
-  background: #f6f9ff;
+  background: var(--color-surface-blue-soft);
 }
 
 .figmaImageStrip .uploadIcon {
   width: 20px;
   height: 20px;
   margin-bottom: 0;
-  color: #94a3b8;
+  color: var(--color-text-subtle);
 }
 
 .figmaImageStrip .uploadIcon img {
@@ -213,7 +213,7 @@
   min-height: 116px;
   padding-bottom: 6px;
   scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 #f1f5f9;
+  scrollbar-color: var(--color-border-strong) var(--color-surface-muted);
 }
 
 .figmaImageStrip .filePreviewContainer {
@@ -227,7 +227,7 @@
   min-height: 116px;
   padding-bottom: 6px;
   scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 #f1f5f9;
+  scrollbar-color: var(--color-border-strong) var(--color-surface-muted);
 }
 
 .figmaImagePreviewRail {
@@ -240,23 +240,23 @@
 }
 
 .figmaImagePreviewRail::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: var(--color-surface-muted);
   border-radius: 3px;
 }
 
 .figmaImagePreviewRail::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: var(--color-border-strong);
   border-radius: 3px;
 }
 
 .dropZone:hover {
-  border-color: #4a90e2;
-  background-color: #f0f8ff;
+  border-color: var(--color-blue-azure);
+  background-color: var(--color-surface-blue-pale);
 }
 
 .dragging {
-  border-color: #4a90e2;
-  background-color: #f0f8ff;
+  border-color: var(--color-blue-azure);
+  background-color: var(--color-surface-blue-pale);
 }
 
 .disabled {
@@ -265,8 +265,8 @@
 }
 
 .disabled:hover {
-  border-color: #ccc;
-  background-color: #f9f9f9;
+  border-color: var(--color-border-grey-faint);
+  background-color: var(--color-surface-grey);
 }
 
 .fileInput {
@@ -298,20 +298,20 @@
 }
 
 .uploadPromptWithItems {
-  border: 1px dashed #4a90e2;
-  background-color: #f0f8ff;
+  border: 1px dashed var(--color-blue-azure);
+  background-color: var(--color-surface-blue-pale);
   padding: 12px;
   flex: 1;
 }
 
 .uploadPrompt:hover {
-  background-color: #e6f2ff;
+  background-color: var(--color-surface-blue-paler);
 }
 
 .uploadIcon {
   width: 36px;
   height: 36px;
-  color: #4a90e2;
+  color: var(--color-blue-azure);
   margin-bottom: 8px;
 }
 
@@ -322,26 +322,26 @@
 }
 
 .uploadText {
-  font-size: 16px;
-  font-weight: 500;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-medium);
   margin-bottom: 8px;
-  color: #333;
+  color: var(--color-text-dark);
   text-align: center;
 }
 
 .uploadPromptWithItems .uploadText {
-  font-size: 14px;
+  font-size: var(--font-size-lg);
   margin-bottom: 4px;
 }
 
 .uploadInfo {
-  font-size: 12px;
-  color: #666;
+  font-size: var(--font-size-md);
+  color: var(--color-text-faint);
   text-align: center;
 }
 
 .uploadPromptWithItems .uploadInfo {
-  font-size: 11px;
+  font-size: var(--font-size-sm);
 }
 
 .hasItems {
@@ -417,9 +417,9 @@
 }
 
 .maxItemsNotice {
-  font-size: 14px;
-  font-weight: 500;
-  color: #666;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-faint);
   text-align: center;
   padding: 8px;
 }

@@ -1,10 +1,10 @@
 .removeRowBtn {
   width: 30px;
   height: 30px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-border);
   border-radius: 8px;
-  background: #ffffff;
-  color: #64748b;
+  background: var(--color-white);
+  color: var(--color-text-muted);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -16,9 +16,9 @@
 }
 
 .removeRowBtn:hover:not(:disabled) {
-  border-color: #cbd5e1;
-  background: #f8fafc;
-  color: #334155;
+  border-color: var(--color-border-strong);
+  background: var(--color-surface-subtle);
+  color: var(--color-text-secondary);
 }
 
 .removeRowBtn:focus-visible {

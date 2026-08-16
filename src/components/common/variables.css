@@ -1,0 +1,208 @@
+:root {
+  /* ===== Brand ===== */
+  --color-primary: #0c1e36; /* navy — headings, topbar, primary text */
+  --color-accent: #fa6d5a; /* coral brand accent */
+  --color-accent-hover: #e85d49;
+  --color-accent-hover-soft: #e55d4b;
+  --color-white: #ffffff;
+  --color-black: #000000;
+
+  /* ===== Blue (primary action / links) ===== */
+  --color-blue: #3b82f6;
+  --color-blue-azure: #4a90e2;
+  --color-blue-hover: #2563eb;
+  --color-blue-dark: #1e40af;
+  --color-blue-deep: #1d4ed8;
+  --color-blue-light: #60a5fa;
+  --color-blue-text-deep: #1e5aa8;
+  --color-blue-focus: #93c5fd;
+  --color-blue-soft: #dbeafe;
+  --color-blue-soft-2: #8ab4f8;
+  --color-blue-border-soft: #dbe4ff;
+  --color-blue-border-bright: #6aa8ff;
+  --color-blue-border-light: #b8d7ff;
+  --color-blue-border-pale: #dce8ff;
+  --color-blue-pale: #eef4ff;
+  --color-blue-tint: #eef6ff;
+  --color-blue-bg-soft: #f8faff;
+  --color-blue-bg-light: #e9f3ff;
+
+  /* ===== Green (success) ===== */
+  --color-success: #22c55e;
+  --color-success-hover: #1cb356;
+  --color-success-text: #166534;
+  --color-success-material: #4caf50;
+  --color-success-neon: #5cf659;
+  --color-success-neon-bright: #60ff52;
+
+  /* ===== Red (danger / error) ===== */
+  --color-danger: #b42318;
+  --color-danger-bright: #dc2626;
+  --color-error: #ef4444;
+  --color-error-dark: #b91c1c;
+  --color-error-material: #f44336;
+  --color-error-red: #ff4d4f;
+
+  /* ===== Amber (warning accents) ===== */
+  --color-amber: #d97706;
+  --color-amber-dark: #c96b04;
+  --color-amber-strong: #f59e0b;
+
+  /* ===== Purple ===== */
+  --color-purple: #8b5cf6;
+
+  /* ===== Info (cyan-blue) ===== */
+  --color-info: #1177bf;
+  --color-info-strong: #0d6efd;
+  --color-info-dark: #1e69d2;
+
+  /* ===== Blue soft backgrounds ===== */
+  --color-info-bg: #eff6ff;
+  --color-info-border: #bfdbfe;
+  --color-info-text: #1e40af;
+  --color-surface-blue-soft: #f6f9ff;
+  --color-surface-blue-light: #f5f9ff;
+  --color-surface-blue-pale: #f0f8ff;
+  --color-surface-blue-paler: #e6f2ff;
+  --color-surface-blue-tint: #f4f8ff;
+  --color-surface-blue-mist: #f8fbff;
+  --color-surface-blue-hover: #edf4ff;
+  --color-surface-blue-selected: #e8f0fe;
+  --color-surface-blue-slate: #f3f5fa;
+  --color-surface-blue-light-2: #f0f7ff;
+  --color-surface-blue-slate-light: #e2ecf8;
+
+  /* ===== Success soft backgrounds ===== */
+  --color-success-bg: #f0fdf4;
+  --color-success-border: #bbf7d0;
+  --color-success-bg-hover: #dcfce7;
+
+  /* ===== Warning soft backgrounds ===== */
+  --color-warning-bg: #fffbeb;
+  --color-warning-border: #fde68a;
+  --color-warning-text: #92400e;
+
+  /* ===== Error soft backgrounds ===== */
+  --color-error-bg: #fef2f2;
+  --color-error-border: #fecaca;
+  --color-error-bg-hover: #fee2e2;
+  --color-error-bg-soft: #fff5f5;
+
+  /* ===== Accent (coral) soft backgrounds ===== */
+  --color-accent-bg: #fff1f0;
+  --color-accent-bg-hover: #ffe5e2;
+  --color-accent-bg-soft: #fff7f5;
+  --color-accent-bg-soft-2: #fff7f6;
+  --color-accent-bg-hover-soft: #ffede9;
+  --color-accent-border-soft: #fed7d1;
+
+  /* ===== Neutral text ===== */
+  --color-text: #0f172a;
+  --color-text-strong: #111827;
+  --color-text-heavy: #1f2937;
+  --color-text-secondary: #334155;
+  --color-text-neutral: #475569;
+  --color-text-medium: #4b5563;
+  --color-text-graphite: #374151;
+  --color-text-muted: #64748b;
+  --color-text-soft: #6b7280;
+  --color-text-slate: #5b6470;
+  --color-text-subtle: #94a3b8;
+  --color-text-on-dark: #d7e2f3;
+  --color-text-light: #e5e7eb;
+  --color-text-dark: #333333;
+  --color-text-inverse-strong: #1f1f1f;
+  --color-text-code: #222222;
+  --color-text-dim: #555555;
+  --color-text-faint: #666666;
+  --color-text-fainter: #888888;
+  --color-text-faintest: #999999;
+  --color-text-disabled: #aaaaaa;
+  --color-text-disabled-soft: #9ca3af;
+  --color-text-placeholder-slate: #9aa0a6;
+  --color-text-pinkish: #fff8f8;
+
+  /* ===== Neutral borders ===== */
+  --color-border: #e2e8f0;
+  --color-border-strong: #cbd5e1;
+  --color-border-soft: #d1d5db;
+  --color-border-muted: #d9d9d9;
+  --color-border-muted-2: #d0d0d0;
+  --color-border-faint: #cfcfcf;
+  --color-border-slate: #cfd8e3;
+  --color-border-blue-slate: #dbe3f2;
+  --color-border-slate-soft: #dbe2ec;
+  --color-border-slate-light: #dbe5ef;
+  --color-border-slate-lighter: #dbe4ef;
+  --color-border-light: #e5e7eb;
+  --color-border-grey: #e0e0e0;
+  --color-border-grey-strong: #bdbdbd;
+  --color-border-grey-soft: #c8c8c8;
+  --color-border-grey-faint: #cccccc;
+  --color-border-grey-fainter: #dddddd;
+  --color-border-ink: #111111;
+  --color-border-on-dark: #404a54;
+  --color-border-hairline: #ececec;
+  --color-border-hairline-2: #edf2f7;
+  --color-border-hairline-3: #f0f0f0;
+
+  /* ===== Neutral surfaces ===== */
+  --color-surface: #ffffff;
+  --color-surface-subtle: #f8fafc;
+  --color-surface-muted: #f1f5f9;
+  --color-surface-grey: #f9f9f9;
+  --color-surface-grey-soft: #f5f5f5;
+  --color-surface-grey-light: #f3f4f6;
+  --color-surface-grey-faint: #f3f3f3;
+  --color-surface-grey-hairline: #f0f0f0;
+  --color-surface-grey-warm: #f7f7f7;
+  --color-surface-faint: #fafafa;
+  --color-surface-soft: #fcfcfc;
+  --color-surface-soft-cool: #fcfcfd;
+  --color-surface-hover-slate: #eef2f7;
+  --color-surface-slate-dot: #d8dee8;
+  --color-scrollbar: #c6cfde;
+  --color-icon-slate: #7a91af;
+
+  /* ===== Dark surfaces ===== */
+  --color-surface-dark: #101418;
+  --color-surface-dark-soft: #333333;
+
+  /* ===== Typography — families ===== */
+  --font-family-base: 'Inter', sans-serif;
+  --font-family-display: 'Outfit', 'Inter', sans-serif;
+  --font-family-heading: 'Instrument Sans', sans-serif;
+  --font-family-mono: 'JetBrains Mono', Consolas, 'Courier New', monospace;
+  --font-family-code: Consolas, 'Courier New', monospace;
+
+  /* ===== Typography — sizes ===== */
+  --font-size-2xs: 9px;
+  --font-size-xs: 10px;
+  --font-size-sm: 11px;
+  --font-size-md: 12px;
+  --font-size-base: 13px;
+  --font-size-lg: 14px;
+  --font-size-lg-plus: 15px;
+  --font-size-xl: 16px;
+  --font-size-2xl: 18px;
+  --font-size-3xl: 20px;
+  --font-size-4xl: 22px;
+  --font-size-5xl: 28px;
+  --font-size-6xl: 32px;
+
+  /* ===== Typography — weights ===== */
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+
+  /* ===== Typography — line heights ===== */
+  --line-height-tight: 1.2;
+  --line-height-snug: 1.25;
+  --line-height-snug-plus: 1.3;
+  --line-height-normal: 1.35;
+  --line-height-relaxed: 1.4;
+  --line-height-loose: 1.45;
+  --line-height-relaxed-2: 1.5;
+}

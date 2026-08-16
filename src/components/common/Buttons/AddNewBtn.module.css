@@ -6,10 +6,10 @@
   padding: 0;
   border: 0;
   background: transparent;
-  color: #fa6d5a;
+  color: var(--color-accent);
   font-family: inherit;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
   line-height: normal;
   white-space: nowrap;
   cursor: pointer;
@@ -20,7 +20,7 @@
 }
 
 .addNewBtn:hover:not(:disabled) {
-  color: #e55d4b;
+  color: var(--color-accent-hover-soft);
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -41,7 +41,7 @@
 }
 
 .addNewBtn:disabled:hover {
-  color: #fa6d5a;
+  color: var(--color-accent);
 }
 
 .addNewIcon {

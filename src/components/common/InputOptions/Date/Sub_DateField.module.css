@@ -9,10 +9,10 @@
   width: 220px;
   display: flex;
   align-items: stretch;
-  border: 1px solid #111;
+  border: 1px solid var(--color-border-ink);
   border-radius: 2px;
   overflow: hidden;
-  background: #fff;
+  background: var(--color-white);
 }
 
 .input {
@@ -21,23 +21,23 @@
   border: none;
   outline: none;
   padding: 8px 10px;
-  font-size: 13px;
+  font-size: var(--font-size-base);
 }
 
 .input::placeholder {
-  color: #9aa0a6;
+  color: var(--color-text-placeholder-slate);
 }
 
 .inputInvalid {
-  background: #fff5f5;
+  background: var(--color-error-bg-soft);
 }
 
 .calendarButton {
   width: 40px;
   min-width: 40px;
   border: none;
-  border-left: 1px solid #111;
-  background: #fff;
+  border-left: 1px solid var(--color-border-ink);
+  background: var(--color-white);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -45,30 +45,30 @@
 }
 
 .calendarButton:hover {
-  background: #f5f5f5;
+  background: var(--color-surface-grey-soft);
 }
 
 .input:disabled {
-  background: #f3f4f6;
-  color: #6b7280;
+  background: var(--color-surface-grey-light);
+  color: var(--color-text-soft);
   cursor: not-allowed;
 }
 
 .calendarButton:disabled {
-  background: #f3f4f6;
-  color: #9ca3af;
+  background: var(--color-surface-grey-light);
+  color: var(--color-text-disabled-soft);
   cursor: not-allowed;
 }
 
 .calendarIcon {
   width: 20px;
   height: 20px;
-  color: #111;
+  color: var(--color-border-ink);
 }
 
 .errorText {
-  color: #b91c1c;
-  font-size: 11px;
+  color: var(--color-error-dark);
+  font-size: var(--font-size-sm);
 }
 
 .popover {
@@ -76,8 +76,8 @@
   top: 0;
   left: 0;
   width: 260px;
-  background: #fff;
-  border: 1px solid #ddd;
+  background: var(--color-white);
+  border: 1px solid var(--color-border-grey-fainter);
   border-radius: 8px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
   z-index: 2000;
@@ -92,13 +92,13 @@
 }
 
 .monthLabel {
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
 }
 
 .navBtn {
   background: transparent;
   border: none;
-  font-size: 18px;
+  font-size: var(--font-size-2xl);
   cursor: pointer;
   padding: 4px 8px;
 }
@@ -118,8 +118,8 @@
 
 .weekday {
   text-align: center;
-  font-size: 12px;
-  color: #666;
+  font-size: var(--font-size-md);
+  color: var(--color-text-faint);
 }
 
 .dayCell,
@@ -130,12 +130,12 @@
 .dayCell {
   border: 1px solid transparent;
   border-radius: 6px;
-  background: #f9f9f9;
+  background: var(--color-surface-grey);
   cursor: pointer;
 }
 
 .dayCell:hover {
-  border-color: #c8c8c8;
+  border-color: var(--color-border-grey-soft);
 }
 
 .outside {
@@ -143,37 +143,37 @@
 }
 
 .today {
-  outline: 1px dashed #888;
+  outline: 1px dashed var(--color-text-fainter);
 }
 
 .selected {
-  background: #2563eb;
-  color: #fff;
+  background: var(--color-blue-hover);
+  color: var(--color-white);
 }
 
 .disabled {
-  background: #f3f3f3;
-  color: #aaa;
+  background: var(--color-surface-grey-faint);
+  color: var(--color-text-disabled);
   cursor: not-allowed;
 }
 
 .timeRow {
   margin-top: 8px;
   padding-top: 8px;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--color-border-light);
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
 .timeLabel {
-  font-size: 12px;
-  color: #4b5563;
+  font-size: var(--font-size-md);
+  color: var(--color-text-medium);
 }
 
 .timeInput {
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--color-border-soft);
   border-radius: 6px;
   padding: 4px 8px;
-  font-size: 12px;
+  font-size: var(--font-size-md);
 }

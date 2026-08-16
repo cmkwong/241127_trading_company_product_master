@@ -3,13 +3,13 @@
   min-width: 0;
   box-sizing: border-box;
   padding: 10px 16px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-border);
   border-radius: 8px;
-  background: #ffffff;
-  color: #0c1e36;
+  background: var(--color-white);
+  color: var(--color-primary);
   font-family: inherit;
-  font-size: 14px;
-  font-weight: 400;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-regular);
   line-height: normal;
   transition:
     border-color 0.16s ease,
@@ -18,22 +18,22 @@
 }
 
 .textField:hover:not(:disabled) {
-  border-color: #cbd5e1;
+  border-color: var(--color-border-strong);
 }
 
 .textField:focus {
   outline: none;
-  border-color: #94a3b8;
+  border-color: var(--color-text-subtle);
   box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.22);
 }
 
 .textField::placeholder {
-  color: #94a3b8;
+  color: var(--color-text-subtle);
 }
 
 .textField:disabled {
-  background-color: #f8fafc;
-  color: #94a3b8;
+  background-color: var(--color-surface-subtle);
+  color: var(--color-text-subtle);
   cursor: not-allowed;
   opacity: 1;
 }
@@ -54,10 +54,10 @@
   transform: translateY(-50%);
   width: 28px;
   height: 28px;
-  border: 1px solid #dbe4ff;
+  border: 1px solid var(--color-blue-border-soft);
   border-radius: 8px;
-  background: #f8faff;
-  color: #1d4ed8;
+  background: var(--color-blue-bg-soft);
+  color: var(--color-blue-deep);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -72,9 +72,9 @@
 }
 
 .openLinkButton:hover:not(:disabled) {
-  border-color: #93c5fd;
-  background: #eef4ff;
-  color: #1e40af;
+  border-color: var(--color-blue-focus);
+  background: var(--color-blue-pale);
+  color: var(--color-blue-dark);
   transform: translateY(-50%);
   box-shadow: 0 2px 6px rgba(30, 64, 175, 0.16);
 }
@@ -85,17 +85,17 @@
 
 .openLinkButton:focus-visible {
   outline: none;
-  border-color: #60a5fa;
+  border-color: var(--color-blue-light);
   box-shadow:
     0 0 0 3px rgba(59, 130, 246, 0.24),
     0 2px 8px rgba(37, 99, 235, 0.16);
 }
 
 .openLinkButton:disabled {
-  color: #94a3b8;
+  color: var(--color-text-subtle);
   cursor: not-allowed;
-  border-color: #e2e8f0;
-  background: #f8fafc;
+  border-color: var(--color-border);
+  background: var(--color-surface-subtle);
   box-shadow: none;
 }
 

@@ -8,6 +8,7 @@ import { SupplierContext } from '../../../store/SupplierContext';
 import { MasterContext } from '../../../store/MasterContext';
 import { canProceedWithRecordSwitch } from '../../../utils/contextDataUtils';
 import ModuleTopBar from './ModuleTopBar';
+import NavButton from '../../common/NavButton/NavButton';
 import styles from './TopBar.module.css';
 
 const VIEW_PATH_BY_KEY = {
@@ -189,62 +190,48 @@ const TopBar = () => {
             </div>
           </div>
           <div className={styles.navLinks}>
-            <button
-              className={`${styles.navBtn} ${
-                activeView === 'product' ? styles.active : ''
-              }`}
+            <NavButton
+              active={activeView === 'product'}
               onClick={() => handleViewSwitch('product')}
             >
               Product Master
-            </button>
-            <button
-              className={`${styles.navBtn} ${
-                activeView === 'supplier' ? styles.active : ''
-              }`}
+            </NavButton>
+            <NavButton
+              active={activeView === 'supplier'}
               onClick={() => handleViewSwitch('supplier')}
             >
               Supplier Master
-            </button>
-            <button
-              className={`${styles.navBtn} ${
-                activeView === 'salesQuotation' ? styles.active : ''
-              }`}
+            </NavButton>
+            <NavButton
+              active={activeView === 'salesQuotation'}
               onClick={() => handleViewSwitch('salesQuotation')}
             >
               Sales Quotation
-            </button>
-            <button
-              className={`${styles.navBtn} ${
-                activeView === 'purchaseRequest' ? styles.active : ''
-              }`}
+            </NavButton>
+            <NavButton
+              active={activeView === 'purchaseRequest'}
               onClick={() => handleViewSwitch('purchaseRequest')}
             >
               Purchase Request
-            </button>
-            <button
-              className={`${styles.navBtn} ${
-                activeView === 'apInvoice' ? styles.active : ''
-              }`}
+            </NavButton>
+            <NavButton
+              active={activeView === 'apInvoice'}
               onClick={() => handleViewSwitch('apInvoice')}
             >
               AP Invoice
-            </button>
-            <button
-              className={`${styles.navBtn} ${
-                activeView === 'customer' ? styles.active : ''
-              }`}
+            </NavButton>
+            <NavButton
+              active={activeView === 'customer'}
               onClick={() => handleViewSwitch('customer')}
             >
               Customer Master
-            </button>
-            <button
-              className={`${styles.navBtn} ${
-                activeView === 'masterControl' ? styles.active : ''
-              }`}
+            </NavButton>
+            <NavButton
+              active={activeView === 'masterControl'}
               onClick={() => handleViewSwitch('masterControl')}
             >
               Master Control
-            </button>
+            </NavButton>
           </div>
         </div>
 

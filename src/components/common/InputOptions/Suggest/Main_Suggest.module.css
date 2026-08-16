@@ -23,7 +23,7 @@
 .inputContainer input.suggestInput {
   width: 100%;
   padding: 12px 16px 12px 42px;
-  font-size: 14px;
+  font-size: var(--font-size-lg);
 }
 
 .searchIcon {
@@ -33,7 +33,7 @@
   z-index: 1;
   width: 16px;
   height: 16px;
-  color: #94a3b8;
+  color: var(--color-text-subtle);
   pointer-events: none;
   transform: translateY(-50%);
 }
@@ -52,28 +52,28 @@
   box-sizing: border-box;
   max-height: 200px;
   overflow-y: auto;
-  background-color: #ffffff;
-  border: 1px solid #e2e8f0;
+  background-color: var(--color-white);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   box-shadow: 0 10px 24px rgba(15, 23, 42, 0.14);
   z-index: 10;
   margin: 0;
   padding: 4px;
   list-style: none;
-  color: #0c1e36;
-  font-size: 14px;
+  color: var(--color-primary);
+  font-size: var(--font-size-lg);
 }
 
 .suggestionItem {
   padding: 8px;
   border-radius: 4px;
   cursor: pointer;
-  line-height: 1.35;
+  line-height: var(--line-height-normal);
 }
 
 .suggestionItem:hover,
 .suggestionItem:focus {
-  background-color: #f1f5f9;
+  background-color: var(--color-surface-muted);
   outline: none;
 }
 
@@ -84,17 +84,17 @@
 }
 
 .suggestionTitle {
-  font-size: 14px;
-  font-weight: 600;
-  color: #0c1e36;
-  line-height: 1.35;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary);
+  line-height: var(--line-height-normal);
 }
 
 .suggestionMeta {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  font-size: 12px;
-  color: #64748b;
-  line-height: 1.35;
+  font-size: var(--font-size-md);
+  color: var(--color-text-muted);
+  line-height: var(--line-height-normal);
 }

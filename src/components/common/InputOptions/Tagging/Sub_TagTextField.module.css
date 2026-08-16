@@ -6,13 +6,13 @@
   /* height: 28px; */
   border-radius: 5px;
   /* overflow: hidden; */
-  border: 1px solid #000000;
+  border: 1px solid var(--color-black);
   /* background-color: #fff8f8; */
   padding: 0 8px 0 8px;
 }
 
 .inputContainer:focus-within {
-  border: 1px solid #bdbdbd;
+  border: 1px solid var(--color-border-grey-strong);
 }
 
 .inputField {

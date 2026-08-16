@@ -10,14 +10,14 @@
   align-items: center;
   margin: 0;
   border-radius: 6px;
-  border: 1px solid #fa6d5a;
-  background: #fff1f0;
-  color: #fa6d5a;
+  border: 1px solid var(--color-accent);
+  background: var(--color-accent-bg);
+  color: var(--color-accent);
   transition: background-color 0.15s ease;
 }
 
 .container:hover {
-  background: #ffe5e2;
+  background: var(--color-accent-bg-hover);
 }
 
 .label {
@@ -25,8 +25,8 @@
   padding: 0;
   white-space: nowrap;
   color: inherit;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
   line-height: normal;
 }
 
@@ -43,8 +43,8 @@
   cursor: pointer;
   padding: 0;
   font-family: inherit;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
   line-height: 1;
   transition: background-color 0.15s ease;
 }

@@ -1,0 +1,24 @@
+.navBtn {
+  padding: 8px 14px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: var(--font-size-xl);
+  white-space: nowrap;
+  color: var(--color-text-on-dark);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-snug);
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.navBtn:hover {
+  background-color: rgba(255, 255, 255, 0.12);
+  color: var(--color-white);
+}
+
+.navBtn.active {
+  background-color: var(--color-accent);
+  color: var(--color-white);
+  font-weight: var(--font-weight-semibold);
+}

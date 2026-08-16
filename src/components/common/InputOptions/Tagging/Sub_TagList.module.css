@@ -8,37 +8,37 @@
   max-height: 320px;
   z-index: 100;
   border-radius: 8px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
   gap: 8px;
   overflow-y: auto;
   overflow-x: hidden;
   padding: 16px;
-  background-color: #f8fafc;
+  background-color: var(--color-surface-subtle);
   box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
 }
 
 .notFound {
   padding: 8px;
   text-align: center;
-  color: #94a3b8;
-  font-size: 14px;
+  color: var(--color-text-subtle);
+  font-size: var(--font-size-lg);
 }
 
 .addNewHint {
   padding: 8px;
   text-align: center;
-  color: #fa6d5a;
-  background-color: #fff7f5;
-  border: 1px solid #fed7d1;
+  color: var(--color-accent);
+  background-color: var(--color-accent-bg-soft);
+  border: 1px solid var(--color-accent-border-soft);
   border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-medium);
   width: 100%;
   cursor: pointer;
 }
 
 .addNewHint:hover {
-  background-color: #ffede9;
+  background-color: var(--color-accent-bg-hover-soft);
 }

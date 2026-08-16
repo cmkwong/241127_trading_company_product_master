@@ -1,9 +1,9 @@
 .emptyState {
-  border: 1px dashed #cbd5e1;
+  border: 1px dashed var(--color-border-strong);
   border-radius: 8px;
   padding: 16px;
-  color: #64748b;
-  font-size: 13px;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-base);
   text-align: center;
-  background: #f8fafc;
+  background: var(--color-surface-subtle);
 }

@@ -11,8 +11,8 @@
   align-items: center;
   gap: 6px;
   margin-bottom: 0;
-  font-size: 12px;
-  color: #333;
+  font-size: var(--font-size-md);
+  color: var(--color-text-dark);
   user-select: none;
 }
 

@@ -50,7 +50,7 @@ const IconUpload = ({
         }}
       />
 
-      <div
+      <label
         htmlFor={inputId}
         className={styles.thumbBtn}
         title={title}
@@ -79,7 +79,7 @@ const IconUpload = ({
             </svg>
           </span>
         )}
-      </div>
+      </label>
     </div>
   );
 };

@@ -39,10 +39,109 @@ const Sub_SequenceEditorModal = ({
   selectionLabel = 'images',
   showSequencePreviewPanel = false,
   previewItems = [],
+  onReorderPreview = () => {},
   dropZoneProps,
   children,
 }) => {
   const [showSortMenu, setShowSortMenu] = useState(false);
+  const [previewDragIndex, setPreviewDragIndex] = useState(null);
+  const [previewDropTarget, setPreviewDropTarget] = useState({
+    index: null,
+    position: null,
+  });
+
+  const canReorderPreview =
+    showSequencePreviewPanel &&
+    previewItems.length > 1 &&
+    !dropZoneProps?.disabled &&
+    typeof onReorderPreview === 'function';
+
+  const handlePreviewDragStart = (event, index) => {
+    if (!canReorderPreview) {
+      event.preventDefault();
+      return;
+    }
+
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData('text/plain', String(index));
+    setPreviewDragIndex(index);
+  };
+
+  const handlePreviewDragOver = (event, index) => {
+    if (!canReorderPreview) {
+      return;
+    }
+
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+
+    const rect = event.currentTarget.getBoundingClientRect();
+    const position =
+      event.clientY < rect.top + rect.height / 2 ? 'before' : 'after';
+
+    if (
+      previewDropTarget.index !== index ||
+      previewDropTarget.position !== position
+    ) {
+      setPreviewDropTarget({ index, position });
+    }
+  };
+
+  const handlePreviewDragLeave = (event) => {
+    if (event.currentTarget.contains(event.relatedTarget)) {
+      return;
+    }
+
+    setPreviewDropTarget({ index: null, position: null });
+  };
+
+  const handlePreviewDrop = (event, index) => {
+    if (!canReorderPreview) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const dragIndex = Number.parseInt(
+      event.dataTransfer.getData('text/plain'),
+      10,
+    );
+    if (Number.isNaN(dragIndex)) {
+      setPreviewDropTarget({ index: null, position: null });
+      setPreviewDragIndex(null);
+      return;
+    }
+
+    const position =
+      previewDropTarget.index === index
+        ? previewDropTarget.position
+        : event.clientY <
+            event.currentTarget.getBoundingClientRect().top +
+              event.currentTarget.getBoundingClientRect().height / 2
+          ? 'before'
+          : 'after';
+
+    if (
+      (dragIndex === index && position === 'before') ||
+      (dragIndex === index && position === 'after')
+    ) {
+      setPreviewDropTarget({ index: null, position: null });
+      setPreviewDragIndex(null);
+      return;
+    }
+
+    const insertIndex = position === 'after' ? index + 1 : index;
+    onReorderPreview(dragIndex, insertIndex);
+
+    setPreviewDropTarget({ index: null, position: null });
+    setPreviewDragIndex(null);
+  };
+
+  const handlePreviewDragEnd = () => {
+    setPreviewDropTarget({ index: null, position: null });
+    setPreviewDragIndex(null);
+  };
 
   if (!isOpen) return null;
 
@@ -286,7 +385,38 @@ const Sub_SequenceEditorModal = ({
               {previewItems.map((item, itemIndex) => (
                 <article
                   key={item?.id || `${item?.name || 'preview'}-${itemIndex}`}
-                  className={styles.sequencePreviewCard}
+                  className={`${styles.sequencePreviewCard} ${
+                    canReorderPreview ? styles.sequencePreviewCardDraggable : ''
+                  } ${
+                    previewDragIndex === itemIndex
+                      ? styles.sequencePreviewCardDragging
+                      : ''
+                  } ${
+                    previewDropTarget.index === itemIndex &&
+                    previewDropTarget.position === 'before'
+                      ? styles.sequencePreviewCardDropBefore
+                      : ''
+                  } ${
+                    previewDropTarget.index === itemIndex &&
+                    previewDropTarget.position === 'after'
+                      ? styles.sequencePreviewCardDropAfter
+                      : ''
+                  }`}
+                  draggable={canReorderPreview}
+                  onDragStart={(event) =>
+                    handlePreviewDragStart(event, itemIndex)
+                  }
+                  onDragOver={(event) =>
+                    handlePreviewDragOver(event, itemIndex)
+                  }
+                  onDragLeave={handlePreviewDragLeave}
+                  onDrop={(event) => handlePreviewDrop(event, itemIndex)}
+                  onDragEnd={handlePreviewDragEnd}
+                  title={
+                    canReorderPreview
+                      ? 'Drag to reorder this preview image'
+                      : undefined
+                  }
                 >
                   <div className={styles.sequencePreviewImageWrap}>
                     {item?.url ? (
@@ -300,6 +430,9 @@ const Sub_SequenceEditorModal = ({
                         No Preview
                       </div>
                     )}
+                    <div className={styles.sequencePreviewOrderBadge}>
+                      {itemIndex + 1}
+                    </div>
                   </div>
 
                   {/* <div className={styles.sequencePreviewMeta}>
@@ -362,6 +495,7 @@ Sub_SequenceEditorModal.propTypes = {
       url: PropTypes.string,
     }),
   ),
+  onReorderPreview: PropTypes.func,
   dropZoneProps: PropTypes.shape({
     onFileSelect: PropTypes.func.isRequired,
     isDragging: PropTypes.bool.isRequired,

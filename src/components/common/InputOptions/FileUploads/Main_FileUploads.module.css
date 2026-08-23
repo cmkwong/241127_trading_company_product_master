@@ -482,7 +482,33 @@
   background: var(--color-white);
 }
 
+.sequencePreviewCardDraggable {
+  cursor: grab;
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.16s ease,
+    border-color 0.16s ease;
+}
+
+.sequencePreviewCardDraggable:active {
+  cursor: grabbing;
+}
+
+.sequencePreviewCardDragging {
+  opacity: 0.58;
+  transform: scale(0.99);
+}
+
+.sequencePreviewCardDropBefore {
+  border-top: 3px solid var(--color-blue-focus);
+}
+
+.sequencePreviewCardDropAfter {
+  border-bottom: 3px solid var(--color-blue-focus);
+}
+
 .sequencePreviewImageWrap {
+  position: relative;
   width: 100%;
   height: auto;
 }
@@ -498,6 +524,24 @@
   color: var(--color-text-subtle);
   font-size: var(--font-size-md);
   font-weight: var(--font-weight-medium);
+}
+
+.sequencePreviewOrderBadge {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.82);
+  color: var(--color-white);
+  font-size: var(--font-size-sm);
+  line-height: 22px;
+  font-weight: var(--font-weight-semibold);
+  text-align: center;
+  pointer-events: none;
+  z-index: 1;
 }
 
 .sequencePreviewMeta {

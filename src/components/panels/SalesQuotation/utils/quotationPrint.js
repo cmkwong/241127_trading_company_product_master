@@ -228,6 +228,7 @@ const buildProductLineItems = ({
 
       return {
         itemName:
+          toSafeString(row?.override_product_name) ||
           toSafeString(product?.name) ||
           toSafeString(product?.label) ||
           'Product Item',

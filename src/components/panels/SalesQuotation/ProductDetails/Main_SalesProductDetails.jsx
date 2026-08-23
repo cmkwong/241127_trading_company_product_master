@@ -117,6 +117,7 @@ const Main_SalesProductDetails = ({
         discount_percent: 0,
         cost_price: '',
         details: '',
+        override_product_name: '',
         remark: '',
         selected: true,
         ari_selected: true,
@@ -189,6 +190,7 @@ const Main_SalesProductDetails = ({
         discount_percent: 0,
         cost_price: '',
         details: '',
+        override_product_name: '',
         remark: '',
         selected: true,
         ari_selected: true,
@@ -491,6 +493,23 @@ const Main_SalesProductDetails = ({
               }
             />
           </div>
+        ),
+      },
+      {
+        key: 'override_product_name',
+        label: 'Override Product Name (Print)',
+        size: 'XXL',
+        sortType: 'string',
+        nextRow: true,
+        renderCell: (row) => (
+          <Main_TextField
+            className={styles.cellInput}
+            defaultValue={row.override_product_name || ''}
+            placeholder="Override print product name"
+            onChange={(ov, nv) =>
+              handleUpsertProductDetail(row, { override_product_name: nv })
+            }
+          />
         ),
       },
       {

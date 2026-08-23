@@ -865,6 +865,7 @@ const Main_FileUploads = (props) => {
           selectionLabel={mode === 'image' ? 'images' : 'files'}
           showSequencePreviewPanel={mode === 'image'}
           previewItems={sequencePreviewItems}
+          onReorderPreview={handleMoveItem}
           dropZoneProps={{
             ...baseDropZoneProps,
             testIdPrefix: `${testIdPrefix}-sequence-editor`,

@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import Main_InputContainer from '../../../common/Container/Main_InputContainer';
 import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
 import Main_Suggest from '../../../common/InputOptions/Suggest/Main_Suggest';
+import Sub_SuggestionCard from '../../../common/InputOptions/Suggest/Sub_SuggestionCard';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
 import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
 import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_FileUploads';
@@ -321,33 +322,22 @@ const Main_SalesProductDetails = ({
                 )
               }
               renderSuggestion={(suggestion) => (
-                <div className={styles.suggestionContent}>
-                  <div className={styles.suggestionIconWrapper}>
-                    {resolveIconUrl(suggestion?.icon_url) ? (
-                      <img
-                        src={resolveIconUrl(suggestion?.icon_url)}
-                        alt={suggestion?.name || 'Product icon'}
-                        className={styles.suggestionIcon}
-                        loading="lazy"
-                      />
-                    ) : (
-                      <span className={styles.suggestionIconFallback}>?</span>
-                    )}
-                  </div>
-                  <div className={styles.suggestionTextBlock}>
-                    <div className={styles.suggestionTitle}>
-                      {suggestion?.name || ''}
-                    </div>
-                    <div className={styles.suggestionMeta}>
-                      <span>
-                        Category: {suggestion?.category_name || 'Uncategorized'}
-                      </span>
-                      <span>
-                        Alibaba ID: {suggestion?.alibaba_id_value || '-'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
+                <Sub_SuggestionCard
+                  iconUrl={resolveIconUrl(suggestion?.icon_url)}
+                  iconAlt={suggestion?.name || 'Product icon'}
+                  title={suggestion?.name || ''}
+                  metaItems={[
+                    {
+                      label: 'Category',
+                      value: suggestion?.category_name || 'Uncategorized',
+                    },
+                    {
+                      label: 'Alibaba ID',
+                      value: suggestion?.alibaba_id_value || '-',
+                    },
+                  ]}
+                  linkTo={`/product_master/${suggestion?.id || ''}`}
+                />
               )}
               onChange={(ov, nv) => {
                 if (!String(nv || '').trim()) {

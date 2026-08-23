@@ -128,6 +128,8 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
   const iconInFlightIdsRef = useRef(new Set());
   const iconMemoryEntriesRef = useRef([]); // [{ id, url, bytes }]
   const iconMemoryBytesRef = useRef(0);
+  const pageDataLoadedWithMappingsRef = useRef(false);
+  const getProductDataRef = useRef(null);
 
   const productBase64Config = useMemo(() => {
     return {
@@ -545,6 +547,8 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
       }
 
       setSelectedProductId(id);
+      pageDataLoadedWithMappingsRef.current =
+        Object.keys(productBase64Config || {}).length > 0;
 
       // Start async fetch to retrieve full product data (including base64 images)
       (async () => {
@@ -594,6 +598,8 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
             setPageData(product);
             setOriginalPageData(JSON.parse(JSON.stringify(product)));
             pageDataUrlRegistryRef.current = urlRegistry;
+            pageDataLoadedWithMappingsRef.current =
+              Object.keys(productBase64Config || {}).length > 0;
           } else {
             console.error('getProductData: no product returned for id', id);
           }
@@ -615,6 +621,29 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
       discardCurrentProductUnsavedChanges,
     ],
   );
+
+  useEffect(() => {
+    getProductDataRef.current = getProductData;
+  }, [getProductData]);
+
+  // When file mappings arrive after the product was already loaded (e.g. on a
+  // fresh tab opened directly on a product route), re-fetch the product so its
+  // base64 images can be converted to object URLs now that mappings exist.
+  useEffect(() => {
+    const hasMappings = Object.keys(productBase64Config || {}).length > 0;
+    if (!hasMappings || isFileMappingsLoading) return;
+
+    const productId = String(selectedProductId || pageData?.id || '').trim();
+    if (!productId) return;
+    if (pageDataLoadedWithMappingsRef.current) return;
+
+    getProductDataRef.current(productId);
+  }, [
+    productBase64Config,
+    isFileMappingsLoading,
+    selectedProductId,
+    pageData?.id,
+  ]);
 
   /**
    * Upsert (Update or Insert) data in a specific table

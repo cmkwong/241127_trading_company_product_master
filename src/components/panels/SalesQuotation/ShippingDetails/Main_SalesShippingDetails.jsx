@@ -2,6 +2,7 @@ import { useCallback, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import Main_InputContainer from '../../../common/Container/Main_InputContainer';
 import Main_Suggest from '../../../common/InputOptions/Suggest/Main_Suggest';
+import Sub_SuggestionCard from '../../../common/InputOptions/Suggest/Sub_SuggestionCard';
 import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
 import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
@@ -1362,17 +1363,20 @@ const Main_SalesShippingDetails = ({
               )
             }
             renderSuggestion={(suggestion) => (
-              <div className={styles.suggestionContent}>
-                <div className={styles.suggestionTitle}>
-                  {suggestion?.name || ''}
-                </div>
-                <div className={styles.suggestionMeta}>
-                  <span>
-                    Supplier Type: {suggestion?.supplier_type_name || 'Unknown'}
-                  </span>
-                  <span>Supplier Code: {suggestion?.supplier_code || '-'}</span>
-                </div>
-              </div>
+              <Sub_SuggestionCard
+                title={suggestion?.name || ''}
+                metaItems={[
+                  {
+                    label: 'Supplier Type',
+                    value: suggestion?.supplier_type_name || 'Unknown',
+                  },
+                  {
+                    label: 'Supplier Code',
+                    value: suggestion?.supplier_code || '-',
+                  },
+                ]}
+                linkTo={`/supplier_master/${suggestion?.id || ''}`}
+              />
             )}
             onChange={(ov, nv) => {
               if (!String(nv || '').trim()) {

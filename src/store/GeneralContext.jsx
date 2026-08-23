@@ -10,9 +10,37 @@ import { useAuthContext } from './AuthContext';
 
 export const GeneralContext = createContext();
 
+const FILE_MAPPINGS_STORAGE_KEY = 'trade_business_file_mappings';
+
+const readStoredFileMappings = () => {
+  try {
+    const raw = window.localStorage.getItem(FILE_MAPPINGS_STORAGE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch {
+    return {};
+  }
+};
+
+const persistFileMappings = (mappings) => {
+  try {
+    if (!mappings || typeof mappings !== 'object') {
+      window.localStorage.removeItem(FILE_MAPPINGS_STORAGE_KEY);
+      return;
+    }
+    window.localStorage.setItem(
+      FILE_MAPPINGS_STORAGE_KEY,
+      JSON.stringify(mappings),
+    );
+  } catch {
+    // Ignore storage failures (e.g. quota exceeded / private browsing).
+  }
+};
+
 export const GeneralContext_Provider = ({ children }) => {
   const { token } = useAuthContext();
-  const [fileMappings, setFileMappings] = useState({});
+  const [fileMappings, setFileMappings] = useState(readStoredFileMappings);
   const [isFileMappingsLoading, setIsFileMappingsLoading] = useState(false);
   const [fileMappingsError, setFileMappingsError] = useState(null);
 
@@ -20,6 +48,7 @@ export const GeneralContext_Provider = ({ children }) => {
     if (!token) {
       setFileMappings({});
       setFileMappingsError(null);
+      persistFileMappings({});
       return {};
     }
 
@@ -37,11 +66,13 @@ export const GeneralContext_Provider = ({ children }) => {
         mappings && typeof mappings === 'object' ? mappings : {};
 
       setFileMappings(normalized);
+      persistFileMappings(normalized);
       return normalized;
     } catch (error) {
       console.error('Failed to fetch trade business file mappings:', error);
       setFileMappingsError(error);
       setFileMappings({});
+      persistFileMappings({});
       return {};
     } finally {
       setIsFileMappingsLoading(false);

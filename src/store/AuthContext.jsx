@@ -2,7 +2,6 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
   useState,
 } from 'react';
@@ -12,6 +11,16 @@ import { apiPost } from '../utils/crud';
 const DEFAULT_TOKEN_ENDPOINT =
   'http://localhost:3001/api/v1/trade_business/auth/getToken';
 
+const TOKEN_STORAGE_KEY = 'trade_business_token';
+
+const readStoredToken = () => {
+  try {
+    return window.localStorage.getItem(TOKEN_STORAGE_KEY);
+  } catch {
+    return null;
+  }
+};
+
 const AuthContext = createContext(null);
 
 export const AuthContext_Provider = ({
@@ -19,7 +28,7 @@ export const AuthContext_Provider = ({
   tokenEndpoint,
   tokenRequestBody,
 }) => {
-  const [token, setToken] = useState(null);
+  const [token, setToken] = useState(readStoredToken);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -49,9 +58,21 @@ export const AuthContext_Provider = ({
           throw new Error('Token endpoint responded without a token value.');
         }
 
+        try {
+          window.localStorage.setItem(TOKEN_STORAGE_KEY, resolvedToken);
+        } catch {
+          // Ignore storage failures (e.g. private browsing / quota).
+        }
+
         setToken(resolvedToken);
         return resolvedToken;
       } catch (err) {
+        try {
+          window.localStorage.removeItem(TOKEN_STORAGE_KEY);
+        } catch {
+          // Ignore storage failures.
+        }
+
         setToken(null);
         setError(err);
         throw err;
@@ -63,6 +84,12 @@ export const AuthContext_Provider = ({
   );
 
   const clearToken = useCallback(() => {
+    try {
+      window.localStorage.removeItem(TOKEN_STORAGE_KEY);
+    } catch {
+      // Ignore storage failures.
+    }
+
     setToken(null);
   }, []);
 

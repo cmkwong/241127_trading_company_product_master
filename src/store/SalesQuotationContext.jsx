@@ -23,6 +23,11 @@ import { useAuthContext } from './AuthContext';
 import { useGeneralContext } from './GeneralContext';
 import { useMasterContext } from './MasterContext';
 import { pickDisplayOrderPreferredName } from './productNameUtils';
+import {
+  readJson,
+  stripBlobUrls,
+  writeJson,
+} from '../utils/TanStackUtils/listCache';
 
 export const SalesQuotationContext = createContext();
 
@@ -165,6 +170,15 @@ const FALLBACK_INCOTERM_OPTIONS = [
 ];
 
 const toSafeString = (value) => String(value || '').trim();
+
+const SALES_QUOTATION_CACHE_KEY = 'trade_business_sales_quotation_cache';
+
+const readStoredQuotationCache = () =>
+  readJson(SALES_QUOTATION_CACHE_KEY, null);
+
+const persistQuotationCache = (cache) => {
+  writeJson(SALES_QUOTATION_CACHE_KEY, stripBlobUrls(cache || {}));
+};
 
 const toIsoNow = () => new Date().toISOString();
 
@@ -715,15 +729,26 @@ export const SalesQuotationContext_Provider = ({ children }) => {
     supplierType,
   } = useMasterContext();
 
-  const [quotations, setQuotations] = useState([]);
+  const storedCacheRef = useRef(readStoredQuotationCache());
+  const storedCache = storedCacheRef.current;
+
+  const [quotations, setQuotations] = useState(storedCache?.quotations ?? []);
   const [originalQuotationMap, setOriginalQuotationMap] = useState({});
   const [selectedQuotationId, setSelectedQuotationId] = useState(null);
   const [isSalesQuotationsLoading, setIsSalesQuotationsLoading] =
     useState(false);
-  const [customerOptions, setCustomerOptions] = useState([]);
-  const [customerAddressOptions, setCustomerAddressOptions] = useState([]);
-  const [supplierOptions, setSupplierOptions] = useState([]);
-  const [productOptions, setProductOptions] = useState([]);
+  const [customerOptions, setCustomerOptions] = useState(
+    storedCache?.customerOptions ?? [],
+  );
+  const [customerAddressOptions, setCustomerAddressOptions] = useState(
+    storedCache?.customerAddressOptions ?? [],
+  );
+  const [supplierOptions, setSupplierOptions] = useState(
+    storedCache?.supplierOptions ?? [],
+  );
+  const [productOptions, setProductOptions] = useState(
+    storedCache?.productOptions ?? [],
+  );
   const [saveError, setSaveError] = useState('');
   const [purchaseCosts, setPurchaseCosts] = useState(null);
 
@@ -825,6 +850,11 @@ export const SalesQuotationContext_Provider = ({ children }) => {
       setSelectedQuotationId((previousId) => {
         const previousExists = sortedRows.some((row) => row.id === previousId);
         return previousExists ? previousId : null;
+      });
+
+      persistQuotationCache({
+        ...readStoredQuotationCache(),
+        quotations: sortedRows,
       });
 
       return sortedRows;
@@ -1334,6 +1364,14 @@ export const SalesQuotationContext_Provider = ({ children }) => {
     setCustomerAddressOptions(normalizedAddressOptions);
     setSupplierOptions(normalizedSupplierOptions);
     setProductOptions(normalizedProductOptions);
+
+    persistQuotationCache({
+      ...readStoredQuotationCache(),
+      customerOptions: normalizedCustomerOptions,
+      customerAddressOptions: normalizedAddressOptions,
+      supplierOptions: normalizedSupplierOptions,
+      productOptions: normalizedProductOptions,
+    });
   }, [
     category,
     fetchMasterCustomerTypes,

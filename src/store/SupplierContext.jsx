@@ -27,9 +27,26 @@ import { upsertNestedData } from '../utils/crudObj';
 import { apiGet, apiPatch, apiDelete, apiPost } from '../utils/crud';
 import { useAuthContext } from './AuthContext';
 import { useGeneralContext } from './GeneralContext';
+import {
+  readJson,
+  stripBlobUrls,
+  writeJson,
+} from '../utils/TanStackUtils/listCache';
 import { v4 as uuidv4 } from 'uuid';
 
 export const SupplierContext = createContext();
+
+const SUPPLIERS_LIST_STORAGE_KEY = 'trade_business_suppliers_list';
+
+const readStoredSuppliers = () =>
+  readJson(SUPPLIERS_LIST_STORAGE_KEY, { suppliers: [] });
+
+const persistSuppliers = (suppliersState) => {
+  writeJson(
+    SUPPLIERS_LIST_STORAGE_KEY,
+    stripBlobUrls({ suppliers: suppliersState?.suppliers ?? [] }),
+  );
+};
 
 export const SupplierContext_Provider = ({ children, initialData = {} }) => {
   const { token } = useAuthContext();
@@ -39,7 +56,7 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState(null);
-  const [suppliers, setSuppliers] = useState({ suppliers: [] });
+  const [suppliers, setSuppliers] = useState(readStoredSuppliers);
   const [isSuppliersLoading, setIsSuppliersLoading] = useState(false);
   const [selectedSupplierId, setSelectedSupplierId] = useState(null);
   const [comparisonKeys, setComparisonKeys] = useState([]);
@@ -96,6 +113,7 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
       }
 
       setSuppliers(processedSuppliers || { suppliers: [] });
+      persistSuppliers(processedSuppliers || { suppliers: [] });
       objectUrlRegistryRef.current = urlRegistry;
       hasFetchedWithMappingsRef.current = hasMappings;
     } catch (error) {
@@ -396,11 +414,13 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
           setOriginalPageData(savedSupplierData);
 
           setSuppliers((prevSuppliersState) => {
-            return mergeEntityIntoStateList({
+            const nextState = mergeEntityIntoStateList({
               prevState: prevSuppliersState,
               listKey: 'suppliers',
               entity: savedSupplierData,
             });
+            persistSuppliers(nextState);
+            return nextState;
           });
         }
 
@@ -440,12 +460,16 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
         },
       );
 
-      setSuppliers((prevState) => ({
-        ...prevState,
-        suppliers: (prevState?.suppliers || []).filter(
-          (item) => String(item?.id || '').trim() !== supplierId,
-        ),
-      }));
+      setSuppliers((prevState) => {
+        const nextState = {
+          ...prevState,
+          suppliers: (prevState?.suppliers || []).filter(
+            (item) => String(item?.id || '').trim() !== supplierId,
+          ),
+        };
+        persistSuppliers(nextState);
+        return nextState;
+      });
 
       setSelectedSupplierId((prevSelectedId) => {
         return String(prevSelectedId || '').trim() === supplierId

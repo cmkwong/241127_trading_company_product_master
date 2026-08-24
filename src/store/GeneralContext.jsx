@@ -11,6 +11,8 @@ import { useAuthContext } from './AuthContext';
 export const GeneralContext = createContext();
 
 const FILE_MAPPINGS_STORAGE_KEY = 'trade_business_file_mappings';
+const FILE_MAPPINGS_FETCHED_AT_KEY = 'trade_business_file_mappings_fetched_at';
+const FILE_MAPPINGS_STALE_MS = 5 * 60 * 1000;
 
 const readStoredFileMappings = () => {
   try {
@@ -20,6 +22,27 @@ const readStoredFileMappings = () => {
     return parsed && typeof parsed === 'object' ? parsed : {};
   } catch {
     return {};
+  }
+};
+
+const readFileMappingsFetchedAt = () => {
+  try {
+    const raw = window.localStorage.getItem(FILE_MAPPINGS_FETCHED_AT_KEY);
+    const parsed = raw ? Number(raw) : 0;
+    return Number.isFinite(parsed) ? parsed : 0;
+  } catch {
+    return 0;
+  }
+};
+
+const persistFileMappingsFetchedAt = (timestamp) => {
+  try {
+    window.localStorage.setItem(
+      FILE_MAPPINGS_FETCHED_AT_KEY,
+      String(timestamp),
+    );
+  } catch {
+    // Ignore storage failures.
   }
 };
 
@@ -49,7 +72,19 @@ export const GeneralContext_Provider = ({ children }) => {
       setFileMappings({});
       setFileMappingsError(null);
       persistFileMappings({});
+      persistFileMappingsFetchedAt(0);
       return {};
+    }
+
+    const cachedMappings = readStoredFileMappings();
+    const fetchedAt = readFileMappingsFetchedAt();
+    const cachedIsFresh =
+      Object.keys(cachedMappings).length > 0 &&
+      Date.now() - fetchedAt < FILE_MAPPINGS_STALE_MS;
+
+    if (cachedIsFresh) {
+      setFileMappings(cachedMappings);
+      return cachedMappings;
     }
 
     setIsFileMappingsLoading(true);
@@ -67,12 +102,14 @@ export const GeneralContext_Provider = ({ children }) => {
 
       setFileMappings(normalized);
       persistFileMappings(normalized);
+      persistFileMappingsFetchedAt(Date.now());
       return normalized;
     } catch (error) {
       console.error('Failed to fetch trade business file mappings:', error);
       setFileMappingsError(error);
       setFileMappings({});
       persistFileMappings({});
+      persistFileMappingsFetchedAt(0);
       return {};
     } finally {
       setIsFileMappingsLoading(false);

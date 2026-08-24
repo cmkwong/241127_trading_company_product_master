@@ -5,6 +5,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
 } from 'react';
 import { apiDelete, apiGet, apiPost } from '../utils/crud';
 import { useAuthContext } from './AuthContext';
@@ -304,9 +305,98 @@ const LEGACY_TABLE_BINDINGS = [
   },
 ];
 
+const MASTER_TABLE_STORAGE_PREFIX = 'trade_business_master_table:';
+const MASTER_TABLE_FETCHED_AT_PREFIX =
+  'trade_business_master_table_fetched_at:';
+const MASTER_TABLE_STALE_MS = 10 * 60 * 1000; // 10 minutes
+const MASTER_FETCH_CONCURRENCY = 5;
+
+const readStoredMasterData = (tableNames = []) => {
+  const result = {};
+  for (const tableName of tableNames) {
+    try {
+      const raw = window.localStorage.getItem(
+        `${MASTER_TABLE_STORAGE_PREFIX}${tableName}`,
+      );
+      if (!raw) continue;
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        result[tableName] = parsed;
+      }
+    } catch {
+      // Ignore per-table read failures.
+    }
+  }
+  return result;
+};
+
+const persistMasterTable = (tableName, rows) => {
+  try {
+    if (!Array.isArray(rows)) {
+      window.localStorage.removeItem(
+        `${MASTER_TABLE_STORAGE_PREFIX}${tableName}`,
+      );
+      return;
+    }
+    window.localStorage.setItem(
+      `${MASTER_TABLE_STORAGE_PREFIX}${tableName}`,
+      JSON.stringify(rows),
+    );
+  } catch {
+    // Ignore storage failures (quota / private browsing).
+  }
+};
+
+const readMasterTableFetchedAt = (tableName) => {
+  try {
+    const raw = window.localStorage.getItem(
+      `${MASTER_TABLE_FETCHED_AT_PREFIX}${tableName}`,
+    );
+    const parsed = raw ? Number(raw) : 0;
+    return Number.isFinite(parsed) ? parsed : 0;
+  } catch {
+    return 0;
+  }
+};
+
+const persistMasterTableFetchedAt = (tableName, timestamp) => {
+  try {
+    window.localStorage.setItem(
+      `${MASTER_TABLE_FETCHED_AT_PREFIX}${tableName}`,
+      String(timestamp),
+    );
+  } catch {
+    // Ignore storage failures.
+  }
+};
+
+const runWithConcurrency = async (items, limit, worker) => {
+  const results = new Array(items.length);
+  let index = 0;
+
+  const runner = async () => {
+    while (index < items.length) {
+      const current = index;
+      index += 1;
+      try {
+        results[current] = await worker(items[current]);
+      } catch (error) {
+        results[current] = { status: 'rejected', reason: error };
+      }
+    }
+  };
+
+  const workerCount = Math.max(1, Math.min(limit, items.length));
+  await Promise.all(Array.from({ length: workerCount }, runner));
+  return results;
+};
+
 export const MasterContext_Provider = ({ children }) => {
   const { token } = useAuthContext();
-  const [masterDataMap, setMasterDataMap] = useState(TABLE_INITIAL_DATA);
+  const [masterDataMap, setMasterDataMap] = useState(() => ({
+    ...TABLE_INITIAL_DATA,
+    ...readStoredMasterData(DEFAULT_TABLE_NAMES),
+  }));
 
   const isMissingTableError = useCallback((error) => {
     const message = String(error?.message || '');
@@ -314,6 +404,8 @@ export const MasterContext_Provider = ({ children }) => {
       /ER_NO_SUCH_TABLE/i.test(message) || /doesn't\s+exist/i.test(message)
     );
   }, []);
+
+  const refreshInFlightRef = useRef(false);
 
   const category = masterDataMap.master_categories || [];
   const productKeywords = masterDataMap.master_keywords || [];
@@ -394,6 +486,8 @@ export const MasterContext_Provider = ({ children }) => {
       const normalizedData = Array.isArray(payload) ? payload : [];
 
       updateLocalMasterTableData(tableName, normalizedData);
+      persistMasterTable(tableName, normalizedData);
+      persistMasterTableFetchedAt(tableName, Date.now());
 
       return normalizedData;
     },
@@ -495,27 +589,57 @@ export const MasterContext_Provider = ({ children }) => {
     [token],
   );
 
+  const refreshTables = useCallback(
+    async (tableNames) => {
+      if (refreshInFlightRef.current) return;
+      refreshInFlightRef.current = true;
+
+      try {
+        const results = await runWithConcurrency(
+          tableNames,
+          MASTER_FETCH_CONCURRENCY,
+          async (tableName) => {
+            await fetchMasterData(tableName);
+            return tableName;
+          },
+        );
+
+        results.forEach((entry, index) => {
+          if (
+            entry &&
+            entry.status === 'rejected' &&
+            !isMissingTableError(entry.reason)
+          ) {
+            console.error(
+              `Failed to refresh master table ${tableNames[index]}:`,
+              entry.reason,
+            );
+          }
+        });
+      } finally {
+        refreshInFlightRef.current = false;
+      }
+    },
+    [fetchMasterData, isMissingTableError],
+  );
+
+  // Stale-while-revalidate: only background-refresh tables whose cache is stale.
   const refreshAllMasterData = useCallback(async () => {
-    const results = await Promise.allSettled(
-      DEFAULT_TABLE_NAMES.map((tableName) => fetchMasterData(tableName)),
+    const now = Date.now();
+    const staleTableNames = DEFAULT_TABLE_NAMES.filter(
+      (tableName) =>
+        now - readMasterTableFetchedAt(tableName) >= MASTER_TABLE_STALE_MS,
     );
 
-    results.forEach((result, index) => {
-      if (result.status !== 'rejected') {
-        return;
-      }
+    if (staleTableNames.length === 0) return;
 
-      const tableName = DEFAULT_TABLE_NAMES[index];
-      if (isMissingTableError(result.reason)) {
-        return;
-      }
+    await refreshTables(staleTableNames);
+  }, [refreshTables]);
 
-      console.error(
-        `Failed to refresh master table ${tableName}:`,
-        result.reason,
-      );
-    });
-  }, [fetchMasterData, isMissingTableError]);
+  // Manual refresh: always re-fetch every master table.
+  const forceRefreshAllMasterData = useCallback(async () => {
+    await refreshTables(DEFAULT_TABLE_NAMES);
+  }, [refreshTables]);
 
   useEffect(() => {
     refreshAllMasterData();
@@ -605,6 +729,7 @@ export const MasterContext_Provider = ({ children }) => {
     masterTableNames: DEFAULT_TABLE_NAMES,
     fetchMasterData,
     refreshAllMasterData,
+    forceRefreshAllMasterData,
     fetchMasterTableSchema,
     getMasterTableData,
     updateMasterTableData,

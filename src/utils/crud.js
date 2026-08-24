@@ -18,17 +18,38 @@ const buildRequestUrl = (url, params) => {
   return `${url}${separator}${queryParams}`;
 };
 
+const isTransientNetworkError = (error) => {
+  return (
+    error instanceof TypeError ||
+    /failed to fetch/i.test(String(error?.message || ''))
+  );
+};
+
+// Retry idempotent GET requests once on transient "Failed to fetch" errors.
+const fetchWithTransientRetry = async (doFetch, retries = 1) => {
+  try {
+    return await doFetch();
+  } catch (error) {
+    if (isTransientNetworkError(error) && retries > 0) {
+      return fetchWithTransientRetry(doFetch, retries - 1);
+    }
+    throw error;
+  }
+};
+
 export const apiGet = async (
   url,
   { token, headers, params, ...options } = {},
 ) => {
   const requestUrl = buildRequestUrl(url, params);
 
-  const response = await fetch(requestUrl, {
-    method: 'GET',
-    headers: buildHeaders(token, headers),
-    ...options,
-  });
+  const response = await fetchWithTransientRetry(() =>
+    fetch(requestUrl, {
+      method: 'GET',
+      headers: buildHeaders(token, headers),
+      ...options,
+    }),
+  );
   if (!response.ok) {
     const errorText = await response.text();
     throw new Error(

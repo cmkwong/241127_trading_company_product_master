@@ -10,6 +10,11 @@ import {
 import { apiDelete, apiGet, apiPatch, apiPost } from '../utils/crud';
 import { processChangesWithBase64 } from '../utils/objectUrlUtils';
 import { toSafeString } from '../components/panels/SalesQuotation/utils/quotationTotals';
+import {
+  readJson,
+  stripBlobUrls,
+  writeJson,
+} from '../utils/TanStackUtils/listCache';
 import { useAuthContext } from './AuthContext';
 import { useGeneralContext } from './GeneralContext';
 
@@ -108,11 +113,22 @@ const extractRowsFromResponse = (response, tableName) => {
 
 export const PurchaseRequestContext = createContext();
 
+const PURCHASE_REQUEST_CACHE_KEY = 'trade_business_purchase_request_options';
+
+const readStoredOptions = () => readJson(PURCHASE_REQUEST_CACHE_KEY, null);
+
+const persistOptions = (options) => {
+  writeJson(PURCHASE_REQUEST_CACHE_KEY, stripBlobUrls(options || {}));
+};
+
 export const PurchaseRequestContext_Provider = ({ children }) => {
   const { token } = useAuthContext();
   const { resolveAuthoritativeEntityAfterSave } = useGeneralContext();
 
-  const [rows, setRows] = useState([]);
+  const storedOptionsRef = useRef(readStoredOptions());
+  const initialStored = storedOptionsRef.current;
+
+  const [rows, setRows] = useState(initialStored?.rows ?? []);
   const [selectedId, setSelectedId] = useState('');
   const [draft, setDraft] = useState(null);
   const [error, setError] = useState('');
@@ -120,15 +136,23 @@ export const PurchaseRequestContext_Provider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const [suppliers, setSuppliers] = useState([]);
-  const [products, setProducts] = useState([]);
-  const [services, setServices] = useState([]);
-  const [masterCategories, setMasterCategories] = useState([]);
-  const [masterSupplierTypes, setMasterSupplierTypes] = useState([]);
-  const [currencies, setCurrencies] = useState([]);
-  const [salesQuotations, setSalesQuotations] = useState([]);
-  const [customers, setCustomers] = useState([]);
-  const [exchangeRateRows, setExchangeRateRows] = useState([]);
+  const [suppliers, setSuppliers] = useState(initialStored?.suppliers ?? []);
+  const [products, setProducts] = useState(initialStored?.products ?? []);
+  const [services, setServices] = useState(initialStored?.services ?? []);
+  const [masterCategories, setMasterCategories] = useState(
+    initialStored?.masterCategories ?? [],
+  );
+  const [masterSupplierTypes, setMasterSupplierTypes] = useState(
+    initialStored?.masterSupplierTypes ?? [],
+  );
+  const [currencies, setCurrencies] = useState(initialStored?.currencies ?? []);
+  const [salesQuotations, setSalesQuotations] = useState(
+    initialStored?.salesQuotations ?? [],
+  );
+  const [customers, setCustomers] = useState(initialStored?.customers ?? []);
+  const [exchangeRateRows, setExchangeRateRows] = useState(
+    initialStored?.exchangeRateRows ?? [],
+  );
 
   const selectedIdRef = useRef('');
 
@@ -250,6 +274,19 @@ export const PurchaseRequestContext_Provider = ({ children }) => {
         setSalesQuotations(salesRows);
         setCustomers(customerRows);
         setExchangeRateRows(exchangeRows);
+
+        persistOptions({
+          rows: purchaseRows,
+          suppliers: supplierRows,
+          products: productRows,
+          services: serviceRows,
+          masterCategories: categoryRows,
+          masterSupplierTypes: supplierTypeRows,
+          currencies: currencyRows,
+          salesQuotations: salesRows,
+          customers: customerRows,
+          exchangeRateRows: exchangeRows,
+        });
 
         const nextTargetId =
           toSafeString(preferredSelectedId) ||

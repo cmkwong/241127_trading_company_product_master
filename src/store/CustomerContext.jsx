@@ -28,8 +28,25 @@ import {
 import { upsertNestedData } from '../utils/crudObj';
 import { useAuthContext } from './AuthContext';
 import { useGeneralContext } from './GeneralContext';
+import {
+  readJson,
+  stripBlobUrls,
+  writeJson,
+} from '../utils/TanStackUtils/listCache';
 
 export const CustomerContext = createContext();
+
+const CUSTOMERS_LIST_STORAGE_KEY = 'trade_business_customers_list';
+
+const readStoredCustomers = () =>
+  readJson(CUSTOMERS_LIST_STORAGE_KEY, { customers: [] });
+
+const persistCustomers = (customersState) => {
+  writeJson(
+    CUSTOMERS_LIST_STORAGE_KEY,
+    stripBlobUrls({ customers: customersState?.customers ?? [] }),
+  );
+};
 
 const CUSTOMERS_API_BASE =
   'http://localhost:3001/api/v1/trade_business/customers';
@@ -43,7 +60,7 @@ export const CustomerContext_Provider = ({ children, initialData = {} }) => {
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState(null);
-  const [customers, setCustomers] = useState({ customers: [] });
+  const [customers, setCustomers] = useState(readStoredCustomers);
   const [isCustomersLoading, setIsCustomersLoading] = useState(false);
   const [selectedCustomerId, setSelectedCustomerId] = useState(null);
   const [comparisonKeys, setComparisonKeys] = useState([]);
@@ -97,6 +114,7 @@ export const CustomerContext_Provider = ({ children, initialData = {} }) => {
       }
 
       setCustomers(processedCustomers || { customers: [] });
+      persistCustomers(processedCustomers || { customers: [] });
       objectUrlRegistryRef.current = urlRegistry;
       hasFetchedWithMappingsRef.current = hasMappings;
     } catch (error) {
@@ -399,11 +417,13 @@ export const CustomerContext_Provider = ({ children, initialData = {} }) => {
           setOriginalPageData(savedCustomerData);
 
           setCustomers((prevCustomersState) => {
-            return mergeEntityIntoStateList({
+            const nextState = mergeEntityIntoStateList({
               prevState: prevCustomersState,
               listKey: 'customers',
               entity: savedCustomerData,
             });
+            persistCustomers(nextState);
+            return nextState;
           });
         }
 
@@ -526,12 +546,16 @@ export const CustomerContext_Provider = ({ children, initialData = {} }) => {
         throw mapDeleteError(new Error(deleteFailureMessage));
       }
 
-      setCustomers((prevState) => ({
-        ...prevState,
-        customers: (prevState?.customers || []).filter(
-          (item) => String(item?.id || '').trim() !== customerId,
-        ),
-      }));
+      setCustomers((prevState) => {
+        const nextState = {
+          ...prevState,
+          customers: (prevState?.customers || []).filter(
+            (item) => String(item?.id || '').trim() !== customerId,
+          ),
+        };
+        persistCustomers(nextState);
+        return nextState;
+      });
 
       setSelectedCustomerId((prevSelectedId) => {
         return String(prevSelectedId || '').trim() === customerId

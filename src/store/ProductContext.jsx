@@ -26,10 +26,26 @@ import { upsertNestedData } from '../utils/crudObj';
 import { apiGet, apiPatch, apiDelete, apiPost } from '../utils/crud';
 import { useAuthContext } from './AuthContext';
 import { useGeneralContext } from './GeneralContext';
+import {
+  readJson,
+  stripBlobUrls,
+  writeJson,
+} from '../utils/TanStackUtils/listCache';
 import { v4 as uuidv4 } from 'uuid';
 
 // Create context for data collection
 export const ProductContext = createContext();
+
+const PRODUCTS_LIST_STORAGE_KEY = 'trade_business_products_list';
+
+const readStoredProducts = () =>
+  readJson(PRODUCTS_LIST_STORAGE_KEY, { products: [] });
+
+const persistProducts = (productsState) =>
+  writeJson(
+    PRODUCTS_LIST_STORAGE_KEY,
+    stripBlobUrls({ products: productsState?.products ?? [] }),
+  );
 
 const SIDEBAR_ICON_MEMORY_BUDGET_BYTES = 400 * 1024 * 1024;
 const ICON_FETCH_BATCH_SIZE = 40;
@@ -115,7 +131,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState(null);
-  const [products, setProducts] = useState({ products: [] });
+  const [products, setProducts] = useState(readStoredProducts);
   const [selectedProductId, setSelectedProductId] = useState(null);
   const [isProductsLoading, setIsProductsLoading] = useState(false);
   const [comparisonKeys, setComparisonKeys] = useState([]);
@@ -178,6 +194,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
       }
 
       setProducts(rawData || { products: [] });
+      persistProducts(rawData || { products: [] });
       hasFetchedWithMappingsRef.current = hasMappings;
       objectUrlRegistryRef.current = [];
       iconFetchedIdsRef.current = new Set();
@@ -791,11 +808,13 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
           setOriginalPageData(savedProductData);
 
           setProducts((prevProductsState) => {
-            return mergeEntityIntoStateList({
+            const nextState = mergeEntityIntoStateList({
               prevState: prevProductsState,
               listKey: 'products',
               entity: savedProductData,
             });
+            persistProducts(nextState);
+            return nextState;
           });
         }
 
@@ -838,12 +857,16 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
         },
       );
 
-      setProducts((prevState) => ({
-        ...prevState,
-        products: (prevState?.products || []).filter(
-          (item) => String(item?.id || '').trim() !== productId,
-        ),
-      }));
+      setProducts((prevState) => {
+        const nextState = {
+          ...prevState,
+          products: (prevState?.products || []).filter(
+            (item) => String(item?.id || '').trim() !== productId,
+          ),
+        };
+        persistProducts(nextState);
+        return nextState;
+      });
 
       setSelectedProductId((prevSelectedId) => {
         return String(prevSelectedId || '').trim() === productId

@@ -64,7 +64,7 @@ const TopBar = () => {
   const refreshCustomerList = customerContext?.refreshCustomerList;
   const refreshSalesQuotationList =
     salesQuotationContext?.refreshSalesQuotationList;
-  const refreshAllMasterData = masterContext?.refreshAllMasterData;
+  const forceRefreshAllMasterData = masterContext?.forceRefreshAllMasterData;
   const [showLogin, setShowLogin] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -101,19 +101,19 @@ const TopBar = () => {
         if (typeof refreshCustomerList === 'function') {
           await refreshCustomerList();
         }
-        if (typeof refreshAllMasterData === 'function') {
-          await refreshAllMasterData();
+        if (typeof forceRefreshAllMasterData === 'function') {
+          await forceRefreshAllMasterData();
         }
       } else if (activeView === 'salesQuotation') {
         if (typeof refreshSalesQuotationList === 'function') {
           await refreshSalesQuotationList();
         }
-        if (typeof refreshAllMasterData === 'function') {
-          await refreshAllMasterData();
+        if (typeof forceRefreshAllMasterData === 'function') {
+          await forceRefreshAllMasterData();
         }
       } else {
-        if (typeof refreshAllMasterData === 'function') {
-          await refreshAllMasterData();
+        if (typeof forceRefreshAllMasterData === 'function') {
+          await forceRefreshAllMasterData();
         }
       }
     } finally {

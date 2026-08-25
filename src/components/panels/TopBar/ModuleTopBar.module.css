@@ -12,8 +12,9 @@
 }
 
 .moduleName {
-  font-size: 28px;
-  font-weight: 600;
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-5xl);
+  font-weight: var(--font-weight-bold);
   line-height: 1.2;
   color: #0c1e36;
 }

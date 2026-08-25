@@ -8,7 +8,7 @@
   background: var(--color-white);
   color: var(--color-primary);
   font-family: inherit;
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-base);
   font-weight: var(--font-weight-regular);
   line-height: normal;
   transition:

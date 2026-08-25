@@ -192,7 +192,7 @@ const TopBar = () => {
             <div className={styles.brandIconWrap}>
               <img
                 className={styles.brandIcon}
-                src="/assets/watermark_pure_logo.png"
+                src="/assets/brand_logos/RIVOLX_Logos_new_color_pure.svg"
                 alt=""
               />
             </div>

@@ -36,7 +36,7 @@
 }
 
 .size_l {
-  font-size: var(--font-size-3xl);
+  font-size: var(--font-size-xl);
   font-weight: var(--font-weight-semibold);
 }
 

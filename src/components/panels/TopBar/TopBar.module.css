@@ -33,9 +33,9 @@
 
 .brandIconWrap {
   position: relative;
-  width: 32px;
-  height: 34px;
-  flex: 0 0 32px;
+  width: 60px;
+  height: 60px;
+  flex: 0 0 60px;
   overflow: hidden;
 }
 
@@ -57,17 +57,18 @@
 
 .brandName {
   margin-bottom: -3px;
-  color: #ffffff;
-  font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
-  font-size: 22px;
+  color: var(--color-text-light);
+  font-family: var(--font-family-logo);
+  font-size: var(--font-size-7xl);
   font-weight: 400;
   letter-spacing: -0.5px;
 }
 
 .brandTagline {
-  color: #ffffff;
-  font-family: Outfit, Inter, sans-serif;
-  font-size: 7px;
+  color: var(--color-text-light);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-tight);
   font-weight: 800;
 }
 
@@ -130,13 +131,16 @@
 }
 
 .loggedIn {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-lg);
   display: flex;
   align-items: center;
   gap: 1rem;
 }
 
 .status {
-  font-size: 12px;
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-lg);
   color: #dbe8fa;
   font-weight: 600;
 }
@@ -148,7 +152,8 @@
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 12px;
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-lg);
   font-weight: 500;
 }
 
@@ -159,11 +164,12 @@
 .loginBtn {
   padding: 6px 14px;
   background-color: #22c55e;
-  color: white;
+  color: var(--color-text-light);
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 12px;
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-lg);
   font-weight: 500;
 }
 
@@ -205,7 +211,7 @@
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: var(--font-size-md);
   width: 100%;
 }
 
@@ -214,13 +220,15 @@
 }
 
 .submitBtn:disabled {
-  background-color: #8fa3c1;
+  background-color: var(--color-button-disabled-bg);
+  color: var(--color-button-disabled-text);
+  border: 1px solid var(--color-button-disabled-border);
   cursor: not-allowed;
 }
 
 .error {
-  color: #dc3545;
-  font-size: 11px;
+  color: var(--color-error);
+  font-size: var(--font-size-sm);
   margin-top: 0.25rem;
 }
 

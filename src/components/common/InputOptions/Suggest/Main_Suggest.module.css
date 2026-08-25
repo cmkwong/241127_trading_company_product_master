@@ -22,8 +22,8 @@
 
 .inputContainer input.suggestInput {
   width: 100%;
-  padding: 12px 16px 12px 42px;
-  font-size: var(--font-size-lg);
+  padding: 8px 16px 8px 42px;
+  font-size: var(--font-size-base);
 }
 
 .searchIcon {

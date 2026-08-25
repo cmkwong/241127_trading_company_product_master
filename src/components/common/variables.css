@@ -27,6 +27,12 @@
   --color-blue-bg-soft: #f8faff;
   --color-blue-bg-light: #e9f3ff;
 
+  /* ===== Button states ===== */
+  --color-button-disabled-bg: #8fa3c1;
+  --color-button-disabled-text: #ffffff;
+  --color-button-disabled-border: #8fa3c1;
+  --color-button-hover-bg: #ffffff1f;
+
   /* ===== Green (success) ===== */
   --color-success: #22c55e;
   --color-success-hover: #1cb356;
@@ -59,7 +65,7 @@
   /* ===== Blue soft backgrounds ===== */
   --color-info-bg: #eff6ff;
   --color-info-border: #bfdbfe;
-  --color-info-text: #1e40af;
+  --color-info-text: #374c78;
   --color-surface-blue-soft: #f6f9ff;
   --color-surface-blue-light: #f5f9ff;
   --color-surface-blue-pale: #f0f8ff;
@@ -88,7 +94,7 @@
   --color-error-bg-hover: #fee2e2;
   --color-error-bg-soft: #fff5f5;
 
-  /* ===== Accent (coral) soft backgrounds ===== */
+  /* ===== Accent soft backgrounds ===== */
   --color-accent-bg: #fff1f0;
   --color-accent-bg-hover: #ffe5e2;
   --color-accent-bg-soft: #fff7f5;
@@ -109,7 +115,7 @@
   --color-text-slate: #5b6470;
   --color-text-subtle: #94a3b8;
   --color-text-on-dark: #d7e2f3;
-  --color-text-light: #e5e7eb;
+  --color-text-light: #ffffff;
   --color-text-dark: #333333;
   --color-text-inverse-strong: #1f1f1f;
   --color-text-code: #222222;
@@ -173,9 +179,12 @@
     'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
     sans-serif;
   --font-family-display: 'Outfit', 'Inter', system-ui, sans-serif;
-  --font-family-heading: 'Instrument Sans', 'Inter', system-ui, sans-serif;
+  --font-family-heading:
+    'Instrument Sans', 'Inter', system-ui, -apple-system, BlinkMacSystemFont,
+    'Segoe UI', sans-serif;
   --font-family-code: 'JetBrains Mono', 'SFMono-Regular', Consolas, monospace;
-
+  --font-family-logo:
+    'Impact', 'Haettenschweiler', 'Arial Narrow Bold', sans-serif;
   /* ===== Typography — sizes ===== */
   --font-size-2xs: 9px;
   --font-size-xs: 10px;
@@ -190,6 +199,7 @@
   --font-size-4xl: 22px;
   --font-size-5xl: 28px;
   --font-size-6xl: 32px;
+  --font-size-7xl: 36px;
 
   /* ===== Typography — weights ===== */
   --font-weight-regular: 400;

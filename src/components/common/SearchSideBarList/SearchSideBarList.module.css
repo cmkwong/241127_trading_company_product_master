@@ -980,7 +980,7 @@
 }
 
 .itemTitle {
-  font-size: var(--font-size-2xl);
+  font-size: var(--font-size-md);
   line-height: var(--line-height-snug);
   font-weight: var(--font-weight-semibold);
   color: var(--color-primary);
@@ -1006,6 +1006,8 @@
 }
 
 .detailLabel {
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-tight);
   font-weight: var(--font-weight-regular);
   color: var(--color-text-subtle);
   width: auto;
@@ -1013,6 +1015,8 @@
 }
 
 .detailValue {
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-tight);
   color: var(--color-primary);
   font-weight: var(--font-weight-medium);
   min-width: 0;

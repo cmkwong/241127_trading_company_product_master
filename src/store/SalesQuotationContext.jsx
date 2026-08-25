@@ -20,7 +20,11 @@ import {
 import { upsertNestedData } from '../utils/crudObj';
 import { processChangesWithBase64 } from '../utils/objectUrlUtils';
 import { useAuthContext } from './AuthContext';
-import { useGeneralContext } from './GeneralContext';
+import {
+  getEntityRecord,
+  setEntityRecord,
+  useGeneralContext,
+} from './GeneralContext';
 import { useMasterContext } from './MasterContext';
 import { pickDisplayOrderPreferredName } from './productNameUtils';
 import {
@@ -47,6 +51,11 @@ const NO_CACHE_HEADERS = {
 };
 
 const SALES_TABLE_NAME = 'sales_quotations';
+const SALES_ENTITY_KEY = SALES_TABLE_NAME;
+
+const getSalesQuotationPageData = () => getEntityRecord(SALES_ENTITY_KEY);
+const setSalesQuotationPageData = (valueOrUpdater) =>
+  setEntityRecord(SALES_ENTITY_KEY, valueOrUpdater);
 
 const DEFAULT_QUOTATION_FILE_MAPPINGS = {
   sales_shipping_images: { url: 'image_url', base64: 'base64_image' },
@@ -762,36 +771,31 @@ export const SalesQuotationContext_Provider = ({ children }) => {
     };
   }, [fileMappings]);
 
-  const selectedQuotation = useMemo(() => {
-    return quotations.find((item) => item.id === selectedQuotationId) || null;
-  }, [quotations, selectedQuotationId]);
-
-  const pageData = useMemo(() => selectedQuotation || {}, [selectedQuotation]);
   const originalPageData = useMemo(() => {
-    const id = toSafeString(selectedQuotation?.id);
+    const id = toSafeString(selectedQuotationId);
     if (!id) {
       return {};
     }
 
     return originalQuotationMap[id] || {};
-  }, [selectedQuotation, originalQuotationMap]);
+  }, [selectedQuotationId, originalQuotationMap]);
 
   const effectiveComparisonKeys = useCallback(() => {
     return getEffectiveComparisonKeys({
       comparisonKeys: [],
-      pageData,
+      pageData: getSalesQuotationPageData(),
     });
-  }, [pageData]);
+  }, []);
 
   const getChangedData = useCallback(() => {
     return buildNestedChangedData({
-      pageData,
+      pageData: getSalesQuotationPageData(),
       originalPageData,
       comparisonKeys: effectiveComparisonKeys(),
       rootTableName: SALES_TABLE_NAME,
       base64Config: {},
     });
-  }, [pageData, originalPageData, effectiveComparisonKeys]);
+  }, [originalPageData, effectiveComparisonKeys]);
 
   const cleanupQuotationFlags = useCallback((value) => {
     return cleanupNestedInternalFlags(value);
@@ -828,6 +832,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
       setQuotations([]);
       setOriginalQuotationMap({});
       setSelectedQuotationId(null);
+      setSalesQuotationPageData({});
       return [];
     }
 
@@ -847,10 +852,20 @@ export const SalesQuotationContext_Provider = ({ children }) => {
 
       setQuotations(sortedRows);
       setOriginalQuotationMap(buildOriginalMap(sortedRows));
-      setSelectedQuotationId((previousId) => {
-        const previousExists = sortedRows.some((row) => row.id === previousId);
-        return previousExists ? previousId : null;
-      });
+      const nextSelectedId = sortedRows.some(
+        (row) => row.id === selectedQuotationId,
+      )
+        ? selectedQuotationId
+        : null;
+      setSelectedQuotationId(nextSelectedId);
+
+      if (nextSelectedId) {
+        const selectedRow =
+          sortedRows.find((row) => row.id === nextSelectedId) || {};
+        setSalesQuotationPageData(deepClone(selectedRow));
+      } else {
+        setSalesQuotationPageData({});
+      }
 
       persistQuotationCache({
         ...readStoredQuotationCache(),
@@ -865,6 +880,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
         setQuotations([]);
         setOriginalQuotationMap({});
         setSelectedQuotationId(null);
+        setSalesQuotationPageData({});
       }
 
       return [];
@@ -873,7 +889,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
         setIsSalesQuotationsLoading(false);
       }
     }
-  }, [token]);
+  }, [selectedQuotationId, token]);
 
   const fetchSuppliersList = useCallback(async () => {
     try {
@@ -1394,6 +1410,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
       setQuotations([]);
       setOriginalQuotationMap({});
       setSelectedQuotationId(null);
+      setSalesQuotationPageData({});
       setCustomerOptions([]);
       setCustomerAddressOptions([]);
       setSupplierOptions([]);
@@ -1413,43 +1430,39 @@ export const SalesQuotationContext_Provider = ({ children }) => {
         return;
       }
 
-      setQuotations((previousRows) =>
-        previousRows.map((row) => {
-          if (toSafeString(row?.id) !== targetId) {
-            return row;
-          }
+      setSalesQuotationPageData((previousRow) => {
+        const row = previousRow || {};
+        const nestedData =
+          typeof nestedDataOrUpdater === 'function'
+            ? nestedDataOrUpdater(row)
+            : nestedDataOrUpdater;
 
-          const nestedData =
-            typeof nestedDataOrUpdater === 'function'
-              ? nestedDataOrUpdater(row)
-              : nestedDataOrUpdater;
+        if (
+          !validateNestedDataObject(
+            nestedData,
+            'upsertSalesQuotationPageData requires an object argument',
+          )
+        ) {
+          return row;
+        }
 
-          if (
-            !validateNestedDataObject(
-              nestedData,
-              'upsertSalesQuotationPageData requires an object argument',
-            )
-          ) {
-            return row;
-          }
+        const upsertedRow = upsertNestedData(row, nestedData);
+        const replacedArrayRow = Object.entries(nestedData || {}).reduce(
+          (acc, [key, value]) => {
+            if (Array.isArray(value)) {
+              acc[key] = value;
+            }
+            return acc;
+          },
+          { ...upsertedRow },
+        );
 
-          const upsertedRow = upsertNestedData(row, nestedData);
-          const replacedArrayRow = Object.entries(nestedData || {}).reduce(
-            (acc, [key, value]) => {
-              if (Array.isArray(value)) {
-                acc[key] = value;
-              }
-              return acc;
-            },
-            { ...upsertedRow },
-          );
+        return {
+          ...replacedArrayRow,
+          updated_at: toIsoNow(),
+        };
+      });
 
-          return {
-            ...replacedArrayRow,
-            updated_at: toIsoNow(),
-          };
-        }),
-      );
       setSaveError('');
     },
     [selectedQuotationId],
@@ -1463,7 +1476,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
   );
 
   const discardSelectedQuotationUnsavedChanges = useCallback(() => {
-    const targetId = toSafeString(selectedQuotation?.id);
+    const targetId = toSafeString(selectedQuotationId);
     if (!targetId) {
       return;
     }
@@ -1474,19 +1487,13 @@ export const SalesQuotationContext_Provider = ({ children }) => {
     }
 
     const normalizedOriginal = normalizeSalesQuotation(originalSnapshot);
-
-    setQuotations((previousRows) =>
-      previousRows.map((row) =>
-        toSafeString(row?.id) === targetId
-          ? deepClone(normalizedOriginal)
-          : row,
-      ),
-    );
+    setSalesQuotationPageData(deepClone(normalizedOriginal));
     setSaveError('');
-  }, [selectedQuotation, originalQuotationMap]);
+  }, [selectedQuotationId, originalQuotationMap]);
 
   const saveSelectedQuotation = useCallback(async () => {
-    const targetId = toSafeString(selectedQuotation?.id);
+    const selectedQuotation = getSalesQuotationPageData();
+    const targetId = toSafeString(selectedQuotation?.id || selectedQuotationId);
     if (!token) {
       throw new Error('Missing auth token. Please log in again.');
     }
@@ -1563,6 +1570,8 @@ export const SalesQuotationContext_Provider = ({ children }) => {
           setSelectedQuotationId(savedId);
         }
 
+        setSalesQuotationPageData(deepClone(normalizedSavedRow));
+
         return normalizedSavedRow;
       }
 
@@ -1632,7 +1641,10 @@ export const SalesQuotationContext_Provider = ({ children }) => {
         fallbackEntity: null,
       });
 
-      if (refreshedRow) return refreshedRow;
+      if (refreshedRow) {
+        setSalesQuotationPageData(deepClone(refreshedRow));
+        return refreshedRow;
+      }
 
       const normalizedSavedRow = normalizeSalesQuotation(cleanedPageData);
       setQuotations((previousRows) =>
@@ -1644,6 +1656,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
         ...previousMap,
         [targetId]: deepClone(normalizedSavedRow),
       }));
+      setSalesQuotationPageData(deepClone(normalizedSavedRow));
 
       return normalizedSavedRow;
     } catch (error) {
@@ -1652,7 +1665,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
     }
   }, [
     originalQuotationMap,
-    selectedQuotation,
+    selectedQuotationId,
     originalPageData,
     token,
     getChangedData,
@@ -1666,6 +1679,8 @@ export const SalesQuotationContext_Provider = ({ children }) => {
     if (!token) {
       return null;
     }
+
+    const selectedQuotation = getSalesQuotationPageData();
 
     const canCreate = canProceedWithRecordSwitch({
       hasRecordId: !!selectedQuotation?.id,
@@ -1713,6 +1728,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
         [createdRow.id]: deepClone(createdRow),
       }));
       setSelectedQuotationId(createdRow.id);
+      setSalesQuotationPageData(deepClone(createdRow));
 
       return createdRow;
     }
@@ -1723,11 +1739,12 @@ export const SalesQuotationContext_Provider = ({ children }) => {
     discardSelectedQuotationUnsavedChanges,
     isDataUnchanged,
     refreshSalesQuotationList,
-    selectedQuotation,
     token,
   ]);
 
   const duplicateSelectedSalesQuotation = useCallback(async () => {
+    const selectedQuotation = getSalesQuotationPageData();
+
     if (!selectedQuotation || !toSafeString(selectedQuotation?.id)) {
       throw new Error('No sales quotation selected to duplicate.');
     }
@@ -2096,10 +2113,11 @@ export const SalesQuotationContext_Provider = ({ children }) => {
       return [duplicatedRow, ...withoutDuplicate];
     });
     setSelectedQuotationId(duplicatedRow.id);
+    setSalesQuotationPageData(deepClone(duplicatedRow));
     setSaveError('');
 
     return duplicatedRow;
-  }, [cleanupQuotationFlags, selectedQuotation]);
+  }, [cleanupQuotationFlags]);
 
   const deleteSalesQuotation = useCallback(
     async (quotationId) => {
@@ -2113,13 +2131,18 @@ export const SalesQuotationContext_Provider = ({ children }) => {
       if (isLocalDraft) {
         setQuotations((previousRows) => {
           const nextRows = previousRows.filter((row) => row.id !== targetId);
+          const nextSelectedRow = nextRows[0] || null;
 
           setSelectedQuotationId((previousId) => {
             if (previousId !== targetId) {
               return previousId;
             }
-            return nextRows[0]?.id || null;
+            return nextSelectedRow?.id || null;
           });
+
+          setSalesQuotationPageData(
+            nextSelectedRow ? deepClone(nextSelectedRow) : {},
+          );
 
           return nextRows;
         });
@@ -2153,13 +2176,18 @@ export const SalesQuotationContext_Provider = ({ children }) => {
 
       setQuotations((previousRows) => {
         const nextRows = previousRows.filter((row) => row.id !== targetId);
+        const nextSelectedRow = nextRows[0] || null;
 
         setSelectedQuotationId((previousId) => {
           if (previousId !== targetId) {
             return previousId;
           }
-          return nextRows[0]?.id || null;
+          return nextSelectedRow?.id || null;
         });
+
+        setSalesQuotationPageData(
+          nextSelectedRow ? deepClone(nextSelectedRow) : {},
+        );
 
         return nextRows;
       });
@@ -2182,12 +2210,14 @@ export const SalesQuotationContext_Provider = ({ children }) => {
         return false;
       }
 
-      if (nextId === toSafeString(selectedQuotation?.id)) {
+      if (nextId === toSafeString(selectedQuotationId)) {
         return true;
       }
 
+      const currentQuotation = getSalesQuotationPageData();
+
       const canSwitch = canProceedWithRecordSwitch({
-        hasRecordId: !!selectedQuotation?.id,
+        hasRecordId: !!currentQuotation?.id,
         isDataUnchanged: isDataUnchanged(),
       });
 
@@ -2198,16 +2228,22 @@ export const SalesQuotationContext_Provider = ({ children }) => {
       discardSelectedQuotationUnsavedChanges();
 
       setSelectedQuotationId(nextId);
+      const nextRow =
+        quotations.find((row) => toSafeString(row?.id) === nextId) || null;
+      setSalesQuotationPageData(nextRow ? deepClone(nextRow) : { id: nextId });
       return true;
     },
     [
       discardSelectedQuotationUnsavedChanges,
       isDataUnchanged,
-      selectedQuotation,
+      quotations,
+      selectedQuotationId,
     ],
   );
 
   const getSalesQuotationDryRunData = useCallback(async () => {
+    const selectedQuotation = getSalesQuotationPageData();
+
     const changesResult = getChangedData();
     const preview = {
       endpoint: `${SALES_API_BASE}/data/ids`,
@@ -2246,12 +2282,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
         deletions: normalizedDeletions,
       },
     };
-  }, [
-    getChangedData,
-    selectedQuotation,
-    originalPageData,
-    quotationBase64Config,
-  ]);
+  }, [getChangedData, originalPageData, quotationBase64Config]);
 
   const serviceOptions = useMemo(() => {
     return toArray(services)
@@ -2315,9 +2346,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
   const contextValue = {
     quotations,
     selectedQuotationId,
-    setSelectedQuotationId,
-    selectedQuotation,
-    pageData,
+    getSelectedQuotationData: getSalesQuotationPageData,
     isSalesQuotationsLoading,
     customerOptions,
     customerAddressOptions,

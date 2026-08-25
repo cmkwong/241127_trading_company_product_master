@@ -7,14 +7,18 @@ import Main_InputContainer from '../../../common/Container/Main_InputContainer';
 import AddNewBtn from '../../../common/Buttons/AddNewBtn';
 import DeleteBtn from '../../../common/Buttons/DeleteBtn';
 import EditableDataTable from '../../../common/Table/EditableDataTable';
-import { useProductContext } from '../../../../store/ProductContext';
+import {
+  upsertEntityData,
+  useEntityRows,
+  useEntityField,
+} from '../../../../store/GeneralContext';
 import { useMasterContext } from '../../../../store/MasterContext';
 import { sortByDisplayOrder } from '../../../../utils/arr';
 
 const Main_CertificateData = () => {
-  const { pageData, upsertProductPageData } = useProductContext();
   const { certType } = useMasterContext();
-  const certificateRows = pageData.product_certificates || [];
+  const productId = useEntityField('products', 'id');
+  const certificateRows = useEntityRows('products', 'product_certificates');
 
   const certTypeOptions = useMemo(
     () =>
@@ -27,37 +31,37 @@ const Main_CertificateData = () => {
 
   const upsertCertificateRow = useCallback(
     (row, patch) => {
-      upsertProductPageData({
+      upsertEntityData('products', {
         product_certificates: [
           {
             id: row?.id || uuidv4(),
-            product_id: pageData.id,
+            product_id: productId,
             ...patch,
           },
         ],
       });
     },
-    [upsertProductPageData, pageData.id],
+    [upsertEntityData, productId],
   );
 
   const handleAddCertificateRow = useCallback(() => {
-    upsertProductPageData({
+    upsertEntityData('products', {
       product_certificates: [
         {
           id: uuidv4(),
-          product_id: pageData.id,
+          product_id: productId,
           certificate_type_id: '',
           remark: '',
           product_certificate_files: [],
         },
       ],
     });
-  }, [upsertProductPageData, pageData.id]);
+  }, [upsertEntityData, productId]);
 
   const handleDeleteCertificateRow = useCallback(
     (row) => {
       if (!row?.id) return;
-      upsertProductPageData({
+      upsertEntityData('products', {
         product_certificates: [
           {
             id: row.id,
@@ -66,7 +70,7 @@ const Main_CertificateData = () => {
         ],
       });
     },
-    [upsertProductPageData],
+    [upsertEntityData],
   );
 
   const handleCertificateFilesChange = useCallback(

@@ -5,64 +5,56 @@ import Main_TextField from '../../../common/InputOptions/TextField/Main_TextFiel
 import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
 import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
 import EditableDataTable from '../../../common/Table/EditableDataTable';
-import { useSupplierContext } from '../../../../store/SupplierContext';
+import {
+  upsertEntityData,
+  useEntityField,
+  useEntityRows,
+} from '../../../../store/GeneralContext';
 import { useMasterContext } from '../../../../store/MasterContext';
 import styles from './Main_SupplierLinks.module.css';
 import AddNewBtn from '../../../common/Buttons/AddNewBtn';
 import DeleteBtn from '../../../common/Buttons/DeleteBtn';
 
 const Main_SupplierLinks = () => {
-  const { pageData, upsertSupplierPageData } = useSupplierContext();
   const { supplierLinkType } = useMasterContext();
-  const linkRows = pageData.supplier_links || [];
-
-  const linkTypeOptions = useMemo(
-    () =>
-      (supplierLinkType || []).map((item) => ({
-        id: item.id,
-        label: item.name,
-      })),
-    [supplierLinkType],
-  );
+  const supplierId = useEntityField('supplier', 'id');
+  const linkRows = useEntityRows('supplier', 'supplier_links');
 
   const upsertLinkRow = useCallback(
     (row, patch) => {
-      upsertSupplierPageData({
+      upsertEntityData('supplier', {
         supplier_links: [
           {
             id: row?.id || uuidv4(),
-            supplier_id: pageData.id,
+            supplier_id: supplierId,
             ...patch,
           },
         ],
       });
     },
-    [upsertSupplierPageData, pageData.id],
+    [supplierId],
   );
 
   const handleAddLinkRow = useCallback(() => {
-    upsertSupplierPageData({
+    upsertEntityData('supplier', {
       supplier_links: [
         {
           id: uuidv4(),
-          supplier_id: pageData.id,
+          supplier_id: supplierId,
           link_type_id: '',
           link: '',
           remark: '',
         },
       ],
     });
-  }, [upsertSupplierPageData, pageData.id]);
+  }, [supplierId]);
 
-  const handleDeleteLinkRow = useCallback(
-    (row) => {
-      if (!row?.id) return;
-      upsertSupplierPageData({
-        supplier_links: [{ id: row.id, _delete: true }],
-      });
-    },
-    [upsertSupplierPageData],
-  );
+  const handleDeleteLinkRow = useCallback((row) => {
+    if (!row?.id) return;
+    upsertEntityData('supplier', {
+      supplier_links: [{ id: row.id, _delete: true }],
+    });
+  }, []);
 
   const columns = useMemo(
     () => [

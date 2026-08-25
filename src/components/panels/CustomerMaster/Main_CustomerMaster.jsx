@@ -10,6 +10,7 @@ import Main_CustomerContacts from './Contacts/Main_CustomerContacts';
 import Main_CustomerImages from './Images/Main_CustomerImages';
 import DeleteBtn from '../../common/Buttons/DeleteBtn';
 import { useCustomerContext } from '../../../store/CustomerContext';
+import { useEntityField } from '../../../store/GeneralContext';
 import styles from './Main_CustomerMaster.module.css';
 
 const Main_CustomerMaster = () => {
@@ -18,13 +19,13 @@ const Main_CustomerMaster = () => {
   const navigate = useNavigate();
   const { customer_id } = useParams();
   const {
-    pageData,
     selectedCustomerId,
     getCustomerData,
     getAllCustomers,
     deleteCustomerById,
     createNewCustomer,
   } = useCustomerContext();
+  const pageDataId = useEntityField('customer', 'id');
 
   const getCustomerDataRef = useRef(getCustomerData);
   useEffect(() => {
@@ -57,7 +58,7 @@ const Main_CustomerMaster = () => {
     }
   }, [customer_id, selectedCustomerId, navigate]);
 
-  const customerId = String(pageData?.id || '').trim();
+  const customerId = String(pageDataId || '').trim();
   const hasPersistedCustomer = (getAllCustomers() || []).some(
     (item) => String(item?.id || '').trim() === customerId,
   );

@@ -11,6 +11,10 @@ import AddNewBtn from '../../../common/Buttons/AddNewBtn';
 import DeleteBtn from '../../../common/Buttons/DeleteBtn';
 import EditableDataTable from '../../../common/Table/EditableDataTable';
 import {
+  useEntityField,
+  useEntityRows,
+} from '../../../../store/GeneralContext';
+import {
   getDiscountedRate,
   isSelectedFlag,
   normalizeDiscountPercent,
@@ -266,7 +270,6 @@ const copyToClipboard = async (text) => {
 };
 
 const Main_SalesShippingDetails = ({
-  quotation,
   customerAddressOptions = [],
   supplierOptions = [],
   shippingMethodOptions = [],
@@ -275,39 +278,46 @@ const Main_SalesShippingDetails = ({
   onPatchQuotation,
   onRefreshReferenceOptions,
 }) => {
-  const shippingDetails = useMemo(
-    () => quotation?.sales_shipping_details || [],
-    [quotation?.sales_shipping_details],
+  const quotationId = useEntityField('sales_quotations', 'id');
+  const quotationCustomerAddressId = useEntityField(
+    'sales_quotations',
+    'customer_address_id',
   );
-  const shippingPrices = useMemo(
-    () => quotation?.sales_shipping_prices || [],
-    [quotation?.sales_shipping_prices],
+  const selectedCustomerId = String(
+    useEntityField('sales_quotations', 'customer_id') || '',
+  ).trim();
+  const shippingDetails = useEntityRows(
+    'sales_quotations',
+    'sales_shipping_details',
   );
-  const shippingImages = useMemo(
-    () => quotation?.sales_shipping_images || [],
-    [quotation?.sales_shipping_images],
+  const shippingPrices = useEntityRows(
+    'sales_quotations',
+    'sales_shipping_prices',
   );
-  const shippingInternalImages = useMemo(
-    () => quotation?.sales_shipping_internal_images || [],
-    [quotation?.sales_shipping_internal_images],
+  const shippingImages = useEntityRows(
+    'sales_quotations',
+    'sales_shipping_images',
   );
-  const shippingInternalFiles = useMemo(
-    () => quotation?.sales_shipping_internal_files || [],
-    [quotation?.sales_shipping_internal_files],
+  const shippingInternalImages = useEntityRows(
+    'sales_quotations',
+    'sales_shipping_internal_images',
   );
-  const shippingPriceImages = useMemo(
-    () => quotation?.sales_shipping_price_images || [],
-    [quotation?.sales_shipping_price_images],
+  const shippingInternalFiles = useEntityRows(
+    'sales_quotations',
+    'sales_shipping_internal_files',
   );
-  const shippingPriceInternalImages = useMemo(
-    () => quotation?.sales_shipping_price_internal_images || [],
-    [quotation?.sales_shipping_price_internal_images],
+  const shippingPriceImages = useEntityRows(
+    'sales_quotations',
+    'sales_shipping_price_images',
   );
-  const shippingPriceInternalFiles = useMemo(
-    () => quotation?.sales_shipping_price_internal_files || [],
-    [quotation?.sales_shipping_price_internal_files],
+  const shippingPriceInternalImages = useEntityRows(
+    'sales_quotations',
+    'sales_shipping_price_internal_images',
   );
-  const selectedCustomerId = String(quotation?.customer_id || '').trim();
+  const shippingPriceInternalFiles = useEntityRows(
+    'sales_quotations',
+    'sales_shipping_price_internal_files',
+  );
 
   const setShippingDetails = useCallback(
     (nextRows) => {
@@ -379,7 +389,7 @@ const Main_SalesShippingDetails = ({
 
       const nextRow = {
         id: rowId,
-        sales_quotation_id: quotation?.id,
+        sales_quotation_id: quotationId,
         remark: '',
         ...row,
         ...patch,
@@ -395,7 +405,7 @@ const Main_SalesShippingDetails = ({
 
       setShippingDetails([...shippingDetails, nextRow]);
     },
-    [quotation?.id, shippingDetails, setShippingDetails],
+    [quotationId, shippingDetails, setShippingDetails],
   );
 
   const handleDeleteShippingDetail = useCallback(
@@ -477,8 +487,8 @@ const Main_SalesShippingDetails = ({
       ...shippingDetails,
       {
         id: newId,
-        sales_quotation_id: quotation?.id,
-        customer_address_id: quotation?.customer_address_id || '',
+        sales_quotation_id: quotationId,
+        customer_address_id: quotationCustomerAddressId || '',
         length: '',
         width: '',
         height: '',
@@ -492,8 +502,8 @@ const Main_SalesShippingDetails = ({
     ]);
   }, [
     shippingDetails,
-    quotation?.id,
-    quotation?.customer_address_id,
+    quotationId,
+    quotationCustomerAddressId,
     setShippingDetails,
   ]);
 

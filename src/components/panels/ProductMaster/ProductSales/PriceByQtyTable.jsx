@@ -1,7 +1,11 @@
 import { useMemo, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import EditableDataTable from '../../../common/Table/EditableDataTable';
-import { useProductContext } from '../../../../store/ProductContext';
+import {
+  upsertEntityData,
+  useEntityRows,
+  useEntityField,
+} from '../../../../store/GeneralContext';
 import { useMasterContext } from '../../../../store/MasterContext';
 import styles from './PriceByQtyTable.module.css';
 
@@ -9,14 +13,15 @@ const MAX_TIERS = 4;
 const DEFAULT_UNIT_LABEL = 'Pcs';
 
 const PriceByQtyTable = () => {
-  const { pageData, upsertProductPageData } = useProductContext();
   const { currencies, sellingUnitType } = useMasterContext();
 
-  const productId = pageData?.id || null;
+  const productId = useEntityField('products', 'id');
+  const sellingUnitTypeId = useEntityField('products', 'selling_unit_type_id');
+  const allTiers = useEntityRows('products', 'product_sale_prices_by_qty');
+
   const rows = useMemo(
-    () =>
-      (pageData?.product_sale_prices_by_qty || []).filter((r) => !r?._delete),
-    [pageData?.product_sale_prices_by_qty],
+    () => (allTiers || []).filter((r) => !r?._delete),
+    [allTiers],
   );
 
   const currencyLabelMap = useMemo(
@@ -31,10 +36,10 @@ const PriceByQtyTable = () => {
 
   const unitLabel = useMemo(() => {
     const selected = (sellingUnitType || []).find(
-      (unit) => unit?.id === pageData?.selling_unit_type_id,
+      (unit) => unit?.id === sellingUnitTypeId,
     );
     return selected?.name || DEFAULT_UNIT_LABEL;
-  }, [sellingUnitType, pageData?.selling_unit_type_id]);
+  }, [sellingUnitType, sellingUnitTypeId]);
 
   const previewTiers = useMemo(() => {
     return [...rows]
@@ -63,7 +68,7 @@ const PriceByQtyTable = () => {
 
   const handleFieldChange = useCallback(
     (row, field, value) => {
-      upsertProductPageData({
+      upsertEntityData('products', {
         product_sale_prices_by_qty: [
           {
             id: row?.id || uuidv4(),
@@ -80,22 +85,22 @@ const PriceByQtyTable = () => {
         ],
       });
     },
-    [upsertProductPageData, productId],
+    [upsertEntityData, productId],
   );
 
   const handleDelete = useCallback(
     (row) => {
       if (!row?.id) return;
-      upsertProductPageData({
+      upsertEntityData('products', {
         product_sale_prices_by_qty: [{ id: row.id, _delete: true }],
       });
     },
-    [upsertProductPageData],
+    [upsertEntityData],
   );
 
   const handleAddTier = useCallback(() => {
     if (rows.length >= MAX_TIERS) return;
-    upsertProductPageData({
+    upsertEntityData('products', {
       product_sale_prices_by_qty: [
         {
           id: uuidv4(),
@@ -106,7 +111,7 @@ const PriceByQtyTable = () => {
         },
       ],
     });
-  }, [rows.length, upsertProductPageData, productId]);
+  }, [rows.length, upsertEntityData, productId]);
 
   const columns = useMemo(
     () => [

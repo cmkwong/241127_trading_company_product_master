@@ -18,11 +18,9 @@ import {
   cleanupNestedInternalFlags,
   canProceedAndDiscardUnsavedChanges,
   getEffectiveComparisonKeys,
-  validateNestedDataObject,
   mergeEntityIntoStateList,
   ensureContextAvailable,
 } from '../utils/contextDataUtils';
-import { upsertNestedData } from '../utils/crudObj';
 import { apiGet, apiPatch, apiDelete, apiPost } from '../utils/crud';
 import { useAuthContext } from './AuthContext';
 import { useGeneralContext } from './GeneralContext';
@@ -31,7 +29,14 @@ import {
   stripBlobUrls,
   writeJson,
 } from '../utils/TanStackUtils/listCache';
+import { getEntityRecord, setEntityRecord } from './GeneralContext';
 import { v4 as uuidv4 } from 'uuid';
+
+// Thin product-scoped shims so internal call sites keep working while the
+// record now lives in the generic entity store (key 'products').
+const getPageData = () => getEntityRecord('products');
+const setPageData = (valueOrUpdater) =>
+  setEntityRecord('products', valueOrUpdater);
 
 // Create context for data collection
 export const ProductContext = createContext();
@@ -122,11 +127,15 @@ const cloneProductForDuplication = (sourceProduct) => {
   return cloneValue(source);
 };
 
-// Provider component for save page data
+// Provider component for save page data.
+//
+// The currently edited product (pageData) lives in productStore.js and is read
+// through useProductSelector / useProductRows by the panel components. This
+// means editing one field only re-renders the panels that select that slice,
+// instead of re-rendering every context consumer on each keystroke.
 export const ProductContext_Provider = ({ children, initialData = {} }) => {
   const { token } = useAuthContext();
   const { fileMappings, isFileMappingsLoading } = useGeneralContext();
-  const [pageData, setPageData] = useState(initialData);
   const [originalPageData, setOriginalPageData] = useState(initialData); // Store original data for change detection
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -146,6 +155,14 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
   const iconMemoryBytesRef = useRef(0);
   const pageDataLoadedWithMappingsRef = useRef(false);
   const getProductDataRef = useRef(null);
+
+  // Seed the external store with the initial data (once).
+  useEffect(() => {
+    if (!getPageData()?.id && initialData?.id) {
+      setPageData(initialData);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const productBase64Config = useMemo(() => {
     return {
@@ -463,25 +480,22 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
     };
   }, []);
 
-  const effectiveComparisonKeys = useCallback(() => {
-    return getEffectiveComparisonKeys({ comparisonKeys, pageData });
-  }, [comparisonKeys, pageData]);
+  const effectiveComparisonKeys = useCallback(
+    () =>
+      getEffectiveComparisonKeys({ comparisonKeys, pageData: getPageData() }),
+    [comparisonKeys],
+  );
 
   // Helper function to deep compare and return differences
   const getChangedData = useCallback(() => {
     return buildNestedChangedData({
-      pageData,
+      pageData: getPageData(),
       originalPageData,
       comparisonKeys: effectiveComparisonKeys(),
       rootTableName: 'products',
       base64Config: productBase64Config,
     });
-  }, [
-    pageData,
-    originalPageData,
-    effectiveComparisonKeys,
-    productBase64Config,
-  ]);
+  }, [originalPageData, effectiveComparisonKeys, productBase64Config]);
 
   // Function to check if pageData is the same as the corresponding product in products
   const isDataUnchanged = useCallback(() => {
@@ -489,20 +503,22 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
   }, [getChangedData]);
 
   const discardCurrentProductUnsavedChanges = useCallback(() => {
+    const current = getPageData();
     if (
       originalPageData &&
       String(originalPageData?.id || '').trim() ===
-        String(pageData?.id || '').trim()
+        String(current?.id || '').trim()
     ) {
       setPageData(JSON.parse(JSON.stringify(originalPageData)));
       return;
     }
 
     setPageData({});
-  }, [originalPageData, pageData]);
+  }, [originalPageData]);
 
   const getProductSaveDryRunData = useCallback(async () => {
     const changesResult = getChangedData();
+    const current = getPageData();
     const preview = {
       endpoint: 'http://localhost:3001/api/v1/trade_business/products/data/ids',
       method: 'PATCH + DELETE',
@@ -519,7 +535,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
     }
 
     const isRootCreate =
-      !originalPageData || originalPageData.id !== pageData.id;
+      !originalPageData || originalPageData.id !== current.id;
 
     // For dry run, we want to show the final payload after processing base64 but without actually sending it to the server
     let processedChanges = changesResult?.changes;
@@ -544,17 +560,16 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
     }
 
     return preview;
-  }, [getChangedData, originalPageData, pageData.id, productBase64Config]);
+  }, [getChangedData, originalPageData, productBase64Config]);
 
   /**
-   * Load a product into pageData by ID
-   * @param {string} id - The ID of the product to load
-   * @returns {boolean} Returns true if loaded successfully, false if cancelled or not found
+   * Load a product into the store by ID.
    */
   const getProductData = useCallback(
     (id) => {
+      const current = getPageData();
       const canSwitch = canProceedAndDiscardUnsavedChanges({
-        hasRecordId: !!pageData.id,
+        hasRecordId: !!current.id,
         isDataUnchanged: isDataUnchanged(),
         onDiscard: discardCurrentProductUnsavedChanges,
       });
@@ -589,25 +604,20 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
             },
           );
 
-          // Extract data similar to fetchProducts
           const rawData = normalizeStructuredTableResponse(
             response,
             'products',
           );
 
-          // Clear previous pageData object URLs
           releaseObjectUrls(pageDataUrlRegistryRef.current);
           const urlRegistry = [];
 
-          // Process images (base64 -> objectUrl)
           const processed = recursiveProcess_base64_to_objectUrl(
             rawData,
             'root',
             productBase64Config,
             urlRegistry,
           );
-
-          console.log('processed product data for id', id, processed);
 
           const product =
             processed?.products?.[0] || rawData?.products?.[0] || null;
@@ -627,11 +637,9 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
         }
       })();
 
-      // Return synchronously so callers can use immediate boolean result (e.g., cancelled by user)
       return true;
     },
     [
-      pageData,
       isDataUnchanged,
       token,
       productBase64Config,
@@ -643,92 +651,19 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
     getProductDataRef.current = getProductData;
   }, [getProductData]);
 
-  // When file mappings arrive after the product was already loaded (e.g. on a
-  // fresh tab opened directly on a product route), re-fetch the product so its
-  // base64 images can be converted to object URLs now that mappings exist.
+  // When file mappings arrive after the product was already loaded, re-fetch.
   useEffect(() => {
     const hasMappings = Object.keys(productBase64Config || {}).length > 0;
     if (!hasMappings || isFileMappingsLoading) return;
 
-    const productId = String(selectedProductId || pageData?.id || '').trim();
+    const productId = String(
+      selectedProductId || getPageData()?.id || '',
+    ).trim();
     if (!productId) return;
     if (pageDataLoadedWithMappingsRef.current) return;
 
     getProductDataRef.current(productId);
-  }, [
-    productBase64Config,
-    isFileMappingsLoading,
-    selectedProductId,
-    pageData?.id,
-  ]);
-
-  /**
-   * Upsert (Update or Insert) data in a specific table
-   * Supports nested data structures. If the data contains array fields,
-   * it will recursively upsert nested items.
-   *
-   * Examples:
-   *
-   * 1) Update root product fields
-   * upsertProductPageData({
-   *   id: "product-1",
-   *   remark: "Updated remark",
-   *   hs_code: "1234.56"
-   * })
-   *
-   * 2) Add or update a nested row by id (product_names)
-   * upsertProductPageData({
-   *   product_names: [
-   *     {
-   *       id: "name-row-1",
-   *       name: "New Product Name",
-   *       product_name_type_id: "master-name-type-1"
-   *     }
-   *   ]
-   * })
-   *
-   * 3) Soft delete a nested row using _delete
-   * upsertProductPageData({
-   *   product_keywords: [
-   *     {
-   *       id: "keyword-row-1",
-   *       _delete: true
-   *     }
-   *   ]
-   * })
-   *
-   * 4) Deep nested update (parent + child table)
-   * upsertProductPageData({
-   *   product_customizations: [
-   *     {
-   *       id: "1234",
-   *       name: "testing changed",
-   *       product_customization_images: [
-   *         {
-   *           id: "8798s7987s8df",
-   *           _delete: true
-   *         }
-   *       ]
-   *     }
-   *   ]
-   * })
-   *
-   * @param {object} nestedData - Nested data object
-   */
-  const upsertProductPageData = useCallback((nestedData) => {
-    setPageData((prevData) => {
-      if (
-        !validateNestedDataObject(
-          nestedData,
-          'upsertProductPageData requires an object argument',
-        )
-      ) {
-        return prevData;
-      }
-
-      return upsertNestedData(prevData, nestedData);
-    });
-  }, []);
+  }, [productBase64Config, isFileMappingsLoading, selectedProductId]);
 
   // Function to get all products - now returns the products array from state
   const getAllProducts = useCallback(() => {
@@ -755,16 +690,14 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
       setSaveError(null);
 
       try {
-        // --- Process Changes and Commit to Server ---
+        const current = getPageData();
         const changesResult = getChangedData();
-        console.log('Detected changes:', changesResult);
 
         if (changesResult) {
           const { changes, deletions } = changesResult;
 
           // 1. Handle Deletions (DELETE)
           if (deletions) {
-            console.log('Sending DELETE request:', deletions);
             await apiDelete(
               'http://localhost:3001/api/v1/trade_business/products/data/ids',
               {
@@ -776,13 +709,10 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
 
           // 2. Handle Updates & Creations (PATCH)
           if (changes) {
-            console.log('Processing base64 conversions for changes...');
-            // Process base64 fields in changes before sending to server
             const processedChanges = await processChangesWithBase64(
               changes,
               productBase64Config,
             );
-            console.log('Sending PATCH request:', processedChanges);
 
             await apiPatch(
               'http://localhost:3001/api/v1/trade_business/products/data/ids',
@@ -792,19 +722,15 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
           }
         }
 
-        // If external save callback is provided (e.g., for API calls), call it with the current data
         if (typeof externalSaveCallback === 'function') {
-          await externalSaveCallback(pageData);
+          await externalSaveCallback(current);
         }
 
-        // Always update the products list if the saved product has an ID
-        if (pageData.id) {
-          const cleanedPageData = _cleanupFlags(pageData);
+        if (current.id) {
+          const cleanedPageData = _cleanupFlags(current);
           const savedProductData = JSON.parse(JSON.stringify(cleanedPageData));
 
-          // Update pageData with the cleaned version
           setPageData(cleanedPageData);
-          // Refresh baseline for change detection after successful save
           setOriginalPageData(savedProductData);
 
           setProducts((prevProductsState) => {
@@ -819,23 +745,21 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
         }
 
         setSaveSuccess(true);
-
-        // Reset success message after 3 seconds
         setTimeout(() => {
           setSaveSuccess(false);
         }, 3000);
 
-        return true; // Indicate successful save
+        return true;
       } catch (error) {
         console.error('Error saving data:', error);
 
         setSaveError(error.message || 'Failed to save data');
-        return false; // Indicate failed save
+        return false;
       } finally {
         setIsSaving(false);
       }
     },
-    [pageData, getChangedData, token, _cleanupFlags, productBase64Config],
+    [getChangedData, token, _cleanupFlags, productBase64Config],
   );
 
   const deleteProductById = useCallback(
@@ -874,7 +798,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
           : prevSelectedId;
       });
 
-      if (String(pageData?.id || '').trim() === productId) {
+      if (String(getPageData()?.id || '').trim() === productId) {
         releaseObjectUrls(pageDataUrlRegistryRef.current);
         pageDataUrlRegistryRef.current = [];
         setPageData({});
@@ -886,13 +810,14 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
 
       return true;
     },
-    [token, pageData?.id],
+    [token],
   );
 
   // Create a new product (clear page data)
   const createNewProduct = useCallback(() => {
+    const current = getPageData();
     const canCreate = canProceedAndDiscardUnsavedChanges({
-      hasRecordId: !!pageData.id,
+      hasRecordId: !!current.id,
       isDataUnchanged: isDataUnchanged(),
       onDiscard: discardCurrentProductUnsavedChanges,
     });
@@ -903,16 +828,17 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
 
     const newProductId = uuidv4();
     setSelectedProductId(newProductId);
-    setPageData({ id: newProductId }); // Start with a new product with a generated ID
+    setPageData({ id: newProductId });
     return true;
-  }, [pageData, isDataUnchanged, discardCurrentProductUnsavedChanges]);
+  }, [isDataUnchanged, discardCurrentProductUnsavedChanges]);
 
   const duplicateSelectedProduct = useCallback(() => {
-    if (!String(pageData?.id || '').trim()) {
+    const current = getPageData();
+    if (!String(current?.id || '').trim()) {
       throw new Error('No product selected to duplicate.');
     }
 
-    const duplicatedProduct = cloneProductForDuplication(pageData);
+    const duplicatedProduct = cloneProductForDuplication(current);
     const duplicatedProductId = String(duplicatedProduct?.id || '').trim();
 
     if (!duplicatedProductId) {
@@ -925,53 +851,72 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
     setSaveError(null);
 
     return duplicatedProduct;
-  }, [pageData]);
+  }, []);
 
   // Get all collected data
   const getAllData = useCallback(() => {
-    return pageData;
-  }, [pageData]);
+    return getPageData();
+  }, []);
+
+  const value = useMemo(
+    () => ({
+      // Core product state (list + selection; pageData is read via selectors)
+      products,
+      selectedProductId,
+
+      // Data loading and mutation actions
+      getProductData,
+      getAllProducts,
+      updateProducts,
+      refreshProductList,
+      hydrateProductIcons,
+      setSelectedProductId,
+
+      // Save/create actions
+      handleProductSave,
+      createNewProduct,
+      duplicateSelectedProduct,
+      deleteProductById,
+
+      // Utility getters
+      getAllData,
+
+      // Save status flags
+      isSaving,
+      saveSuccess,
+      saveError,
+      isProductsLoading,
+
+      // Change detection helpers
+      isDataUnchanged,
+      getChangedData,
+      getProductSaveDryRunData,
+    }),
+    [
+      products,
+      selectedProductId,
+      getProductData,
+      getAllProducts,
+      updateProducts,
+      refreshProductList,
+      hydrateProductIcons,
+      handleProductSave,
+      createNewProduct,
+      duplicateSelectedProduct,
+      deleteProductById,
+      getAllData,
+      isSaving,
+      saveSuccess,
+      saveError,
+      isProductsLoading,
+      isDataUnchanged,
+      getChangedData,
+      getProductSaveDryRunData,
+    ],
+  );
 
   return (
-    <ProductContext.Provider
-      value={{
-        // Core product state
-        pageData,
-        products,
-        selectedProductId,
-
-        // Data loading and mutation actions
-        getProductData,
-        upsertProductPageData,
-        getAllProducts,
-        updateProducts,
-        refreshProductList,
-        hydrateProductIcons,
-        setSelectedProductId,
-
-        // Save/create actions
-        handleProductSave,
-        createNewProduct,
-        duplicateSelectedProduct,
-        deleteProductById,
-
-        // Utility getters
-        getAllData,
-
-        // Save status flags
-        isSaving,
-        saveSuccess,
-        saveError,
-        isProductsLoading,
-
-        // Change detection helpers
-        isDataUnchanged,
-        getChangedData,
-        getProductSaveDryRunData,
-      }}
-    >
-      {children}
-    </ProductContext.Provider>
+    <ProductContext.Provider value={value}>{children}</ProductContext.Provider>
   );
 };
 

@@ -25,9 +25,13 @@ import {
   normalizeStructuredTableResponse,
   validateNestedDataObject,
 } from '../utils/contextDataUtils';
-import { upsertNestedData } from '../utils/crudObj';
 import { useAuthContext } from './AuthContext';
-import { useGeneralContext } from './GeneralContext';
+import {
+  getEntityRecord,
+  setEntityRecord,
+  upsertEntityData,
+  useGeneralContext,
+} from './GeneralContext';
 import {
   readJson,
   stripBlobUrls,
@@ -50,12 +54,16 @@ const persistCustomers = (customersState) => {
 
 const CUSTOMERS_API_BASE =
   'http://localhost:3001/api/v1/trade_business/customers';
+const CUSTOMER_ENTITY_KEY = 'customer';
+
+const getPageData = () => getEntityRecord(CUSTOMER_ENTITY_KEY);
+const setPageData = (valueOrUpdater) =>
+  setEntityRecord(CUSTOMER_ENTITY_KEY, valueOrUpdater);
 
 export const CustomerContext_Provider = ({ children, initialData = {} }) => {
   const { token } = useAuthContext();
   const { fileMappings, isFileMappingsLoading } = useGeneralContext();
 
-  const [pageData, setPageData] = useState(initialData);
   const [originalPageData, setOriginalPageData] = useState(initialData);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -70,6 +78,13 @@ export const CustomerContext_Provider = ({ children, initialData = {} }) => {
   const hasInitialFetchRef = useRef(false);
   const hasFetchedWithMappingsRef = useRef(false);
   const customersFetchSequenceRef = useRef(0);
+
+  useEffect(() => {
+    if (!getPageData()?.id && initialData?.id) {
+      setPageData(initialData);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const customerBase64Config = useMemo(
     () => fileMappings || {},
@@ -190,42 +205,42 @@ export const CustomerContext_Provider = ({ children, initialData = {} }) => {
   ]);
 
   const effectiveComparisonKeys = useCallback(() => {
-    return getEffectiveComparisonKeys({ comparisonKeys, pageData });
-  }, [comparisonKeys, pageData]);
+    return getEffectiveComparisonKeys({
+      comparisonKeys,
+      pageData: getPageData(),
+    });
+  }, [comparisonKeys]);
 
   const getChangedData = useCallback(() => {
     return buildNestedChangedData({
-      pageData,
+      pageData: getPageData(),
       originalPageData,
       comparisonKeys: effectiveComparisonKeys(),
       rootTableName: 'customers',
       base64Config: customerBase64Config,
     });
-  }, [
-    pageData,
-    originalPageData,
-    effectiveComparisonKeys,
-    customerBase64Config,
-  ]);
+  }, [originalPageData, effectiveComparisonKeys, customerBase64Config]);
 
   const isDataUnchanged = useCallback(() => {
     return getChangedData() === null;
   }, [getChangedData]);
 
   const discardCurrentCustomerUnsavedChanges = useCallback(() => {
+    const currentPageData = getPageData();
     if (
       originalPageData &&
       String(originalPageData?.id || '').trim() ===
-        String(pageData?.id || '').trim()
+        String(currentPageData?.id || '').trim()
     ) {
       setPageData(JSON.parse(JSON.stringify(originalPageData)));
       return;
     }
 
     setPageData({});
-  }, [originalPageData, pageData]);
+  }, [originalPageData]);
 
   const getCustomerSaveDryRunData = useCallback(() => {
+    const currentPageData = getPageData();
     const changesResult = getChangedData();
     const preview = {
       endpoint: `${CUSTOMERS_API_BASE}/data/ids`,
@@ -243,7 +258,7 @@ export const CustomerContext_Provider = ({ children, initialData = {} }) => {
     }
 
     const isRootCreate =
-      !originalPageData || originalPageData.id !== pageData.id;
+      !originalPageData || originalPageData.id !== currentPageData?.id;
 
     if (changesResult?.changes?.customers) {
       if (isRootCreate) {
@@ -260,12 +275,13 @@ export const CustomerContext_Provider = ({ children, initialData = {} }) => {
     }
 
     return preview;
-  }, [getChangedData, originalPageData, pageData.id]);
+  }, [getChangedData, originalPageData]);
 
   const getCustomerData = useCallback(
     (id) => {
+      const currentPageData = getPageData();
       const canSwitch = canProceedAndDiscardUnsavedChanges({
-        hasRecordId: !!pageData.id,
+        hasRecordId: !!currentPageData?.id,
         isDataUnchanged: isDataUnchanged(),
         onDiscard: discardCurrentCustomerUnsavedChanges,
       });
@@ -323,7 +339,6 @@ export const CustomerContext_Provider = ({ children, initialData = {} }) => {
       return true;
     },
     [
-      pageData,
       isDataUnchanged,
       token,
       customerBase64Config,
@@ -332,18 +347,16 @@ export const CustomerContext_Provider = ({ children, initialData = {} }) => {
   );
 
   const upsertCustomerPageData = useCallback((nestedData) => {
-    setPageData((prevData) => {
-      if (
-        !validateNestedDataObject(
-          nestedData,
-          'upsertCustomerPageData requires an object argument',
-        )
-      ) {
-        return prevData;
-      }
+    if (
+      !validateNestedDataObject(
+        nestedData,
+        'upsertCustomerPageData requires an object argument',
+      )
+    ) {
+      return;
+    }
 
-      return upsertNestedData(prevData, nestedData);
-    });
+    upsertEntityData(CUSTOMER_ENTITY_KEY, nestedData);
   }, []);
 
   const getAllCustomers = useCallback(() => {
@@ -367,8 +380,9 @@ export const CustomerContext_Provider = ({ children, initialData = {} }) => {
       setSaveError(null);
 
       try {
+        const currentPageData = getPageData();
         const changesResult = getChangedData();
-        const currentCustomerId = String(pageData?.id || '').trim();
+        const currentCustomerId = String(currentPageData?.id || '').trim();
         const originalCustomerId = String(originalPageData?.id || '').trim();
         const isRootCreate =
           !!currentCustomerId && currentCustomerId !== originalCustomerId;
@@ -406,11 +420,11 @@ export const CustomerContext_Provider = ({ children, initialData = {} }) => {
         }
 
         if (typeof externalSaveCallback === 'function') {
-          await externalSaveCallback(pageData);
+          await externalSaveCallback(currentPageData);
         }
 
-        if (pageData.id) {
-          const cleanedPageData = cleanupFlags(pageData);
+        if (currentPageData?.id) {
+          const cleanedPageData = cleanupFlags(currentPageData);
           const savedCustomerData = JSON.parse(JSON.stringify(cleanedPageData));
 
           setPageData(cleanedPageData);
@@ -442,7 +456,6 @@ export const CustomerContext_Provider = ({ children, initialData = {} }) => {
       }
     },
     [
-      pageData,
       originalPageData?.id,
       getChangedData,
       token,
@@ -563,7 +576,7 @@ export const CustomerContext_Provider = ({ children, initialData = {} }) => {
           : prevSelectedId;
       });
 
-      if (String(pageData?.id || '').trim() === customerId) {
+      if (String(getPageData()?.id || '').trim() === customerId) {
         releaseObjectUrls(pageDataUrlRegistryRef.current);
         pageDataUrlRegistryRef.current = [];
         setPageData({});
@@ -572,7 +585,7 @@ export const CustomerContext_Provider = ({ children, initialData = {} }) => {
 
       return true;
     },
-    [token, pageData?.id],
+    [token],
   );
 
   const generateNextCustomerCode = useCallback(() => {
@@ -589,8 +602,9 @@ export const CustomerContext_Provider = ({ children, initialData = {} }) => {
   }, [customers]);
 
   const createNewCustomer = useCallback(() => {
+    const currentPageData = getPageData();
     const canCreate = canProceedAndDiscardUnsavedChanges({
-      hasRecordId: !!pageData.id,
+      hasRecordId: !!currentPageData?.id,
       isDataUnchanged: isDataUnchanged(),
       onDiscard: discardCurrentCustomerUnsavedChanges,
     });
@@ -619,20 +633,19 @@ export const CustomerContext_Provider = ({ children, initialData = {} }) => {
 
     return true;
   }, [
-    pageData,
     isDataUnchanged,
     generateNextCustomerCode,
     discardCurrentCustomerUnsavedChanges,
   ]);
 
   const getAllData = useCallback(() => {
-    return pageData;
-  }, [pageData]);
+    return getPageData();
+  }, []);
 
   return (
     <CustomerContext.Provider
       value={{
-        pageData,
+        getCustomerPageData: getPageData,
         customers,
         getCustomerData,
         upsertCustomerPageData,

@@ -6,14 +6,18 @@ import Main_TextField from '../../../common/InputOptions/TextField/Main_TextFiel
 import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
 import AddNewBtn from '../../../common/Buttons/AddNewBtn';
 import EditableDataTable from '../../../common/Table/EditableDataTable';
-import { useSupplierContext } from '../../../../store/SupplierContext';
+import {
+  upsertEntityData,
+  useEntityField,
+  useEntityRows,
+} from '../../../../store/GeneralContext';
 import { useMasterContext } from '../../../../store/MasterContext';
 import styles from './Main_SupplierContacts.module.css';
 
 const Main_SupplierContacts = () => {
-  const { pageData, upsertSupplierPageData } = useSupplierContext();
   const { contactType } = useMasterContext();
-  const contactRows = pageData.supplier_contacts || [];
+  const supplierId = useEntityField('supplier', 'id');
+  const contactRows = useEntityRows('supplier', 'supplier_contacts');
 
   const contactTypeOptions = useMemo(
     () =>
@@ -26,25 +30,25 @@ const Main_SupplierContacts = () => {
 
   const upsertContactRow = useCallback(
     (row, patch) => {
-      upsertSupplierPageData({
+      upsertEntityData('supplier', {
         supplier_contacts: [
           {
             id: row?.id || uuidv4(),
-            supplier_id: pageData.id,
+            supplier_id: supplierId,
             ...patch,
           },
         ],
       });
     },
-    [upsertSupplierPageData, pageData.id],
+    [supplierId],
   );
 
   const handleAddContactRow = useCallback(() => {
-    upsertSupplierPageData({
+    upsertEntityData('supplier', {
       supplier_contacts: [
         {
           id: uuidv4(),
-          supplier_id: pageData.id,
+          supplier_id: supplierId,
           contact_type_id: '',
           contact_name: '',
           contact_number: '',
@@ -53,17 +57,14 @@ const Main_SupplierContacts = () => {
         },
       ],
     });
-  }, [upsertSupplierPageData, pageData.id]);
+  }, [supplierId]);
 
-  const handleDeleteContactRow = useCallback(
-    (row) => {
-      if (!row?.id) return;
-      upsertSupplierPageData({
-        supplier_contacts: [{ id: row.id, _delete: true }],
-      });
-    },
-    [upsertSupplierPageData],
-  );
+  const handleDeleteContactRow = useCallback((row) => {
+    if (!row?.id) return;
+    upsertEntityData('supplier', {
+      supplier_contacts: [{ id: row.id, _delete: true }],
+    });
+  }, []);
 
   const columns = useMemo(
     () => [

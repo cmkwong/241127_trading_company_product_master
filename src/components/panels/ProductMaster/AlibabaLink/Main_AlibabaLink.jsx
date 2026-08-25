@@ -3,11 +3,14 @@ import { v4 as uuidv4 } from 'uuid';
 import Main_InputContainer from '../../../common/Container/Main_InputContainer';
 import EmptyState from '../../../common/State/EmptyState';
 import Sub_AlibabaLink from './Sub_AlibabaLink';
-import { useProductContext } from '../../../../store/ProductContext';
+import {
+  upsertEntityData,
+  useEntityRows,
+} from '../../../../store/GeneralContext';
 import styles from './Main_AlibabaLink.module.css';
 
 const Main_AlibabaLink = () => {
-  const { pageData, upsertProductPageData } = useProductContext();
+  const alibabaRows = useEntityRows('products', 'product_alibaba_ids');
   const [rowIds, setRowIds] = useState([]);
   const [rowDatas, setRowDatas] = useState([]);
   const [draggedId, setDraggedId] = useState(null);
@@ -25,13 +28,13 @@ const Main_AlibabaLink = () => {
   }, []);
 
   useEffect(() => {
-    const sortedRows = sortByDisplayOrder(pageData.product_alibaba_ids || []);
+    const sortedRows = sortByDisplayOrder(alibabaRows || []);
     setRowIds(sortedRows.map((item) => item.id));
-  }, [pageData.product_alibaba_ids, sortByDisplayOrder]);
+  }, [alibabaRows, sortByDisplayOrder]);
 
   useEffect(() => {
-    setRowDatas(sortByDisplayOrder(pageData.product_alibaba_ids || []));
-  }, [pageData.product_alibaba_ids, sortByDisplayOrder]);
+    setRowDatas(sortByDisplayOrder(alibabaRows || []));
+  }, [alibabaRows, sortByDisplayOrder]);
 
   const upsertDisplayOrders = useCallback(
     (orderedRowIds = []) => {
@@ -41,18 +44,18 @@ const Main_AlibabaLink = () => {
       }));
 
       if (patches.length > 0) {
-        upsertProductPageData({
+        upsertEntityData('products', {
           product_alibaba_ids: patches,
         });
       }
     },
-    [upsertProductPageData],
+    [upsertEntityData],
   );
 
   const handleRowAdd = useCallback(
     (newId) => {
       const nextDisplayOrder = (rowIds?.length || 0) + 1;
-      upsertProductPageData({
+      upsertEntityData('products', {
         product_alibaba_ids: [
           {
             id: newId,
@@ -61,14 +64,14 @@ const Main_AlibabaLink = () => {
         ],
       });
     },
-    [upsertProductPageData, rowIds],
+    [upsertEntityData, rowIds],
   );
 
   const handleRowRemove = useCallback(
     (rowId) => {
       const remainingIds = rowIds.filter((id) => id !== rowId);
 
-      upsertProductPageData({
+      upsertEntityData('products', {
         product_alibaba_ids: [
           {
             id: rowId,
@@ -79,7 +82,7 @@ const Main_AlibabaLink = () => {
 
       upsertDisplayOrders(remainingIds);
     },
-    [upsertProductPageData, rowIds, upsertDisplayOrders],
+    [upsertEntityData, rowIds, upsertDisplayOrders],
   );
 
   const handleDragStart = useCallback((rowId) => {

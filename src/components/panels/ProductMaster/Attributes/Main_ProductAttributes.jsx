@@ -1,7 +1,11 @@
 import { useRef, useMemo, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import Main_InputContainer from '../../../common/Container/Main_InputContainer';
-import { useProductContext } from '../../../../store/ProductContext';
+import {
+  upsertEntityData,
+  useEntityRows,
+  useEntityField,
+} from '../../../../store/GeneralContext';
 import { useMasterContext } from '../../../../store/MasterContext';
 import EmptyState from '../../../common/State/EmptyState';
 import Sub_AttributeSingleField from './Sub_AttributeSingleField';
@@ -11,12 +15,18 @@ import styles from './Main_ProductAttributes.module.css';
 import Label from '../../../common/Texts/Label';
 
 const Main_ProductAttributes = () => {
-  const { pageData, upsertProductPageData } = useProductContext();
   const { getMasterTableData } = useMasterContext();
 
-  // Keep a live reference so persistence callbacks always read fresh data.
-  const pageDataRef = useRef(pageData);
-  pageDataRef.current = pageData;
+  const productId = useEntityField('products', 'id');
+  const productCategories = useEntityRows('products', 'product_categories');
+  const attributeValues = useEntityRows('products', 'product_attribute_values');
+
+  // Keep live references so persistence callbacks always read fresh data.
+  const pageDataRef = useRef({});
+  pageDataRef.current = {
+    id: productId,
+    product_attribute_values: attributeValues,
+  };
 
   // Cache the row id used for each single-select attribute while typing,
   // so consecutive keystrokes reuse the same row instead of minting new ones.
@@ -31,13 +41,11 @@ const Main_ProductAttributes = () => {
   );
 
   const selectedCategoryIds = useMemo(() => {
-    return (pageData?.product_categories || [])
+    return (productCategories || [])
       .map((relation) => relation?.category_id)
       .filter(Boolean);
-  }, [pageData?.product_categories]);
+  }, [productCategories]);
 
-  // Dedup attribute ids so an attribute assigned to multiple selected
-  // categories is only rendered once.
   const assignedAttributeIds = useMemo(() => {
     const selected = new Set(selectedCategoryIds);
     const seen = new Set();
@@ -68,7 +76,7 @@ const Main_ProductAttributes = () => {
 
   const persistSingle = useCallback(
     (attributeId, rawValue) => {
-      const productId = pageDataRef.current?.id;
+      const productIdValue = pageDataRef.current?.id;
       const existing = getValueRows(attributeId);
       const cleaned = normalize(rawValue);
 
@@ -80,7 +88,7 @@ const Main_ProductAttributes = () => {
           singleRowIdRef.current.set(attributeId, firstRow.id);
           operations.push({
             id: firstRow.id,
-            product_id: productId,
+            product_id: productIdValue,
             attribute_id: attributeId,
             value: cleaned,
           });
@@ -94,7 +102,7 @@ const Main_ProductAttributes = () => {
 
           operations.push({
             id: rowId,
-            product_id: productId,
+            product_id: productIdValue,
             attribute_id: attributeId,
             value: cleaned,
           });
@@ -107,18 +115,17 @@ const Main_ProductAttributes = () => {
       }
 
       if (operations.length > 0) {
-        upsertProductPageData({ product_attribute_values: operations });
+        upsertEntityData('products', { product_attribute_values: operations });
       }
     },
-    [getValueRows, upsertProductPageData],
+    [getValueRows, upsertEntityData],
   );
 
   const persistMulti = useCallback(
     (attributeId, nextValues) => {
-      const productId = pageDataRef.current?.id;
+      const productIdValue = pageDataRef.current?.id;
       const existing = getValueRows(attributeId);
 
-      // Normalize while preserving case, deduplicating case-insensitively.
       const nextMap = new Map();
       (nextValues || []).forEach((raw) => {
         const value = normalize(raw);
@@ -142,7 +149,7 @@ const Main_ProductAttributes = () => {
         if (!existingKeys.has(key)) {
           operations.push({
             id: uuidv4(),
-            product_id: productId,
+            product_id: productIdValue,
             attribute_id: attributeId,
             value,
           });
@@ -150,15 +157,12 @@ const Main_ProductAttributes = () => {
       });
 
       if (operations.length > 0) {
-        upsertProductPageData({ product_attribute_values: operations });
+        upsertEntityData('products', { product_attribute_values: operations });
       }
     },
-    [getValueRows, upsertProductPageData],
+    [getValueRows, upsertEntityData],
   );
 
-  // Build a single, case-insensitively deduplicated option list for an
-  // attribute. The option id is the lowercase key; the option name keeps the
-  // original casing for display/storage.
   const buildOptions = useCallback(
     (attribute, existingValues) => {
       const dropdownRows = (attributeDropdowns || []).filter(

@@ -7,16 +7,19 @@ import Main_TextField from '../../../common/InputOptions/TextField/Main_TextFiel
 import AddNewBtn from '../../../common/Buttons/AddNewBtn';
 import DeleteBtn from '../../../common/Buttons/DeleteBtn';
 import EditableDataTable from '../../../common/Table/EditableDataTable';
-import { useCustomerContext } from '../../../../store/CustomerContext';
+import {
+  upsertEntityData,
+  useEntityField,
+  useEntityRows,
+} from '../../../../store/GeneralContext';
 import { useMasterContext } from '../../../../store/MasterContext';
 import { sortByDisplayOrder } from '../../../../utils/arr';
 import styles from './Main_CustomerImages.module.css';
 
 const Main_CustomerImages = () => {
-  const { pageData, upsertCustomerPageData } = useCustomerContext();
+  const customerId = useEntityField('customer', 'id');
+  const imageRows = useEntityRows('customer', 'customer_images');
   const { customerImageType = [], getMasterTableData } = useMasterContext();
-
-  const imageRows = useMemo(() => pageData.customer_images || [], [pageData]);
 
   const imageTypeOptions = useMemo(() => {
     const fallbackRows =
@@ -37,25 +40,25 @@ const Main_CustomerImages = () => {
 
   const upsertImageRow = useCallback(
     (row, patch) => {
-      upsertCustomerPageData({
+      upsertEntityData('customer', {
         customer_images: [
           {
             id: row?.id || uuidv4(),
-            customer_id: pageData.id,
+            customer_id: customerId,
             ...patch,
           },
         ],
       });
     },
-    [upsertCustomerPageData, pageData.id],
+    [customerId],
   );
 
   const handleAddImageRow = useCallback(() => {
-    upsertCustomerPageData({
+    upsertEntityData('customer', {
       customer_images: [
         {
           id: uuidv4(),
-          customer_id: pageData.id,
+          customer_id: customerId,
           image_type_id: imageTypeOptions?.[0]?.id || '',
           image_url: '',
           image_name: '',
@@ -63,17 +66,14 @@ const Main_CustomerImages = () => {
         },
       ],
     });
-  }, [upsertCustomerPageData, pageData.id, imageRows, imageTypeOptions]);
+  }, [customerId, imageRows, imageTypeOptions]);
 
-  const handleDeleteImageRow = useCallback(
-    (row) => {
-      if (!row?.id) return;
-      upsertCustomerPageData({
-        customer_images: [{ id: row.id, _delete: true }],
-      });
-    },
-    [upsertCustomerPageData],
-  );
+  const handleDeleteImageRow = useCallback((row) => {
+    if (!row?.id) return;
+    upsertEntityData('customer', {
+      customer_images: [{ id: row.id, _delete: true }],
+    });
+  }, []);
 
   const handleImageUploadChange = useCallback(
     (row, nv = []) => {

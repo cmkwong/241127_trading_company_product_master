@@ -5,7 +5,10 @@ import Main_Suggest from '../../../common/InputOptions/Suggest/Main_Suggest';
 import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
 import RemoveRowBtn from '../../../common/Buttons/RemoveRowBtn';
 import EmptyState from '../../../common/State/EmptyState';
-import { useProductContext } from '../../../../store/ProductContext';
+import {
+  upsertEntityData,
+  useEntityRows,
+} from '../../../../store/GeneralContext';
 import { useMasterContext } from '../../../../store/MasterContext';
 import styles from './Main_ProductName.module.css';
 
@@ -21,8 +24,8 @@ const defaultProductName = [
 ];
 
 const Main_ProductName = () => {
-  const { pageData, upsertProductPageData } = useProductContext();
   const { productNameType } = useMasterContext();
+  const productNames = useEntityRows('products', 'product_names');
   const [rowIds, setRowIds] = useState([]);
   const [rowDatas, setRowDatas] = useState([]);
   const [draggedRowId, setDraggedRowId] = useState(null);
@@ -41,13 +44,13 @@ const Main_ProductName = () => {
   }, []);
 
   useEffect(() => {
-    const sortedRows = sortByDisplayOrder(pageData.product_names || []);
+    const sortedRows = sortByDisplayOrder(productNames || []);
     setRowIds(sortedRows.map((item) => item.id));
-  }, [pageData.product_names, sortByDisplayOrder]);
+  }, [productNames, sortByDisplayOrder]);
 
   useEffect(() => {
-    setRowDatas(sortByDisplayOrder(pageData.product_names || []));
-  }, [pageData.product_names, sortByDisplayOrder]);
+    setRowDatas(sortByDisplayOrder(productNames || []));
+  }, [productNames, sortByDisplayOrder]);
 
   const upsertDisplayOrders = useCallback(
     (orderedRowIds = []) => {
@@ -57,38 +60,38 @@ const Main_ProductName = () => {
       }));
 
       if (patches.length > 0) {
-        upsertProductPageData({
+        upsertEntityData('products', {
           product_names: patches,
         });
       }
     },
-    [upsertProductPageData],
+    [upsertEntityData],
   );
 
   const handleRowAdd = useCallback(() => {
     const newId = uuidv4();
     const nextDisplayOrder = (rowIds?.length || 0) + 1;
-    upsertProductPageData({
+    upsertEntityData('products', {
       product_names: [{ id: newId, display_order: nextDisplayOrder }],
     });
-  }, [upsertProductPageData, rowIds]);
+  }, [upsertEntityData, rowIds]);
 
   const handleRowRemove = useCallback(
     (id) => {
       const remainingIds = rowIds.filter((rowId) => rowId !== id);
 
-      upsertProductPageData({
+      upsertEntityData('products', {
         product_names: [{ id, _delete: true }],
       });
 
       upsertDisplayOrders(remainingIds);
     },
-    [upsertProductPageData, rowIds, upsertDisplayOrders],
+    [upsertEntityData, rowIds, upsertDisplayOrders],
   );
 
   const handleProductNameChange = useCallback(
     (rowId, ov, nv) => {
-      upsertProductPageData({
+      upsertEntityData('products', {
         product_names: [
           {
             id: rowId,
@@ -98,12 +101,12 @@ const Main_ProductName = () => {
       });
       setNameValues((prev) => ({ ...prev, [rowId]: nv }));
     },
-    [upsertProductPageData],
+    [upsertEntityData],
   );
 
   const handleTypeChange = useCallback(
     (rowId, ov, nv) => {
-      upsertProductPageData({
+      upsertEntityData('products', {
         product_names: [
           {
             id: rowId,
@@ -112,7 +115,7 @@ const Main_ProductName = () => {
         ],
       });
     },
-    [upsertProductPageData],
+    [upsertEntityData],
   );
 
   const handleDragStart = useCallback((rowId) => {

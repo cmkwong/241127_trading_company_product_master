@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { memo, useMemo, useState } from 'react';
 import SearchSideBarList from '../../../common/SearchSideBarList/SearchSideBarList';
 import styles from '../Main_MasterControl.module.css';
 
@@ -41,4 +41,4 @@ const MasterControlSidebar = ({ tableNames = [], selectedTable, onSelect }) => {
   );
 };
 
-export default MasterControlSidebar;
+export default memo(MasterControlSidebar);

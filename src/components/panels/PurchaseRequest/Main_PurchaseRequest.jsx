@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { usePurchaseRequestContext } from '../../../store/PurchaseRequestContext';
+import {
+  getEntityRecord,
+  useEntityField,
+  useEntityRows,
+} from '../../../store/GeneralContext';
 import DeleteBtn from '../../common/Buttons/DeleteBtn';
 import Main_Dropdown from '../../common/InputOptions/Dropdown/Main_Dropdown';
 import PurchaseRequestSavePageContainer from './Container/PurchaseRequestSavePageContainer';
@@ -26,6 +31,7 @@ import { buildApInvoiceDocumentA4Html } from '../APInvoice/utils/apInvoicePrint'
 import styles from './Main_PurchaseRequest.module.css';
 
 const FILE_SERVER_BASE_URL = 'http://localhost:3001';
+const PURCHASE_ENTITY_KEY = 'purchase_requests';
 
 const toArray = (value) => (Array.isArray(value) ? value : []);
 
@@ -191,8 +197,6 @@ const Main_PurchaseRequest = () => {
   const {
     rows,
     selectedId,
-    draft,
-    setDraft,
     error,
     setError,
     notice,
@@ -207,9 +211,9 @@ const Main_PurchaseRequest = () => {
     salesQuotations,
     customers,
     exchangeRateRows,
-    createNewPurchaseRequest,
     handleSelectRow,
     handleCreate,
+    patchSelectedPurchaseRequest,
     getPurchaseRequestDryRunData,
     handleSave,
     handleDelete,
@@ -217,6 +221,33 @@ const Main_PurchaseRequest = () => {
     refreshSalesQuotations,
     refreshAll,
   } = usePurchaseRequestContext();
+  const currentPurchaseRequestId = useEntityField(PURCHASE_ENTITY_KEY, 'id');
+  const supplierId = useEntityField(PURCHASE_ENTITY_KEY, 'supplier_id');
+  const supplierAddressId = useEntityField(
+    PURCHASE_ENTITY_KEY,
+    'supplier_address_id',
+  );
+  const salesQuotationId = useEntityField(
+    PURCHASE_ENTITY_KEY,
+    'sales_quotation_id',
+  );
+  const purchaseStatus = useEntityField(PURCHASE_ENTITY_KEY, 'status');
+  const purchaseRemark = useEntityField(PURCHASE_ENTITY_KEY, 'remark');
+  const shippingDetailRows = useEntityRows(
+    PURCHASE_ENTITY_KEY,
+    'purchase_shipping_details',
+  );
+  const productDetailRows = useEntityRows(
+    PURCHASE_ENTITY_KEY,
+    'purchase_product_details',
+  );
+  const serviceDetailRows = useEntityRows(
+    PURCHASE_ENTITY_KEY,
+    'purchase_service_details',
+  );
+  const hasActivePurchaseRequest = Boolean(
+    toSafeString(currentPurchaseRequestId),
+  );
 
   useEffect(() => {
     const routeId = toSafeString(purchase_request_id);
@@ -307,7 +338,7 @@ const Main_PurchaseRequest = () => {
   }, [supplierSuggestionOptions]);
 
   const selectedSupplierAddresses = useMemo(() => {
-    const selectedSupplierId = toSafeString(draft?.supplier_id);
+    const selectedSupplierId = toSafeString(supplierId);
     if (!selectedSupplierId) return [];
 
     const supplier = supplierSuggestionOptions.find(
@@ -315,7 +346,7 @@ const Main_PurchaseRequest = () => {
     );
 
     return toArray(supplier?.supplier_addresses);
-  }, [draft?.supplier_id, supplierSuggestionOptions]);
+  }, [supplierId, supplierSuggestionOptions]);
 
   const supplierAddressSuggestionOptions = useMemo(
     () =>
@@ -546,9 +577,9 @@ const Main_PurchaseRequest = () => {
       return (Number.isFinite(qty) ? qty : 1) * price;
     };
 
-    const shippingRows = toArray(draft?.purchase_shipping_details);
-    const productRows = toArray(draft?.purchase_product_details);
-    const serviceRows = toArray(draft?.purchase_service_details);
+    const shippingRows = toArray(shippingDetailRows);
+    const productRows = toArray(productDetailRows);
+    const serviceRows = toArray(serviceDetailRows);
 
     const shippingSummary = summarizeRows(
       shippingRows,
@@ -582,7 +613,14 @@ const Main_PurchaseRequest = () => {
         productSummary.missingCount +
         serviceSummary.missingCount,
     };
-  }, [baseCurrencyCode, currencyCodeById, draft, exchangeRateMap]);
+  }, [
+    baseCurrencyCode,
+    currencyCodeById,
+    exchangeRateMap,
+    shippingDetailRows,
+    productDetailRows,
+    serviceDetailRows,
+  ]);
 
   const salesQuotationTotalUsdById = useMemo(() => {
     const map = new Map();
@@ -638,33 +676,33 @@ const Main_PurchaseRequest = () => {
   const selectedSupplierOption = useMemo(
     () =>
       supplierSuggestionOptions.find(
-        (item) => item.id === toSafeString(draft?.supplier_id),
+        (item) => item.id === toSafeString(supplierId),
       ) || null,
-    [draft?.supplier_id, supplierSuggestionOptions],
+    [supplierId, supplierSuggestionOptions],
   );
 
   const selectedSupplierAddressOption = useMemo(
     () =>
       supplierAddressSuggestionOptions.find(
-        (item) => item.id === toSafeString(draft?.supplier_address_id),
+        (item) => item.id === toSafeString(supplierAddressId),
       ) || null,
-    [draft?.supplier_address_id, supplierAddressSuggestionOptions],
+    [supplierAddressId, supplierAddressSuggestionOptions],
   );
 
   const selectedSalesQuotationOption = useMemo(
     () =>
       salesQuotationSuggestionOptions.find(
-        (item) => item.id === toSafeString(draft?.sales_quotation_id),
+        (item) => item.id === toSafeString(salesQuotationId),
       ) || null,
-    [draft?.sales_quotation_id, salesQuotationSuggestionOptions],
+    [salesQuotationId, salesQuotationSuggestionOptions],
   );
 
   const selectedSalesQuotation = useMemo(
     () =>
       toArray(salesQuotations).find(
-        (item) => item.id === toSafeString(draft?.sales_quotation_id),
+        (item) => item.id === toSafeString(salesQuotationId),
       ) || null,
-    [draft?.sales_quotation_id, salesQuotations],
+    [salesQuotationId, salesQuotations],
   );
 
   const productNameById = useMemo(() => {
@@ -699,7 +737,7 @@ const Main_PurchaseRequest = () => {
       return safeQty * price;
     };
 
-    const shippingRows = toArray(draft?.purchase_shipping_details)
+    const shippingRows = toArray(shippingDetailRows)
       .filter((row) => isTruthyFlag(row?.api_selected, true))
       .map((row, index) => ({
         id: toSafeString(row?.id) || newId(),
@@ -712,7 +750,7 @@ const Main_PurchaseRequest = () => {
         remark: toSafeString(row?.remark),
       }));
 
-    const productRows = toArray(draft?.purchase_product_details)
+    const productRows = toArray(productDetailRows)
       .filter((row) => isTruthyFlag(row?.api_selected, true))
       .map((row, index) => {
         const productId = toSafeString(row?.product_id);
@@ -730,7 +768,7 @@ const Main_PurchaseRequest = () => {
         };
       });
 
-    const serviceRows = toArray(draft?.purchase_service_details)
+    const serviceRows = toArray(serviceDetailRows)
       .filter((row) => isTruthyFlag(row?.api_selected, true))
       .map((row, index) => {
         const serviceId = toSafeString(row?.service_id);
@@ -750,9 +788,9 @@ const Main_PurchaseRequest = () => {
 
     return [...shippingRows, ...productRows, ...serviceRows];
   }, [
-    draft?.purchase_product_details,
-    draft?.purchase_service_details,
-    draft?.purchase_shipping_details,
+    productDetailRows,
+    serviceDetailRows,
+    shippingDetailRows,
     productNameById,
     serviceNameById,
   ]);
@@ -928,12 +966,11 @@ const Main_PurchaseRequest = () => {
 
   const setHeaderField = useCallback(
     (key, value) => {
-      setDraft((prev) => ({
-        ...(prev || createNewPurchaseRequest()),
+      patchSelectedPurchaseRequest({
         [key]: value,
-      }));
+      });
     },
-    [createNewPurchaseRequest, setDraft],
+    [patchSelectedPurchaseRequest],
   );
 
   const setDetailFieldById = useCallback(
@@ -941,8 +978,8 @@ const Main_PurchaseRequest = () => {
       const normalizedRowId = toSafeString(rowId);
       if (!normalizedRowId) return;
 
-      setDraft((prev) => {
-        const base = prev || createNewPurchaseRequest();
+      patchSelectedPurchaseRequest((prev) => {
+        const base = prev && typeof prev === 'object' ? prev : {};
         const nextRows = toArray(base?.[detailKey]).map((row) => {
           if (toSafeString(row?.id) !== normalizedRowId) {
             return row;
@@ -960,22 +997,27 @@ const Main_PurchaseRequest = () => {
         };
       });
     },
-    [createNewPurchaseRequest, setDraft],
+    [patchSelectedPurchaseRequest],
   );
 
   const appendDetailRow = useCallback(
     (detailKey, rowFactory) => {
-      setDraft((prev) => {
-        const base = prev || createNewPurchaseRequest();
+      patchSelectedPurchaseRequest((prev) => {
+        const base = prev && typeof prev === 'object' ? prev : {};
+        const ensuredId = toSafeString(base?.id) || newId();
+        const baseWithId =
+          toSafeString(base?.id) === ensuredId
+            ? base
+            : { ...base, id: ensuredId };
         const list = toArray(base[detailKey]).map((row) => ({ ...row }));
-        list.push(rowFactory(base));
+        list.push(rowFactory(baseWithId));
         return {
-          ...base,
+          ...baseWithId,
           [detailKey]: list,
         };
       });
     },
-    [createNewPurchaseRequest, setDraft],
+    [patchSelectedPurchaseRequest],
   );
 
   const removeDetailRow = useCallback(
@@ -983,8 +1025,8 @@ const Main_PurchaseRequest = () => {
       const normalizedRowId = toSafeString(rowId);
       if (!normalizedRowId) return;
 
-      setDraft((prev) => {
-        const base = prev || createNewPurchaseRequest();
+      patchSelectedPurchaseRequest((prev) => {
+        const base = prev && typeof prev === 'object' ? prev : {};
         const list = toArray(base[detailKey]).filter(
           (row) => toSafeString(row?.id) !== normalizedRowId,
         );
@@ -995,7 +1037,7 @@ const Main_PurchaseRequest = () => {
         };
       });
     },
-    [createNewPurchaseRequest, setDraft],
+    [patchSelectedPurchaseRequest],
   );
 
   const buildDefaultUploadFiles = useCallback((files, nameField, urlField) => {
@@ -1171,22 +1213,22 @@ const Main_PurchaseRequest = () => {
   const handleSupplierInputChange = useCallback(
     (nextValue) => {
       if (!toSafeString(nextValue)) {
-        setDraft((prev) => ({
-          ...(prev || createNewPurchaseRequest()),
+        patchSelectedPurchaseRequest((prev) => ({
+          ...(prev && typeof prev === 'object' ? prev : {}),
           supplier_id: '',
           supplier_address_id: '',
         }));
       }
     },
-    [createNewPurchaseRequest, setDraft],
+    [patchSelectedPurchaseRequest],
   );
 
   const handleSupplierSelect = useCallback(
     (suggestion) => {
       const nextSupplierId = toSafeString(suggestion?.id);
 
-      setDraft((prev) => {
-        const base = prev || createNewPurchaseRequest();
+      patchSelectedPurchaseRequest((prev) => {
+        const base = prev && typeof prev === 'object' ? prev : {};
         const hasAddress = toArray(suggestion?.supplier_addresses).some(
           (address) =>
             toSafeString(address?.id) ===
@@ -1202,7 +1244,7 @@ const Main_PurchaseRequest = () => {
         };
       });
     },
-    [createNewPurchaseRequest, setDraft],
+    [patchSelectedPurchaseRequest],
   );
 
   const handleSupplierAddressInputChange = useCallback(
@@ -1286,8 +1328,8 @@ const Main_PurchaseRequest = () => {
 
       const targetRowId = toSafeString(targetRow?.id);
       if (targetRowId) {
-        setDraft((prev) => {
-          const base = prev || createNewPurchaseRequest();
+        patchSelectedPurchaseRequest((prev) => {
+          const base = prev && typeof prev === 'object' ? prev : {};
           return {
             ...base,
             purchase_shipping_details: toArray(
@@ -1338,7 +1380,7 @@ const Main_PurchaseRequest = () => {
         purchase_shipping_files: [],
       }));
     },
-    [appendDetailRow, createNewPurchaseRequest, setDraft],
+    [appendDetailRow, patchSelectedPurchaseRequest],
   );
 
   const handleSelectProductFromQuotation = useCallback(
@@ -1348,8 +1390,8 @@ const Main_PurchaseRequest = () => {
 
       const targetRowId = toSafeString(targetRow?.id);
       if (targetRowId) {
-        setDraft((prev) => {
-          const base = prev || createNewPurchaseRequest();
+        patchSelectedPurchaseRequest((prev) => {
+          const base = prev && typeof prev === 'object' ? prev : {};
           return {
             ...base,
             purchase_product_details: toArray(
@@ -1399,7 +1441,7 @@ const Main_PurchaseRequest = () => {
         purchase_product_files: [],
       }));
     },
-    [appendDetailRow, createNewPurchaseRequest, setDraft],
+    [appendDetailRow, patchSelectedPurchaseRequest],
   );
 
   const handleSelectServiceFromQuotation = useCallback(
@@ -1409,8 +1451,8 @@ const Main_PurchaseRequest = () => {
 
       const targetRowId = toSafeString(targetRow?.id);
       if (targetRowId) {
-        setDraft((prev) => {
-          const base = prev || createNewPurchaseRequest();
+        patchSelectedPurchaseRequest((prev) => {
+          const base = prev && typeof prev === 'object' ? prev : {};
           return {
             ...base,
             purchase_service_details: toArray(
@@ -1466,11 +1508,12 @@ const Main_PurchaseRequest = () => {
         purchase_service_files: [],
       }));
     },
-    [appendDetailRow, createNewPurchaseRequest, setDraft],
+    [appendDetailRow, patchSelectedPurchaseRequest],
   );
 
   const handlePreviewApInvoice = useCallback(() => {
-    if (!draft || isPreparingPreview) {
+    const currentPurchaseRequest = getEntityRecord(PURCHASE_ENTITY_KEY);
+    if (!currentPurchaseRequest || isPreparingPreview) {
       return;
     }
 
@@ -1484,22 +1527,24 @@ const Main_PurchaseRequest = () => {
         return;
       }
 
-      const draftId = toSafeString(draft?.id);
+      const draftId = toSafeString(currentPurchaseRequest?.id);
       const previewInvoice = {
         id: draftId || newId(),
         purchase_request_id: draftId,
-        supplier_id: toSafeString(draft?.supplier_id),
-        supplier_address_id: toSafeString(draft?.supplier_address_id),
+        supplier_id: toSafeString(currentPurchaseRequest?.supplier_id),
+        supplier_address_id: toSafeString(
+          currentPurchaseRequest?.supplier_address_id,
+        ),
         invoice_ref: '',
         invoice_date: '',
         due_date: '',
-        remark: toSafeString(draft?.remark),
+        remark: toSafeString(currentPurchaseRequest?.remark),
         ap_invoice_row_details: apInvoicePreviewRows,
       };
 
       const nextPurchaseRequests = [
         {
-          ...draft,
+          ...currentPurchaseRequest,
           id: draftId,
         },
         ...toArray(rows).filter((row) => toSafeString(row?.id) !== draftId),
@@ -1533,7 +1578,6 @@ const Main_PurchaseRequest = () => {
     baseCurrencyCode,
     currencies,
     currencyCodeById,
-    draft,
     exchangeRateMap,
     isPreparingPreview,
     rows,
@@ -1578,7 +1622,7 @@ const Main_PurchaseRequest = () => {
             await handleDelete();
             navigate('/purchase_request', { replace: true });
           }}
-          disabled={!draft?.id || isDeleting}
+          disabled={!toSafeString(selectedId) || isDeleting}
           title="Delete selected purchase request"
           ariaLabel="Delete selected purchase request"
         />
@@ -1608,7 +1652,7 @@ const Main_PurchaseRequest = () => {
           {error ? <div className={styles.error}>{error}</div> : null}
           {notice ? <div className={styles.notice}>{notice}</div> : null}
 
-          {!draft ? (
+          {!hasActivePurchaseRequest ? (
             <div className={styles.emptyEditor}>
               {isLoading
                 ? 'Loading purchase requests...'
@@ -1681,7 +1725,11 @@ const Main_PurchaseRequest = () => {
               </div>
 
               <PurchaseRequestBasicInfo
-                draft={draft}
+                draft={{
+                  id: currentPurchaseRequestId,
+                  status: purchaseStatus,
+                  remark: purchaseRemark,
+                }}
                 supplierSuggestionOptions={supplierSuggestionOptions}
                 selectedSupplierOption={selectedSupplierOption}
                 supplierAddressSuggestionOptions={
@@ -1716,7 +1764,7 @@ const Main_PurchaseRequest = () => {
               />
 
               <PurchaseRequestShippingDetails
-                rows={toArray(draft?.purchase_shipping_details)}
+                rows={shippingDetailRows}
                 currencyDropdownOptions={currencyDropdownOptions}
                 fileUrlBase={FILE_SERVER_BASE_URL}
                 quotationSuggestionOptions={shippingQuotationSuggestionOptions}
@@ -1757,7 +1805,7 @@ const Main_PurchaseRequest = () => {
               />
 
               <PurchaseRequestProductDetails
-                rows={toArray(draft?.purchase_product_details)}
+                rows={productDetailRows}
                 productSuggestionOptions={productSuggestionOptions}
                 currencyDropdownOptions={currencyDropdownOptions}
                 fileUrlBase={FILE_SERVER_BASE_URL}
@@ -1800,7 +1848,7 @@ const Main_PurchaseRequest = () => {
               />
 
               <PurchaseRequestServiceDetails
-                rows={toArray(draft?.purchase_service_details)}
+                rows={serviceDetailRows}
                 serviceSuggestionOptions={serviceSuggestionOptions}
                 currencyDropdownOptions={currencyDropdownOptions}
                 fileUrlBase={FILE_SERVER_BASE_URL}

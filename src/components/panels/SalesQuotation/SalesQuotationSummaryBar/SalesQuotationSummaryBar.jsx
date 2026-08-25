@@ -1,7 +1,13 @@
 import { useMemo, useState } from 'react';
 import styles from './SalesQuotationSummaryBar.module.css';
 import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
-import { formatMoney, toSafeString, toNumber } from '../utils/quotationTotals';
+import {
+  computeQuotationTotals,
+  formatMoney,
+  toSafeString,
+  toNumber,
+} from '../utils/quotationTotals';
+import { useEntityRows } from '../../../../store/GeneralContext';
 
 const formatPercent = (value) => {
   if (!Number.isFinite(value)) {
@@ -236,16 +242,50 @@ const CostRundownCard = ({
 };
 
 const SalesQuotationSummaryBar = ({
-  totalsSummary,
   baseCurrencyCode,
   onBaseCurrencyChange,
   baseCurrencyOptions,
   latestExchangeRateRow,
+  currencyCodeById,
   exchangeRateMap,
   isCompact,
   purchaseCosts,
 }) => {
   const [isCostRundownOpen, setIsCostRundownOpen] = useState(false);
+  const shippingPriceRows = useEntityRows(
+    'sales_quotations',
+    'sales_shipping_prices',
+  );
+  const productDetailRows = useEntityRows(
+    'sales_quotations',
+    'sales_product_details',
+  );
+  const serviceDetailRows = useEntityRows(
+    'sales_quotations',
+    'sales_service_details',
+  );
+
+  const totalsSummary = useMemo(() => {
+    return computeQuotationTotals(
+      {
+        sales_shipping_prices: shippingPriceRows,
+        sales_product_details: productDetailRows,
+        sales_service_details: serviceDetailRows,
+      },
+      {
+        baseCurrencyCode,
+        currencyCodeById,
+        exchangeRateMap,
+      },
+    );
+  }, [
+    baseCurrencyCode,
+    currencyCodeById,
+    exchangeRateMap,
+    productDetailRows,
+    serviceDetailRows,
+    shippingPriceRows,
+  ]);
 
   const hasPoData =
     purchaseCosts &&

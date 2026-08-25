@@ -4,7 +4,11 @@ import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
 import Main_DateSelector from '../../../common/InputOptions/Date/Main_DateSelector';
 import SplitLayout from '../../../common/Layouts/SplitLayout';
 import VerticalLayout from '../../../common/Layouts/VerticalLayout';
-import { useCustomerContext } from '../../../../store/CustomerContext';
+import {
+  upsertEntityData,
+  useEntityField,
+  useEntityRows,
+} from '../../../../store/GeneralContext';
 
 const toDateInputValue = (value) => {
   if (!value) return '';
@@ -14,20 +18,24 @@ const toDateInputValue = (value) => {
 };
 
 const Main_CustomerBasicInfo = () => {
-  const { pageData, upsertCustomerPageData } = useCustomerContext();
+  const customerId = useEntityField('customer', 'id');
+  const customerCode = useEntityField('customer', 'customer_code');
+  const customerCodeCompat = useEntityField('customer', 'code');
+  const customerName = useEntityField('customer', 'name');
+  const customerCreatedAt = useEntityField('customer', 'created_at');
+  const customerUpdatedAt = useEntityField('customer', 'updated_at');
+  const customerRemark = useEntityField('customer', 'remark');
+  const customerNameRows = useEntityRows('customer', 'customer_names');
 
   const primaryName =
-    pageData?.customer_names?.[0]?.name ||
-    pageData?.name ||
-    pageData?.customer_code ||
-    '';
+    customerNameRows?.[0]?.name || customerName || customerCode || '';
   return (
     <Main_InputContainer label="Customer Basic Info">
       <SplitLayout>
         <VerticalLayout>
           <Main_InputContainer label="Customer ID">
             <Main_TextField
-              defaultValue={String(pageData?.id || '')}
+              defaultValue={String(customerId || '')}
               disabled
               placeholder="Auto-generated"
             />
@@ -35,10 +43,13 @@ const Main_CustomerBasicInfo = () => {
 
           <Main_InputContainer label="Customer Code">
             <Main_TextField
-              defaultValue={pageData?.customer_code || pageData?.code || ''}
+              defaultValue={customerCode || customerCodeCompat || ''}
               placeholder="C0000-0001"
               onChange={(ov, nv) => {
-                upsertCustomerPageData({ customer_code: nv });
+                upsertEntityData('customer', {
+                  customer_code: nv,
+                  code: nv,
+                });
               }}
             />
           </Main_InputContainer>
@@ -55,25 +66,25 @@ const Main_CustomerBasicInfo = () => {
         <VerticalLayout>
           <Main_InputContainer label="Created At">
             <Main_DateSelector
-              defaultValue={toDateInputValue(pageData?.created_at)}
+              defaultValue={toDateInputValue(customerCreatedAt)}
               disabled
             />
           </Main_InputContainer>
 
           <Main_InputContainer label="Updated At">
             <Main_DateSelector
-              defaultValue={toDateInputValue(pageData?.updated_at)}
+              defaultValue={toDateInputValue(customerUpdatedAt)}
               disabled
             />
           </Main_InputContainer>
 
           <Main_InputContainer label="Remark">
             <Main_TextArea
-              defaultValue={pageData?.remark || ''}
+              defaultValue={customerRemark || ''}
               placeholder="Customer remark"
               rows={5}
               onChange={(ov, nv) => {
-                upsertCustomerPageData({ remark: nv });
+                upsertEntityData('customer', { remark: nv });
               }}
             />
           </Main_InputContainer>

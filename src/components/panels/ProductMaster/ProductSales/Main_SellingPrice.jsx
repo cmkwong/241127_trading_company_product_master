@@ -1,5 +1,8 @@
 import Main_InputContainer from '../../../common/Container/Main_InputContainer';
-import { useProductContext } from '../../../../store/ProductContext';
+import {
+  upsertEntityData,
+  useEntityField,
+} from '../../../../store/GeneralContext';
 import Label from '../../../common/Texts/Label';
 import SellingUnitDropdown from './SellingUnitDropdown';
 import PricingModeSwitch from './PricingModeSwitch';
@@ -9,8 +12,9 @@ import SinglePriceRange from './SinglePriceRange';
 import styles from './Main_SellingPrice.module.css';
 
 const Main_SellingPrice = () => {
-  const { pageData, upsertProductPageData } = useProductContext();
-  const sellingByMode = pageData?.selling_by_mode || 'by_qty';
+  const sellingByMode =
+    useEntityField('products', 'selling_by_mode') || 'by_qty';
+  const minOrderQty = useEntityField('products', 'min_order_qty');
   const showMinOrderQty =
     sellingByMode === 'by_variants' || sellingByMode === 'by_single_price';
 
@@ -32,9 +36,9 @@ const Main_SellingPrice = () => {
             <input
               className={styles.moqInput}
               type="number"
-              value={pageData?.min_order_qty ?? ''}
+              value={minOrderQty ?? ''}
               onChange={(e) =>
-                upsertProductPageData({
+                upsertEntityData('products', {
                   min_order_qty: Number(e.target.value) || 0,
                 })
               }

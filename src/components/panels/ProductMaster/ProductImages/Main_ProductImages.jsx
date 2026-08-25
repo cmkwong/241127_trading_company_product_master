@@ -2,18 +2,21 @@ import { useCallback, useEffect, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import Main_InputContainer from '../../../common/Container/Main_InputContainer';
 import EmptyState from '../../../common/State/EmptyState';
-import { useProductContext } from '../../../../store/ProductContext';
+import {
+  upsertEntityData,
+  useEntityRows,
+} from '../../../../store/GeneralContext';
 import Sub_ProductImagesRow from './Sub_ProductImagesRow';
 import styles from './Main_ProductImages.module.css';
 
 const Main_ProductImages = () => {
-  const { pageData, upsertProductPageData } = useProductContext();
+  const productImages = useEntityRows('products', 'product_images');
 
   const [rowIds, setRowIds] = useState([]);
   const [processedImageData, setProcessedImageData] = useState([]);
 
   useEffect(() => {
-    const images = pageData?.product_images || [];
+    const images = productImages || [];
 
     if (!images.length) {
       setProcessedImageData([]);
@@ -39,7 +42,7 @@ const Main_ProductImages = () => {
 
     setProcessedImageData(imageData);
     setRowIds(validRowIds);
-  }, [pageData?.product_images]);
+  }, [productImages]);
 
   const handleRowAdd = useCallback(() => {
     const newId = uuidv4();
@@ -63,7 +66,7 @@ const Main_ProductImages = () => {
           ?.images.map((img) => img.id) || [];
 
       for (let i = 0; i < imagesToRemove.length; i++) {
-        upsertProductPageData({
+        upsertEntityData('products', {
           product_images: [
             {
               id: imagesToRemove[i],
@@ -73,7 +76,7 @@ const Main_ProductImages = () => {
         });
       }
     },
-    [upsertProductPageData, processedImageData],
+    [upsertEntityData, processedImageData],
   );
 
   return (

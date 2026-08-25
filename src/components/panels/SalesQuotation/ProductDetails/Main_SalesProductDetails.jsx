@@ -11,6 +11,10 @@ import AddNewBtn from '../../../common/Buttons/AddNewBtn';
 import DeleteBtn from '../../../common/Buttons/DeleteBtn';
 import EditableDataTable from '../../../common/Table/EditableDataTable';
 import {
+  useEntityField,
+  useEntityRows,
+} from '../../../../store/GeneralContext';
+import {
   getDiscountedRate,
   isSelectedFlag,
   normalizeDiscountPercent,
@@ -46,26 +50,26 @@ const toNumber = (value, fallback = '') => {
 };
 
 const Main_SalesProductDetails = ({
-  quotation,
   productOptions = [],
   currencyOptions = [],
   onPatchQuotation,
 }) => {
-  const productDetails = useMemo(
-    () => quotation?.sales_product_details || [],
-    [quotation?.sales_product_details],
+  const quotationId = useEntityField('sales_quotations', 'id');
+  const productDetails = useEntityRows(
+    'sales_quotations',
+    'sales_product_details',
   );
-  const productImages = useMemo(
-    () => quotation?.sales_product_detail_images || [],
-    [quotation?.sales_product_detail_images],
+  const productImages = useEntityRows(
+    'sales_quotations',
+    'sales_product_detail_images',
   );
-  const productInternalImages = useMemo(
-    () => quotation?.sales_product_detail_internal_images || [],
-    [quotation?.sales_product_detail_internal_images],
+  const productInternalImages = useEntityRows(
+    'sales_quotations',
+    'sales_product_detail_internal_images',
   );
-  const productInternalFiles = useMemo(
-    () => quotation?.sales_product_detail_internal_files || [],
-    [quotation?.sales_product_detail_internal_files],
+  const productInternalFiles = useEntityRows(
+    'sales_quotations',
+    'sales_product_detail_internal_files',
   );
 
   const setProductDetails = useCallback(
@@ -109,7 +113,7 @@ const Main_SalesProductDetails = ({
       const rowId = String(row?.id || uuidv4());
       const nextRow = {
         id: rowId,
-        sales_quotation_id: quotation?.id,
+        sales_quotation_id: quotationId,
         product_id: '',
         qty: 1,
         currency_id: '',
@@ -140,7 +144,7 @@ const Main_SalesProductDetails = ({
         return [...previousRows, nextRow];
       });
     },
-    [quotation?.id, setProductDetails],
+    [quotationId, setProductDetails],
   );
 
   const handleDeleteProductDetail = useCallback(
@@ -182,7 +186,7 @@ const Main_SalesProductDetails = ({
       ...previousRows,
       {
         id: uuidv4(),
-        sales_quotation_id: quotation?.id,
+        sales_quotation_id: quotationId,
         product_id: productOptions[0]?.id || '',
         qty: 1,
         currency_id: currencyOptions[0]?.id || '',
@@ -197,7 +201,7 @@ const Main_SalesProductDetails = ({
         ari_selected: true,
       },
     ]);
-  }, [quotation?.id, productOptions, currencyOptions, setProductDetails]);
+  }, [quotationId, productOptions, currencyOptions, setProductDetails]);
 
   const handleProductImagesChange = useCallback(
     (salesProductDetailId, newFiles = []) => {

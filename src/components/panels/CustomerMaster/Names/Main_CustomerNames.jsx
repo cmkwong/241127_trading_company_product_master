@@ -7,15 +7,18 @@ import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
 import AddNewBtn from '../../../common/Buttons/AddNewBtn';
 import DeleteBtn from '../../../common/Buttons/DeleteBtn';
 import EditableDataTable from '../../../common/Table/EditableDataTable';
-import { useCustomerContext } from '../../../../store/CustomerContext';
+import {
+  upsertEntityData,
+  useEntityField,
+  useEntityRows,
+} from '../../../../store/GeneralContext';
 import { useMasterContext } from '../../../../store/MasterContext';
 import styles from './Main_CustomerNames.module.css';
 
 const Main_CustomerNames = () => {
-  const { pageData, upsertCustomerPageData } = useCustomerContext();
+  const customerId = useEntityField('customer', 'id');
+  const nameRows = useEntityRows('customer', 'customer_names');
   const { customerNameType = [], getMasterTableData } = useMasterContext();
-
-  const nameRows = useMemo(() => pageData.customer_names || [], [pageData]);
 
   const customerNameTypeOptions = useMemo(() => {
     const fallbackRows =
@@ -41,42 +44,39 @@ const Main_CustomerNames = () => {
 
   const upsertNameRow = useCallback(
     (row, patch) => {
-      upsertCustomerPageData({
+      upsertEntityData('customer', {
         customer_names: [
           {
             id: row?.id || uuidv4(),
-            customer_id: pageData.id,
+            customer_id: customerId,
             ...patch,
           },
         ],
       });
     },
-    [upsertCustomerPageData, pageData.id],
+    [customerId],
   );
 
   const handleAddNameRow = useCallback(() => {
-    upsertCustomerPageData({
+    upsertEntityData('customer', {
       customer_names: [
         {
           id: uuidv4(),
-          customer_id: pageData.id,
+          customer_id: customerId,
           name_type_id: '',
           name: '',
           remark: '',
         },
       ],
     });
-  }, [upsertCustomerPageData, pageData.id, nameRows]);
+  }, [customerId]);
 
-  const handleDeleteNameRow = useCallback(
-    (row) => {
-      if (!row?.id) return;
-      upsertCustomerPageData({
-        customer_names: [{ id: row.id, _delete: true }],
-      });
-    },
-    [upsertCustomerPageData],
-  );
+  const handleDeleteNameRow = useCallback((row) => {
+    if (!row?.id) return;
+    upsertEntityData('customer', {
+      customer_names: [{ id: row.id, _delete: true }],
+    });
+  }, []);
 
   const columns = useMemo(
     () => [

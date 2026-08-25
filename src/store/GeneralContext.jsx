@@ -4,9 +4,89 @@ import {
   useContext,
   useEffect,
   useState,
+  useSyncExternalStore,
 } from 'react';
 import { apiGet } from '../utils/crud';
+import { upsertNestedData } from '../utils/crudObj';
+import { validateNestedDataObject } from '../utils/contextDataUtils';
 import { useAuthContext } from './AuthContext';
+
+// ---------------------------------------------------------------------------
+// Generic entity record store.
+//
+// Each "entity" (e.g. 'products', 'supplier', 'customer') is the currently
+// edited record held in module scope. Components subscribe to a single entity
+// slice via useSyncExternalStore so editing one field only re-renders the
+// components that select that slice — instead of every context consumer.
+// ---------------------------------------------------------------------------
+
+const entityRecords = new Map();
+const entityListeners = new Map();
+const EMPTY_RECORD = Object.freeze({});
+const EMPTY_ROWS = Object.freeze([]);
+
+const getEntityListeners = (entityKey) => {
+  let listeners = entityListeners.get(entityKey);
+  if (!listeners) {
+    listeners = new Set();
+    entityListeners.set(entityKey, listeners);
+  }
+  return listeners;
+};
+
+export const getEntityRecord = (entityKey) =>
+  entityRecords.get(entityKey) ?? EMPTY_RECORD;
+
+export const setEntityRecord = (entityKey, valueOrUpdater) => {
+  const prev = entityRecords.get(entityKey);
+  const next =
+    typeof valueOrUpdater === 'function'
+      ? valueOrUpdater(prev)
+      : valueOrUpdater;
+  if (Object.is(next, prev)) return;
+  entityRecords.set(entityKey, next);
+  getEntityListeners(entityKey).forEach((listener) => listener());
+};
+
+export const subscribeEntityRecord = (entityKey, listener) => {
+  const listeners = getEntityListeners(entityKey);
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+};
+
+export const upsertEntityData = (entityKey, nestedData) => {
+  if (
+    !validateNestedDataObject(
+      nestedData,
+      'upsertEntityData requires an object argument',
+    )
+  ) {
+    return;
+  }
+
+  setEntityRecord(entityKey, (prev) =>
+    upsertNestedData(prev ?? EMPTY_RECORD, nestedData),
+  );
+};
+
+export function useEntitySelector(entityKey, selector) {
+  return useSyncExternalStore(
+    (listener) => subscribeEntityRecord(entityKey, listener),
+    () => selector(getEntityRecord(entityKey)),
+    () => selector(getEntityRecord(entityKey)),
+  );
+}
+
+export const useEntityField = (entityKey, fieldName) =>
+  useEntitySelector(entityKey, (record) => record?.[fieldName]);
+
+export const useEntityRows = (entityKey, tableName) =>
+  useEntitySelector(entityKey, (record) => {
+    const rows = record?.[tableName];
+    return Array.isArray(rows) ? rows : EMPTY_ROWS;
+  });
 
 export const GeneralContext = createContext();
 

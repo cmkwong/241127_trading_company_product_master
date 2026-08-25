@@ -7,12 +7,13 @@ import { SalesQuotationContext } from '../../../store/SalesQuotationContext';
 import { SupplierContext } from '../../../store/SupplierContext';
 import { MasterContext } from '../../../store/MasterContext';
 import { canProceedWithRecordSwitch } from '../../../utils/contextDataUtils';
+import { getEntityRecord } from '../../../store/GeneralContext';
 import ModuleTopBar from './ModuleTopBar';
 import NavButton from '../../common/NavButton/NavButton';
 import styles from './TopBar.module.css';
 
 const VIEW_PATH_BY_KEY = {
-  product: '/product_master',
+  products: '/product_master',
   supplier: '/supplier_master',
   customer: '/customer_master',
   salesQuotation: '/sales_quotation',
@@ -22,7 +23,7 @@ const VIEW_PATH_BY_KEY = {
 };
 
 const VIEW_KEY_BY_PATH_PREFIX = {
-  '/product_master': 'product',
+  '/product_master': 'products',
   '/supplier_master': 'supplier',
   '/customer_master': 'customer',
   '/sales_quotation': 'salesQuotation',
@@ -32,7 +33,7 @@ const VIEW_KEY_BY_PATH_PREFIX = {
 };
 
 const PAGE_TITLE_BY_VIEW = {
-  product: 'Product Master',
+  products: 'Product Master',
   supplier: 'Supplier Master',
   customer: 'Customer Master',
   salesQuotation: 'Sales Quotation',
@@ -48,7 +49,7 @@ const resolveActiveView = (pathname) => {
       return viewKey;
     }
   }
-  return 'product';
+  return 'products';
 };
 
 const TopBar = () => {
@@ -89,7 +90,7 @@ const TopBar = () => {
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
-      if (activeView === 'product') {
+      if (activeView === 'products') {
         if (typeof refreshProductList === 'function') {
           await refreshProductList();
         }
@@ -141,13 +142,14 @@ const TopBar = () => {
   };
 
   const handleViewSwitch = (nextView) => {
+    console.log(nextView, activeView);
     const nextPath = VIEW_PATH_BY_KEY[nextView];
     if (!nextPath || nextView === activeView) {
       return;
     }
 
     const currentContext =
-      activeView === 'product'
+      activeView === 'products'
         ? productContext
         : activeView === 'supplier'
           ? supplierContext
@@ -157,8 +159,18 @@ const TopBar = () => {
               ? salesQuotationContext
               : null;
 
+    // Products and suppliers now keep the edited record in the generic entity
+    // store (not in context), so read their ids directly. Other modules still
+    // expose pageData in context.
+    const hasRecordId =
+      activeView === 'products'
+        ? !!getEntityRecord('products')?.id
+        : activeView === 'supplier'
+          ? !!getEntityRecord('supplier')?.id
+          : !!currentContext?.pageData?.id;
+
     const canSwitch = canProceedWithRecordSwitch({
-      hasRecordId: !!currentContext?.pageData?.id,
+      hasRecordId,
       isDataUnchanged:
         typeof currentContext?.isDataUnchanged === 'function'
           ? currentContext.isDataUnchanged()
@@ -191,8 +203,8 @@ const TopBar = () => {
           </div>
           <div className={styles.navLinks}>
             <NavButton
-              active={activeView === 'product'}
-              onClick={() => handleViewSwitch('product')}
+              active={activeView === 'products'}
+              onClick={() => handleViewSwitch('products')}
             >
               Product Master
             </NavButton>

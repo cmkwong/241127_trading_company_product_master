@@ -3,15 +3,14 @@ import PropTypes from 'prop-types';
 import styles from './Main_ProductIcon.module.css';
 import Main_InputContainer from '../../../common/Container/Main_InputContainer';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
-import { useProductContext } from '../../../../store/ProductContext';
+import {
+  upsertEntityData,
+  useEntityField,
+} from '../../../../store/GeneralContext';
 import { useMasterContext } from '../../../../store/MasterContext';
 import IconUpload from '../../../common/InputOptions/IconUpload/IconUpload';
 import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
 
-/**
- * Main_ProductIcon Component
- * Allows selection and display of a single product image
- */
 const ACCEPTED_IMAGE_TYPES = [
   'image/jpeg',
   'image/png',
@@ -23,8 +22,17 @@ const MAX_IMAGE_SIZE_MB = 5;
 const PRODUCT_IMAGES_BASE_PATH = 'E:\\Pet Product Images\\public\\products';
 
 const Main_ProductIcon = ({ showMaxImagesNotice = false }) => {
-  const { pageData, upsertProductPageData } = useProductContext();
   const { productStatus } = useMasterContext();
+
+  const productId = useEntityField('products', 'id');
+  const iconUrl = useEntityField('products', 'icon_url');
+  const iconName = useEntityField('products', 'icon_name');
+  const hsCode = useEntityField('products', 'hs_code');
+  const productIndex = useEntityField('products', 'product_index');
+  const productStatusId = useEntityField('products', 'product_status_id');
+  const statusId = useEntityField('products', 'status_id');
+  const createdAt = useEntityField('products', 'created_at');
+  const updatedAt = useEntityField('products', 'updated_at');
 
   const formatDateTime = (value) => {
     if (!value) return '';
@@ -34,12 +42,11 @@ const Main_ProductIcon = ({ showMaxImagesNotice = false }) => {
   };
 
   // product ID state setup
-  const [id, setId] = useState(pageData.id || '');
+  const [id, setId] = useState(productId || '');
 
-  // Process the image URL from pageData
   useEffect(() => {
-    setId(pageData.id || '');
-  }, [pageData.id]);
+    setId(productId || '');
+  }, [productId]);
 
   const handleIconSelectFile = (file) => {
     if (!file) return;
@@ -60,7 +67,7 @@ const Main_ProductIcon = ({ showMaxImagesNotice = false }) => {
 
     const objectUrl = URL.createObjectURL(file);
 
-    upsertProductPageData({
+    upsertEntityData('products', {
       icon_url: objectUrl,
       icon_name: file.name || '',
       _base64_changed: true,
@@ -68,7 +75,7 @@ const Main_ProductIcon = ({ showMaxImagesNotice = false }) => {
   };
 
   const handleRemoveIcon = () => {
-    upsertProductPageData({
+    upsertEntityData('products', {
       icon_url: '',
       icon_name: '',
       _base64_changed: true,
@@ -81,7 +88,6 @@ const Main_ProductIcon = ({ showMaxImagesNotice = false }) => {
     const windowsPath = `${PRODUCT_IMAGES_BASE_PATH}\\${id}`;
     const fileUrl = `file:///${windowsPath.replace(/\\/g, '/')}`;
 
-    // Browsers may block opening local folders directly.
     window.open(fileUrl, '_blank', 'noopener,noreferrer');
 
     try {
@@ -99,8 +105,8 @@ const Main_ProductIcon = ({ showMaxImagesNotice = false }) => {
           <div className={styles.iconUploadRow}>
             <IconUpload
               inputId={`product-icon-${id || 'new'}`}
-              imageUrl={pageData.icon_url || ''}
-              imageName={pageData.icon_name || 'product-icon'}
+              imageUrl={iconUrl || ''}
+              imageName={iconName || 'product-icon'}
               onSelectFile={handleIconSelectFile}
               accept={ACCEPTED_IMAGE_TYPES.join(',')}
               size="XL"
@@ -111,7 +117,7 @@ const Main_ProductIcon = ({ showMaxImagesNotice = false }) => {
               }
             />
 
-            {!!pageData.icon_url && (
+            {!!iconUrl && (
               <button
                 type="button"
                 className={styles.removeIconBtn}
@@ -126,23 +132,23 @@ const Main_ProductIcon = ({ showMaxImagesNotice = false }) => {
         </div>
         <Main_TextField
           label={'HS Code'}
-          defaultValue={pageData.hs_code || ''}
+          defaultValue={hsCode || ''}
           onChange={(ov, nv) => {
-            upsertProductPageData({
+            upsertEntityData('products', {
               hs_code: nv,
             });
           }}
-          disabled={false} // Set to false to allow editing of HS Code
+          disabled={false}
         />
         <Main_TextField
           label={'Product Index'}
-          defaultValue={pageData.product_index || ''}
+          defaultValue={productIndex || ''}
           onChange={(ov, nv) => {
-            upsertProductPageData({
+            upsertEntityData('products', {
               product_index: nv,
             });
           }}
-          disabled={false} // Set to false to allow editing of Product Index
+          disabled={false}
         />
         <Main_Dropdown
           label="Product Status"
@@ -150,11 +156,9 @@ const Main_ProductIcon = ({ showMaxImagesNotice = false }) => {
             id: item.id,
             name: item.name || item.label || '',
           }))}
-          defaultSelectedOption={
-            pageData.product_status_id || pageData.status_id || ''
-          }
+          defaultSelectedOption={productStatusId || statusId || ''}
           onChange={(ov, nv) => {
-            upsertProductPageData({
+            upsertEntityData('products', {
               product_status_id: nv,
             });
           }}
@@ -163,7 +167,7 @@ const Main_ProductIcon = ({ showMaxImagesNotice = false }) => {
           label={'Product ID'}
           defaultValue={id}
           onChange={() => {}}
-          disabled={true} // Product ID is typically not editable, set to true to disable
+          disabled={true}
         />
         <button
           type="button"
@@ -177,13 +181,13 @@ const Main_ProductIcon = ({ showMaxImagesNotice = false }) => {
         </button>
         <Main_TextField
           label={'Created Date Time'}
-          defaultValue={formatDateTime(pageData.created_at)}
+          defaultValue={formatDateTime(createdAt)}
           onChange={() => {}}
           disabled={true}
         />
         <Main_TextField
           label={'Updated Date Time'}
-          defaultValue={formatDateTime(pageData.updated_at)}
+          defaultValue={formatDateTime(updatedAt)}
           onChange={() => {}}
           disabled={true}
         />
@@ -193,8 +197,8 @@ const Main_ProductIcon = ({ showMaxImagesNotice = false }) => {
 };
 
 Main_ProductIcon.propTypes = {
-  onChange: PropTypes.func, // Callback when image changes
-  showMaxImagesNotice: PropTypes.bool, // Whether to show "Maximum 1 images reached" notice
+  onChange: PropTypes.func,
+  showMaxImagesNotice: PropTypes.bool,
 };
 
 export default Main_ProductIcon;

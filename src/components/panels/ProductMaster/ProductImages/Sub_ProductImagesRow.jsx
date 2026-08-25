@@ -2,16 +2,21 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useMasterContext } from '../../../../store/MasterContext';
 import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
 import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_FileUploads';
-import { useProductContext } from '../../../../store/ProductContext';
+import {
+  upsertEntityData,
+  useEntityField,
+  useEntityRows,
+} from '../../../../store/GeneralContext';
 import { sortByDisplayOrder } from '../../../../utils/arr';
 import styles from './Sub_ProductImagesRow.module.css';
 
 const Sub_ProductImagesRow = (props) => {
   const { imageData, rowindex, rowId } = props;
 
-  const { pageData, upsertProductPageData } = useProductContext();
   const { productImageType } = useMasterContext();
-  const [productImageSubType, setProductImageSubType] = useState([]); // This is for the sub type dropdown, which is based on the selected main type
+  const productId = useEntityField('products', 'id');
+  const pageImages = useEntityRows('products', 'product_images');
+  const [productImageSubType, setProductImageSubType] = useState([]);
 
   const [mainImageTypeId, setMainImageTypeId] = useState();
   const [defaultImages, setDefaultImages] = useState([]);
@@ -36,9 +41,7 @@ const Sub_ProductImagesRow = (props) => {
     });
   }, [productImageSubType, getImageTypePriority]);
 
-  // Update sub image type options when main image type changes
   useEffect(() => {
-    // getting the sub image type ids based on the selected main image type id
     if (mainImageTypeId) {
       const subTypes = (productImageType || []).filter(
         (type) => type.parent_id === mainImageTypeId,
@@ -49,7 +52,6 @@ const Sub_ProductImagesRow = (props) => {
     }
   }, [mainImageTypeId, productImageType]);
 
-  // assign main image type from row + default images from pageData.product_images
   useEffect(() => {
     const rowImages = imageData?.[rowindex]?.images || [];
     const firstImageTypeId =
@@ -63,9 +65,8 @@ const Sub_ProductImagesRow = (props) => {
 
     setMainImageTypeId(resolvedMainTypeId);
 
-    const pageImages = pageData?.product_images || [];
     setDefaultImages(
-      pageImages.map((el) => ({
+      (pageImages || []).map((el) => ({
         id: el.id,
         url: el.image_url,
         name: el.image_name,
@@ -75,7 +76,7 @@ const Sub_ProductImagesRow = (props) => {
         display_order: el.display_order,
       })),
     );
-  }, [imageData, rowindex, productImageType, pageData?.product_images]);
+  }, [imageData, rowindex, productImageType, pageImages]);
 
   const getDefaultImagesBySubType = useCallback(
     (subTypeId) => {
@@ -119,7 +120,6 @@ const Sub_ProductImagesRow = (props) => {
     [defaultImages, currentImageRow],
   );
 
-  // hande the image changed
   const handleImageChange = useCallback(
     (subTypeId, oldImages = [], newImages = []) => {
       const oldList = Array.isArray(oldImages) ? oldImages : [];
@@ -141,7 +141,7 @@ const Sub_ProductImagesRow = (props) => {
       }
 
       if (removedImages.length > 0) {
-        upsertProductPageData({
+        upsertEntityData('products', {
           product_images: removedImages.map((img) => ({
             id: img.id,
             _delete: true,
@@ -152,10 +152,10 @@ const Sub_ProductImagesRow = (props) => {
       if (newList.length > 0) {
         const addedImageIds = new Set(addedImages.map((img) => img.id));
 
-        upsertProductPageData({
+        upsertEntityData('products', {
           product_images: newList.map((img, index) => ({
             id: img.id,
-            product_id: pageData.id,
+            product_id: productId,
             image_row: currentImageRow,
             image_type_id: subTypeId,
             display_order: index + 1,
@@ -170,15 +170,13 @@ const Sub_ProductImagesRow = (props) => {
         });
       }
     },
-    [upsertProductPageData, pageData.id, currentImageRow],
+    [upsertEntityData, productId, currentImageRow],
   );
 
-  // Handle image upload errors
   const handleImageError = useCallback((error) => {
     console.error('Image upload error:', error);
   }, []);
 
-  // handle image type change
   const handleImageTypeChange = useCallback(
     (ov, nv) => {
       if (ov === nv) return;
@@ -189,7 +187,6 @@ const Sub_ProductImagesRow = (props) => {
         window.alert(
           'Main image type cannot be changed while this row has images/files. Remove all images/files in this row first.',
         );
-        // Force reset dropdown UI back to previous value
         setMainImageTypeId(null);
         setTimeout(() => {
           setMainImageTypeId(ov);
@@ -231,12 +228,12 @@ const Sub_ProductImagesRow = (props) => {
                 showDownloadButton
                 downloadEndpoint="http://localhost:3001/api/v1/trade_business/products/data/images/download"
                 downloadRequestBody={{
-                  product_id: pageData.id,
+                  product_id: productId,
                   image_type_id: subType.id,
                   image_row: currentImageRow,
                 }}
                 downloadFileBaseName={`${String(subType.name || 'images').replace(/\s+/g, '')}`}
-                downloadNameProductId={pageData.id || ''}
+                downloadNameProductId={productId || ''}
                 downloadNameImageType={subType.name || 'images'}
                 onError={handleImageError}
                 onChange={(oldImages, newImages) =>
@@ -268,7 +265,7 @@ const Sub_ProductImagesRow = (props) => {
               showDownloadButton
               downloadEndpoint="http://localhost:3001/api/v1/trade_business/products/data/images/download"
               downloadRequestBody={{
-                product_id: pageData.id,
+                product_id: productId,
                 image_type_id: mainImageTypeId,
                 image_row: currentImageRow,
               }}
@@ -277,7 +274,7 @@ const Sub_ProductImagesRow = (props) => {
                   (type) => type.id === mainImageTypeId,
                 )?.name || 'main',
               ).replace(/\s+/g, '')}_main`}
-              downloadNameProductId={pageData.id || ''}
+              downloadNameProductId={productId || ''}
               downloadNameImageType="main"
               onError={handleImageError}
               onChange={(oldImages, newImages) =>
@@ -293,23 +290,3 @@ const Sub_ProductImagesRow = (props) => {
 };
 
 export default Sub_ProductImagesRow;
-
-/*
-Q: 
-But the old value is: 
-User cancelled the image type switch:  {from: 'Amazon', to: '1688'}
-
-Why did not update back to Amazon?
-
-A:
-The reason setMainImageTypeId(ov) (or Amazon) might not visually revert the dropdown back to "Amazon" is likely because the Main_Dropdown component's internal state mechanism isn't picking up the change.
-
-When you call setMainImageTypeId(ov), you are setting the state to what it already was ("Amazon").
-React's diffing algorithm sees:
-
-Current State: "Amazon"
-New State: "Amazon"
-Because the value is identical, React skips the re-render for Sub_ProductImagesRow. Consequently, Main_Dropdown receives the same props as the previous render cycle.
-
-The Main_Dropdown component relies on its useEffect hook to sync its internal state with the defaultSelectedOption prop.
-*/

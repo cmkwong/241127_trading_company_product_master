@@ -18,21 +18,26 @@ import {
   cleanupNestedInternalFlags,
   canProceedAndDiscardUnsavedChanges,
   getEffectiveComparisonKeys,
-  validateNestedDataObject,
   mergeEntityIntoStateList,
   generateNextSegmentedCode,
   ensureContextAvailable,
 } from '../utils/contextDataUtils';
-import { upsertNestedData } from '../utils/crudObj';
 import { apiGet, apiPatch, apiDelete, apiPost } from '../utils/crud';
 import { useAuthContext } from './AuthContext';
 import { useGeneralContext } from './GeneralContext';
+import { getEntityRecord, setEntityRecord } from './GeneralContext';
 import {
   readJson,
   stripBlobUrls,
   writeJson,
 } from '../utils/TanStackUtils/listCache';
 import { v4 as uuidv4 } from 'uuid';
+
+// Thin supplier-scoped shims so internal call sites keep working while the
+// record now lives in the generic entity store (key 'supplier').
+const getPageData = () => getEntityRecord('supplier');
+const setPageData = (valueOrUpdater) =>
+  setEntityRecord('supplier', valueOrUpdater);
 
 export const SupplierContext = createContext();
 
@@ -51,7 +56,6 @@ const persistSuppliers = (suppliersState) => {
 export const SupplierContext_Provider = ({ children, initialData = {} }) => {
   const { token } = useAuthContext();
   const { fileMappings, isFileMappingsLoading } = useGeneralContext();
-  const [pageData, setPageData] = useState(initialData);
   const [originalPageData, setOriginalPageData] = useState(initialData);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -65,6 +69,14 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
   const hasInitialFetchRef = useRef(false);
   const hasFetchedWithMappingsRef = useRef(false);
   const suppliersFetchSequenceRef = useRef(0);
+
+  // Seed the external store with the initial data (once).
+  useEffect(() => {
+    if (!getPageData()?.id && initialData?.id) {
+      setPageData(initialData);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const supplierBase64Config = useMemo(
     () => fileMappings || {},
@@ -191,43 +203,43 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
   ]);
 
   const effectiveComparisonKeys = useCallback(() => {
-    return getEffectiveComparisonKeys({ comparisonKeys, pageData });
-  }, [comparisonKeys, pageData]);
+    return getEffectiveComparisonKeys({
+      comparisonKeys,
+      pageData: getPageData(),
+    });
+  }, [comparisonKeys]);
 
   const getChangedData = useCallback(() => {
     return buildNestedChangedData({
-      pageData,
+      pageData: getPageData(),
       originalPageData,
       comparisonKeys: effectiveComparisonKeys(),
       rootTableName: 'suppliers',
       base64Config: supplierBase64Config,
     });
-  }, [
-    pageData,
-    originalPageData,
-    effectiveComparisonKeys,
-    supplierBase64Config,
-  ]);
+  }, [originalPageData, effectiveComparisonKeys, supplierBase64Config]);
 
   const isDataUnchanged = useCallback(() => {
     return getChangedData() === null;
   }, [getChangedData]);
 
   const discardCurrentSupplierUnsavedChanges = useCallback(() => {
+    const current = getPageData();
     if (
       originalPageData &&
       String(originalPageData?.id || '').trim() ===
-        String(pageData?.id || '').trim()
+        String(current?.id || '').trim()
     ) {
       setPageData(JSON.parse(JSON.stringify(originalPageData)));
       return;
     }
 
     setPageData({});
-  }, [originalPageData, pageData]);
+  }, [originalPageData]);
 
   const getSupplierSaveDryRunData = useCallback(() => {
     const changesResult = getChangedData();
+    const current = getPageData();
     const preview = {
       endpoint:
         'http://localhost:3001/api/v1/trade_business/suppliers/data/ids',
@@ -245,7 +257,7 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
     }
 
     const isRootCreate =
-      !originalPageData || originalPageData.id !== pageData.id;
+      !originalPageData || originalPageData.id !== current.id;
 
     if (changesResult?.changes?.suppliers) {
       if (isRootCreate) {
@@ -260,12 +272,13 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
     }
 
     return preview;
-  }, [getChangedData, originalPageData, pageData.id]);
+  }, [getChangedData, originalPageData]);
 
   const getSupplierData = useCallback(
     (id) => {
+      const current = getPageData();
       const canSwitch = canProceedAndDiscardUnsavedChanges({
-        hasRecordId: !!pageData.id,
+        hasRecordId: !!current.id,
         isDataUnchanged: isDataUnchanged(),
         onDiscard: discardCurrentSupplierUnsavedChanges,
       });
@@ -330,27 +343,12 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
       return true;
     },
     [
-      pageData,
       isDataUnchanged,
       token,
       supplierBase64Config,
       discardCurrentSupplierUnsavedChanges,
     ],
   );
-
-  const upsertSupplierPageData = useCallback((nestedData) => {
-    setPageData((prevData) => {
-      if (
-        !validateNestedDataObject(
-          nestedData,
-          'upsertSupplierPageData requires an object argument',
-        )
-      ) {
-        return prevData;
-      }
-      return upsertNestedData(prevData, nestedData);
-    });
-  }, []);
 
   const getAllSuppliers = useCallback(() => {
     return suppliers.suppliers || [];
@@ -373,6 +371,7 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
       setSaveError(null);
 
       try {
+        const current = getPageData();
         const changesResult = getChangedData();
 
         if (changesResult) {
@@ -403,11 +402,11 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
         }
 
         if (typeof externalSaveCallback === 'function') {
-          await externalSaveCallback(pageData);
+          await externalSaveCallback(current);
         }
 
-        if (pageData.id) {
-          const cleanedPageData = _cleanupFlags(pageData);
+        if (current.id) {
+          const cleanedPageData = _cleanupFlags(current);
           const savedSupplierData = JSON.parse(JSON.stringify(cleanedPageData));
 
           setPageData(cleanedPageData);
@@ -438,7 +437,7 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
         setIsSaving(false);
       }
     },
-    [pageData, getChangedData, token, _cleanupFlags, supplierBase64Config],
+    [getChangedData, token, _cleanupFlags, supplierBase64Config],
   );
 
   const deleteSupplierById = useCallback(
@@ -477,7 +476,7 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
           : prevSelectedId;
       });
 
-      if (String(pageData?.id || '').trim() === supplierId) {
+      if (String(getPageData()?.id || '').trim() === supplierId) {
         releaseObjectUrls(pageDataUrlRegistryRef.current);
         pageDataUrlRegistryRef.current = [];
         setPageData({});
@@ -486,7 +485,7 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
 
       return true;
     },
-    [token, pageData?.id],
+    [token],
   );
 
   const generateNextSupplierCode = useCallback(() => {
@@ -503,8 +502,9 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
   }, [suppliers]);
 
   const createNewSupplier = useCallback(() => {
+    const current = getPageData();
     const canCreate = canProceedAndDiscardUnsavedChanges({
-      hasRecordId: !!pageData.id,
+      hasRecordId: !!current.id,
       isDataUnchanged: isDataUnchanged(),
       onDiscard: discardCurrentSupplierUnsavedChanges,
     });
@@ -531,23 +531,20 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
 
     return true;
   }, [
-    pageData,
     isDataUnchanged,
     generateNextSupplierCode,
     discardCurrentSupplierUnsavedChanges,
   ]);
 
   const getAllData = useCallback(() => {
-    return pageData;
-  }, [pageData]);
+    return getPageData();
+  }, []);
 
   return (
     <SupplierContext.Provider
       value={{
-        pageData,
         suppliers,
         getSupplierData,
-        upsertSupplierPageData,
         getAllSuppliers,
         updateSuppliers,
         refreshSupplierList,

@@ -16,7 +16,12 @@ import {
   writeJson,
 } from '../utils/TanStackUtils/listCache';
 import { useAuthContext } from './AuthContext';
-import { useGeneralContext } from './GeneralContext';
+import {
+  getEntityRecord,
+  setEntityRecord,
+  upsertEntityData,
+  useGeneralContext,
+} from './GeneralContext';
 
 const PURCHASE_API_BASE =
   'http://localhost:3001/api/v1/trade_business/purchase/data';
@@ -114,6 +119,11 @@ const extractRowsFromResponse = (response, tableName) => {
 export const PurchaseRequestContext = createContext();
 
 const PURCHASE_REQUEST_CACHE_KEY = 'trade_business_purchase_request_options';
+const PURCHASE_ENTITY_KEY = 'purchase_requests';
+
+const getPurchaseRequestPageData = () => getEntityRecord(PURCHASE_ENTITY_KEY);
+const setPurchaseRequestPageData = (valueOrUpdater) =>
+  setEntityRecord(PURCHASE_ENTITY_KEY, valueOrUpdater);
 
 const readStoredOptions = () => readJson(PURCHASE_REQUEST_CACHE_KEY, null);
 
@@ -130,7 +140,6 @@ export const PurchaseRequestContext_Provider = ({ children }) => {
 
   const [rows, setRows] = useState(initialStored?.rows ?? []);
   const [selectedId, setSelectedId] = useState('');
-  const [draft, setDraft] = useState(null);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -169,7 +178,9 @@ export const PurchaseRequestContext_Provider = ({ children }) => {
         (row) => toSafeString(row?.id) === normalizedId,
       );
 
-      setDraft(selectedRow ? JSON.parse(JSON.stringify(selectedRow)) : null);
+      setPurchaseRequestPageData(
+        selectedRow ? JSON.parse(JSON.stringify(selectedRow)) : {},
+      );
     },
     [rows],
   );
@@ -178,7 +189,7 @@ export const PurchaseRequestContext_Provider = ({ children }) => {
     async (preferredSelectedId = '') => {
       if (!token) {
         setRows([]);
-        setDraft(null);
+        setPurchaseRequestPageData({});
         setSelectedId('');
         setSuppliers([]);
         setProducts([]);
@@ -301,8 +312,8 @@ export const PurchaseRequestContext_Provider = ({ children }) => {
             (row) => toSafeString(row?.id) === nextTargetId,
           );
           setSelectedId(nextTargetId);
-          setDraft(
-            selectedRow ? JSON.parse(JSON.stringify(selectedRow)) : null,
+          setPurchaseRequestPageData(
+            selectedRow ? JSON.parse(JSON.stringify(selectedRow)) : {},
           );
           return purchaseRows;
         }
@@ -310,12 +321,14 @@ export const PurchaseRequestContext_Provider = ({ children }) => {
         if (purchaseRows.length > 0) {
           const firstId = toSafeString(purchaseRows[0]?.id);
           setSelectedId(firstId);
-          setDraft(JSON.parse(JSON.stringify(purchaseRows[0])));
+          setPurchaseRequestPageData(
+            JSON.parse(JSON.stringify(purchaseRows[0])),
+          );
           return purchaseRows;
         }
 
         setSelectedId('');
-        setDraft(null);
+        setPurchaseRequestPageData({});
         return purchaseRows;
       } catch (err) {
         console.error(err);
@@ -579,7 +592,12 @@ export const PurchaseRequestContext_Provider = ({ children }) => {
   );
 
   const getPurchaseRequestDryRunData = useCallback(async () => {
-    if (!draft) {
+    const selectedPurchaseRequest = getPurchaseRequestPageData();
+
+    if (
+      !selectedPurchaseRequest ||
+      !toSafeString(selectedPurchaseRequest?.id)
+    ) {
       return {
         endpoint: PURCHASE_API_BASE,
         method: 'POST / PATCH',
@@ -590,16 +608,18 @@ export const PurchaseRequestContext_Provider = ({ children }) => {
       };
     }
 
-    const normalizedDraftPayload = buildPayloadFromWorking(draft);
+    const normalizedDraftPayload = buildPayloadFromWorking(
+      selectedPurchaseRequest,
+    );
     const normalizedPayloadId = toSafeString(normalizedDraftPayload?.id);
     const existingRow = toArray(rows).find(
       (row) => toSafeString(row?.id) === normalizedPayloadId,
     );
     const exists = Boolean(existingRow);
 
-    const normalizedPayload = buildPayloadFromWorking(draft);
+    const normalizedPayload = buildPayloadFromWorking(selectedPurchaseRequest);
     const deletePayload = exists
-      ? buildDeletePayloadFromDiff(draft, existingRow)
+      ? buildDeletePayloadFromDiff(selectedPurchaseRequest, existingRow)
       : null;
 
     if (exists) {
@@ -653,21 +673,29 @@ export const PurchaseRequestContext_Provider = ({ children }) => {
         },
       },
     };
-  }, [buildDeletePayloadFromDiff, buildPayloadFromWorking, draft, rows]);
+  }, [buildDeletePayloadFromDiff, buildPayloadFromWorking, rows]);
 
   const handleSave = useCallback(async () => {
-    if (!token || !draft) return;
+    const selectedPurchaseRequest = getPurchaseRequestPageData();
+    if (
+      !token ||
+      !selectedPurchaseRequest ||
+      !toSafeString(selectedPurchaseRequest?.id)
+    ) {
+      return;
+    }
 
     setError('');
 
     try {
       const existingRow = rows.find(
-        (row) => toSafeString(row?.id) === toSafeString(draft?.id),
+        (row) =>
+          toSafeString(row?.id) === toSafeString(selectedPurchaseRequest?.id),
       );
-      const payload = await buildPayloadWithBase64(draft);
+      const payload = await buildPayloadWithBase64(selectedPurchaseRequest);
       const exists = Boolean(existingRow);
       const deletePayload = exists
-        ? buildDeletePayloadFromDiff(draft, existingRow)
+        ? buildDeletePayloadFromDiff(selectedPurchaseRequest, existingRow)
         : null;
 
       if (exists) {
@@ -693,7 +721,7 @@ export const PurchaseRequestContext_Provider = ({ children }) => {
 
       await resolveAuthoritativeEntityAfterSave({
         refreshList: () => refreshAll(payload?.id),
-        targetId: payload?.id || draft?.id,
+        targetId: payload?.id || selectedPurchaseRequest?.id,
       });
     } catch (err) {
       console.error(err);
@@ -703,7 +731,6 @@ export const PurchaseRequestContext_Provider = ({ children }) => {
   }, [
     buildDeletePayloadFromDiff,
     buildPayloadWithBase64,
-    draft,
     refreshAll,
     resolveAuthoritativeEntityAfterSave,
     rows,
@@ -711,7 +738,10 @@ export const PurchaseRequestContext_Provider = ({ children }) => {
   ]);
 
   const handleDelete = useCallback(async () => {
-    if (!token || !draft?.id || isDeleting) return;
+    const selectedPurchaseRequest = getPurchaseRequestPageData();
+    if (!token || !toSafeString(selectedPurchaseRequest?.id) || isDeleting) {
+      return;
+    }
 
     const confirmed = window.confirm(
       'Delete this purchase request? This action cannot be undone.',
@@ -723,9 +753,10 @@ export const PurchaseRequestContext_Provider = ({ children }) => {
     setError('');
 
     try {
+      const targetId = toSafeString(selectedPurchaseRequest?.id);
       await apiDelete(`${PURCHASE_API_BASE}/ids`, {
         token,
-        body: { data: { purchase_requests: [{ id: draft.id }] } },
+        body: { data: { purchase_requests: [{ id: targetId }] } },
       });
       setNotice('Purchase request deleted');
       await refreshAll('');
@@ -735,14 +766,36 @@ export const PurchaseRequestContext_Provider = ({ children }) => {
     } finally {
       setIsDeleting(false);
     }
-  }, [draft?.id, isDeleting, refreshAll, token]);
+  }, [isDeleting, refreshAll, token]);
 
   const handleCreate = useCallback(() => {
     const fresh = createNewPurchaseRequest();
-    setDraft(fresh);
+    setPurchaseRequestPageData(fresh);
     setSelectedId('');
     setError('');
     setNotice('New purchase request draft created');
+  }, []);
+
+  const patchSelectedPurchaseRequest = useCallback((patchOrUpdater) => {
+    setPurchaseRequestPageData((previous) => {
+      const base =
+        previous && typeof previous === 'object'
+          ? previous
+          : createNewPurchaseRequest();
+
+      if (typeof patchOrUpdater === 'function') {
+        return patchOrUpdater(base);
+      }
+
+      return {
+        ...base,
+        ...(patchOrUpdater || {}),
+      };
+    });
+  }, []);
+
+  const upsertPurchaseRequestPageData = useCallback((nestedData) => {
+    upsertEntityData(PURCHASE_ENTITY_KEY, nestedData);
   }, []);
 
   const contextValue = useMemo(
@@ -751,8 +804,7 @@ export const PurchaseRequestContext_Provider = ({ children }) => {
       setRows,
       selectedId,
       setSelectedId,
-      draft,
-      setDraft,
+      getSelectedPurchaseRequestData: getPurchaseRequestPageData,
       error,
       setError,
       notice,
@@ -774,6 +826,8 @@ export const PurchaseRequestContext_Provider = ({ children }) => {
       refreshSuppliers,
       refreshSalesQuotations,
       handleCreate,
+      patchSelectedPurchaseRequest,
+      upsertPurchaseRequestPageData,
       getPurchaseRequestDryRunData,
       handleSave,
       handleDelete,
@@ -781,7 +835,6 @@ export const PurchaseRequestContext_Provider = ({ children }) => {
     [
       rows,
       selectedId,
-      draft,
       error,
       notice,
       isLoading,
@@ -800,6 +853,8 @@ export const PurchaseRequestContext_Provider = ({ children }) => {
       refreshSuppliers,
       refreshSalesQuotations,
       handleCreate,
+      patchSelectedPurchaseRequest,
+      upsertPurchaseRequestPageData,
       getPurchaseRequestDryRunData,
       handleSave,
       handleDelete,

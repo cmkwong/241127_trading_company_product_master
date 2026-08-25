@@ -2,7 +2,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import Main_InputContainer from '../../../common/Container/Main_InputContainer';
 import { useMasterContext } from '../../../../store/MasterContext';
-import { useProductContext } from '../../../../store/ProductContext';
+import {
+  upsertEntityData,
+  useEntityField,
+  useEntityRows,
+} from '../../../../store/GeneralContext';
 import ColorRowsSection from './ColorRowsSection';
 import VariantCheckboxSection from './VariantCheckboxSection';
 import CostsTable from './CostsTable';
@@ -17,9 +21,16 @@ import { sortByDisplayOrder } from '../../../../utils/arr';
 import styles from './Main_ProductCosts.module.css';
 
 const Main_ProductCosts = () => {
-  const { pageData, upsertProductPageData } = useProductContext();
   const { fetchMasterData, updateMasterTableData, currencies } =
     useMasterContext();
+  const productId = useEntityField('products', 'id');
+  const variantColorsAll = useEntityRows('products', 'product_varient_colors');
+  const variantSizesAll = useEntityRows('products', 'product_varient_sizes');
+  const variantCapacitiesAll = useEntityRows(
+    'products',
+    'product_varient_capacities',
+  );
+  const productCostsAll = useEntityRows('products', 'product_costs');
 
   const [masterColors, setMasterColors] = useState([]);
   const [masterSizes, setMasterSizes] = useState([]);
@@ -27,24 +38,21 @@ const Main_ProductCosts = () => {
 
   const isSyncingRef = useRef(false);
 
-  const productId = pageData?.id || null;
-
   const variantColors = useMemo(
-    () => (pageData?.product_varient_colors || []).filter((r) => !r?._delete),
-    [pageData?.product_varient_colors],
+    () => (variantColorsAll || []).filter((r) => !r?._delete),
+    [variantColorsAll],
   );
   const variantSizes = useMemo(
-    () => (pageData?.product_varient_sizes || []).filter((r) => !r?._delete),
-    [pageData?.product_varient_sizes],
+    () => (variantSizesAll || []).filter((r) => !r?._delete),
+    [variantSizesAll],
   );
   const variantCapacities = useMemo(
-    () =>
-      (pageData?.product_varient_capacities || []).filter((r) => !r?._delete),
-    [pageData?.product_varient_capacities],
+    () => (variantCapacitiesAll || []).filter((r) => !r?._delete),
+    [variantCapacitiesAll],
   );
   const productCosts = useMemo(
-    () => (pageData?.product_costs || []).filter((r) => !r?._delete),
-    [pageData?.product_costs],
+    () => (productCostsAll || []).filter((r) => !r?._delete),
+    [productCostsAll],
   );
 
   const selectedSizeTypeIds = useMemo(
@@ -163,7 +171,7 @@ const Main_ProductCosts = () => {
 
   const handleAddColorRow = useCallback(() => {
     const id = uuidv4();
-    upsertProductPageData({
+    upsertEntityData('products', {
       product_varient_colors: [
         {
           id,
@@ -172,11 +180,11 @@ const Main_ProductCosts = () => {
       ],
     });
     setColorDraftByVariantId((prev) => ({ ...prev, [id]: '' }));
-  }, [upsertProductPageData, productId]);
+  }, [upsertEntityData, productId]);
 
   const handleRemoveColorRow = useCallback(
     (variantId) => {
-      upsertProductPageData({
+      upsertEntityData('products', {
         product_varient_colors: [{ id: variantId, _delete: true }],
         product_costs: productCosts
           .filter((cost) => cost.product_varient_color_id === variantId)
@@ -189,7 +197,7 @@ const Main_ProductCosts = () => {
         return copy;
       });
     },
-    [upsertProductPageData, productCosts],
+    [upsertEntityData, productCosts],
   );
 
   const resolveColorTypeByName = useCallback(
@@ -222,7 +230,7 @@ const Main_ProductCosts = () => {
         targetMaster = { id: newId, name };
       }
 
-      upsertProductPageData({
+      upsertEntityData('products', {
         product_varient_colors: [
           {
             id: variantId,
@@ -243,7 +251,7 @@ const Main_ProductCosts = () => {
       resolveColorTypeByName,
       updateMasterTableData,
       refreshMasters,
-      upsertProductPageData,
+      upsertEntityData,
       productId,
     ],
   );
@@ -255,7 +263,7 @@ const Main_ProductCosts = () => {
       const objectUrl = URL.createObjectURL(file);
       const existingImage = getColorImageRecord(variantRow);
 
-      upsertProductPageData({
+      upsertEntityData('products', {
         product_varient_colors: [
           {
             id: variantRow.id,
@@ -272,7 +280,7 @@ const Main_ProductCosts = () => {
         ],
       });
     },
-    [upsertProductPageData, getColorImageRecord],
+    [upsertEntityData, getColorImageRecord],
   );
 
   const handleToggleSize = useCallback(
@@ -282,7 +290,7 @@ const Main_ProductCosts = () => {
       );
 
       if (checked && !matched) {
-        upsertProductPageData({
+        upsertEntityData('products', {
           product_varient_sizes: [
             {
               id: uuidv4(),
@@ -295,7 +303,7 @@ const Main_ProductCosts = () => {
       }
 
       if (!checked && matched?.id) {
-        upsertProductPageData({
+        upsertEntityData('products', {
           product_varient_sizes: [{ id: matched.id, _delete: true }],
           product_costs: productCosts
             .filter((cost) => cost.product_varient_size_id === matched.id)
@@ -303,7 +311,7 @@ const Main_ProductCosts = () => {
         });
       }
     },
-    [variantSizes, upsertProductPageData, productId, productCosts],
+    [variantSizes, upsertEntityData, productId, productCosts],
   );
 
   const handleToggleCapacity = useCallback(
@@ -313,7 +321,7 @@ const Main_ProductCosts = () => {
       );
 
       if (checked && !matched) {
-        upsertProductPageData({
+        upsertEntityData('products', {
           product_varient_capacities: [
             {
               id: uuidv4(),
@@ -326,7 +334,7 @@ const Main_ProductCosts = () => {
       }
 
       if (!checked && matched?.id) {
-        upsertProductPageData({
+        upsertEntityData('products', {
           product_varient_capacities: [{ id: matched.id, _delete: true }],
           product_costs: productCosts
             .filter((cost) => cost.product_varient_capacity_id === matched.id)
@@ -334,7 +342,7 @@ const Main_ProductCosts = () => {
         });
       }
     },
-    [variantCapacities, upsertProductPageData, productId, productCosts],
+    [variantCapacities, upsertEntityData, productId, productCosts],
   );
 
   const handleAddNewSize = useCallback(async () => {
@@ -368,7 +376,7 @@ const Main_ProductCosts = () => {
     );
     if (alreadySelected) return;
 
-    upsertProductPageData({
+    upsertEntityData('products', {
       product_varient_sizes: [
         {
           id: uuidv4(),
@@ -380,7 +388,7 @@ const Main_ProductCosts = () => {
   }, [
     fetchMasterData,
     updateMasterTableData,
-    upsertProductPageData,
+    upsertEntityData,
     productId,
     variantSizes,
   ]);
@@ -440,7 +448,7 @@ const Main_ProductCosts = () => {
     );
     if (alreadySelected) return;
 
-    upsertProductPageData({
+    upsertEntityData('products', {
       product_varient_capacities: [
         {
           id: uuidv4(),
@@ -452,7 +460,7 @@ const Main_ProductCosts = () => {
   }, [
     fetchMasterData,
     updateMasterTableData,
-    upsertProductPageData,
+    upsertEntityData,
     productId,
     variantCapacities,
   ]);
@@ -639,14 +647,14 @@ const Main_ProductCosts = () => {
     if (additions.length === 0 && deletions.length === 0) return;
 
     isSyncingRef.current = true;
-    upsertProductPageData({
+    upsertEntityData('products', {
       product_costs: [...additions, ...deletions],
     });
 
     setTimeout(() => {
       isSyncingRef.current = false;
     }, 0);
-  }, [gridRows, productCosts, upsertProductPageData, productId]);
+  }, [gridRows, productCosts, upsertEntityData, productId]);
 
   const handleCostFieldChange = useCallback(
     (row, field, value) => {
@@ -661,7 +669,7 @@ const Main_ProductCosts = () => {
 
       const targetId = existing?.id || uuidv4();
 
-      upsertProductPageData({
+      upsertEntityData('products', {
         product_costs: [
           {
             id: targetId,
@@ -693,7 +701,7 @@ const Main_ProductCosts = () => {
         ],
       });
     },
-    [productCosts, upsertProductPageData, productId],
+    [productCosts, upsertEntityData, productId],
   );
 
   return (

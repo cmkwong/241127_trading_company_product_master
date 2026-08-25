@@ -3,6 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import styles from './ProductSidebar.module.css';
 import SearchSideBarList from '../../../common/SearchSideBarList/SearchSideBarList';
 import { useProductContext } from '../../../../store/ProductContext';
+import {
+  useEntityField,
+  useEntityRows,
+} from '../../../../store/GeneralContext';
 import { useMasterContext } from '../../../../store/MasterContext';
 
 const PRODUCT_SEARCH_HISTORY_KEY = 'product_sidebar_search_history';
@@ -30,13 +34,11 @@ const normalizeHistoryEntry = (entry) => {
 
 const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
   const navigate = useNavigate();
-  const {
-    getProductData,
-    products,
-    selectedProductId,
-    hydrateProductIcons,
-    pageData,
-  } = useProductContext();
+  const { getProductData, products, selectedProductId, hydrateProductIcons } =
+    useProductContext();
+  const pageDataId = useEntityField('products', 'id');
+  const pageKeywords = useEntityRows('products', 'product_keywords');
+  const pageNames = useEntityRows('products', 'product_names');
   const { category, productStatus, productKeywords } = useMasterContext();
   const [windowWidth, setWindowWidth] = useState(
     typeof window !== 'undefined' ? window.innerWidth : 1024,
@@ -69,20 +71,20 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
       }
 
       const productId = String(product?.id || '').trim();
-      const selectedId = String(pageData?.id || '').trim();
+      const selectedId = String(pageDataId || '').trim();
 
       if (
         productId &&
         selectedId &&
         productId === selectedId &&
-        Array.isArray(pageData?.product_keywords)
+        Array.isArray(pageKeywords)
       ) {
-        return pageData.product_keywords;
+        return pageKeywords;
       }
 
       return [];
     },
-    [pageData],
+    [pageDataId, pageKeywords],
   );
 
   const resolveKeywordLabel = useCallback(
@@ -294,10 +296,10 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
   const getProductName = useCallback(
     (product) => {
       const productId = String(product?.id || '').trim();
-      const selectedId = String(pageData?.id || '').trim();
+      const selectedId = String(pageDataId || '').trim();
 
       if (productId && selectedId && productId === selectedId) {
-        const liveName = extractFirstProductName(pageData?.product_names);
+        const liveName = extractFirstProductName(pageNames);
         if (liveName) {
           return liveName;
         }
@@ -310,7 +312,7 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
 
       return productId;
     },
-    [pageData, extractFirstProductName],
+    [pageDataId, pageNames, extractFirstProductName],
   );
 
   const saveSearchHistory = useCallback((updater) => {

@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import EditableDataTable from '../../../common/Table/EditableDataTable';
-import { useProductContext } from '../../../../store/ProductContext';
+import {
+  upsertEntityData,
+  useEntityField,
+  useEntityRows,
+} from '../../../../store/GeneralContext';
 import { useMasterContext } from '../../../../store/MasterContext';
 import {
   getVariantTypeId,
@@ -11,7 +15,6 @@ import {
 import styles from './PriceByVariantsTable.module.css';
 
 const PriceByVariantsTable = () => {
-  const { pageData, upsertProductPageData } = useProductContext();
   const { fetchMasterData, currencies } = useMasterContext();
 
   const [masterColors, setMasterColors] = useState([]);
@@ -34,24 +37,30 @@ const PriceByVariantsTable = () => {
     refreshMasters();
   }, [refreshMasters]);
 
-  const productId = pageData?.id || null;
+  const productId = useEntityField('products', 'id');
+  const variantColorsAll = useEntityRows('products', 'product_varient_colors');
+  const variantSizesAll = useEntityRows('products', 'product_varient_sizes');
+  const variantCapacitiesAll = useEntityRows(
+    'products',
+    'product_varient_capacities',
+  );
+  const productCostsAll = useEntityRows('products', 'product_costs');
 
   const variantColors = useMemo(
-    () => (pageData?.product_varient_colors || []).filter((r) => !r?._delete),
-    [pageData?.product_varient_colors],
+    () => (variantColorsAll || []).filter((r) => !r?._delete),
+    [variantColorsAll],
   );
   const variantSizes = useMemo(
-    () => (pageData?.product_varient_sizes || []).filter((r) => !r?._delete),
-    [pageData?.product_varient_sizes],
+    () => (variantSizesAll || []).filter((r) => !r?._delete),
+    [variantSizesAll],
   );
   const variantCapacities = useMemo(
-    () =>
-      (pageData?.product_varient_capacities || []).filter((r) => !r?._delete),
-    [pageData?.product_varient_capacities],
+    () => (variantCapacitiesAll || []).filter((r) => !r?._delete),
+    [variantCapacitiesAll],
   );
   const productCosts = useMemo(
-    () => (pageData?.product_costs || []).filter((r) => !r?._delete),
-    [pageData?.product_costs],
+    () => (productCostsAll || []).filter((r) => !r?._delete),
+    [productCostsAll],
   );
 
   const colorTypeMap = useMemo(
@@ -257,7 +266,7 @@ const PriceByVariantsTable = () => {
 
       const targetId = existing?.id || uuidv4();
 
-      upsertProductPageData({
+      upsertEntityData('products', {
         product_costs: [
           {
             id: targetId,
@@ -277,7 +286,7 @@ const PriceByVariantsTable = () => {
         ],
       });
     },
-    [productCosts, upsertProductPageData, productId],
+    [productCosts, upsertEntityData, productId],
   );
 
   const columns = useMemo(

@@ -8,7 +8,11 @@ import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_File
 import Main_InputContainer from '../../../common/Container/Main_InputContainer';
 import DeleteBtn from '../../../common/Buttons/DeleteBtn';
 import EditableDataTable from '../../../common/Table/EditableDataTable';
-import { useProductContext } from '../../../../store/ProductContext';
+import {
+  upsertEntityData,
+  useEntityRows,
+  useEntityField,
+} from '../../../../store/GeneralContext';
 import { useMasterContext } from '../../../../store/MasterContext';
 import { sortByDisplayOrder } from '../../../../utils/arr';
 import styles from './Main_Pack.module.css';
@@ -23,10 +27,15 @@ const parseNumericInput = (value) => {
 };
 
 const Main_Pack = () => {
-  const { pageData, upsertProductPageData } = useProductContext();
   const { packType, packingReliabilityType, productLogisticsAttributes } =
     useMasterContext();
-  const packRows = pageData.product_packings || [];
+
+  const productId = useEntityField('products', 'id');
+  const packRows = useEntityRows('products', 'product_packings');
+  const logisticsId = useEntityField(
+    'products',
+    'product_logistics_attributes_id',
+  );
 
   const dropdownPackTypeOptions = useMemo(
     () =>
@@ -46,9 +55,7 @@ const Main_Pack = () => {
     [packingReliabilityType],
   );
 
-  const selectedLogisticsIds = pageData.product_logistics_attributes_id
-    ? [pageData.product_logistics_attributes_id]
-    : [];
+  const selectedLogisticsIds = logisticsId ? [logisticsId] : [];
 
   const handleLogisticsChange = useCallback(
     (ov, nv) => {
@@ -57,35 +64,37 @@ const Main_Pack = () => {
       const removedId = (ov || []).find((id) => !nextIds.includes(id));
 
       if (newId) {
-        upsertProductPageData({ product_logistics_attributes_id: newId });
+        upsertEntityData('products', {
+          product_logistics_attributes_id: newId,
+        });
       } else if (removedId) {
-        upsertProductPageData({ product_logistics_attributes_id: '' });
+        upsertEntityData('products', { product_logistics_attributes_id: null });
       }
     },
-    [upsertProductPageData],
+    [upsertEntityData],
   );
 
   const upsertPackRow = useCallback(
     (row, patch) => {
-      upsertProductPageData({
+      upsertEntityData('products', {
         product_packings: [
           {
             id: row?.id || uuidv4(),
-            product_id: pageData.id,
+            product_id: productId,
             ...patch,
           },
         ],
       });
     },
-    [upsertProductPageData, pageData.id],
+    [upsertEntityData, productId],
   );
 
   const handleAddPackRow = useCallback(() => {
-    upsertProductPageData({
+    upsertEntityData('products', {
       product_packings: [
         {
           id: uuidv4(),
-          product_id: pageData.id,
+          product_id: productId,
           packing_type_id: '',
           packing_reliability_type_id: '',
           length: 0,
@@ -98,13 +107,13 @@ const Main_Pack = () => {
         },
       ],
     });
-  }, [upsertProductPageData, pageData.id]);
+  }, [upsertEntityData, productId]);
 
   const handleDeletePackRow = useCallback(
     (row) => {
       if (!row?.id) return;
 
-      upsertProductPageData({
+      upsertEntityData('products', {
         product_packings: [
           {
             id: row.id,
@@ -113,7 +122,7 @@ const Main_Pack = () => {
         ],
       });
     },
-    [upsertProductPageData],
+    [upsertEntityData],
   );
 
   const handlePackFilesChange = useCallback(

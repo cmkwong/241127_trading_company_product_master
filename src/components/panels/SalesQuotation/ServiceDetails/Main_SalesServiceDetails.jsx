@@ -11,6 +11,10 @@ import AddNewBtn from '../../../common/Buttons/AddNewBtn';
 import DeleteBtn from '../../../common/Buttons/DeleteBtn';
 import EditableDataTable from '../../../common/Table/EditableDataTable';
 import {
+  useEntityField,
+  useEntityRows,
+} from '../../../../store/GeneralContext';
+import {
   getDiscountedRate,
   isSelectedFlag,
   normalizeDiscountPercent,
@@ -29,27 +33,27 @@ const toNumber = (value, fallback = '') => {
 };
 
 const Main_SalesServiceDetails = ({
-  quotation,
   supplierOptions = [],
   serviceOptions = [],
   currencyOptions = [],
   onPatchQuotation,
 }) => {
-  const serviceDetails = useMemo(
-    () => quotation?.sales_service_details || [],
-    [quotation?.sales_service_details],
+  const quotationId = useEntityField('sales_quotations', 'id');
+  const serviceDetails = useEntityRows(
+    'sales_quotations',
+    'sales_service_details',
   );
-  const serviceImages = useMemo(
-    () => quotation?.sales_service_detail_images || [],
-    [quotation?.sales_service_detail_images],
+  const serviceImages = useEntityRows(
+    'sales_quotations',
+    'sales_service_detail_images',
   );
-  const serviceInternalImages = useMemo(
-    () => quotation?.sales_service_detail_internal_images || [],
-    [quotation?.sales_service_detail_internal_images],
+  const serviceInternalImages = useEntityRows(
+    'sales_quotations',
+    'sales_service_detail_internal_images',
   );
-  const serviceInternalFiles = useMemo(
-    () => quotation?.sales_service_detail_internal_files || [],
-    [quotation?.sales_service_detail_internal_files],
+  const serviceInternalFiles = useEntityRows(
+    'sales_quotations',
+    'sales_service_detail_internal_files',
   );
 
   const setServiceDetails = useCallback(
@@ -93,7 +97,7 @@ const Main_SalesServiceDetails = ({
       const rowId = String(row?.id || uuidv4());
       const nextRow = {
         id: rowId,
-        sales_quotation_id: quotation?.id,
+        sales_quotation_id: quotationId,
         supplier_id: '',
         service_id: '',
         qty: 1,
@@ -124,7 +128,7 @@ const Main_SalesServiceDetails = ({
         return [...previousRows, nextRow];
       });
     },
-    [quotation?.id, setServiceDetails],
+    [quotationId, setServiceDetails],
   );
 
   const handleDeleteServiceDetail = useCallback(
@@ -166,7 +170,7 @@ const Main_SalesServiceDetails = ({
       ...previousRows,
       {
         id: uuidv4(),
-        sales_quotation_id: quotation?.id,
+        sales_quotation_id: quotationId,
         supplier_id: supplierOptions[0]?.id || '',
         service_id: serviceOptions[0]?.id || '',
         qty: 1,
@@ -182,7 +186,7 @@ const Main_SalesServiceDetails = ({
       },
     ]);
   }, [
-    quotation?.id,
+    quotationId,
     supplierOptions,
     serviceOptions,
     currencyOptions,

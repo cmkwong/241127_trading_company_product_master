@@ -1,7 +1,11 @@
 import { useMemo, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import EditableDataTable from '../../../common/Table/EditableDataTable';
-import { useProductContext } from '../../../../store/ProductContext';
+import {
+  upsertEntityData,
+  useEntityRows,
+  useEntityField,
+} from '../../../../store/GeneralContext';
 import { useMasterContext } from '../../../../store/MasterContext';
 import styles from './Main_DeliveryDates.module.css';
 import Main_InputContainer from '../../../common/Container/Main_InputContainer';
@@ -11,21 +15,23 @@ const MAX_RANGES = 3;
 const DEFAULT_UNIT_LABEL = 'Pcs';
 
 const Main_DeliveryDates = () => {
-  const { pageData, upsertProductPageData } = useProductContext();
   const { sellingUnitType } = useMasterContext();
 
-  const productId = pageData?.id || null;
+  const productId = useEntityField('products', 'id');
+  const sellingUnitTypeId = useEntityField('products', 'selling_unit_type_id');
+  const allDeliveryDates = useEntityRows('products', 'product_delivery_dates');
+
   const rows = useMemo(
-    () => (pageData?.product_delivery_dates || []).filter((r) => !r?._delete),
-    [pageData?.product_delivery_dates],
+    () => (allDeliveryDates || []).filter((r) => !r?._delete),
+    [allDeliveryDates],
   );
 
   const unitLabel = useMemo(() => {
     const selected = (sellingUnitType || []).find(
-      (unit) => unit?.id === pageData?.selling_unit_type_id,
+      (unit) => unit?.id === sellingUnitTypeId,
     );
     return selected?.name || DEFAULT_UNIT_LABEL;
-  }, [sellingUnitType, pageData?.selling_unit_type_id]);
+  }, [sellingUnitType, sellingUnitTypeId]);
 
   const sortedTiers = useMemo(() => {
     return [...rows]
@@ -45,12 +51,7 @@ const Main_DeliveryDates = () => {
       const days = Number(tier.delivery_day);
       const valueLabel = Number.isNaN(days) ? '—' : `${days} Days`;
 
-      result.push({
-        id: tier.id,
-        rangeLabel,
-        valueLabel,
-        negotiated: false,
-      });
+      result.push({ id: tier.id, rangeLabel, valueLabel, negotiated: false });
     });
 
     if (sortedTiers.length > 0) {
@@ -68,7 +69,7 @@ const Main_DeliveryDates = () => {
 
   const handleFieldChange = useCallback(
     (row, field, value) => {
-      upsertProductPageData({
+      upsertEntityData('products', {
         product_delivery_dates: [
           {
             id: row?.id || uuidv4(),
@@ -85,22 +86,22 @@ const Main_DeliveryDates = () => {
         ],
       });
     },
-    [upsertProductPageData, productId],
+    [upsertEntityData, productId],
   );
 
   const handleDelete = useCallback(
     (row) => {
       if (!row?.id) return;
-      upsertProductPageData({
+      upsertEntityData('products', {
         product_delivery_dates: [{ id: row.id, _delete: true }],
       });
     },
-    [upsertProductPageData],
+    [upsertEntityData],
   );
 
   const handleAddRange = useCallback(() => {
     if (rows.length >= MAX_RANGES) return;
-    upsertProductPageData({
+    upsertEntityData('products', {
       product_delivery_dates: [
         {
           id: uuidv4(),
@@ -110,7 +111,7 @@ const Main_DeliveryDates = () => {
         },
       ],
     });
-  }, [rows.length, upsertProductPageData, productId]);
+  }, [rows.length, upsertEntityData, productId]);
 
   const columns = useMemo(
     () => [

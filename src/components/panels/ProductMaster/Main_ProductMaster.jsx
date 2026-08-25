@@ -20,6 +20,7 @@ import ProductMasterSavePageContainer from './Container/ProductMasterSavePageCon
 import Main_ProductCosts from './ProductCosts/Main_ProductCosts';
 import DeleteBtn from '../../common/Buttons/DeleteBtn';
 import { useProductContext } from '../../../store/ProductContext';
+import { useEntityField } from '../../../store/GeneralContext';
 import { useNavigate, useParams } from 'react-router-dom';
 
 const Main_ProductMaster = () => {
@@ -32,7 +33,6 @@ const Main_ProductMaster = () => {
   const navigate = useNavigate();
   const { product_id } = useParams();
   const {
-    pageData,
     selectedProductId,
     getProductData,
     getAllProducts,
@@ -40,6 +40,7 @@ const Main_ProductMaster = () => {
     createNewProduct,
     duplicateSelectedProduct,
   } = useProductContext();
+  const pageDataId = useEntityField('products', 'id');
 
   const getProductDataRef = useRef(getProductData);
   useEffect(() => {
@@ -74,7 +75,7 @@ const Main_ProductMaster = () => {
     }
   }, [product_id, selectedProductId, navigate]);
 
-  const productId = String(pageData?.id || '').trim();
+  const productId = String(pageDataId || '').trim();
   const hasPersistedProduct = (getAllProducts() || []).some(
     (item) => String(item?.id || '').trim() === productId,
   );

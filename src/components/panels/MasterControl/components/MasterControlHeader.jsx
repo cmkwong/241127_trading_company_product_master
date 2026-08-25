@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import AddNewBtn from '../../../common/Buttons/AddNewBtn';
 import styles from '../Main_MasterControl.module.css';
 
@@ -47,4 +48,4 @@ const MasterControlHeader = ({
   );
 };
 
-export default MasterControlHeader;
+export default memo(MasterControlHeader);

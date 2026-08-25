@@ -7,14 +7,18 @@ import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
 import AddNewBtn from '../../../common/Buttons/AddNewBtn';
 import EditableDataTable from '../../../common/Table/EditableDataTable';
 import DeleteBtn from '../../../common/Buttons/DeleteBtn';
-import { useSupplierContext } from '../../../../store/SupplierContext';
+import {
+  upsertEntityData,
+  useEntityField,
+  useEntityRows,
+} from '../../../../store/GeneralContext';
 import { useMasterContext } from '../../../../store/MasterContext';
 import styles from './Main_SupplierAddresses.module.css';
 
 const Main_SupplierAddresses = () => {
-  const { pageData, upsertSupplierPageData } = useSupplierContext();
   const { addressType } = useMasterContext();
-  const addressRows = pageData.supplier_addresses || [];
+  const supplierId = useEntityField('supplier', 'id');
+  const addressRows = useEntityRows('supplier', 'supplier_addresses');
 
   const addressTypeOptions = useMemo(
     () =>
@@ -27,25 +31,25 @@ const Main_SupplierAddresses = () => {
 
   const upsertAddressRow = useCallback(
     (row, patch) => {
-      upsertSupplierPageData({
+      upsertEntityData('supplier', {
         supplier_addresses: [
           {
             id: row?.id || uuidv4(),
-            supplier_id: pageData.id,
+            supplier_id: supplierId,
             ...patch,
           },
         ],
       });
     },
-    [upsertSupplierPageData, pageData.id],
+    [supplierId],
   );
 
   const handleAddAddressRow = useCallback(() => {
-    upsertSupplierPageData({
+    upsertEntityData('supplier', {
       supplier_addresses: [
         {
           id: uuidv4(),
-          supplier_id: pageData.id,
+          supplier_id: supplierId,
           address_type_id: '',
           address_line1: '',
           address_line2: '',
@@ -58,17 +62,14 @@ const Main_SupplierAddresses = () => {
         },
       ],
     });
-  }, [upsertSupplierPageData, pageData.id]);
+  }, [supplierId]);
 
-  const handleDeleteAddressRow = useCallback(
-    (row) => {
-      if (!row?.id) return;
-      upsertSupplierPageData({
-        supplier_addresses: [{ id: row.id, _delete: true }],
-      });
-    },
-    [upsertSupplierPageData],
-  );
+  const handleDeleteAddressRow = useCallback((row) => {
+    if (!row?.id) return;
+    upsertEntityData('supplier', {
+      supplier_addresses: [{ id: row.id, _delete: true }],
+    });
+  }, []);
 
   const columns = useMemo(
     () => [

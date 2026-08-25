@@ -5,16 +5,20 @@ import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_File
 import Main_InputContainer from '../../../common/Container/Main_InputContainer';
 import DeleteBtn from '../../../common/Buttons/DeleteBtn';
 import EditableDataTable from '../../../common/Table/EditableDataTable';
-import { useProductContext } from '../../../../store/ProductContext';
+import {
+  upsertEntityData,
+  useEntityRows,
+  useEntityField,
+} from '../../../../store/GeneralContext';
 import { useMasterContext } from '../../../../store/MasterContext';
 import { v4 as uuidv4 } from 'uuid';
 import { sortByDisplayOrder } from '../../../../utils/arr';
 import styles from './Main_Customization.module.css';
 
 const Main_Customization = () => {
-  const { pageData, upsertProductPageData } = useProductContext();
   const { productCustomizationOptions } = useMasterContext();
-  const customizations = pageData.product_customizations || [];
+  const productId = useEntityField('products', 'id');
+  const customizations = useEntityRows('products', 'product_customizations');
 
   const customizationOptionSuggestions = useMemo(
     () =>
@@ -40,25 +44,25 @@ const Main_Customization = () => {
 
   const upsertCustomizationRow = useCallback(
     (row, patch) => {
-      upsertProductPageData({
+      upsertEntityData('products', {
         product_customizations: [
           {
             id: row?.id || uuidv4(),
-            product_id: pageData.id,
+            product_id: productId,
             ...patch,
           },
         ],
       });
     },
-    [upsertProductPageData, pageData.id],
+    [upsertEntityData, productId],
   );
 
   const handleAddCustomizationRow = useCallback(() => {
-    upsertProductPageData({
+    upsertEntityData('products', {
       product_customizations: [
         {
           id: uuidv4(),
-          product_id: pageData.id,
+          product_id: productId,
           name: '',
           code: '',
           remark: '',
@@ -66,13 +70,13 @@ const Main_Customization = () => {
         },
       ],
     });
-  }, [upsertProductPageData, pageData.id]);
+  }, [upsertEntityData, productId]);
 
   const handleDeleteCustomizationRow = useCallback(
     (row) => {
       if (!row?.id) return;
 
-      upsertProductPageData({
+      upsertEntityData('products', {
         product_customizations: [
           {
             id: row.id,
@@ -81,7 +85,7 @@ const Main_Customization = () => {
         ],
       });
     },
-    [upsertProductPageData],
+    [upsertEntityData],
   );
 
   const handleCustomizationImagesChange = useCallback(

@@ -7,6 +7,7 @@ import Main_Suggest from '../../../common/InputOptions/Suggest/Main_Suggest';
 import Main_DateSelector from '../../../common/InputOptions/Date/Main_DateSelector';
 import SplitLayout from '../../../common/Layouts/SplitLayout';
 import VerticalLayout from '../../../common/Layouts/VerticalLayout';
+import { useEntityField } from '../../../../store/GeneralContext';
 import styles from './Main_SalesBasicInfo.module.css';
 
 export const STATUS_OPTIONS = [
@@ -53,13 +54,23 @@ const buildAddressPreview = (address) => {
 };
 
 const Main_SalesBasicInfo = ({
-  quotation,
   customerOptions = [],
   customerAddressOptions = [],
   onPatchQuotation,
   onRefreshReferenceOptions,
 }) => {
-  const selectedCustomerId = String(quotation?.customer_id || '').trim();
+  const quotationId = useEntityField('sales_quotations', 'id');
+  const status = useEntityField('sales_quotations', 'status');
+  const customerId = useEntityField('sales_quotations', 'customer_id');
+  const customerAddressId = useEntityField(
+    'sales_quotations',
+    'customer_address_id',
+  );
+  const createdAt = useEntityField('sales_quotations', 'created_at');
+  const updatedAt = useEntityField('sales_quotations', 'updated_at');
+  const remark = useEntityField('sales_quotations', 'remark');
+
+  const selectedCustomerId = String(customerId || '').trim();
 
   const filteredAddressOptions = useMemo(() => {
     const normalized = (customerAddressOptions || []).map((address) => ({
@@ -169,7 +180,7 @@ const Main_SalesBasicInfo = ({
         <VerticalLayout>
           <Main_InputContainer label="Quotation ID">
             <Main_TextField
-              defaultValue={String(quotation?.id || '')}
+              defaultValue={String(quotationId || '')}
               disabled
               placeholder="Auto-generated"
             />
@@ -178,7 +189,7 @@ const Main_SalesBasicInfo = ({
           <Main_InputContainer label="Order Status">
             <Main_Dropdown
               defaultOptions={STATUS_OPTIONS}
-              defaultSelectedOption={quotation?.status || 'draft'}
+              defaultSelectedOption={status || 'draft'}
               onChange={(ov, nv) => {
                 onPatchQuotation({ status: nv });
               }}
@@ -216,9 +227,7 @@ const Main_SalesBasicInfo = ({
                           normalizedNextCustomerId,
                       );
 
-                const currentAddressId = String(
-                  quotation?.customer_address_id || '',
-                ).trim();
+                const currentAddressId = String(customerAddressId || '').trim();
 
                 const hasMatchingAddress = nextCustomerAddressOptions.some(
                   (item) => String(item?.id || '').trim() === currentAddressId,
@@ -248,8 +257,7 @@ const Main_SalesBasicInfo = ({
               defaultSuggestions={addressSuggestionOptions}
               defaultValue={
                 addressSuggestionOptions.find(
-                  (item) =>
-                    item.id === String(quotation?.customer_address_id || ''),
+                  (item) => item.id === String(customerAddressId || ''),
                 )?.name || ''
               }
               placeholder="Search customer address"
@@ -299,21 +307,21 @@ const Main_SalesBasicInfo = ({
         <VerticalLayout>
           <Main_InputContainer label="Created At">
             <Main_DateSelector
-              defaultValue={toDateInputValue(quotation?.created_at)}
+              defaultValue={toDateInputValue(createdAt)}
               disabled
             />
           </Main_InputContainer>
 
           <Main_InputContainer label="Updated At">
             <Main_DateSelector
-              defaultValue={toDateInputValue(quotation?.updated_at)}
+              defaultValue={toDateInputValue(updatedAt)}
               disabled
             />
           </Main_InputContainer>
 
           <Main_InputContainer label="Remark">
             <Main_TextArea
-              defaultValue={quotation?.remark || ''}
+              defaultValue={remark || ''}
               placeholder="Sales quotation remark"
               rows={6}
               onChange={(ov, nv) => {

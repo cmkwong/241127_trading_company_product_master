@@ -1,5 +1,8 @@
 import Main_RadioGroup from '../../../common/InputOptions/RadioGroup/Main_RadioGroup';
-import { useProductContext } from '../../../../store/ProductContext';
+import {
+  upsertEntityData,
+  useEntityField,
+} from '../../../../store/GeneralContext';
 
 const MODES = [
   { value: 'by_qty', label: 'Price by Quantity' },
@@ -8,11 +11,10 @@ const MODES = [
 ];
 
 const PricingModeSwitch = () => {
-  const { pageData, upsertProductPageData } = useProductContext();
-  const activeMode = pageData?.selling_by_mode || 'by_qty';
+  const activeMode = useEntityField('products', 'selling_by_mode') || 'by_qty';
 
   const handleSelect = (value) => {
-    upsertProductPageData({ selling_by_mode: value });
+    upsertEntityData('products', { selling_by_mode: value });
   };
 
   return (

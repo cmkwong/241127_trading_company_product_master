@@ -8,7 +8,11 @@ import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
 import AddNewBtn from '../../../common/Buttons/AddNewBtn';
 import DeleteBtn from '../../../common/Buttons/DeleteBtn';
 import EditableDataTable from '../../../common/Table/EditableDataTable';
-import { useSupplierContext } from '../../../../store/SupplierContext';
+import {
+  upsertEntityData,
+  useEntityField,
+  useEntityRows,
+} from '../../../../store/GeneralContext';
 import { useMasterContext } from '../../../../store/MasterContext';
 import { sortByDisplayOrder } from '../../../../utils/arr';
 import styles from './Main_SupplierServices.module.css';
@@ -16,9 +20,9 @@ import styles from './Main_SupplierServices.module.css';
 const FILE_SERVER_BASE_URL = 'http://localhost:3001';
 
 const Main_SupplierServices = () => {
-  const { pageData, upsertSupplierPageData } = useSupplierContext();
   const { services, serviceImages } = useMasterContext();
-  const serviceRows = pageData.supplier_services || [];
+  const supplierId = useEntityField('supplier', 'id');
+  const serviceRows = useEntityRows('supplier', 'supplier_services');
 
   const serviceOptions = useMemo(
     () =>
@@ -35,11 +39,11 @@ const Main_SupplierServices = () => {
   );
 
   const handleAddServiceRow = useCallback(() => {
-    upsertSupplierPageData({
+    upsertEntityData('supplier', {
       supplier_services: [
         {
           id: uuidv4(),
-          supplier_id: pageData.id,
+          supplier_id: supplierId,
           service_id: '',
           remark: '',
           link: '',
@@ -48,31 +52,28 @@ const Main_SupplierServices = () => {
         },
       ],
     });
-  }, [upsertSupplierPageData, pageData.id]);
+  }, [supplierId]);
 
-  const handleDeleteServiceRow = useCallback(
-    (row) => {
-      if (!row?.id) return;
-      upsertSupplierPageData({
-        supplier_services: [{ id: row.id, _delete: true }],
-      });
-    },
-    [upsertSupplierPageData],
-  );
+  const handleDeleteServiceRow = useCallback((row) => {
+    if (!row?.id) return;
+    upsertEntityData('supplier', {
+      supplier_services: [{ id: row.id, _delete: true }],
+    });
+  }, []);
 
   const handleUpsertRow = useCallback(
     (row, patch) => {
-      upsertSupplierPageData({
+      upsertEntityData('supplier', {
         supplier_services: [
           {
             id: row?.id || uuidv4(),
-            supplier_id: pageData.id,
+            supplier_id: supplierId,
             ...patch,
           },
         ],
       });
     },
-    [upsertSupplierPageData, pageData.id],
+    [supplierId],
   );
 
   const handleServiceFilesChange = useCallback(

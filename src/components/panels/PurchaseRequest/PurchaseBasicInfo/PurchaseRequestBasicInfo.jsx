@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import Main_InputContainer from '../../../common/Container/Main_InputContainer';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
 import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
@@ -188,4 +189,4 @@ const PurchaseRequestBasicInfo = ({
   );
 };
 
-export default PurchaseRequestBasicInfo;
+export default memo(PurchaseRequestBasicInfo);

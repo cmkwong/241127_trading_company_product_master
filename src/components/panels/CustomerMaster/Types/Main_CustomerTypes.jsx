@@ -1,11 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
 import Main_InputContainer from '../../../common/Container/Main_InputContainer';
 import Main_TagInputField from '../../../common/InputOptions/Tagging/Main_TagInputField';
-import { useCustomerContext } from '../../../../store/CustomerContext';
+import {
+  upsertEntityData,
+  useEntityField,
+  useEntityRows,
+} from '../../../../store/GeneralContext';
 import { useMasterContext } from '../../../../store/MasterContext';
 
 const Main_CustomerTypes = () => {
-  const { pageData, upsertCustomerPageData } = useCustomerContext();
+  const customerId = useEntityField('customer', 'id');
+  const customerTypeRows = useEntityRows('customer', 'customer_types');
   const { customerType = [], getMasterTableData } = useMasterContext();
 
   const customerTypeOptions = useMemo(() => {
@@ -20,27 +25,27 @@ const Main_CustomerTypes = () => {
   }, [customerType, getMasterTableData]);
 
   const [selectedTypeIds, setSelectedTypeIds] = useState(() => {
-    return (pageData?.customer_types || [])
+    return (customerTypeRows || [])
       .map((item) => item?.customer_type_id)
       .filter(Boolean);
   });
 
   useEffect(() => {
     setSelectedTypeIds(
-      (pageData?.customer_types || [])
+      (customerTypeRows || [])
         .map((item) => item?.customer_type_id)
         .filter(Boolean),
     );
-  }, [pageData?.customer_types]);
+  }, [customerTypeRows]);
 
   const handleTypeChange = (ov, nv) => {
     if (nv.length > ov.length) {
       const addedTypeIds = nv.filter((id) => !ov.includes(id));
       addedTypeIds.forEach((typeId) => {
-        upsertCustomerPageData({
+        upsertEntityData('customer', {
           customer_types: [
             {
-              customer_id: pageData.id,
+              customer_id: customerId,
               customer_type_id: typeId,
             },
           ],
@@ -48,16 +53,16 @@ const Main_CustomerTypes = () => {
       });
     } else if (nv.length < ov.length) {
       const removedTypeIds = ov.filter((id) => !nv.includes(id));
-      const relationsToDelete = (pageData.customer_types || []).filter((rel) =>
+      const relationsToDelete = (customerTypeRows || []).filter((rel) =>
         removedTypeIds.includes(rel.customer_type_id),
       );
 
       relationsToDelete.forEach((rel) => {
-        upsertCustomerPageData({
+        upsertEntityData('customer', {
           customer_types: [
             {
               id: rel.id,
-              customer_id: pageData.id,
+              customer_id: customerId,
               customer_type_id: rel.customer_type_id,
               _delete: true,
             },

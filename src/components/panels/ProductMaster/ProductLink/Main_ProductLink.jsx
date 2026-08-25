@@ -7,35 +7,39 @@ import Main_DateSelector from '../../../common/InputOptions/Date/Main_DateSelect
 import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_FileUploads';
 import DeleteBtn from '../../../common/Buttons/DeleteBtn';
 import EditableDataTable from '../../../common/Table/EditableDataTable';
-import { useProductContext } from '../../../../store/ProductContext';
+import {
+  upsertEntityData,
+  useEntityRows,
+  useEntityField,
+} from '../../../../store/GeneralContext';
 import { v4 as uuidv4 } from 'uuid';
 import { sortByDisplayOrder } from '../../../../utils/arr';
 
 const Main_ProductLink = () => {
-  const { pageData, upsertProductPageData } = useProductContext();
-  const productLinks = pageData?.product_links || [];
+  const productId = useEntityField('products', 'id');
+  const productLinks = useEntityRows('products', 'product_links');
 
   const upsertLinkRow = useCallback(
     (row, patch) => {
-      upsertProductPageData({
+      upsertEntityData('products', {
         product_links: [
           {
             id: row?.id || uuidv4(),
-            product_id: pageData.id,
+            product_id: productId,
             ...patch,
           },
         ],
       });
     },
-    [upsertProductPageData, pageData.id],
+    [upsertEntityData, productId],
   );
 
   const handleAddLinkRow = useCallback(() => {
-    upsertProductPageData({
+    upsertEntityData('products', {
       product_links: [
         {
           id: uuidv4(),
-          product_id: pageData.id,
+          product_id: productId,
           name: '',
           link: '',
           score: 1,
@@ -45,13 +49,13 @@ const Main_ProductLink = () => {
         },
       ],
     });
-  }, [upsertProductPageData, pageData.id]);
+  }, [upsertEntityData, productId]);
 
   const handleDeleteLinkRow = useCallback(
     (row) => {
       if (!row?.id) return;
 
-      upsertProductPageData({
+      upsertEntityData('products', {
         product_links: [
           {
             id: row.id,
@@ -60,7 +64,7 @@ const Main_ProductLink = () => {
         ],
       });
     },
-    [upsertProductPageData],
+    [upsertEntityData],
   );
 
   const handleLinkImagesChange = useCallback(
@@ -252,7 +256,7 @@ const Main_ProductLink = () => {
                 showDownloadButton
                 compactButtonText="Upload"
                 downloadFileBaseName="product-link-images"
-                downloadNameProductId={pageData.id || ''}
+                downloadNameProductId={productId || ''}
                 downloadNameImageType="link"
                 defaultImages={defaultImages}
                 onError={(error) => {
@@ -265,7 +269,7 @@ const Main_ProductLink = () => {
         },
       },
     ],
-    [upsertLinkRow, handleLinkImagesChange, handleDeleteLinkRow, pageData.id],
+    [upsertLinkRow, handleLinkImagesChange, handleDeleteLinkRow, productId],
   );
 
   return (

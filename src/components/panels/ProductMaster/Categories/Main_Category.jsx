@@ -1,56 +1,53 @@
 import { useState, useEffect } from 'react';
 import Main_InputContainer from '../../../common/Container/Main_InputContainer';
 import Main_TagInputField from '../../../common/InputOptions/Tagging/Main_TagInputField';
-import { useProductContext } from '../../../../store/ProductContext';
+import {
+  upsertEntityData,
+  useEntityRows,
+  useEntityField,
+} from '../../../../store/GeneralContext';
 import { useMasterContext } from '../../../../store/MasterContext';
+
 const Main_Category = () => {
-  const { pageData, upsertProductPageData } = useProductContext();
   const { category } = useMasterContext();
+  const productId = useEntityField('products', 'id');
+  const productCategories = useEntityRows('products', 'product_categories');
 
-  // Initialize state with processed categories
-  const [selectedCategoryIds, setSelectedCategoryIds] = useState(
-    pageData.product_categories?.map((el) => el.category_id) || [],
-  );
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState([]);
 
-  // Update selectedCategoryIds when pageData changes
   useEffect(() => {
     setSelectedCategoryIds(
-      pageData.product_categories?.map((el) => el.category_id) || [],
+      (productCategories || []).map((el) => el.category_id),
     );
-  }, [pageData, pageData.product_categories]);
+  }, [productCategories]);
 
-  // Handle category changes and update the context
   const handleCategoryChange = (ov, nv) => {
     if (nv.length > ov.length) {
-      // Category added
       const addedCategories = nv.filter((id) => !ov.includes(id));
       addedCategories.forEach((catId) => {
-        upsertProductPageData({
+        upsertEntityData('products', {
           product_categories: [
             {
-              product_id: pageData.id,
+              product_id: productId,
               category_id: catId,
             },
           ],
         });
       });
     } else if (nv.length < ov.length) {
-      // Category removed
       const removedCategories = ov.filter((id) => !nv.includes(id));
-
-      // find the id of the product-category relationship to delete based on product_id and category_id
-      const categoryRelationsToDelete = pageData.product_categories.filter(
+      const categoryRelationsToDelete = (productCategories || []).filter(
         (rel) => removedCategories.includes(rel.category_id),
       );
 
       categoryRelationsToDelete.forEach((rel) => {
-        upsertProductPageData({
+        upsertEntityData('products', {
           product_categories: [
             {
-              id: rel.id, // Assuming rel.id is the unique identifier for the product-category relationship
-              product_id: pageData.id,
+              id: rel.id,
+              product_id: productId,
               category_id: rel.category_id,
-              _delete: true, // Flag to indicate deletion for backend processing
+              _delete: true,
             },
           ],
         });

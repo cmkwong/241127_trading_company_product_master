@@ -9,6 +9,7 @@ import Main_SalesProductDetails from './ProductDetails/Main_SalesProductDetails'
 import Main_SalesServiceDetails from './ServiceDetails/Main_SalesServiceDetails';
 import SalesQuotationSummaryBar from './SalesQuotationSummaryBar/SalesQuotationSummaryBar';
 import { useSalesQuotationContext } from '../../../store/SalesQuotationContext';
+import { getEntityRecord, useEntityField } from '../../../store/GeneralContext';
 import { useMasterContext } from '../../../store/MasterContext';
 import DeleteBtn from '../../common/Buttons/DeleteBtn';
 import {
@@ -16,7 +17,6 @@ import {
   buildCurrencyCodeById,
   buildExchangeRateMap,
   buildNormalizedCurrencies,
-  computeQuotationTotals,
   getLatestExchangeRateRow,
   isSelectedFlag,
   toSafeString,
@@ -45,7 +45,6 @@ const Main_SalesQuotation = () => {
     quotations,
     selectedQuotationId,
     selectSalesQuotation,
-    selectedQuotation,
     isSalesQuotationsLoading,
     customerOptions,
     customerAddressOptions,
@@ -64,6 +63,7 @@ const Main_SalesQuotation = () => {
     refreshReferenceOptions,
     purchaseCosts,
   } = useSalesQuotationContext();
+  const currentQuotationId = useEntityField('sales_quotations', 'id');
 
   const selectSalesQuotationRef = useRef(selectSalesQuotation);
   const { companyInfo, currencies, exchangeRateHkd, fetchMasterData } =
@@ -129,14 +129,6 @@ const Main_SalesQuotation = () => {
     return buildExchangeRateMap(latestExchangeRateRow || {});
   }, [latestExchangeRateRow]);
 
-  const totalsSummary = useMemo(() => {
-    return computeQuotationTotals(selectedQuotation, {
-      baseCurrencyCode,
-      currencyCodeById,
-      exchangeRateMap,
-    });
-  }, [baseCurrencyCode, currencyCodeById, exchangeRateMap, selectedQuotation]);
-
   const patchSelectedQuotation = useCallback(
     (patch) => {
       if (!selectedQuotationId) return;
@@ -198,7 +190,12 @@ const Main_SalesQuotation = () => {
   }, [saveSelectedQuotation]);
 
   const handleDuplicateQuotation = useCallback(async () => {
-    if (!selectedQuotation || isDuplicating) {
+    const selectedQuotation = getEntityRecord('sales_quotations');
+    if (
+      !selectedQuotation ||
+      !toSafeString(selectedQuotation?.id) ||
+      isDuplicating
+    ) {
       return;
     }
 
@@ -214,14 +211,10 @@ const Main_SalesQuotation = () => {
     } finally {
       setIsDuplicating(false);
     }
-  }, [
-    duplicateSelectedSalesQuotation,
-    isDuplicating,
-    selectedQuotation,
-    navigate,
-  ]);
+  }, [duplicateSelectedSalesQuotation, isDuplicating, navigate]);
 
   const handleDeleteQuotation = useCallback(async () => {
+    const selectedQuotation = getEntityRecord('sales_quotations');
     const quotationId = String(selectedQuotation?.id || '').trim();
     if (!quotationId || isDeleting) {
       return;
@@ -245,9 +238,10 @@ const Main_SalesQuotation = () => {
     } finally {
       setIsDeleting(false);
     }
-  }, [deleteSalesQuotation, isDeleting, selectedQuotation, navigate]);
+  }, [deleteSalesQuotation, isDeleting, navigate]);
 
   const handlePreviewQuotation = useCallback(() => {
+    const selectedQuotation = getEntityRecord('sales_quotations');
     if (!selectedQuotation || isPreparingPreview) {
       return;
     }
@@ -288,13 +282,17 @@ const Main_SalesQuotation = () => {
     isPreparingPreview,
     previewShowTotalPrice,
     productOptions,
-    selectedQuotation,
     serviceOptions,
     shippingMethodOptions,
   ]);
 
   useEffect(() => {
-    if (!isPreviewOpen || !selectedQuotation) {
+    if (!isPreviewOpen) {
+      return;
+    }
+
+    const selectedQuotation = getEntityRecord('sales_quotations');
+    if (!selectedQuotation || !toSafeString(selectedQuotation?.id)) {
       return;
     }
 
@@ -332,12 +330,12 @@ const Main_SalesQuotation = () => {
     previewPrintArInvoice,
     previewShowTotalPrice,
     productOptions,
-    selectedQuotation,
     serviceOptions,
     shippingMethodOptions,
   ]);
 
   const hasSelectedArInvoiceRows = useCallback(() => {
+    const selectedQuotation = getEntityRecord('sales_quotations');
     const shippingRows = Array.isArray(selectedQuotation?.sales_shipping_prices)
       ? selectedQuotation.sales_shipping_prices
       : [];
@@ -354,7 +352,7 @@ const Main_SalesQuotation = () => {
       serviceRows.some((row) => isSelectedFlag(row?.ari_selected, true));
 
     return hasSelectedArRows;
-  }, [selectedQuotation]);
+  }, []);
 
   const handlePreviewArInvoiceChange = useCallback(
     (event) => {
@@ -432,6 +430,10 @@ const Main_SalesQuotation = () => {
     });
   }, []);
 
+  const hasSelectedQuotation = Boolean(
+    toSafeString(currentQuotationId || selectedQuotationId),
+  );
+
   return (
     <SalesQuotationSavePageContainer
       onSave={handleSaveQuotation}
@@ -449,7 +451,7 @@ const Main_SalesQuotation = () => {
           <DeleteBtn
             text={isDeleting ? 'Deleting...' : 'Delete Quotation'}
             onClick={handleDeleteQuotation}
-            disabled={!selectedQuotation || isDeleting}
+            disabled={!hasSelectedQuotation || isDeleting}
             title="Delete selected sales quotation"
             ariaLabel="Delete selected sales quotation"
           />
@@ -457,7 +459,7 @@ const Main_SalesQuotation = () => {
             type="button"
             className={styles.duplicateBottomButton}
             onClick={handleDuplicateQuotation}
-            disabled={!selectedQuotation || isDuplicating}
+            disabled={!hasSelectedQuotation || isDuplicating}
             title="Duplicate selected sales quotation"
             aria-label="Duplicate selected sales quotation"
           >
@@ -490,21 +492,20 @@ const Main_SalesQuotation = () => {
           }`}
         >
           <div className={styles.inputSide} onScroll={handleInputScroll}>
-            {selectedQuotation ? (
+            {hasSelectedQuotation ? (
               <>
                 <SalesQuotationSummaryBar
-                  totalsSummary={totalsSummary}
                   baseCurrencyCode={baseCurrencyCode}
                   onBaseCurrencyChange={setBaseCurrencyCode}
                   baseCurrencyOptions={baseCurrencyOptions}
                   latestExchangeRateRow={latestExchangeRateRow}
+                  currencyCodeById={currencyCodeById}
                   exchangeRateMap={exchangeRateMap}
                   isCompact={isSummaryCompact}
                   purchaseCosts={purchaseCosts}
                 />
 
                 <Main_SalesBasicInfo
-                  quotation={selectedQuotation}
                   customerOptions={customerOptions}
                   customerAddressOptions={customerAddressOptions}
                   onPatchQuotation={patchSelectedQuotation}
@@ -512,7 +513,6 @@ const Main_SalesQuotation = () => {
                 />
 
                 <Main_SalesShippingDetails
-                  quotation={selectedQuotation}
                   customerAddressOptions={customerAddressOptions}
                   supplierOptions={supplierOptions}
                   shippingMethodOptions={shippingMethodOptions}
@@ -523,14 +523,12 @@ const Main_SalesQuotation = () => {
                 />
 
                 <Main_SalesProductDetails
-                  quotation={selectedQuotation}
                   productOptions={productOptions}
                   currencyOptions={currencyOptions}
                   onPatchQuotation={patchSelectedQuotation}
                 />
 
                 <Main_SalesServiceDetails
-                  quotation={selectedQuotation}
                   supplierOptions={supplierOptions}
                   serviceOptions={serviceOptions}
                   currencyOptions={currencyOptions}

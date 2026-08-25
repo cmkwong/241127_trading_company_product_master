@@ -1,12 +1,15 @@
 import { useState, useCallback, useEffect } from 'react';
 import styles from './Main_AlibabaLink.module.css';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
-import { useProductContext } from '../../../../store/ProductContext';
+import {
+  upsertEntityData,
+  useEntityField,
+} from '../../../../store/GeneralContext';
 
 const Sub_AlibabaLink = (props) => {
   const { product_alibaba_ids, rowId } = props;
 
-  const { upsertProductPageData, pageData } = useProductContext();
+  const productId = useEntityField('products', 'id');
 
   // Resolve current row by stable rowId (important for drag reorder)
   const currentAlibabaLink =
@@ -24,32 +27,32 @@ const Sub_AlibabaLink = (props) => {
 
   const handleAlibabaIdChange = useCallback(
     (ov, nv) => {
-      upsertProductPageData({
+      upsertEntityData('products', {
         product_alibaba_ids: [
           {
             id: rowId,
-            product_id: pageData.id,
+            product_id: productId,
             value: nv,
           },
         ],
       });
     },
-    [upsertProductPageData, rowId, pageData.id],
+    [upsertEntityData, rowId, productId],
   );
 
   const handleLinkChange = useCallback(
     (ov, nv) => {
-      upsertProductPageData({
+      upsertEntityData('products', {
         product_alibaba_ids: [
           {
             id: rowId,
-            product_id: pageData.id,
+            product_id: productId,
             link: nv,
           },
         ],
       });
     },
-    [upsertProductPageData, rowId, pageData.id],
+    [upsertEntityData, rowId, productId],
   );
 
   return (

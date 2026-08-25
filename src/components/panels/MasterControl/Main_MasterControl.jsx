@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useAuthContext } from '../../../store/AuthContext';
 import { useMasterContext } from '../../../store/MasterContext';
@@ -36,6 +36,13 @@ import Label from '../../common/Texts/Label';
 
 const COMPANY_INFO_TABLE_NAME = 'master_company_info';
 const FILE_SERVER_BASE_URL = 'http://localhost:3001';
+const EMPTY_OPTIONS = [];
+const EMPTY_PATH_MAP = new Map();
+const EMPTY_SELF_REFERENCE_SUGGESTION_MAPS = {
+  labelToId: new Map(),
+  idToLabel: new Map(),
+  suggestions: EMPTY_OPTIONS,
+};
 
 const parseIsoDateString = (value) => {
   const text = String(value || '').trim();
@@ -136,8 +143,14 @@ const MasterControlContent = () => {
   const [error, setError] = useState('');
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState('');
+  const selectedTableRef = useRef('');
+  const hasUnsavedMasterTableChangesRef = useRef(false);
   const canEdit = Boolean(token);
   const isCompanyInfoTable = selectedTable === COMPANY_INFO_TABLE_NAME;
+
+  useEffect(() => {
+    selectedTableRef.current = selectedTable;
+  }, [selectedTable]);
 
   useEffect(() => {
     if (!selectedTable && tableNames.length > 0) {
@@ -284,7 +297,7 @@ const MasterControlContent = () => {
 
   const hierarchyPathByRowKey = useMemo(() => {
     const pathMap = new Map();
-    if (!selfReferenceField) return pathMap;
+    if (!selfReferenceField) return EMPTY_PATH_MAP;
 
     const resolveLabel = (row) => {
       const candidate = row?.[displayNameField];
@@ -333,7 +346,7 @@ const MasterControlContent = () => {
   }, [displayNameField, draftRows, nodeById, selfReferenceField]);
 
   const selfReferenceOptions = useMemo(() => {
-    if (!selfReferenceField) return [];
+    if (!selfReferenceField) return EMPTY_OPTIONS;
 
     const options = [{ id: '', name: '(None)' }];
     draftRows.forEach((row) => {
@@ -346,6 +359,10 @@ const MasterControlContent = () => {
   }, [displayNameField, draftRows, selfReferenceField]);
 
   const selfReferenceSuggestionMaps = useMemo(() => {
+    if (!selfReferenceField) {
+      return EMPTY_SELF_REFERENCE_SUGGESTION_MAPS;
+    }
+
     const labelToId = new Map();
     const idToLabel = new Map();
     const suggestions = [];
@@ -367,7 +384,7 @@ const MasterControlContent = () => {
       idToLabel,
       suggestions,
     };
-  }, [displayNameField, draftRows]);
+  }, [displayNameField, draftRows, selfReferenceField]);
 
   const resolveSuggestionToReferenceId = useCallback(
     (rawValue) => {
@@ -826,11 +843,23 @@ const MasterControlContent = () => {
   );
 
   const handleCellChange = useCallback(
-    (rowIndex, key, value) => {
+    (rowKey, key, value) => {
       if (!canEdit) return;
+
+      const normalizedRowKey = String(rowKey || '').trim();
+      if (!normalizedRowKey) return;
 
       setDraftRows((prev) => {
         const next = [...prev];
+        const rowIndex = next.findIndex(
+          (candidate) =>
+            String(candidate?.id || candidate?._localId || '').trim() ===
+            normalizedRowKey,
+        );
+        if (rowIndex < 0) {
+          return prev;
+        }
+
         const current = next[rowIndex] || {};
         const schemaField = schemaFieldByColumn[key] || {};
 
@@ -1000,9 +1029,7 @@ const MasterControlContent = () => {
       label: column,
       sortable: true,
       renderCell: (row) => {
-        const rowIndex = draftRows.findIndex(
-          (r) => (r.id || r._localId) === (row.id || row._localId),
-        );
+        const rowKey = row?.id || row?._localId;
 
         const isReadonly = column === 'created_at' || column === 'updated_at';
 
@@ -1012,7 +1039,7 @@ const MasterControlContent = () => {
               type="checkbox"
               checked={Boolean(row?.[column])}
               onChange={(event) =>
-                handleCellChange(rowIndex, column, event.target.checked)
+                handleCellChange(rowKey, column, event.target.checked)
               }
               disabled={isReadonly || !canEdit}
             />
@@ -1024,7 +1051,7 @@ const MasterControlContent = () => {
             <Main_DateSelector
               defaultValue={normalizeDateOnlyValue(row?.[column])}
               onChange={(ov, nv) =>
-                handleCellChange(rowIndex, column, formatLocalIsoDateString(nv))
+                handleCellChange(rowKey, column, formatLocalIsoDateString(nv))
               }
               disabled={isReadonly || !canEdit}
             />
@@ -1047,7 +1074,7 @@ const MasterControlContent = () => {
                 onChange={(ov, nv) => {
                   const resolved = resolveSuggestionToReferenceId(nv);
                   if (!resolved.resolved) return;
-                  handleCellChange(rowIndex, column, resolved.value);
+                  handleCellChange(rowKey, column, resolved.value);
                 }}
                 placeholder="Type to search parent..."
               />
@@ -1058,7 +1085,7 @@ const MasterControlContent = () => {
             <Main_Dropdown
               defaultOptions={selfReferenceOptions}
               defaultSelectedOption={String(row?.[column] || '')}
-              onChange={(ov, nv) => handleCellChange(rowIndex, column, nv)}
+              onChange={(ov, nv) => handleCellChange(rowKey, column, nv)}
               size="S"
               disabled={!canEdit || isSaving}
             />
@@ -1078,7 +1105,7 @@ const MasterControlContent = () => {
               onChange={(ov, nv) => {
                 const resolved = resolveForeignKeySuggestion(column, nv);
                 if (!resolved.resolved) return;
-                handleCellChange(rowIndex, column, resolved.value);
+                handleCellChange(rowKey, column, resolved.value);
               }}
               placeholder={`Type to search ${foreignKeyConfig.referencedTable}...`}
             />
@@ -1088,7 +1115,7 @@ const MasterControlContent = () => {
         return (
           <Main_TextField
             defaultValue={asInputValue(row?.[column])}
-            onChange={(ov, nv) => handleCellChange(rowIndex, column, nv)}
+            onChange={(ov, nv) => handleCellChange(rowKey, column, nv)}
             disabled={isReadonly || !canEdit}
             className={styles.cellTextField}
             placeholder=""
@@ -1170,7 +1197,6 @@ const MasterControlContent = () => {
     ];
   }, [
     columns,
-    draftRows,
     handleCellChange,
     handleDeleteRow,
     handleInsertRowAfter,
@@ -1242,6 +1268,10 @@ const MasterControlContent = () => {
     selectedTable,
   ]);
 
+  useEffect(() => {
+    hasUnsavedMasterTableChangesRef.current = hasUnsavedMasterTableChanges;
+  }, [hasUnsavedMasterTableChanges]);
+
   const discardMasterTableUnsavedChanges = useCallback(() => {
     const restoredRows = JSON.parse(JSON.stringify(originalRows || []));
     setDraftRows(restoredRows);
@@ -1254,13 +1284,17 @@ const MasterControlContent = () => {
   const handleSelectTable = useCallback(
     (nextTableName) => {
       const nextTable = String(nextTableName || '').trim();
-      if (!nextTable || nextTable === selectedTable) {
+      const currentSelectedTable = String(
+        selectedTableRef.current || '',
+      ).trim();
+
+      if (!nextTable || nextTable === currentSelectedTable) {
         return;
       }
 
       const canSwitch = canProceedAndDiscardUnsavedChanges({
-        hasRecordId: Boolean(selectedTable),
-        isDataUnchanged: !hasUnsavedMasterTableChanges,
+        hasRecordId: Boolean(currentSelectedTable),
+        isDataUnchanged: !hasUnsavedMasterTableChangesRef.current,
         onDiscard: discardMasterTableUnsavedChanges,
         message:
           'You have unsaved changes in the current table. Click OK to discard them and switch table.',
@@ -1272,11 +1306,7 @@ const MasterControlContent = () => {
 
       setSelectedTable(nextTable);
     },
-    [
-      selectedTable,
-      hasUnsavedMasterTableChanges,
-      discardMasterTableUnsavedChanges,
-    ],
+    [discardMasterTableUnsavedChanges],
   );
 
   const getMasterControlDryRunData = useCallback(async () => {

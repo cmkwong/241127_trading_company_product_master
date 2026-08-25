@@ -5,7 +5,11 @@ import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
 import Main_RadioGroup from '../../../common/InputOptions/RadioGroup/Main_RadioGroup';
 import EditableDataTable from '../../../common/Table/EditableDataTable';
-import { useProductContext } from '../../../../store/ProductContext';
+import {
+  upsertEntityData,
+  useEntityField,
+  useEntityRows,
+} from '../../../../store/GeneralContext';
 import { useMasterContext } from '../../../../store/MasterContext';
 import {
   getVariantTypeId,
@@ -38,27 +42,34 @@ const getColorSwatch = (name) => {
 };
 
 const Main_SampleServices = () => {
-  const { pageData, upsertProductPageData } = useProductContext();
   const { currencies, colorType, sizeType, capacityType } = useMasterContext();
 
-  const productId = pageData?.id || null;
+  const productId = useEntityField('products', 'id');
+  const supported = !!useEntityField('products', 'sampling_service_available');
+  const maxQtySample = useEntityField('products', 'max_qty_sample');
+  const variantColorsAll = useEntityRows('products', 'product_varient_colors');
+  const variantSizesAll = useEntityRows('products', 'product_varient_sizes');
+  const variantCapacitiesAll = useEntityRows(
+    'products',
+    'product_varient_capacities',
+  );
+  const productCostsAll = useEntityRows('products', 'product_costs');
 
   const variantColors = useMemo(
-    () => (pageData?.product_varient_colors || []).filter((r) => !r?._delete),
-    [pageData?.product_varient_colors],
+    () => (variantColorsAll || []).filter((r) => !r?._delete),
+    [variantColorsAll],
   );
   const variantSizes = useMemo(
-    () => (pageData?.product_varient_sizes || []).filter((r) => !r?._delete),
-    [pageData?.product_varient_sizes],
+    () => (variantSizesAll || []).filter((r) => !r?._delete),
+    [variantSizesAll],
   );
   const variantCapacities = useMemo(
-    () =>
-      (pageData?.product_varient_capacities || []).filter((r) => !r?._delete),
-    [pageData?.product_varient_capacities],
+    () => (variantCapacitiesAll || []).filter((r) => !r?._delete),
+    [variantCapacitiesAll],
   );
   const productCosts = useMemo(
-    () => (pageData?.product_costs || []).filter((r) => !r?._delete),
-    [pageData?.product_costs],
+    () => (productCostsAll || []).filter((r) => !r?._delete),
+    [productCostsAll],
   );
 
   const currencyOptions = useMemo(
@@ -282,7 +293,7 @@ const Main_SampleServices = () => {
 
       const targetId = existing?.id || uuidv4();
 
-      upsertProductPageData({
+      upsertEntityData('products', {
         product_costs: [
           {
             id: targetId,
@@ -304,7 +315,7 @@ const Main_SampleServices = () => {
         ],
       });
     },
-    [productCosts, upsertProductPageData, productId],
+    [productCosts, upsertEntityData, productId],
   );
 
   const columns = useMemo(
@@ -375,8 +386,6 @@ const Main_SampleServices = () => {
     [currencyOptions, currencyLabelMap, handleSampleFieldChange],
   );
 
-  const supported = !!pageData?.sampling_service_available;
-
   return (
     <Main_InputContainer label="Sample Services">
       <div className={styles.container}>
@@ -387,7 +396,7 @@ const Main_SampleServices = () => {
           ]}
           value={supported}
           onChange={(v) =>
-            upsertProductPageData({ sampling_service_available: v })
+            upsertEntityData('products', { sampling_service_available: v })
           }
           ariaLabel="Sample service availability"
           variant="segment"
@@ -406,10 +415,10 @@ const Main_SampleServices = () => {
             <div className={styles.qtyInputRow}>
               <Main_TextField
                 type="number"
-                defaultValue={String(pageData?.max_qty_sample ?? '')}
+                defaultValue={String(maxQtySample ?? '')}
                 placeholder="1"
                 onChange={(ov, nv) =>
-                  upsertProductPageData({
+                  upsertEntityData('products', {
                     max_qty_sample: Number(nv) || 0,
                   })
                 }

@@ -1,6 +1,10 @@
 import { useEffect, useState, useCallback } from 'react';
 import Main_InputContainer from '../../../common/Container/Main_InputContainer';
-import { useProductContext } from '../../../../store/ProductContext';
+import {
+  upsertEntityData,
+  useEntityRows,
+  useEntityField,
+} from '../../../../store/GeneralContext';
 import { useMasterContext } from '../../../../store/MasterContext';
 import { v4 as uuidv4 } from 'uuid';
 import KeywordsTagInput from './KeywordsTagInput';
@@ -9,17 +13,18 @@ import KeywordsTextHelper from './KeywordsTextHelper';
 import styles from './Main_Keywords.module.css';
 
 const Main_Keywords = () => {
-  const { pageData, upsertProductPageData } = useProductContext();
   const { productKeywords, updateMasterTableData } = useMasterContext();
 
-  const [keywords, setKeywords] = useState(pageData.product_keywords || []);
+  const productId = useEntityField('products', 'id');
+  const pageKeywords = useEntityRows('products', 'product_keywords');
+  const [keywords, setKeywords] = useState(pageKeywords);
   const [showTextAreaHelper, setShowTextAreaHelper] = useState(false);
   const [textAreaValue, setTextAreaValue] = useState('');
   const [splitter, setSplitter] = useState(',');
 
   useEffect(() => {
-    setKeywords(pageData.product_keywords || []);
-  }, [pageData.product_keywords]);
+    setKeywords(pageKeywords);
+  }, [pageKeywords]);
 
   const handleNewOptionAdd = useCallback(
     async (newOptionName) => {
@@ -95,21 +100,21 @@ const Main_Keywords = () => {
     );
 
     if (keywordsToAddFiltered.length > 0) {
-      upsertProductPageData({
+      upsertEntityData('products', {
         product_keywords: keywordsToAddFiltered.map((kwid) => ({
           id: uuidv4(),
-          product_id: pageData.id,
+          product_id: productId,
           keyword_id: kwid,
         })),
       });
     }
 
     if (keywordsToRemove.length > 0) {
-      const keywordRelationsToDelete = pageData.product_keywords.filter((rel) =>
+      const keywordRelationsToDelete = pageKeywords.filter((rel) =>
         keywordsToRemove.includes(rel.keyword_id),
       );
 
-      upsertProductPageData({
+      upsertEntityData('products', {
         product_keywords: keywordRelationsToDelete.map((rel) => ({
           id: rel.id,
           _delete: true,
@@ -123,10 +128,11 @@ const Main_Keywords = () => {
   }, [
     textAreaValue,
     keywords,
+    pageKeywords,
     productKeywords,
     splitter,
-    pageData,
-    upsertProductPageData,
+    productId,
+    upsertEntityData,
     updateMasterTableData,
     parseKeywordsFromText,
   ]);
@@ -181,8 +187,10 @@ const Main_Keywords = () => {
         <KeywordsTagInput
           productKeywords={productKeywords}
           keywords={keywords}
-          pageData={pageData}
-          onKeywordsChange={upsertProductPageData}
+          productId={productId}
+          onKeywordsChange={(nestedData) =>
+            upsertEntityData('products', nestedData)
+          }
           onAddNewOption={handleNewOptionAdd}
         />
 

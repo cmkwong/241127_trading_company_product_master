@@ -11,6 +11,7 @@ import SupplierSidebar from './AllSupplierList/SupplierSidebar';
 import Main_SupplierBasicInfo from './SupplierBasicInfo/Main_SupplierBasicInfo';
 import DeleteBtn from '../../common/Buttons/DeleteBtn';
 import { useSupplierContext } from '../../../store/SupplierContext';
+import { useEntityField } from '../../../store/GeneralContext';
 
 const SupplierMasterContent = ({ onSelectSupplier }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -47,13 +48,13 @@ const Main_SupplierMaster = () => {
   const navigate = useNavigate();
   const { supplier_id } = useParams();
   const {
-    pageData,
     selectedSupplierId,
     getSupplierData,
     getAllSuppliers,
     deleteSupplierById,
     createNewSupplier,
   } = useSupplierContext();
+  const pageDataId = useEntityField('supplier', 'id');
 
   const getSupplierDataRef = useRef(getSupplierData);
   useEffect(() => {
@@ -86,7 +87,7 @@ const Main_SupplierMaster = () => {
     }
   }, [supplier_id, selectedSupplierId, navigate]);
 
-  const supplierId = String(pageData?.id || '').trim();
+  const supplierId = String(pageDataId || '').trim();
   const hasPersistedSupplier = (getAllSuppliers() || []).some(
     (item) => String(item?.id || '').trim() === supplierId,
   );

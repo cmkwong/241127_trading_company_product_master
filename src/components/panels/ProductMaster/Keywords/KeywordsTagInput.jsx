@@ -5,31 +5,29 @@ import { v4 as uuidv4 } from 'uuid';
 const KeywordsTagInput = ({
   productKeywords,
   keywords,
-  pageData,
+  productId,
   onKeywordsChange,
   onAddNewOption,
 }) => {
   const handleKeywordsChange = useCallback(
     (ov, nv) => {
       if (nv.length > ov.length) {
-        // Keyword added
         const addedKeywords = nv.filter((kwid) => !ov.includes(kwid));
         addedKeywords.forEach((kwid) => {
           onKeywordsChange({
             product_keywords: [
               {
                 id: uuidv4(),
-                product_id: pageData.id,
+                product_id: productId,
                 keyword_id: kwid,
               },
             ],
           });
         });
       } else if (nv.length < ov.length) {
-        // Keyword removed
         const removedKeywords = ov.filter((kwid) => !nv.includes(kwid));
-        const keywordRelationsToDelete = pageData.product_keywords.filter(
-          (rel) => removedKeywords.includes(rel.keyword_id),
+        const keywordRelationsToDelete = keywords.filter((rel) =>
+          removedKeywords.includes(rel.keyword_id),
         );
 
         onKeywordsChange({
@@ -40,7 +38,7 @@ const KeywordsTagInput = ({
         });
       }
     },
-    [pageData, onKeywordsChange],
+    [keywords, onKeywordsChange, productId],
   );
 
   return (

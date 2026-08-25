@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import EditableDataTable from '../../../common/Table/EditableDataTable';
 import styles from '../Main_MasterControl.module.css';
 
@@ -18,4 +19,4 @@ const MasterControlTablePanel = ({ error, rows, columns, rowKey }) => {
   );
 };
 
-export default MasterControlTablePanel;
+export default memo(MasterControlTablePanel);

@@ -3,43 +3,52 @@ import Main_TextField from '../../../common/InputOptions/TextField/Main_TextFiel
 import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
 import Main_TagInputField from '../../../common/InputOptions/Tagging/Main_TagInputField';
 import Main_InputContainer from '../../../common/Container/Main_InputContainer';
-import { useSupplierContext } from '../../../../store/SupplierContext';
+import {
+  upsertEntityData,
+  useEntityField,
+  useEntityRows,
+} from '../../../../store/GeneralContext';
 import { useMasterContext } from '../../../../store/MasterContext';
 import styles from '../Main_SupplierMaster.module.css';
 import SplitLayout from '../../../common/Layouts/SplitLayout';
 import VerticalLayout from '../../../common/Layouts/VerticalLayout';
 
 const Main_SupplierBasicInfo = () => {
-  const { pageData, upsertSupplierPageData } = useSupplierContext();
   const { supplierType } = useMasterContext();
+  const supplierId = useEntityField('supplier', 'id');
+  const supplierCode = useEntityField('supplier', 'supplier_code');
+  const supplierCodeCompat = useEntityField('supplier', 'code');
+  const supplierName = useEntityField('supplier', 'name');
+  const supplierScore = useEntityField('supplier', 'score');
+  const supplierTypeId = useEntityField('supplier', 'supplier_type_id');
+  const supplierRemark = useEntityField('supplier', 'remark');
+  const supplierTypes = useEntityRows('supplier', 'supplier_types');
 
   const [selectedSupplierTypeIds, setSelectedSupplierTypeIds] = useState(() => {
     const relationIds =
-      pageData.supplier_types?.map((item) => item.supplier_type_id) || [];
+      supplierTypes?.map((item) => item.supplier_type_id) || [];
     if (relationIds.length > 0) return relationIds;
-    return pageData.supplier_type_id ? [pageData.supplier_type_id] : [];
+    return supplierTypeId ? [supplierTypeId] : [];
   });
 
   useEffect(() => {
     const relationIds =
-      pageData.supplier_types?.map((item) => item.supplier_type_id) || [];
+      supplierTypes?.map((item) => item.supplier_type_id) || [];
     if (relationIds.length > 0) {
       setSelectedSupplierTypeIds(relationIds);
       return;
     }
-    setSelectedSupplierTypeIds(
-      pageData.supplier_type_id ? [pageData.supplier_type_id] : [],
-    );
-  }, [pageData, pageData.supplier_types, pageData.supplier_type_id]);
+    setSelectedSupplierTypeIds(supplierTypeId ? [supplierTypeId] : []);
+  }, [supplierTypes, supplierTypeId]);
 
   const handleSupplierTypeChange = (ov, nv) => {
     if (nv.length > ov.length) {
       const addedTypeIds = nv.filter((id) => !ov.includes(id));
       addedTypeIds.forEach((typeId) => {
-        upsertSupplierPageData({
+        upsertEntityData('supplier', {
           supplier_types: [
             {
-              supplier_id: pageData.id,
+              supplier_id: supplierId,
               supplier_type_id: typeId,
             },
           ],
@@ -47,16 +56,16 @@ const Main_SupplierBasicInfo = () => {
       });
     } else if (nv.length < ov.length) {
       const removedTypeIds = ov.filter((id) => !nv.includes(id));
-      const relationsToDelete = (pageData.supplier_types || []).filter((rel) =>
+      const relationsToDelete = (supplierTypes || []).filter((rel) =>
         removedTypeIds.includes(rel.supplier_type_id),
       );
 
       relationsToDelete.forEach((rel) => {
-        upsertSupplierPageData({
+        upsertEntityData('supplier', {
           supplier_types: [
             {
               id: rel.id,
-              supplier_id: pageData.id,
+              supplier_id: supplierId,
               supplier_type_id: rel.supplier_type_id,
               _delete: true,
             },
@@ -66,7 +75,7 @@ const Main_SupplierBasicInfo = () => {
     }
 
     // Keep compatibility with existing single-type field where used.
-    upsertSupplierPageData({ supplier_type_id: nv[0] || '' });
+    upsertEntityData('supplier', { supplier_type_id: nv[0] || '' });
   };
 
   return (
@@ -74,19 +83,19 @@ const Main_SupplierBasicInfo = () => {
       <VerticalLayout>
         <Main_InputContainer label="Supplier Code">
           <Main_TextField
-            defaultValue={pageData.supplier_code || pageData.code || ''}
+            defaultValue={supplierCode || supplierCodeCompat || ''}
             placeholder="Supplier Code"
             onChange={(ov, nv) => {
-              upsertSupplierPageData({ supplier_code: nv, code: nv });
+              upsertEntityData('supplier', { supplier_code: nv, code: nv });
             }}
           />
         </Main_InputContainer>
         <Main_InputContainer label="Supplier Name">
           <Main_TextField
-            defaultValue={pageData.name || ''}
+            defaultValue={supplierName || ''}
             placeholder="Supplier Name"
             onChange={(ov, nv) => {
-              upsertSupplierPageData({
+              upsertEntityData('supplier', {
                 name: nv,
               });
             }}
@@ -94,7 +103,7 @@ const Main_SupplierBasicInfo = () => {
         </Main_InputContainer>
         <Main_InputContainer label="Supplier Score">
           <Main_TextField
-            defaultValue={String(pageData.score ?? 1)}
+            defaultValue={String(supplierScore ?? 1)}
             placeholder="1 - 10"
             type="number"
             onChange={(ov, nv) => {
@@ -102,7 +111,7 @@ const Main_SupplierBasicInfo = () => {
               const safeValue = Number.isNaN(parsed)
                 ? 1
                 : Math.min(10, Math.max(1, parsed));
-              upsertSupplierPageData({ score: safeValue });
+              upsertEntityData('supplier', { score: safeValue });
             }}
           />
         </Main_InputContainer>
@@ -124,10 +133,10 @@ const Main_SupplierBasicInfo = () => {
       >
         <Main_TextArea
           label="Remark"
-          defaultValue={pageData.remark || ''}
+          defaultValue={supplierRemark || ''}
           placeholder="Supplier Remark"
           onChange={(ov, nv) => {
-            upsertSupplierPageData({ remark: nv });
+            upsertEntityData('supplier', { remark: nv });
           }}
         />
       </Main_InputContainer>

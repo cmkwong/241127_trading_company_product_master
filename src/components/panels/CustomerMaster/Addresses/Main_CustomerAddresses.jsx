@@ -7,7 +7,11 @@ import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
 import AddNewBtn from '../../../common/Buttons/AddNewBtn';
 import DeleteBtn from '../../../common/Buttons/DeleteBtn';
 import EditableDataTable from '../../../common/Table/EditableDataTable';
-import { useCustomerContext } from '../../../../store/CustomerContext';
+import {
+  upsertEntityData,
+  useEntityField,
+  useEntityRows,
+} from '../../../../store/GeneralContext';
 import { useMasterContext } from '../../../../store/MasterContext';
 import styles from './Main_CustomerAddresses.module.css';
 
@@ -86,12 +90,11 @@ const buildStandardAddressPreview = (row) => {
 };
 
 const Main_CustomerAddresses = () => {
-  const { pageData, upsertCustomerPageData } = useCustomerContext();
+  const customerId = useEntityField('customer', 'id');
+  const addressRows = useEntityRows('customer', 'customer_addresses');
   const { addressType = [] } = useMasterContext();
   const [detailedAddressDrafts, setDetailedAddressDrafts] = useState({});
   const [copiedRowId, setCopiedRowId] = useState('');
-
-  const addressRows = pageData.customer_addresses || [];
 
   const addressTypeOptions = useMemo(
     () =>
@@ -104,25 +107,25 @@ const Main_CustomerAddresses = () => {
 
   const upsertAddressRow = useCallback(
     (row, patch) => {
-      upsertCustomerPageData({
+      upsertEntityData('customer', {
         customer_addresses: [
           {
             id: row?.id || uuidv4(),
-            customer_id: pageData.id,
+            customer_id: customerId,
             ...patch,
           },
         ],
       });
     },
-    [upsertCustomerPageData, pageData.id],
+    [customerId],
   );
 
   const handleAddAddressRow = useCallback(() => {
-    upsertCustomerPageData({
+    upsertEntityData('customer', {
       customer_addresses: [
         {
           id: uuidv4(),
-          customer_id: pageData.id,
+          customer_id: customerId,
           address_type_id: '',
           address_line1: '',
           address_line2: '',
@@ -134,17 +137,14 @@ const Main_CustomerAddresses = () => {
         },
       ],
     });
-  }, [upsertCustomerPageData, pageData.id]);
+  }, [customerId]);
 
-  const handleDeleteAddressRow = useCallback(
-    (row) => {
-      if (!row?.id) return;
-      upsertCustomerPageData({
-        customer_addresses: [{ id: row.id, _delete: true }],
-      });
-    },
-    [upsertCustomerPageData],
-  );
+  const handleDeleteAddressRow = useCallback((row) => {
+    if (!row?.id) return;
+    upsertEntityData('customer', {
+      customer_addresses: [{ id: row.id, _delete: true }],
+    });
+  }, []);
 
   const setDetailedAddressDraft = useCallback((rowId, value) => {
     setDetailedAddressDrafts((prev) => ({

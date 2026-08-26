@@ -235,10 +235,19 @@ const Main_SupplierServices = () => {
         ),
       },
       {
+        key: 'actions',
+        label: 'Actions',
+        sortable: false,
+        renderCell: (row) => (
+          <DeleteBtn onClick={() => handleDeleteServiceRow(row)} />
+        ),
+      },
+      {
         key: 'remark',
         label: 'Remark',
         sortType: 'string',
         size: 'XL',
+        nextRow: true,
         renderCell: (row) => (
           <Main_TextArea
             defaultValue={row.remark || ''}
@@ -254,6 +263,7 @@ const Main_SupplierServices = () => {
         key: 'supplier_service_images',
         label: 'Service Images',
         sortable: false,
+        nextRow: true,
         renderCell: (row) => {
           const imageDefaults = sortByDisplayOrder(
             row.supplier_service_images || [],
@@ -295,6 +305,7 @@ const Main_SupplierServices = () => {
         key: 'supplier_service_files',
         label: 'Service Files',
         sortable: false,
+        nextRow: true,
         renderCell: (row) => {
           const fileDefaults = sortByDisplayOrder(
             row.supplier_service_files || [],
@@ -329,14 +340,6 @@ const Main_SupplierServices = () => {
             </div>
           );
         },
-      },
-      {
-        key: 'actions',
-        label: 'Actions',
-        sortable: false,
-        renderCell: (row) => (
-          <DeleteBtn onClick={() => handleDeleteServiceRow(row)} />
-        ),
       },
     ],
     [

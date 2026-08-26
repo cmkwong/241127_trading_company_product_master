@@ -50,7 +50,8 @@
 }
 
 .refreshLabel {
-  font-size: 12px;
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-sm);
 }
 
 .refreshIconSpinning {

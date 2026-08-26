@@ -9,7 +9,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 10px 24px;
-  background-color: #0c1e36;
+  background-color: var(--color-primary);
   border-bottom: none;
   min-height: 51px;
   box-sizing: border-box;
@@ -33,9 +33,9 @@
 
 .brandIconWrap {
   position: relative;
-  width: 60px;
-  height: 60px;
-  flex: 0 0 60px;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
   overflow: hidden;
 }
 
@@ -59,7 +59,7 @@
   margin-bottom: -3px;
   color: var(--color-text-light);
   font-family: var(--font-family-logo);
-  font-size: var(--font-size-7xl);
+  font-size: var(--font-size-4xl);
   font-weight: 400;
   letter-spacing: -0.5px;
 }
@@ -67,7 +67,7 @@
 .brandTagline {
   color: var(--color-text-light);
   font-family: var(--font-family-display);
-  font-size: var(--font-size-md);
+  font-size: var(--font-size-sm);
   line-height: var(--line-height-tight);
   font-weight: 800;
 }
@@ -128,6 +128,7 @@
   position: relative;
   display: flex;
   align-items: center;
+  gap: 12px;
 }
 
 .loggedIn {
@@ -230,6 +231,32 @@
   color: var(--color-error);
   font-size: var(--font-size-sm);
   margin-top: 0.25rem;
+}
+
+.userIconBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 auto;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.2s;
+}
+
+.userIconBtn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.8);
+}
+
+.userIconBtn img {
+  width: 20px;
+  height: 20px;
+  filter: brightness(0) invert(1);
 }
 
 @media (max-width: 900px) {

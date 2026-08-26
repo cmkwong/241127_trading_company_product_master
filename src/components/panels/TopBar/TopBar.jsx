@@ -250,7 +250,17 @@ const TopBar = () => {
         <div className={styles.authContainer}>
           {token ? (
             <div className={styles.loggedIn}>
-              <span className={styles.status}>Logged In</span>
+              <button
+                className={styles.userIconBtn}
+                type="button"
+                aria-label="Account"
+              >
+                <img
+                  src="/assets/icons/admin_user_icon.svg"
+                  alt=""
+                  aria-hidden="true"
+                />
+              </button>
               <button className={styles.logoutBtn} onClick={handleLogout}>
                 Logout
               </button>

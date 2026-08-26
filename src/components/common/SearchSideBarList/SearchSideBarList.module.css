@@ -24,23 +24,22 @@
   flex-shrink: 0;
 }
 
-.toolbarHeaderRow {
+.toolbarTop {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-}
-
-.toolbarTop {
   width: 100%;
 }
 
 .toolbarActions {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  right: 36px;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  gap: 10px;
-  flex-shrink: 0;
+  gap: 4px;
+  z-index: 2;
 }
 
 .listCountBar {
@@ -61,13 +60,14 @@
 }
 
 .searchFieldWrapper {
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
   position: relative;
 }
 
-.searchFieldWrapper > div {
+.searchFieldWrapper > div:not(.toolbarActions) {
   margin-bottom: 0 !important;
   width: 100%;
 }
@@ -75,7 +75,7 @@
 .searchFieldWrapper input {
   height: 34px;
   box-sizing: border-box;
-  padding: 8px 58px 8px 28px;
+  padding: 8px 70px 8px 6px;
   margin: 0;
   border: 1px solid var(--color-border);
   border-radius: 6px;

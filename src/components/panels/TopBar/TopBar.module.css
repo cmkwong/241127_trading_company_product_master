@@ -237,10 +237,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 42px;
+  height: 42px;
   flex: 0 0 auto;
-  border: 1px solid rgba(255, 255, 255, 0.55);
+  border: 1px solid var(--color-blue-bg-light);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.12);
   cursor: pointer;
@@ -257,6 +257,113 @@
   width: 20px;
   height: 20px;
   filter: brightness(0) invert(1);
+}
+
+.userMenu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  width: 260px;
+  background-color: #0c1e36;
+  border: 1px solid #113763;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px 0 rgba(0, 0, 0, 0.35);
+  z-index: 1000;
+  overflow: hidden;
+  font-family: var(--font-family-display);
+}
+
+.userMenuHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+}
+
+.userAvatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  border-radius: 18px;
+  background-color: #1f4d85;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.userDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.userName {
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.userEmail {
+  font-size: 12px;
+  font-weight: 400;
+  color: #99a6b8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.userMenuDivider {
+  height: 1px;
+  width: 100%;
+  background-color: #113763;
+}
+
+.userMenuItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 16px;
+  border: none;
+  background: transparent;
+  color: #e0e5ed;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+
+.userMenuItem:hover {
+  background-color: rgba(255, 255, 255, 0.06);
+}
+
+.userMenuItem svg {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  color: #99a6b8;
+}
+
+.userMenuLogout {
+  color: #e53333;
+}
+
+.userMenuLogout:hover {
+  background-color: rgba(229, 51, 51, 0.08);
+}
+
+.userMenuLogout svg {
+  color: #e53333;
 }
 
 @media (max-width: 900px) {

@@ -1,4 +1,4 @@
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuthContext } from '../../../store/AuthContext';
 import { CustomerContext } from '../../../store/CustomerContext';
@@ -71,6 +71,8 @@ const TopBar = () => {
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const userMenuRef = useRef(null);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -85,7 +87,34 @@ const TopBar = () => {
   const handleLogout = () => {
     clearToken();
     setShowLogin(false);
+    setShowUserMenu(false);
   };
+
+  useEffect(() => {
+    if (!showUserMenu) {
+      return;
+    }
+
+    const handleClickOutside = (event) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setShowUserMenu(false);
+      }
+    };
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setShowUserMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [showUserMenu]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -249,11 +278,14 @@ const TopBar = () => {
 
         <div className={styles.authContainer}>
           {token ? (
-            <div className={styles.loggedIn}>
+            <div className={styles.loggedIn} ref={userMenuRef}>
               <button
                 className={styles.userIconBtn}
                 type="button"
                 aria-label="Account"
+                aria-haspopup="menu"
+                aria-expanded={showUserMenu}
+                onClick={() => setShowUserMenu((prev) => !prev)}
               >
                 <img
                   src="/assets/icons/admin_user_icon.svg"
@@ -261,9 +293,123 @@ const TopBar = () => {
                   aria-hidden="true"
                 />
               </button>
-              <button className={styles.logoutBtn} onClick={handleLogout}>
-                Logout
-              </button>
+
+              {showUserMenu && (
+                <div className={styles.userMenu} role="menu">
+                  <div className={styles.userMenuHeader}>
+                    <div className={styles.userAvatar} aria-hidden="true">
+                      CC
+                    </div>
+                    <div className={styles.userDetails}>
+                      <span className={styles.userName}>Chris Cheung</span>
+                      <span className={styles.userEmail}>
+                        chris.cheung@rivolx.com
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className={styles.userMenuDivider} />
+
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className={styles.userMenuItem}
+                    onClick={() => setShowUserMenu(false)}
+                  >
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                      <circle cx="12" cy="7" r="4" />
+                    </svg>
+                    My Profile
+                  </button>
+
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className={styles.userMenuItem}
+                    onClick={() => setShowUserMenu(false)}
+                  >
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M21 8v13H3V8" />
+                      <path d="M1 3h22v5H1z" />
+                      <path d="M10 12h4" />
+                    </svg>
+                    My Orders
+                  </button>
+
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className={styles.userMenuItem}
+                    onClick={() => setShowUserMenu(false)}
+                  >
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <line x1="4" y1="21" x2="4" y2="14" />
+                      <line x1="4" y1="10" x2="4" y2="3" />
+                      <line x1="12" y1="21" x2="12" y2="12" />
+                      <line x1="12" y1="8" x2="12" y2="3" />
+                      <line x1="20" y1="21" x2="20" y2="16" />
+                      <line x1="20" y1="12" x2="20" y2="3" />
+                      <line x1="1" y1="14" x2="7" y2="14" />
+                      <line x1="9" y1="8" x2="15" y2="8" />
+                      <line x1="17" y1="16" x2="23" y2="16" />
+                    </svg>
+                    Settings
+                  </button>
+
+                  <div className={styles.userMenuDivider} />
+
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className={`${styles.userMenuItem} ${styles.userMenuLogout}`}
+                    onClick={handleLogout}
+                  >
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                      <polyline points="16 17 21 12 16 7" />
+                      <line x1="21" y1="12" x2="9" y2="12" />
+                    </svg>
+                    Logout
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             <div className={styles.loggedOut}>

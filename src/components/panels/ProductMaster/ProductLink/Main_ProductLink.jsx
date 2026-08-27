@@ -122,7 +122,7 @@ const Main_ProductLink = () => {
         key: 'name',
         label: 'Name',
         sortType: 'string',
-        minWidth: '220px',
+        minWidth: '150px',
         maxWidth: '400px',
         cellClassName: styles.middleCell,
         renderCell: (row) => (
@@ -138,7 +138,7 @@ const Main_ProductLink = () => {
         key: 'link',
         label: 'Link',
         sortType: 'string',
-        minWidth: '280px',
+        minWidth: '150px',
         maxWidth: '800px',
         cellClassName: styles.middleCell,
         renderCell: (row) => (
@@ -155,7 +155,7 @@ const Main_ProductLink = () => {
         key: 'score',
         label: 'Scores',
         sortType: 'number',
-        minWidth: '100px',
+        minWidth: '50px',
         maxWidth: '280px',
         cellClassName: styles.middleCell,
         renderCell: (row) => (

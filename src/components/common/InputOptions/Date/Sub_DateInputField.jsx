@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import styles from './Sub_DateField.module.css';
+import Main_TextField from '../TextField/Main_TextField';
 
 const Sub_DateInputField = ({
   id,
@@ -15,21 +16,22 @@ const Sub_DateInputField = ({
 }) => {
   return (
     <div className={styles.inputWrap}>
-      <input
-        id={id}
-        type="text"
-        className={`${styles.input} ${inputInvalid ? styles.inputInvalid : ''}`}
-        value={inputValue}
-        placeholder={placeholder}
-        inputMode="numeric"
-        autoComplete="off"
-        aria-invalid={inputInvalid}
-        aria-describedby={inputInvalid ? `${id}-date-help` : undefined}
-        disabled={disabled}
-        onChange={onInputChange}
-        onBlur={onInputBlur}
-        onKeyDown={onInputKeyDown}
-      />
+      <div className={styles.dateFieldWrap}>
+        <Main_TextField
+          defaultValue={inputValue}
+          onChange={onInputChange}
+          inputId={id}
+          placeholder={placeholder}
+          type="text"
+          disabled={disabled}
+          autoComplete="off"
+          error={inputInvalid}
+          helperText={inputInvalid ? 'Use YYYY-MM-DD or YYYYMMDD.' : ''}
+          onBlur={onInputBlur}
+          onKeyDown={onInputKeyDown}
+          className={styles.dateFieldInput}
+        />
+      </div>
       <button
         type="button"
         className={styles.calendarButton}
@@ -81,7 +83,7 @@ Sub_DateInputField.propTypes = {
   placeholder: PropTypes.string,
   open: PropTypes.bool.isRequired,
   disabled: PropTypes.bool,
-  onInputChange: PropTypes.func.isRequired,
+  onInputChange: PropTypes.func.isRequired, // (oldValue, newValue)
   onInputBlur: PropTypes.func.isRequired,
   onInputKeyDown: PropTypes.func.isRequired,
   onToggleCalendar: PropTypes.func.isRequired,

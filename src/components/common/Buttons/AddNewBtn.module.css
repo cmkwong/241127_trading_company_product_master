@@ -8,7 +8,7 @@
   background: transparent;
   color: var(--color-accent);
   font-family: inherit;
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-base);
   font-weight: var(--font-weight-semibold);
   line-height: normal;
   white-space: nowrap;

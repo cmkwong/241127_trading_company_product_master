@@ -314,8 +314,8 @@ const Sub_DateField = ({
         placeholder={placeholder}
         open={open}
         disabled={disabled}
-        onInputChange={(event) => {
-          setInputValue(event.target.value);
+        onInputChange={(oldValue, newValue) => {
+          setInputValue(newValue);
           if (inputInvalid) setInputInvalid(false);
         }}
         onInputBlur={handleInputBlur}
@@ -326,11 +326,6 @@ const Sub_DateField = ({
           }
         }}
       />
-      {inputInvalid && (
-        <div id={`${id}-date-help`} className={styles.errorText}>
-          Use YYYY-MM-DD or YYYYMMDD.
-        </div>
-      )}
       <Sub_DateCalendarPopover
         open={open}
         popoverRef={popoverRef}

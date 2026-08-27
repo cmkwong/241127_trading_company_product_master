@@ -74,6 +74,7 @@
 .headerCell {
   background: var(--color-surface-faint);
   color: var(--color-text-dim);
+  font-size: var(--font-size-base);
   font-weight: var(--font-weight-semibold);
   white-space: nowrap;
 }

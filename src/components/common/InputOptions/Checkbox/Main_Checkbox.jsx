@@ -23,6 +23,7 @@ const SIZE_BOX = {
 const Main_Checkbox = ({
   checked = false,
   onChange = () => {},
+  onClick = () => {},
   label,
   labelPosition = 'right',
   disabled = false,
@@ -63,6 +64,7 @@ const Main_Checkbox = ({
       className={`${styles.checkboxContainer} ${
         error ? styles.errorWrapper : ''
       } ${className}`.trim()}
+      onClick={onClick}
     >
       <Label
         className={`${styles.fieldRow} ${
@@ -103,6 +105,7 @@ const Main_Checkbox = ({
 Main_Checkbox.propTypes = {
   checked: PropTypes.bool,
   onChange: PropTypes.func,
+  onClick: PropTypes.func,
   label: PropTypes.node,
   labelPosition: PropTypes.oneOf(['right', 'left']),
   disabled: PropTypes.bool,

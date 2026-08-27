@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import { createPortal } from 'react-dom';
 import styles from './Sub_FileItem.module.css';
+import Main_Checkbox from '../Checkbox/Main_Checkbox';
 import {
   DRAG_READY_LABEL,
   getDragPlacementUiState,
@@ -394,24 +395,32 @@ const Sub_FileItem = ({
           <div className={styles.dropReadyBadge}>{DRAG_READY_LABEL}</div>
         )}
 
-        {typeof onToggleSelected === 'function' && (
-          <button
-            type="button"
-            className={`${styles.selectCircle} ${
-              isSelected ? styles.selectCircleActive : ''
-            } ${largeImage ? styles.largeSelectSquare : ''} ${
-              largeImage && isSelected ? styles.largeSelectSquareActive : ''
-            }`}
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggleSelected();
-            }}
-            aria-label={isSelected ? 'Deselect image' : 'Select image'}
-            title={isSelected ? 'Deselect image' : 'Select image'}
-          >
-            {isSelected && !largeImage ? '✓' : ''}
-          </button>
-        )}
+        {typeof onToggleSelected === 'function' &&
+          (largeImage ? (
+            <Main_Checkbox
+              checked={isSelected}
+              onChange={() => onToggleSelected()}
+              onClick={(e) => e.stopPropagation()}
+              size="M"
+              ariaLabel={isSelected ? 'Deselect image' : 'Select image'}
+              className={styles.imageCheckboxOverlay}
+            />
+          ) : (
+            <button
+              type="button"
+              className={`${styles.selectCircle} ${
+                isSelected ? styles.selectCircleActive : ''
+              }`}
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleSelected();
+              }}
+              aria-label={isSelected ? 'Deselect image' : 'Select image'}
+              title={isSelected ? 'Deselect image' : 'Select image'}
+            >
+              {isSelected ? '✓' : ''}
+            </button>
+          ))}
 
         {!isPreviewImageBroken && resolvedFileUrl ? (
           <img
@@ -528,28 +537,30 @@ const Sub_FileItem = ({
         <div className={styles.dropReadyBadge}>{DRAG_READY_LABEL}</div>
       )}
 
-      {(compactFile || largeFile) && typeof onToggleSelected === 'function' && (
-        <button
-          type="button"
-          className={`${
-            compactFile
-              ? styles.compactFileSelectDot
-              : styles.largeFileSelectSquare
-          } ${
-            isSelected
-              ? compactFile
-                ? styles.compactFileSelectDotActive
-                : styles.largeFileSelectSquareActive
-              : ''
-          }`}
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleSelected();
-          }}
-          aria-label={isSelected ? 'Deselect file' : 'Select file'}
-          title={isSelected ? 'Deselect file' : 'Select file'}
-        />
-      )}
+      {(compactFile || largeFile) && typeof onToggleSelected === 'function' &&
+        (largeFile ? (
+          <Main_Checkbox
+            checked={isSelected}
+            onChange={() => onToggleSelected()}
+            onClick={(e) => e.stopPropagation()}
+            size="M"
+            ariaLabel={isSelected ? 'Deselect file' : 'Select file'}
+            className={styles.fileCheckboxOverlay}
+          />
+        ) : (
+          <button
+            type="button"
+            className={`${styles.compactFileSelectDot} ${
+              isSelected ? styles.compactFileSelectDotActive : ''
+            }`}
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleSelected();
+            }}
+            aria-label={isSelected ? 'Deselect file' : 'Select file'}
+            title={isSelected ? 'Deselect file' : 'Select file'}
+          />
+        ))}
 
       {largeFile && (
         <div className={styles.largeFileIndexBadge}>{index + 1}</div>

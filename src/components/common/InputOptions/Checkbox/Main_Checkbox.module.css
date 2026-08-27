@@ -32,13 +32,15 @@
   opacity: 0.5;
 }
 
-/* Visually hide the native input but keep it focusable & accessible. */
+/* Visually hide the native input but keep it focusable & accessible.
+   Overlay it across the whole field row so clicking the visible box toggles. */
 .input {
   position: absolute;
-  opacity: 0;
-  width: 0;
-  height: 0;
+  inset: 0;
   margin: 0;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 1;
 }
 
 /* Custom-drawn box (replaces the native checkbox). */
@@ -46,7 +48,7 @@
   flex-shrink: 0;
   width: 16px;
   height: 16px;
-  border: 2px solid var(--color-accent);
+  border: 2px solid var(--color-blue-azure);
   border-radius: 4px;
   background: var(--color-white);
   display: inline-flex;
@@ -77,8 +79,8 @@
 
 /* Checked state: blue fill. */
 .input:checked + .checkmark {
-  background: var(--color-accent);
-  border-color: var(--color-accent);
+  background: var(--color-blue-azure);
+  border-color: var(--color-blue-azure);
 }
 
 /* White check-mark. */
@@ -126,7 +128,7 @@
 }
 
 .helperText {
-  font-size: var(--font-size-md);
+  font-size: var(--font-size-base);
   color: var(--color-text-muted);
   font-family: var(--font-family-base);
 }

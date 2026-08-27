@@ -528,8 +528,8 @@
 
 .sequencePreviewOrderBadge {
   position: absolute;
-  right: 8px;
-  bottom: 8px;
+  right: 4px;
+  bottom: 4px;
   min-width: 22px;
   height: 22px;
   padding: 0 6px;

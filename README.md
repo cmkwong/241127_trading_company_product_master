@@ -6,8 +6,7 @@ In addition to product data management, Product Master provides functional suppo
 
 ## Product Master Screenshots
 
-![Product Master](http://url/to/img.png)
-https://github.com/user-attachments/assets/c913a9d0-b79b-462b-80d3-303d027ef5c9"
+![Product Master](https://github.com/user-attachments/assets/c913a9d0-b79b-462b-80d3-303d027ef5c9")
 
 ## Sales Quotation Screenshots
 

@@ -203,7 +203,7 @@ const CustomerSidebar = ({ isCollapsed, onToggleCollapse }) => {
       const success = getCustomerData(customer.id);
       if (!success) return;
 
-      navigate(`/customer_master/${customer.id}`, { replace: true });
+      navigate(`/panel/customer_master/${customer.id}`, { replace: true });
 
       if (windowWidth <= 768) {
         onToggleCollapse(true);

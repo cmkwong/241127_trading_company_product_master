@@ -82,7 +82,7 @@ const Main_SupplierMaster = () => {
     handledSupplierIdRef.current = routeId;
     const loaded = getSupplierDataRef.current(routeId);
     if (!loaded) {
-      navigate('/supplier_master', { replace: true });
+      navigate('/panel/supplier_master', { replace: true });
       handledSupplierIdRef.current = '';
     }
   }, [supplier_id, selectedSupplierId, navigate]);
@@ -107,7 +107,7 @@ const Main_SupplierMaster = () => {
     setIsDeleting(true);
     try {
       await deleteSupplierById(supplierId);
-      navigate('/supplier_master', { replace: true });
+      navigate('/panel/supplier_master', { replace: true });
       alert('Supplier deleted successfully.');
     } catch (error) {
       console.error('Failed to delete supplier:', error);
@@ -139,7 +139,7 @@ const Main_SupplierMaster = () => {
       onCreate={() => {
         const created = createNewSupplier();
         if (created) {
-          navigate('/supplier_master', { replace: true });
+          navigate('/panel/supplier_master', { replace: true });
         }
       }}
       createButtonText="Add Supplier"

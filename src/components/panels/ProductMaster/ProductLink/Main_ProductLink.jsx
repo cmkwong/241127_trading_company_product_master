@@ -178,9 +178,9 @@ const Main_ProductLink = () => {
         key: 'actions',
         label: 'Actions',
         sortable: false,
-        width: '90px',
+        width: '110px',
         minWidth: '90px',
-        maxWidth: '90px',
+        maxWidth: '220px',
         cellClassName: styles.middleCell,
         renderCell: (row) => (
           <DeleteBtn onClick={() => handleDeleteLinkRow(row)} />

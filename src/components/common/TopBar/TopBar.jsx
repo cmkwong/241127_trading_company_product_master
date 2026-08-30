@@ -9,7 +9,7 @@ import { MasterContext } from '../../../store/MasterContext';
 import { canProceedWithRecordSwitch } from '../../../utils/contextDataUtils';
 import { getEntityRecord } from '../../../store/GeneralContext';
 import ModuleTopBar from './ModuleTopBar';
-import NavButton from '../../common/NavButton/NavButton';
+import NavButton from '../NavButton/NavButton';
 import styles from './TopBar.module.css';
 
 const VIEW_PATH_BY_KEY = {
@@ -23,13 +23,13 @@ const VIEW_PATH_BY_KEY = {
 };
 
 const VIEW_KEY_BY_PATH_PREFIX = {
-  '/product_master': 'products',
-  '/supplier_master': 'supplier',
-  '/customer_master': 'customer',
-  '/sales_quotation': 'salesQuotation',
-  '/purchase_request': 'purchaseRequest',
-  '/ap_invoice': 'apInvoice',
-  '/master_control': 'masterControl',
+  '/panel/product_master': 'products',
+  '/panel/supplier_master': 'supplier',
+  '/panel/customer_master': 'customer',
+  '/panel/sales_quotation': 'salesQuotation',
+  '/panel/purchase_request': 'purchaseRequest',
+  '/panel/ap_invoice': 'apInvoice',
+  '/panel/master_control': 'masterControl',
 };
 
 const PAGE_TITLE_BY_VIEW = {
@@ -210,7 +210,7 @@ const TopBar = () => {
       return;
     }
 
-    navigate(nextPath);
+    navigate(`/panel/${nextPath}`);
   };
 
   return (

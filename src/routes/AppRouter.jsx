@@ -10,44 +10,49 @@ import Main_MasterControl from '../components/panels/MasterControl/Main_MasterCo
 const AppRouter = () => {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/product_master" replace />} />
+      <Route path="panel">
+        <Route index element={<Navigate to="product_master" replace />} />
 
-      <Route path="/product_master" element={<Main_ProductMaster />} />
+        <Route path="product_master" element={<Main_ProductMaster />} />
+        <Route
+          path="product_master/:product_id"
+          element={<Main_ProductMaster />}
+        />
+
+        <Route path="supplier_master" element={<Main_SupplierMaster />} />
+        <Route
+          path="supplier_master/:supplier_id"
+          element={<Main_SupplierMaster />}
+        />
+
+        <Route path="customer_master" element={<Main_CustomerMaster />} />
+        <Route
+          path="customer_master/:customer_id"
+          element={<Main_CustomerMaster />}
+        />
+
+        <Route path="sales_quotation" element={<Main_SalesQuotation />} />
+        <Route
+          path="sales_quotation/:quotation_id"
+          element={<Main_SalesQuotation />}
+        />
+
+        <Route path="purchase_request" element={<Main_PurchaseRequest />} />
+        <Route
+          path="purchase_request/:purchase_request_id"
+          element={<Main_PurchaseRequest />}
+        />
+
+        <Route path="ap_invoice" element={<Main_APInvoice />} />
+        <Route path="ap_invoice/:ap_invoice_id" element={<Main_APInvoice />} />
+
+        <Route path="master_control" element={<Main_MasterControl />} />
+      </Route>
+
       <Route
-        path="/product_master/:product_id"
-        element={<Main_ProductMaster />}
+        path="*"
+        element={<Navigate to="/panel/product_master" replace />}
       />
-
-      <Route path="/supplier_master" element={<Main_SupplierMaster />} />
-      <Route
-        path="/supplier_master/:supplier_id"
-        element={<Main_SupplierMaster />}
-      />
-
-      <Route path="/customer_master" element={<Main_CustomerMaster />} />
-      <Route
-        path="/customer_master/:customer_id"
-        element={<Main_CustomerMaster />}
-      />
-
-      <Route path="/sales_quotation" element={<Main_SalesQuotation />} />
-      <Route
-        path="/sales_quotation/:quotation_id"
-        element={<Main_SalesQuotation />}
-      />
-
-      <Route path="/purchase_request" element={<Main_PurchaseRequest />} />
-      <Route
-        path="/purchase_request/:purchase_request_id"
-        element={<Main_PurchaseRequest />}
-      />
-
-      <Route path="/ap_invoice" element={<Main_APInvoice />} />
-      <Route path="/ap_invoice/:ap_invoice_id" element={<Main_APInvoice />} />
-
-      <Route path="/master_control" element={<Main_MasterControl />} />
-
-      <Route path="*" element={<Navigate to="/product_master" replace />} />
     </Routes>
   );
 };

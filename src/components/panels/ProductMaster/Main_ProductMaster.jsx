@@ -70,7 +70,7 @@ const Main_ProductMaster = () => {
     handledProductIdRef.current = routeId;
     const loaded = getProductDataRef.current(routeId);
     if (!loaded) {
-      navigate('/product_master', { replace: true });
+      navigate('/panel/product_master', { replace: true });
       handledProductIdRef.current = '';
     }
   }, [product_id, selectedProductId, navigate]);
@@ -95,7 +95,7 @@ const Main_ProductMaster = () => {
     setIsDeleting(true);
     try {
       await deleteProductById(productId);
-      navigate('/product_master', { replace: true });
+      navigate('/panel/product_master', { replace: true });
       alert('Product deleted successfully.');
     } catch (error) {
       console.error('Failed to delete product:', error);
@@ -113,7 +113,7 @@ const Main_ProductMaster = () => {
     setIsDuplicating(true);
     try {
       await duplicateSelectedProduct();
-      navigate('/product_master', { replace: true });
+      navigate('/panel/product_master', { replace: true });
     } catch (error) {
       console.error('Failed to duplicate product:', error);
       alert(error?.message || 'Failed to duplicate product.');

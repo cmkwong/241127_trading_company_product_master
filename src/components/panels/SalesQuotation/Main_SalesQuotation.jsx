@@ -143,7 +143,7 @@ const Main_SalesQuotation = () => {
       const id = String(quotation?.id || '');
       const selected = selectSalesQuotation(id);
       if (selected) {
-        navigate(`/sales_quotation/${id}`, { replace: true });
+        navigate(`//panel/sales_quotation/${id}`, { replace: true });
       }
     },
     [selectSalesQuotation, navigate],
@@ -181,7 +181,7 @@ const Main_SalesQuotation = () => {
   const handleCreateQuotation = useCallback(async () => {
     const created = await createSalesQuotation();
     if (created?.id) {
-      navigate(`/sales_quotation/${created.id}`, { replace: true });
+      navigate(`/panel/sales_quotation/${created.id}`, { replace: true });
     }
   }, [createSalesQuotation, navigate]);
 
@@ -203,7 +203,7 @@ const Main_SalesQuotation = () => {
     try {
       const duplicated = await duplicateSelectedSalesQuotation();
       if (duplicated?.id) {
-        navigate(`/sales_quotation/${duplicated.id}`, { replace: true });
+        navigate(`/panel/sales_quotation/${duplicated.id}`, { replace: true });
       }
     } catch (error) {
       console.error('Failed to duplicate sales quotation:', error);
@@ -231,7 +231,7 @@ const Main_SalesQuotation = () => {
     setIsDeleting(true);
     try {
       await deleteSalesQuotation(quotationId);
-      navigate('/sales_quotation', { replace: true });
+      navigate('/panel/sales_quotation', { replace: true });
     } catch (error) {
       console.error('Failed to delete sales quotation:', error);
       alert(error?.message || 'Failed to delete sales quotation.');

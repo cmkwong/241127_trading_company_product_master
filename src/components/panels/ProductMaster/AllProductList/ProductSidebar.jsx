@@ -334,7 +334,7 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
       const getProductDataSuccess = getProductData(product.id);
       if (!getProductDataSuccess) return;
 
-      navigate(`/product_master/${product.id}`, { replace: true });
+      navigate(`/panel/product_master/${product.id}`, { replace: true });
 
       // On mobile, collapse the sidebar after selection
       if (windowWidth <= 768) {

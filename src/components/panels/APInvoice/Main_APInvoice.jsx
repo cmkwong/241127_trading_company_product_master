@@ -785,7 +785,7 @@ const Main_APInvoice = () => {
       successMessage="AP invoice saved successfully!"
       onCreate={() => {
         handleCreate();
-        navigate('/ap_invoice', { replace: true });
+        navigate('/panel/ap_invoice', { replace: true });
       }}
       createButtonText="Add AP Invoice"
       showCreateButton
@@ -797,7 +797,7 @@ const Main_APInvoice = () => {
           text={isDeleting ? 'Deleting...' : 'Delete AP Invoice'}
           onClick={async () => {
             await handleDelete();
-            navigate('/ap_invoice', { replace: true });
+            navigate('/panel/ap_invoice', { replace: true });
           }}
           disabled={!draft?.id || isDeleting}
           title="Delete selected AP invoice"
@@ -813,7 +813,7 @@ const Main_APInvoice = () => {
           onSearchChange={setSidebarSearch}
           onSelectRow={(row) => {
             handleSelectRow(row);
-            navigate(`/ap_invoice/${toSafeString(row?.id || row)}`, {
+            navigate(`/panel/ap_invoice/${toSafeString(row?.id || row)}`, {
               replace: true,
             });
           }}

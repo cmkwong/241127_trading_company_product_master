@@ -1,5 +1,5 @@
 import AppRouter from './routes/AppRouter';
-import TopBar from './components/panels/TopBar/TopBar';
+import TopBar from './components/common/TopBar/TopBar';
 import { AuthContext_Provider } from './store/AuthContext';
 import { GeneralContext_Provider } from './store/GeneralContext';
 import { MasterContext_Provider } from './store/MasterContext';

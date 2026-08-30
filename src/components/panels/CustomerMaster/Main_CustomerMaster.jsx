@@ -53,7 +53,7 @@ const Main_CustomerMaster = () => {
     handledCustomerIdRef.current = routeId;
     const loaded = getCustomerDataRef.current(routeId);
     if (!loaded) {
-      navigate('/customer_master', { replace: true });
+      navigate('/panel/customer_master', { replace: true });
       handledCustomerIdRef.current = '';
     }
   }, [customer_id, selectedCustomerId, navigate]);
@@ -78,7 +78,7 @@ const Main_CustomerMaster = () => {
     setIsDeleting(true);
     try {
       await deleteCustomerById(customerId);
-      navigate('/customer_master', { replace: true });
+      navigate('/panel/customer_master', { replace: true });
       alert('Customer deleted successfully.');
     } catch (error) {
       console.error('Failed to delete customer:', error);
@@ -110,7 +110,7 @@ const Main_CustomerMaster = () => {
       onCreate={() => {
         const created = createNewCustomer();
         if (created) {
-          navigate('/customer_master', { replace: true });
+          navigate('/panel/customer_master', { replace: true });
         }
       }}
       createButtonText="Add Customer"

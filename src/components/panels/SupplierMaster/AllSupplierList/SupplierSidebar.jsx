@@ -216,7 +216,7 @@ const SupplierSidebar = ({
       const getSupplierDataSuccess = getSupplierData(supplier.id);
       if (!getSupplierDataSuccess) return;
 
-      navigate(`/supplier_master/${supplier.id}`, { replace: true });
+      navigate(`/panel/supplier_master/${supplier.id}`, { replace: true });
 
       if (windowWidth <= 768) {
         onToggleCollapse(true);

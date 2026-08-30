@@ -44,13 +44,13 @@
 }
 
 .linkInputContainer .textField {
-  padding-right: 44px;
+  padding-right: 15px;
 }
 
 .openLinkButton {
   position: absolute;
   top: 50%;
-  right: 8px;
+  right: 0px;
   transform: translateY(-50%);
   width: 28px;
   height: 28px;

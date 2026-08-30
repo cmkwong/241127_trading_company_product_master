@@ -1,0 +1,87 @@
+.productsSection {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.titleWrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pulse {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #fa6d5a;
+  box-shadow: 0 0 0 rgba(250, 109, 90, 0.7);
+  animation: pulse 1.6s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(250, 109, 90, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 9px rgba(250, 109, 90, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(250, 109, 90, 0);
+  }
+}
+
+.sortButton {
+  border: 1px solid #e1e8f2;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #6f7f93;
+  font-size: 12px;
+  padding: 7px 10px;
+  cursor: pointer;
+}
+
+.gridScroller {
+  min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+}
+
+.productsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+}
+
+@media (max-width: 1500px) {
+  .productsGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1080px) {
+  .productsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .headerRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .productsGrid {
+    grid-template-columns: 1fr;
+  }
+}

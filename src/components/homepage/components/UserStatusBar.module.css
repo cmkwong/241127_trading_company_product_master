@@ -1,0 +1,112 @@
+.userStatusBar {
+  background: #ffffff;
+  border: 1px solid #e7ecf4;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 12px rgba(12, 30, 54, 0.04);
+}
+
+.profileBlock {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.accountHint {
+  margin: 4px 0 0;
+  color: #7a899c;
+  font-size: 12px;
+}
+
+.memberBadge {
+  border: 1px solid #fbc8bf;
+  background: #fff1ee;
+  color: #d85d4c;
+  border-radius: 999px;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.shortcutsRow {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.shortcutButton {
+  border: 1px solid #edf2f7;
+  border-radius: 8px;
+  background: #ffffff;
+  min-height: 52px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 4px;
+  cursor: pointer;
+}
+
+.shortcutButton:hover {
+  border-color: #f9c2b9;
+  background: #fff9f8;
+}
+
+.shortcutIcon {
+  color: #4a5e73;
+  width: 16px;
+  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.shortcutIcon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.shortcutLabel {
+  color: #506173;
+}
+
+.statsRow {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.statCard {
+  border: 1px solid #edf2f7;
+  border-radius: 8px;
+  background: #f8fafd;
+  min-height: 62px;
+  padding: 6px;
+  text-align: center;
+}
+
+.statValue {
+  margin: 0;
+  color: #0c1e36;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.statLabel {
+  margin: 3px 0 0;
+  color: #6f7f93;
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+@media (max-width: 560px) {
+  .shortcutsRow,
+  .statsRow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

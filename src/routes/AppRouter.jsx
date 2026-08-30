@@ -6,6 +6,8 @@ import Main_SalesQuotation from '../components/panels/SalesQuotation/Main_SalesQ
 import Main_PurchaseRequest from '../components/panels/PurchaseRequest/Main_PurchaseRequest';
 import Main_APInvoice from '../components/panels/APInvoice/Main_APInvoice';
 import Main_MasterControl from '../components/panels/MasterControl/Main_MasterControl';
+import Main_Signup from '../components/signup/Main_Signup';
+import Main_Homepage from '../components/homepage/Main_Homepage';
 
 const AppRouter = () => {
   return (
@@ -49,10 +51,11 @@ const AppRouter = () => {
         <Route path="master_control" element={<Main_MasterControl />} />
       </Route>
 
-      <Route
-        path="*"
-        element={<Navigate to="/panel/product_master" replace />}
-      />
+      <Route path="signup" element={<Main_Signup />} />
+      <Route path="home" element={<Main_Homepage />} />
+      <Route path="/" element={<Navigate to="/home" replace />} />
+
+      <Route path="*" element={<Navigate to="/home" replace />} />
     </Routes>
   );
 };

@@ -1,0 +1,87 @@
+.collectionsWrap {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  width: 100%;
+}
+
+.collectionSection {
+  border: 1px solid #e6ebf2;
+  border-radius: 10px;
+  background: #ffffff;
+  padding: 10px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+}
+
+.sectionTopRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.moreLink {
+  border: none;
+  background: transparent;
+  color: #7b8794;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.moreLink:hover {
+  color: #fa6d5a;
+}
+
+.miniGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.miniCard {
+  border: 1px solid #edf1f7;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #ffffff;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+}
+
+.miniCard:hover {
+  border-color: #f9c7be;
+}
+
+.miniImage {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  display: block;
+}
+
+.miniInfo {
+  padding: 5px 6px 6px;
+}
+
+.miniPrice {
+  color: #fa6d5a;
+  font-size: 14px;
+  line-height: 1.1;
+}
+
+.miniMoq {
+  color: #7c8a99;
+  font-size: 10px;
+}
+
+@media (max-width: 1300px) {
+  .collectionsWrap {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .miniGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

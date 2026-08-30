@@ -1,0 +1,58 @@
+.lowPriceZone {
+  margin-top: 14px;
+  background: #ffffff;
+  border: 1px solid #e7ecf4;
+  border-radius: 12px;
+  padding: 14px;
+  box-shadow: 0 2px 12px rgba(12, 30, 54, 0.04);
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fireIcon {
+  color: #fa6d5a;
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fireIcon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.dealsRow {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.dealCard {
+  border: 1px solid #edf2f7;
+  border-radius: 10px;
+  background: #ffffff;
+  padding: 4px;
+  cursor: pointer;
+}
+
+.dealImage {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.dealPrice {
+  margin: 4px 0 0;
+  text-align: center;
+  color: #fa6d5a;
+  font-size: 11px;
+  font-weight: 700;
+}

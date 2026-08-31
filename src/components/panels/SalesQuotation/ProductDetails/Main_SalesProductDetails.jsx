@@ -340,7 +340,7 @@ const Main_SalesProductDetails = ({
                       value: suggestion?.alibaba_id_value || '-',
                     },
                   ]}
-                  linkTo={`/product_master/${suggestion?.id || ''}`}
+                  linkTo={`/panel/product_master/${suggestion?.id || ''}`}
                 />
               )}
               onChange={(ov, nv) => {

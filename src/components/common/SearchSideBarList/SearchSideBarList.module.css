@@ -32,14 +32,12 @@
 }
 
 .toolbarActions {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  right: 36px;
   display: flex;
   align-items: center;
   gap: 4px;
-  z-index: 2;
+  flex-shrink: 0;
+  flex-direction: row;
+  justify-content: flex-end;
 }
 
 .listCountBar {
@@ -56,18 +54,20 @@
   flex: 1;
   min-height: 34px;
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .searchFieldWrapper {
   flex: 1;
+  width: 100%;
   min-width: 0;
   display: flex;
   align-items: center;
   position: relative;
 }
 
-.searchFieldWrapper > div:not(.toolbarActions) {
+.searchFieldWrapper > div {
   margin-bottom: 0 !important;
   width: 100%;
 }
@@ -75,7 +75,7 @@
 .searchFieldWrapper input {
   height: 34px;
   box-sizing: border-box;
-  padding: 8px 70px 8px 6px;
+  padding: 8px 58px 8px 6px;
   margin: 0;
   border: 1px solid var(--color-border);
   border-radius: 6px;
@@ -92,8 +92,8 @@
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  width: 22px;
-  height: 22px;
+  width: 12px;
+  height: 12px;
   border: none;
   background: transparent;
   color: var(--color-text-muted);
@@ -206,8 +206,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: 12px;
+  height: 12px;
   background-color: transparent;
   color: var(--color-primary);
   border: none;
@@ -221,8 +221,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: 12px;
+  height: 12px;
   background-color: transparent;
   color: var(--color-primary);
   border: none;
@@ -433,7 +433,7 @@
   border-radius: 6px;
   color: var(--color-primary);
   font-size: var(--font-size-md);
-  padding: 8px 72px 8px 12px;
+  padding: 8px 58px 8px 12px;
 }
 
 .overlaySearchBar .searchFieldWrapper input::placeholder {

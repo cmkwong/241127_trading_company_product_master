@@ -1385,7 +1385,7 @@ const Main_SalesShippingDetails = ({
                     value: suggestion?.supplier_code || '-',
                   },
                 ]}
-                linkTo={`/supplier_master/${suggestion?.id || ''}`}
+                linkTo={`/panel/supplier_master/${suggestion?.id || ''}`}
               />
             )}
             onChange={(ov, nv) => {

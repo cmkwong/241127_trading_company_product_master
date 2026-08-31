@@ -13,7 +13,7 @@
 
 .moduleName {
   font-family: var(--font-family-heading);
-  font-size: var(--font-size-5xl);
+  font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-bold);
   line-height: 1.2;
   color: #0c1e36;

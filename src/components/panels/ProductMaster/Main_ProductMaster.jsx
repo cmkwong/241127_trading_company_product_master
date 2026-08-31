@@ -169,7 +169,7 @@ const Main_ProductMaster = () => {
       onCreate={() => {
         const created = createNewProduct();
         if (created) {
-          navigate('/product_master', { replace: true });
+          navigate('/panel/product_master', { replace: true });
         }
       }}
       createButtonText="Add Product"

@@ -107,6 +107,7 @@ const Main_SalesServiceDetails = ({
         discount_percent: 0,
         cost_price: '',
         details: '',
+        override_service_name: '',
         remark: '',
         selected: true,
         ari_selected: true,
@@ -180,6 +181,7 @@ const Main_SalesServiceDetails = ({
         discount_percent: 0,
         cost_price: '',
         details: '',
+        override_service_name: '',
         remark: '',
         selected: true,
         ari_selected: true,
@@ -387,6 +389,23 @@ const Main_SalesServiceDetails = ({
               handleUpsertServiceDetail(row, {
                 service_id: String(suggestion?.id || '').trim(),
               })
+            }
+          />
+        ),
+      },
+      {
+        key: 'override_service_name',
+        label: 'Override Service Name (Print)',
+        size: 'XXL',
+        sortType: 'string',
+        nextRow: true,
+        renderCell: (row) => (
+          <Main_TextField
+            className={styles.cellInput}
+            defaultValue={row.override_service_name || ''}
+            placeholder="Override print service name"
+            onChange={(ov, nv) =>
+              handleUpsertServiceDetail(row, { override_service_name: nv })
             }
           />
         ),

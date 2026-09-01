@@ -559,6 +559,16 @@ const sortByUpdatedDesc = (rows = []) => {
   });
 };
 
+const mergeLocalDraftQuotations = (serverRows = [], draftMap = {}) => {
+  const serverIds = new Set(
+    (serverRows || []).map((row) => toSafeString(row?.id)).filter(Boolean),
+  );
+  const draftRows = Object.values(draftMap || {}).filter(
+    (row) => row && !serverIds.has(toSafeString(row?.id)),
+  );
+  return [...draftRows, ...(serverRows || [])];
+};
+
 const buildChildParentLookup = (sourceRows = [], rootChildKey, parentField) => {
   const lookup = new Map();
 
@@ -763,6 +773,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
 
   const salesFetchSeqRef = useRef(0);
   const optionsFetchSeqRef = useRef(0);
+  const localDraftQuotationsRef = useRef({});
 
   const quotationBase64Config = useMemo(() => {
     return {
@@ -833,6 +844,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
       setOriginalQuotationMap({});
       setSelectedQuotationId(null);
       setSalesQuotationPageData({});
+      localDraftQuotationsRef.current = {};
       return [];
     }
 
@@ -850,9 +862,14 @@ export const SalesQuotationContext_Provider = ({ children }) => {
         return [];
       }
 
-      setQuotations(sortedRows);
+      const mergedRows = mergeLocalDraftQuotations(
+        sortedRows,
+        localDraftQuotationsRef.current,
+      );
+
+      setQuotations(mergedRows);
       setOriginalQuotationMap(buildOriginalMap(sortedRows));
-      const nextSelectedId = sortedRows.some(
+      const nextSelectedId = mergedRows.some(
         (row) => row.id === selectedQuotationId,
       )
         ? selectedQuotationId
@@ -861,7 +878,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
 
       if (nextSelectedId) {
         const selectedRow =
-          sortedRows.find((row) => row.id === nextSelectedId) || {};
+          mergedRows.find((row) => row.id === nextSelectedId) || {};
         setSalesQuotationPageData(deepClone(selectedRow));
       } else {
         setSalesQuotationPageData({});
@@ -872,15 +889,27 @@ export const SalesQuotationContext_Provider = ({ children }) => {
         quotations: sortedRows,
       });
 
-      return sortedRows;
+      return mergedRows;
     } catch (error) {
       console.error('Failed to fetch sales quotations:', error);
 
       if (fetchSequence === salesFetchSeqRef.current) {
-        setQuotations([]);
+        const draftRows = Object.values(
+          localDraftQuotationsRef.current || {},
+        ).filter((row) => row && toSafeString(row?.id));
+        const hasSelectedDraft = draftRows.some(
+          (row) => row.id === selectedQuotationId,
+        );
+        setQuotations(draftRows);
         setOriginalQuotationMap({});
-        setSelectedQuotationId(null);
-        setSalesQuotationPageData({});
+        setSelectedQuotationId(hasSelectedDraft ? selectedQuotationId : null);
+        setSalesQuotationPageData(
+          hasSelectedDraft
+            ? deepClone(
+                draftRows.find((row) => row.id === selectedQuotationId) || {},
+              )
+            : {},
+        );
       }
 
       return [];
@@ -1411,6 +1440,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
       setOriginalQuotationMap({});
       setSelectedQuotationId(null);
       setSalesQuotationPageData({});
+      localDraftQuotationsRef.current = {};
       setCustomerOptions([]);
       setCustomerAddressOptions([]);
       setSupplierOptions([]);
@@ -1571,6 +1601,9 @@ export const SalesQuotationContext_Provider = ({ children }) => {
         }
 
         setSalesQuotationPageData(deepClone(normalizedSavedRow));
+
+        delete localDraftQuotationsRef.current[targetId];
+        delete localDraftQuotationsRef.current[savedId];
 
         return normalizedSavedRow;
       }
@@ -2116,6 +2149,8 @@ export const SalesQuotationContext_Provider = ({ children }) => {
     setSalesQuotationPageData(deepClone(duplicatedRow));
     setSaveError('');
 
+    localDraftQuotationsRef.current[duplicatedRow.id] = deepClone(duplicatedRow);
+
     return duplicatedRow;
   }, [cleanupQuotationFlags]);
 
@@ -2152,6 +2187,8 @@ export const SalesQuotationContext_Provider = ({ children }) => {
           delete nextMap[targetId];
           return nextMap;
         });
+
+        delete localDraftQuotationsRef.current[targetId];
 
         return true;
       }

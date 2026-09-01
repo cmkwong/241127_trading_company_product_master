@@ -93,6 +93,14 @@ const sortByDisplayOrder = (rows = []) => {
   );
 };
 
+const sortLineItemsByAmountDesc = (rows = []) => {
+  return [...(Array.isArray(rows) ? rows : [])].sort((a, b) => {
+    const aAmount = Number.isFinite(a?.amount) ? a.amount : -Infinity;
+    const bAmount = Number.isFinite(b?.amount) ? b.amount : -Infinity;
+    return bAmount - aAmount;
+  });
+};
+
 const buildImageUrlsByParent = (rows = [], parentField) => {
   const grouped = new Map();
 
@@ -276,7 +284,10 @@ const buildServiceLineItems = ({
       const imageUrls = serviceImageUrlsByDetail.get(detailId) || [];
 
       return {
-        itemName: toSafeString(service?.name) || 'Service Item',
+        itemName:
+          toSafeString(row?.override_service_name) ||
+          toSafeString(service?.name) ||
+          'Service Item',
         details: [toSafeString(row?.details)].filter(Boolean),
         qty,
         rate,
@@ -343,7 +354,10 @@ const buildShippingLineItems = ({
       const uniqueImageUrls = [...new Set(imageUrls)];
 
       return {
-        itemName: toSafeString(shippingMethod?.name) || 'Delivery Service',
+        itemName:
+          toSafeString(row?.override_shipping_method_name) ||
+          toSafeString(shippingMethod?.name) ||
+          'Delivery Service',
         details: [
           toSafeString(row?.details),
           toSafeString(detail?.details),
@@ -817,25 +831,31 @@ export const buildQuotationDocumentA4Html = ({
   );
 
   const lineItems = [
-    ...buildProductLineItems({
-      quotation,
-      productById,
-      currencyCodeById,
-      baseCurrencyCode,
-    }),
-    ...buildShippingLineItems({
-      quotation,
-      shippingMethodById,
-      addressById,
-      currencyCodeById,
-      baseCurrencyCode,
-    }),
-    ...buildServiceLineItems({
-      quotation,
-      serviceById,
-      currencyCodeById,
-      baseCurrencyCode,
-    }),
+    ...sortLineItemsByAmountDesc(
+      buildProductLineItems({
+        quotation,
+        productById,
+        currencyCodeById,
+        baseCurrencyCode,
+      }),
+    ),
+    ...sortLineItemsByAmountDesc(
+      buildServiceLineItems({
+        quotation,
+        serviceById,
+        currencyCodeById,
+        baseCurrencyCode,
+      }),
+    ),
+    ...sortLineItemsByAmountDesc(
+      buildShippingLineItems({
+        quotation,
+        shippingMethodById,
+        addressById,
+        currencyCodeById,
+        baseCurrencyCode,
+      }),
+    ),
   ];
 
   const summary = computeQuotationTotals(quotation, {

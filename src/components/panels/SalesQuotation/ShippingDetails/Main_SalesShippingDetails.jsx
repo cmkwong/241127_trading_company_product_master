@@ -590,6 +590,7 @@ const Main_SalesShippingDetails = ({
         delivery_lead_time_from: '',
         delivery_lead_time_to: '',
         details: '',
+        override_shipping_method_name: '',
         remark: '',
         selected: false,
         ari_selected: true,
@@ -736,6 +737,7 @@ const Main_SalesShippingDetails = ({
           delivery_lead_time_from: '',
           delivery_lead_time_to: '',
           details: '',
+          override_shipping_method_name: '',
           remark: '',
           selected: false,
           ari_selected: true,
@@ -1431,6 +1433,25 @@ const Main_SalesShippingDetails = ({
             onSelectSuggestion={(suggestion) =>
               handleUpsertShippingPrice(row, {
                 shipping_method_id: String(suggestion?.id || '').trim(),
+              })
+            }
+          />
+        ),
+      },
+      {
+        key: 'override_shipping_method_name',
+        label: 'Override Shipping Method Name (Print)',
+        size: 'XXL',
+        sortType: 'string',
+        nextRow: true,
+        renderCell: (row) => (
+          <Main_TextField
+            className={styles.cellInput}
+            defaultValue={row.override_shipping_method_name || ''}
+            placeholder="Override print shipping method name"
+            onChange={(ov, nv) =>
+              handleUpsertShippingPrice(row, {
+                override_shipping_method_name: nv,
               })
             }
           />

@@ -12,10 +12,19 @@ const DEFAULT_TOKEN_ENDPOINT =
   'http://localhost:3001/api/v1/trade_business/auth/getToken';
 
 const TOKEN_STORAGE_KEY = 'trade_business_token';
+const ROLE_STORAGE_KEY = 'trade_business_role';
 
 const readStoredToken = () => {
   try {
     return window.localStorage.getItem(TOKEN_STORAGE_KEY);
+  } catch {
+    return null;
+  }
+};
+
+const readStoredRole = () => {
+  try {
+    return window.localStorage.getItem(ROLE_STORAGE_KEY);
   } catch {
     return null;
   }
@@ -29,6 +38,7 @@ export const AuthContext_Provider = ({
   tokenRequestBody,
 }) => {
   const [token, setToken] = useState(readStoredToken);
+  const [role, setRole] = useState(readStoredRole);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -53,6 +63,10 @@ export const AuthContext_Provider = ({
         const response = await apiPost(resolvedEndpoint, body);
         const resolvedToken =
           typeof response === 'string' ? response : response?.token;
+        const resolvedRole =
+          typeof response === 'object' && response !== null
+            ? response.role
+            : null;
 
         if (!resolvedToken) {
           throw new Error('Token endpoint responded without a token value.');
@@ -60,20 +74,26 @@ export const AuthContext_Provider = ({
 
         try {
           window.localStorage.setItem(TOKEN_STORAGE_KEY, resolvedToken);
+          if (resolvedRole) {
+            window.localStorage.setItem(ROLE_STORAGE_KEY, resolvedRole);
+          }
         } catch {
           // Ignore storage failures (e.g. private browsing / quota).
         }
 
         setToken(resolvedToken);
+        setRole(resolvedRole);
         return resolvedToken;
       } catch (err) {
         try {
           window.localStorage.removeItem(TOKEN_STORAGE_KEY);
+          window.localStorage.removeItem(ROLE_STORAGE_KEY);
         } catch {
           // Ignore storage failures.
         }
 
         setToken(null);
+        setRole(null);
         setError(err);
         throw err;
       } finally {
@@ -86,22 +106,25 @@ export const AuthContext_Provider = ({
   const clearToken = useCallback(() => {
     try {
       window.localStorage.removeItem(TOKEN_STORAGE_KEY);
+      window.localStorage.removeItem(ROLE_STORAGE_KEY);
     } catch {
       // Ignore storage failures.
     }
 
     setToken(null);
+    setRole(null);
   }, []);
 
   const contextValue = useMemo(
     () => ({
       token,
+      role,
       isLoading,
       error,
       refreshToken: fetchToken,
       clearToken,
     }),
-    [token, isLoading, error, fetchToken, clearToken],
+    [token, role, isLoading, error, fetchToken, clearToken],
   );
 
   return (

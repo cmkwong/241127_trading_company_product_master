@@ -1,5 +1,5 @@
-import Header from '../../common/Texts/Header';
-import Label from '../../common/Texts/Label';
+import Header from '../common/Texts/Header';
+import Label from '../common/Texts/Label';
 import styles from './ProductCollections.module.css';
 
 const MiniSection = ({ title, items }) => {

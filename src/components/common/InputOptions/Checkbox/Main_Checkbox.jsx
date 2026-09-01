@@ -4,9 +4,9 @@ import styles from './Main_Checkbox.module.css';
 import Label from '../../Texts/Label';
 
 const SIZE_BOX = {
-  S: 14,
-  M: 16,
-  L: 20,
+  S: 11,
+  M: 13,
+  L: 15,
 };
 
 /**

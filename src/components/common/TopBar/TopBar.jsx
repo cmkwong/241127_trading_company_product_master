@@ -8,9 +8,14 @@ import { SupplierContext } from '../../../store/SupplierContext';
 import { MasterContext } from '../../../store/MasterContext';
 import { canProceedWithRecordSwitch } from '../../../utils/contextDataUtils';
 import { getEntityRecord } from '../../../store/GeneralContext';
+import Sub_TextField from '../InputOptions/TextField/Sub_TextField';
 import ModuleTopBar from './ModuleTopBar';
 import NavButton from '../NavButton/NavButton';
 import styles from './TopBar.module.css';
+import homeStyles from './HomeTopBar.module.css';
+
+const TOP_BANNER_TEXT =
+  'Globally sourced from China, Japan, Vietnam, Philippines and Southeast Asia';
 
 const VIEW_PATH_BY_KEY = {
   products: '/product_master',
@@ -53,7 +58,7 @@ const resolveActiveView = (pathname) => {
 };
 
 const TopBar = () => {
-  const { token, refreshToken, isLoading, error, clearToken } =
+  const { token, role, refreshToken, isLoading, error, clearToken } =
     useAuthContext();
   const productContext = useContext(ProductContext);
   const supplierContext = useContext(SupplierContext);
@@ -72,12 +77,15 @@ const TopBar = () => {
   const [loginError, setLoginError] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [query, setQuery] = useState('');
   const userMenuRef = useRef(null);
 
   const navigate = useNavigate();
   const location = useLocation();
   const activeView = resolveActiveView(location.pathname);
   const title = PAGE_TITLE_BY_VIEW[activeView] || 'Product Master';
+  const isPanel = location.pathname.startsWith('/panel');
+  const isAdmin = role === 'admin';
 
   const handleLoginClick = () => {
     setShowLogin(!showLogin);
@@ -213,11 +221,285 @@ const TopBar = () => {
     navigate(`/panel/${nextPath}`);
   };
 
+  const userMenuMarkup = (
+    <div className={styles.userMenu} role="menu">
+      <div className={styles.userMenuHeader}>
+        <div className={styles.userAvatar} aria-hidden="true">
+          CC
+        </div>
+        <div className={styles.userDetails}>
+          <span className={styles.userName}>Chris Cheung</span>
+          <span className={styles.userEmail}>chris.cheung@rivolx.com</span>
+        </div>
+      </div>
+
+      <div className={styles.userMenuDivider} />
+
+      <button
+        type="button"
+        role="menuitem"
+        className={styles.userMenuItem}
+        onClick={() => setShowUserMenu(false)}
+      >
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
+        My Profile
+      </button>
+
+      <button
+        type="button"
+        role="menuitem"
+        className={styles.userMenuItem}
+        onClick={() => setShowUserMenu(false)}
+      >
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M21 8v13H3V8" />
+          <path d="M1 3h22v5H1z" />
+          <path d="M10 12h4" />
+        </svg>
+        My Orders
+      </button>
+
+      <button
+        type="button"
+        role="menuitem"
+        className={styles.userMenuItem}
+        onClick={() => setShowUserMenu(false)}
+      >
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <line x1="4" y1="21" x2="4" y2="14" />
+          <line x1="4" y1="10" x2="4" y2="3" />
+          <line x1="12" y1="21" x2="12" y2="12" />
+          <line x1="12" y1="8" x2="12" y2="3" />
+          <line x1="20" y1="21" x2="20" y2="16" />
+          <line x1="20" y1="12" x2="20" y2="3" />
+          <line x1="1" y1="14" x2="7" y2="14" />
+          <line x1="9" y1="8" x2="15" y2="8" />
+          <line x1="17" y1="16" x2="23" y2="16" />
+        </svg>
+        Settings
+      </button>
+
+      {isAdmin && (
+        <button
+          type="button"
+          role="menuitem"
+          className={styles.userMenuItem}
+          onClick={() => {
+            setShowUserMenu(false);
+            navigate('/panel/product_master');
+          }}
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <rect x="3" y="3" width="7" height="7" rx="1" />
+            <rect x="14" y="3" width="7" height="7" rx="1" />
+            <rect x="3" y="14" width="7" height="7" rx="1" />
+            <rect x="14" y="14" width="7" height="7" rx="1" />
+          </svg>
+          Panel
+        </button>
+      )}
+
+      <div className={styles.userMenuDivider} />
+
+      <button
+        type="button"
+        role="menuitem"
+        className={`${styles.userMenuItem} ${styles.userMenuLogout}`}
+        onClick={handleLogout}
+      >
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+          <polyline points="16 17 21 12 16 7" />
+          <line x1="21" y1="12" x2="9" y2="12" />
+        </svg>
+        Logout
+      </button>
+    </div>
+  );
+
+  if (!isPanel) {
+    return (
+      <header className={homeStyles.headerShell}>
+        <div className={homeStyles.topBanner}>{TOP_BANNER_TEXT}</div>
+
+        <div className={homeStyles.navBar}>
+          <div
+            className={homeStyles.brand}
+            onClick={() => navigate('/home')}
+            style={{ cursor: 'pointer' }}
+          >
+            <img
+              className={homeStyles.brandIcon}
+              src="/assets/brand_logos/RIVOLX_Logos_new_color_pure.svg"
+              alt="Rivolx"
+            />
+            <div className={homeStyles.brandTextWrap}>
+              <p className={homeStyles.brandName}>RIVOLX</p>
+              <p className={homeStyles.brandTagline}>Your Pets Our Passion</p>
+            </div>
+          </div>
+
+          <div className={homeStyles.searchRow}>
+            <div className={homeStyles.searchInputWrap}>
+              <div className={homeStyles.searchIcon} aria-hidden="true">
+                <svg viewBox="0 0 16 16" fill="none">
+                  <path
+                    d="M11.4 11.4L15 15M13.2 7.1C13.2 10.47 10.47 13.2 7.1 13.2C3.73 13.2 1 10.47 1 7.1C1 3.73 3.73 1 7.1 1C10.47 1 13.2 3.73 13.2 7.1Z"
+                    stroke="currentColor"
+                    strokeWidth="1.4"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </div>
+
+              <Sub_TextField
+                value={query}
+                onInputChange={(_, nextValue) => setQuery(nextValue)}
+                placeholder="Search products..."
+                className={homeStyles.searchInput}
+              />
+
+              <button type="button" className={homeStyles.searchButton}>
+                Search
+              </button>
+            </div>
+
+            <button
+              type="button"
+              className={homeStyles.imageSearchButton}
+              aria-label="Search by image"
+            >
+              <svg viewBox="0 0 20 20" fill="none">
+                <path
+                  d="M3.5 5.5C3.5 4.4 4.4 3.5 5.5 3.5H14.5C15.6 3.5 16.5 4.4 16.5 5.5V14.5C16.5 15.6 15.6 16.5 14.5 16.5H5.5C4.4 16.5 3.5 15.6 3.5 14.5V5.5Z"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                />
+                <circle
+                  cx="10"
+                  cy="10"
+                  r="3.2"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                />
+                <circle cx="13.6" cy="6.4" r="1" fill="currentColor" />
+              </svg>
+            </button>
+          </div>
+
+          <div className={homeStyles.actions}>
+            <button
+              type="button"
+              className={homeStyles.actionIcon}
+              aria-label="Notifications"
+            >
+              <svg viewBox="0 0 20 20" fill="none">
+                <path
+                  d="M10 18.2C11.2 18.2 12.1 17.3 12.1 16.1H7.9C7.9 17.3 8.8 18.2 10 18.2ZM16 14.9H4L5.3 13.2V9.3C5.3 6.8 6.9 4.7 9.1 4.1V3.6C9.1 3.1 9.5 2.7 10 2.7C10.5 2.7 10.9 3.1 10.9 3.6V4.1C13.1 4.7 14.7 6.8 14.7 9.3V13.2L16 14.9Z"
+                  fill="currentColor"
+                />
+              </svg>
+            </button>
+
+            <button
+              type="button"
+              className={homeStyles.actionIcon}
+              aria-label="Shopping cart"
+            >
+              <svg viewBox="0 0 20 20" fill="none">
+                <path
+                  d="M2.5 3.5H4.3L6 12.1H14.5L16.2 6.2H5.4"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <circle cx="7.4" cy="15.4" r="1.2" fill="currentColor" />
+                <circle cx="13.9" cy="15.4" r="1.2" fill="currentColor" />
+              </svg>
+            </button>
+
+            <div className={styles.userMenuWrap} ref={userMenuRef}>
+              <button
+                type="button"
+                className={styles.userIconBtn}
+                aria-label="Account"
+                aria-haspopup="menu"
+                aria-expanded={showUserMenu}
+                onClick={() => setShowUserMenu((prev) => !prev)}
+              >
+                <img
+                  src="/assets/icons/admin_user_icon.svg"
+                  alt=""
+                  aria-hidden="true"
+                />
+              </button>
+              {showUserMenu && userMenuMarkup}
+            </div>
+          </div>
+        </div>
+      </header>
+    );
+  }
+
   return (
     <div className={styles.topBarShell}>
       <div className={styles.topBar}>
         <div className={styles.leftSection}>
-          <div className={styles.brand} aria-label="Rivolx">
+          <div
+            className={styles.brand}
+            aria-label="Rivolx"
+            onClick={() => navigate('/home')}
+            style={{ cursor: 'pointer' }}
+          >
             <div className={styles.brandIconWrap}>
               <img
                 className={styles.brandIcon}
@@ -294,122 +576,7 @@ const TopBar = () => {
                 />
               </button>
 
-              {showUserMenu && (
-                <div className={styles.userMenu} role="menu">
-                  <div className={styles.userMenuHeader}>
-                    <div className={styles.userAvatar} aria-hidden="true">
-                      CC
-                    </div>
-                    <div className={styles.userDetails}>
-                      <span className={styles.userName}>Chris Cheung</span>
-                      <span className={styles.userEmail}>
-                        chris.cheung@rivolx.com
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className={styles.userMenuDivider} />
-
-                  <button
-                    type="button"
-                    role="menuitem"
-                    className={styles.userMenuItem}
-                    onClick={() => setShowUserMenu(false)}
-                  >
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                      <circle cx="12" cy="7" r="4" />
-                    </svg>
-                    My Profile
-                  </button>
-
-                  <button
-                    type="button"
-                    role="menuitem"
-                    className={styles.userMenuItem}
-                    onClick={() => setShowUserMenu(false)}
-                  >
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M21 8v13H3V8" />
-                      <path d="M1 3h22v5H1z" />
-                      <path d="M10 12h4" />
-                    </svg>
-                    My Orders
-                  </button>
-
-                  <button
-                    type="button"
-                    role="menuitem"
-                    className={styles.userMenuItem}
-                    onClick={() => setShowUserMenu(false)}
-                  >
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <line x1="4" y1="21" x2="4" y2="14" />
-                      <line x1="4" y1="10" x2="4" y2="3" />
-                      <line x1="12" y1="21" x2="12" y2="12" />
-                      <line x1="12" y1="8" x2="12" y2="3" />
-                      <line x1="20" y1="21" x2="20" y2="16" />
-                      <line x1="20" y1="12" x2="20" y2="3" />
-                      <line x1="1" y1="14" x2="7" y2="14" />
-                      <line x1="9" y1="8" x2="15" y2="8" />
-                      <line x1="17" y1="16" x2="23" y2="16" />
-                    </svg>
-                    Settings
-                  </button>
-
-                  <div className={styles.userMenuDivider} />
-
-                  <button
-                    type="button"
-                    role="menuitem"
-                    className={`${styles.userMenuItem} ${styles.userMenuLogout}`}
-                    onClick={handleLogout}
-                  >
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                      <polyline points="16 17 21 12 16 7" />
-                      <line x1="21" y1="12" x2="9" y2="12" />
-                    </svg>
-                    Logout
-                  </button>
-                </div>
-              )}
+              {showUserMenu && userMenuMarkup}
             </div>
           ) : (
             <div className={styles.loggedOut}>

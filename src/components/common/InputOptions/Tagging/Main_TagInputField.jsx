@@ -362,7 +362,7 @@ const Main_TagInputField = (props) => {
               label={hierarchyToggleLabel}
               checked={showHierarchy}
               onChange={(checked) => setShowHierarchy(checked)}
-              size="M"
+              size="S"
             />
           </div>
         )}

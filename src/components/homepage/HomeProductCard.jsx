@@ -1,4 +1,4 @@
-import Label from '../../common/Texts/Label';
+import Label from '../common/Texts/Label';
 import styles from './HomeProductCard.module.css';
 
 const HomeProductCard = ({ product }) => {

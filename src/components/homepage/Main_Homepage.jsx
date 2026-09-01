@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
-import HomeTopBar from './components/HomeTopBar';
-import CategoryPanel from './components/CategoryPanel';
-import UserStatusBar from './components/UserStatusBar';
-import LowPriceZone from './components/LowPriceZone';
-import ProductCollections from './components/ProductCollections';
-import ProductsSection from './components/ProductsSection';
+import TopBar from '../common/TopBar/TopBar';
+import CategoryPanel from './CategoryPanel';
+import UserStatusBar from './UserStatusBar';
+import LowPriceZone from './LowPriceZone';
+import ProductCollections from './ProductCollections';
+import ProductsSection from './ProductsSection';
 import {
   HOME_CATEGORY_ITEMS,
   HOME_PRODUCTS,
@@ -36,7 +36,7 @@ const Main_Homepage = () => {
 
   return (
     <div className={styles.homePage} data-node-id="219:4">
-      <HomeTopBar />
+      <TopBar />
 
       <main className={styles.mainContainer}>
         <section className={styles.topDirectory}>

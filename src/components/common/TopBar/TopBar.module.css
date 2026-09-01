@@ -33,10 +33,14 @@
 
 .brandIconWrap {
   position: relative;
-  width: 36px;
-  height: 36px;
-  flex: 0 0 36px;
+  width: 54px;
+  height: 54px;
+  flex: 0 0 54px;
   overflow: hidden;
+}
+
+.userMenuWrap {
+  position: relative;
 }
 
 .brandIcon {
@@ -59,9 +63,10 @@
   margin-bottom: -3px;
   color: var(--color-text-light);
   font-family: var(--font-family-logo);
-  font-size: var(--font-size-4xl);
+  font-size: var(--font-size-5xl);
   font-weight: 400;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.6px;
+  line-height: 1;
 }
 
 .brandTagline {
@@ -69,7 +74,7 @@
   font-family: var(--font-family-display);
   font-size: var(--font-size-sm);
   line-height: var(--line-height-tight);
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .refreshBtn {
@@ -237,8 +242,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 42px;
-  height: 42px;
+  width: 34px;
+  height: 34px;
   flex: 0 0 auto;
   border: 1px solid var(--color-blue-bg-light);
   border-radius: 999px;
@@ -254,8 +259,8 @@
 }
 
 .userIconBtn img {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   filter: brightness(0) invert(1);
 }
 

@@ -1,4 +1,4 @@
-import Header from '../../common/Texts/Header';
+import Header from '../common/Texts/Header';
 import HomeProductCard from './HomeProductCard';
 import styles from './ProductsSection.module.css';
 

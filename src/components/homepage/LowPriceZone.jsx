@@ -1,4 +1,4 @@
-import Header from '../../common/Texts/Header';
+import Header from '../common/Texts/Header';
 import styles from './LowPriceZone.module.css';
 
 const LowPriceZone = ({ deals }) => {

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Header from '../common/Texts/Header';
 import Label from '../common/Texts/Label';
 import Sub_TextField from '../common/InputOptions/TextField/Sub_TextField';
@@ -16,6 +16,7 @@ const FEATURE_ITEMS = [
 
 const Main_Signup = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { refreshToken, isLoading } = useAuthContext();
   const [email, setEmail] = useState('admin@rivolx.com');
   const [password, setPassword] = useState('');
@@ -39,7 +40,9 @@ const Main_Signup = () => {
         password,
         payload: { rememberMe },
       });
-      navigate('/panel/product_master', { replace: true });
+      navigate(location.state?.from || '/panel/product_master', {
+        replace: true,
+      });
     } catch {
       setLoginError(
         'Login failed. Please check your credentials and try again.',

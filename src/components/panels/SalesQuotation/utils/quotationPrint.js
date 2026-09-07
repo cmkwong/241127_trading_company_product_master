@@ -7,6 +7,7 @@ import {
   toNumber,
   toSafeString,
 } from './quotationTotals';
+import { computeLineAmount, formatRateMoney } from '../../../../utils/money';
 
 const FILE_SERVER_BASE_URL = 'http://localhost:3001';
 const DEFAULT_COMPANY_NAME = 'Rivolx Limited';
@@ -223,9 +224,11 @@ const buildProductLineItems = ({
       const rate = toNumber(row?.price);
       const discountPercent = normalizeDiscountPercent(row?.discount_percent);
       const discountedRate = getDiscountedRate(rate, discountPercent);
-      const amount = Number.isFinite(discountedRate)
-        ? qty * discountedRate
-        : NaN;
+      const amount = computeLineAmount({
+        rate,
+        quantity: qty,
+        discountPercent,
+      });
       const currencyCode =
         currencyCodeById[toSafeString(row?.currency_id)] || baseCurrencyCode;
       const detailId = toSafeString(row?.id);
@@ -275,9 +278,11 @@ const buildServiceLineItems = ({
       const rate = toNumber(row?.price);
       const discountPercent = normalizeDiscountPercent(row?.discount_percent);
       const discountedRate = getDiscountedRate(rate, discountPercent);
-      const amount = Number.isFinite(discountedRate)
-        ? qty * discountedRate
-        : NaN;
+      const amount = computeLineAmount({
+        rate,
+        quantity: qty,
+        discountPercent,
+      });
       const currencyCode =
         currencyCodeById[toSafeString(row?.currency_id)] || baseCurrencyCode;
       const detailId = toSafeString(row?.id);
@@ -381,7 +386,11 @@ const buildShippingLineItems = ({
         rate,
         discountPercent,
         discountedRate,
-        amount: discountedRate,
+        amount: computeLineAmount({
+          rate,
+          quantity: 1,
+          discountPercent,
+        }),
         currencyCode,
         imageUrls: uniqueImageUrls,
       };
@@ -394,6 +403,14 @@ const formatLineMoney = (value) => {
   }
 
   return formatMoney(value);
+};
+
+const formatLineRate = (value) => {
+  if (!Number.isFinite(value)) {
+    return '-';
+  }
+
+  return formatRateMoney(value);
 };
 
 const buildQuotationRowsHtml = (lineItems = [], baseCurrencyCode) => {
@@ -456,11 +473,11 @@ const buildQuotationRowsHtml = (lineItems = [], baseCurrencyCode) => {
           <td class="rate-col">${
             hasDiscount
               ? `<div class="rate-old">${escapeHtml(
-                  formatLineMoney(item.rate),
+                  formatLineRate(item.rate),
                 )}${currencySuffix}</div><div class="rate-new">${escapeHtml(
-                  formatLineMoney(item.discountedRate),
+                  formatLineRate(item.discountedRate),
                 )}${currencySuffix}</div>`
-              : `${escapeHtml(formatLineMoney(item.rate))}${currencySuffix}`
+              : `${escapeHtml(formatLineRate(item.rate))}${currencySuffix}`
           }</td>
           <td class="amount-col">${escapeHtml(formatLineMoney(item.amount))}${currencySuffix}</td>
         </tr>

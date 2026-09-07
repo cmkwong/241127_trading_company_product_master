@@ -1,3 +1,5 @@
+import { computeLineAmount } from '../../../../utils/money';
+
 export const toSafeString = (value) => String(value || '').trim();
 
 export const toNumber = (value) => {
@@ -251,7 +253,12 @@ export const computeQuotationTotals = (
 
   const shippingSummary = sumConvertedRows(
     shippingSelectedRows,
-    (row) => getDiscountedRate(row?.price, row?.discount_percent),
+    (row) =>
+      computeLineAmount({
+        rate: row?.price,
+        quantity: 1,
+        discountPercent: row?.discount_percent,
+      }),
     (row) => row?.currency_id,
   );
 
@@ -263,16 +270,12 @@ export const computeQuotationTotals = (
 
   const productSummary = sumConvertedRows(
     productSelectedRows,
-    (row) => {
-      const qty = toNumber(row?.qty);
-      const price = getDiscountedRate(row?.price, row?.discount_percent);
-
-      if (!Number.isFinite(price)) {
-        return NaN;
-      }
-
-      return (Number.isFinite(qty) ? qty : 1) * price;
-    },
+    (row) =>
+      computeLineAmount({
+        rate: row?.price,
+        quantity: row?.qty,
+        discountPercent: row?.discount_percent,
+      }),
     (row) => row?.currency_id,
   );
 
@@ -293,16 +296,12 @@ export const computeQuotationTotals = (
 
   const serviceSummary = sumConvertedRows(
     serviceSelectedRows,
-    (row) => {
-      const qty = toNumber(row?.qty);
-      const price = getDiscountedRate(row?.price, row?.discount_percent);
-
-      if (!Number.isFinite(price)) {
-        return NaN;
-      }
-
-      return (Number.isFinite(qty) ? qty : 1) * price;
-    },
+    (row) =>
+      computeLineAmount({
+        rate: row?.price,
+        quantity: row?.qty,
+        discountPercent: row?.discount_percent,
+      }),
     (row) => row?.currency_id,
   );
 

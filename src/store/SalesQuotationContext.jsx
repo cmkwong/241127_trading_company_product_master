@@ -616,6 +616,7 @@ const upsertRowsById = (existingRows = [], incomingRows = []) => {
 
 const renestSalesQuotationRowForApi = (row = {}, fallbackRows = []) => {
   const nextRow = deepClone(row);
+  const isFullSyncRow = nextRow._sync_children === true;
 
   SALES_CHILD_TABLE_RENEST_CONFIG.forEach((config) => {
     const rootRows = toArray(nextRow?.[config.rootChildKey]);
@@ -702,6 +703,25 @@ const renestSalesQuotationRowForApi = (row = {}, fallbackRows = []) => {
         };
         resetParents.add(parentId);
       });
+
+      if (isFullSyncRow) {
+        // When this is the authoritative full-row sync payload, parents that
+        // previously had children but now have none (e.g. the last image of a
+        // service detail was removed while other service details still keep
+        // images) must be emitted with an empty child array so the server's
+        // sync-delete removes their orphaned rows.
+        const parentIds = new Set(childParentLookup.values());
+        parentIds.forEach((parentId) => {
+          if (resetParents.has(parentId)) return;
+          const emptyDetailIndex = detailIndexById.get(parentId);
+          if (emptyDetailIndex === undefined) return;
+          const detailRow = details[emptyDetailIndex] || { id: parentId };
+          details[emptyDetailIndex] = {
+            ...detailRow,
+            [config.nestedChildKey]: [],
+          };
+        });
+      }
 
       nextRow[config.detailKey] = details;
     }

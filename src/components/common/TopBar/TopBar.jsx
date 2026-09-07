@@ -436,54 +436,72 @@ const TopBar = () => {
           </div>
 
           <div className={homeStyles.actions}>
-            <button
-              type="button"
-              className={homeStyles.actionIcon}
-              aria-label="Notifications"
-            >
-              <svg viewBox="0 0 20 20" fill="none">
-                <path
-                  d="M10 18.2C11.2 18.2 12.1 17.3 12.1 16.1H7.9C7.9 17.3 8.8 18.2 10 18.2ZM16 14.9H4L5.3 13.2V9.3C5.3 6.8 6.9 4.7 9.1 4.1V3.6C9.1 3.1 9.5 2.7 10 2.7C10.5 2.7 10.9 3.1 10.9 3.6V4.1C13.1 4.7 14.7 6.8 14.7 9.3V13.2L16 14.9Z"
-                  fill="currentColor"
-                />
-              </svg>
-            </button>
-
-            <button
-              type="button"
-              className={homeStyles.actionIcon}
-              aria-label="Shopping cart"
-            >
-              <svg viewBox="0 0 20 20" fill="none">
-                <path
-                  d="M2.5 3.5H4.3L6 12.1H14.5L16.2 6.2H5.4"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <circle cx="7.4" cy="15.4" r="1.2" fill="currentColor" />
-                <circle cx="13.9" cy="15.4" r="1.2" fill="currentColor" />
-              </svg>
-            </button>
-
-            <div className={styles.userMenuWrap} ref={userMenuRef}>
+            {token && (
               <button
                 type="button"
-                className={styles.userIconBtn}
-                aria-label="Account"
-                aria-haspopup="menu"
-                aria-expanded={showUserMenu}
-                onClick={() => setShowUserMenu((prev) => !prev)}
+                className={homeStyles.actionIcon}
+                aria-label="Notifications"
               >
-                <img
-                  src="/assets/icons/admin_user_icon.svg"
-                  alt=""
-                  aria-hidden="true"
-                />
+                <svg viewBox="0 0 20 20" fill="none">
+                  <path
+                    d="M10 18.2C11.2 18.2 12.1 17.3 12.1 16.1H7.9C7.9 17.3 8.8 18.2 10 18.2ZM16 14.9H4L5.3 13.2V9.3C5.3 6.8 6.9 4.7 9.1 4.1V3.6C9.1 3.1 9.5 2.7 10 2.7C10.5 2.7 10.9 3.1 10.9 3.6V4.1C13.1 4.7 14.7 6.8 14.7 9.3V13.2L16 14.9Z"
+                    fill="currentColor"
+                  />
+                </svg>
               </button>
-              {showUserMenu && userMenuMarkup}
-            </div>
+            )}
+
+            {token && (
+              <button
+                type="button"
+                className={homeStyles.actionIcon}
+                aria-label="Shopping cart"
+              >
+                <svg viewBox="0 0 20 20" fill="none">
+                  <path
+                    d="M2.5 3.5H4.3L6 12.1H14.5L16.2 6.2H5.4"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <circle cx="7.4" cy="15.4" r="1.2" fill="currentColor" />
+                  <circle cx="13.9" cy="15.4" r="1.2" fill="currentColor" />
+                </svg>
+              </button>
+            )}
+
+            {token ? (
+              <div className={styles.userMenuWrap} ref={userMenuRef}>
+                <button
+                  type="button"
+                  className={styles.userIconBtn}
+                  aria-label="Account"
+                  aria-haspopup="menu"
+                  aria-expanded={showUserMenu}
+                  onClick={() => setShowUserMenu((prev) => !prev)}
+                >
+                  <img
+                    src="/assets/icons/admin_user_icon.svg"
+                    alt=""
+                    aria-hidden="true"
+                  />
+                </button>
+                {showUserMenu && userMenuMarkup}
+              </div>
+            ) : (
+              <button
+                type="button"
+                className={styles.loginBtn}
+                onClick={() =>
+                  navigate('/signup', {
+                    state: { from: location.pathname },
+                  })
+                }
+              >
+                Login
+              </button>
+            )}
           </div>
         </div>
       </header>

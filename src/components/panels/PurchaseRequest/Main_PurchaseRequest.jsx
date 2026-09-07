@@ -28,6 +28,7 @@ import {
 } from '../SalesQuotation/utils/quotationTotals';
 import { getProductDisplayName } from '../../../store/productNameUtils';
 import { buildApInvoiceDocumentA4Html } from '../APInvoice/utils/apInvoicePrint';
+import { computeLineAmount } from '../../../utils/money';
 import styles from './Main_PurchaseRequest.module.css';
 
 const FILE_SERVER_BASE_URL = 'http://localhost:3001';
@@ -567,15 +568,11 @@ const Main_PurchaseRequest = () => {
       );
     };
 
-    const rowAmountByQuantity = (row, qtyValue) => {
-      const price = toFiniteNumber(row?.price);
-      if (!Number.isFinite(price)) {
-        return NaN;
-      }
-
-      const qty = toFiniteNumber(qtyValue);
-      return (Number.isFinite(qty) ? qty : 1) * price;
-    };
+    const rowAmountByQuantity = (row, qtyValue) =>
+      computeLineAmount({
+        rate: row?.price,
+        quantity: qtyValue,
+      });
 
     const shippingRows = toArray(shippingDetailRows);
     const productRows = toArray(productDetailRows);
@@ -583,7 +580,7 @@ const Main_PurchaseRequest = () => {
 
     const shippingSummary = summarizeRows(
       shippingRows,
-      (row) => toFiniteNumber(row?.price),
+      (row) => computeLineAmount({ rate: row?.price, quantity: 1 }),
       (row) => row?.currency_id,
     );
 
@@ -727,14 +724,12 @@ const Main_PurchaseRequest = () => {
 
   const apInvoicePreviewRows = useMemo(() => {
     const buildAmount = (priceValue, qtyValue = 1) => {
-      const price = toFiniteNumber(priceValue);
-      if (!Number.isFinite(price)) {
-        return '';
-      }
+      const amount = computeLineAmount({
+        rate: priceValue,
+        quantity: qtyValue,
+      });
 
-      const qty = toFiniteNumber(qtyValue);
-      const safeQty = Number.isFinite(qty) ? qty : 1;
-      return safeQty * price;
+      return Number.isFinite(amount) ? amount : '';
     };
 
     const shippingRows = toArray(shippingDetailRows)

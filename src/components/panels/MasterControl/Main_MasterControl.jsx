@@ -1460,7 +1460,7 @@ const MasterControlContent = () => {
       saveError={saveError}
     >
       <div className={styles.container}>
-        <MasterControlHeader
+        {/* <MasterControlHeader
           isLoading={isLoading}
           isSaving={isSaving}
           selectedTable={selectedTable}
@@ -1472,7 +1472,7 @@ const MasterControlContent = () => {
             selectedTable === 'master_exchange_rate_hkd' && canEdit
           }
           onCopyDateRange={handleCopyExchangeRateDateRange}
-        />
+        /> */}
 
         {!canEdit ? (
           <div className={styles.authNotice}>

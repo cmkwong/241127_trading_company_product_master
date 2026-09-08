@@ -15,7 +15,7 @@ const MasterControlHeader = ({
 }) => {
   return (
     <div className={styles.header}>
-      <h2 className={styles.title}>Master Control</h2>
+      {/* <h2 className={styles.title}>Master Control</h2> */}
       <div className={styles.actions}>
         <button
           type="button"

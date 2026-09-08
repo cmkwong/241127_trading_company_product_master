@@ -26,7 +26,7 @@ import {
   getLatestExchangeRateRow,
   toSafeString,
 } from '../SalesQuotation/utils/quotationTotals';
-import { getProductDisplayName } from '../../../store/productNameUtils';
+import { getProductDisplayName } from '../../../utils/productNameUtils';
 import { buildApInvoiceDocumentA4Html } from '../APInvoice/utils/apInvoicePrint';
 import { computeLineAmount } from '../../../utils/money';
 import styles from './Main_PurchaseRequest.module.css';

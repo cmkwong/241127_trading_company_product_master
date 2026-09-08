@@ -186,7 +186,7 @@ const Main_Signup = () => {
             className={styles.signInButton}
             disabled={isLoading}
           >
-            {isLoading ? 'Signing in...' : 'Sign In'}
+            {isLoading ? 'Logging in...' : 'Log In'}
           </button>
 
           <div className={styles.dividerRow}>

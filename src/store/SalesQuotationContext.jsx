@@ -26,7 +26,7 @@ import {
   useGeneralContext,
 } from './GeneralContext';
 import { useMasterContext } from './MasterContext';
-import { pickDisplayOrderPreferredName } from './productNameUtils';
+import { pickDisplayOrderPreferredName } from '../utils/productNameUtils';
 import {
   readJson,
   stripBlobUrls,
@@ -2169,7 +2169,8 @@ export const SalesQuotationContext_Provider = ({ children }) => {
     setSalesQuotationPageData(deepClone(duplicatedRow));
     setSaveError('');
 
-    localDraftQuotationsRef.current[duplicatedRow.id] = deepClone(duplicatedRow);
+    localDraftQuotationsRef.current[duplicatedRow.id] =
+      deepClone(duplicatedRow);
 
     return duplicatedRow;
   }, [cleanupQuotationFlags]);

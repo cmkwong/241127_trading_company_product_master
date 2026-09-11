@@ -1,5 +1,8 @@
 import { toArray, toSafeString } from './apInvoiceHelpers';
-import { computeApInvoiceTotals, formatMoney } from './apInvoiceTotals';
+import {
+  computeApInvoiceTotals,
+  formatMoney as defaultFormatMoney,
+} from './apInvoiceTotals';
 
 const escapeHtml = (value) =>
   String(value ?? '')
@@ -31,6 +34,7 @@ const buildRowDetailsHtml = ({
   rowDetails,
   invoiceTypeLabelByCode,
   currencyCodeById,
+  formatMoney = defaultFormatMoney,
 }) => {
   if (toArray(rowDetails).length === 0) {
     return '<tr><td colspan="7" class="empty-row">No row details</td></tr>';
@@ -70,6 +74,7 @@ export const buildApInvoiceDocumentA4Html = ({
   baseCurrencyCode = 'HKD',
   currencyCodeById = {},
   exchangeRateMap = { HKD: 1 },
+  formatMoney = defaultFormatMoney,
 }) => {
   if (!invoice || !invoice?.id) {
     throw new Error('Please select an AP invoice to print.');
@@ -309,6 +314,7 @@ export const buildApInvoiceDocumentA4Html = ({
             rowDetails,
             invoiceTypeLabelByCode,
             currencyCodeById: currencyCodeByIdMap,
+            formatMoney,
           })}
         </tbody>
       </table>

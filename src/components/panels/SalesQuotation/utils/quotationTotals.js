@@ -14,8 +14,8 @@ export const toNumber = (value) => {
 export const formatMoney = (value) => {
   const amount = Number.isFinite(value) ? value : 0;
   return amount.toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+    minimumFractionDigits: 3,
+    maximumFractionDigits: 3,
   });
 };
 

@@ -435,6 +435,7 @@ const Main_SalesProductDetails = ({
         label: 'Currency',
         size: 'L',
         sortType: 'string',
+        nextRow: true,
         renderCell: (row) => (
           <Main_Dropdown
             matchParentWidth
@@ -451,7 +452,6 @@ const Main_SalesProductDetails = ({
         label: 'Sales Price',
         size: 'M',
         sortType: 'number',
-        nextRow: true,
         renderCell: (row) => (
           <Main_TextField
             className={styles.cellInput}

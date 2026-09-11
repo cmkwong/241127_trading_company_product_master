@@ -27,7 +27,7 @@ import {
   toSafeString,
 } from '../SalesQuotation/utils/quotationTotals';
 import { getProductDisplayName } from '../../../utils/productNameUtils';
-import { buildApInvoiceDocumentA4Html } from '../APInvoice/utils/apInvoicePrint';
+import { buildPurchaseRequestApInvoiceHtml } from './utils/purchaseRequestPrint';
 import { computeLineAmount } from '../../../utils/money';
 import styles from './Main_PurchaseRequest.module.css';
 
@@ -1545,7 +1545,7 @@ const Main_PurchaseRequest = () => {
         ...toArray(rows).filter((row) => toSafeString(row?.id) !== draftId),
       ];
 
-      const html = buildApInvoiceDocumentA4Html({
+      const html = buildPurchaseRequestApInvoiceHtml({
         invoice: previewInvoice,
         supplierOptions: suppliers,
         purchaseRequests: nextPurchaseRequests,

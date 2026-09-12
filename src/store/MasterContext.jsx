@@ -446,6 +446,9 @@ export const MasterContext_Provider = ({ children }) => {
     masterDataMap.master_product_logistics_attributes || [];
   const productCustomizationOptions =
     masterDataMap.master_product_customization_options || [];
+  const docType = masterDataMap.master_doctype || [];
+  const docTypeBaseRelationship =
+    masterDataMap.master_doctype_base_relationship || [];
 
   const getMasterTableData = useCallback(
     (tableName) => {
@@ -725,6 +728,8 @@ export const MasterContext_Provider = ({ children }) => {
     productCustomizationOptions,
     productStatus,
     productKeywords,
+    docType,
+    docTypeBaseRelationship,
     serviceImages,
     services,
     sizeType,

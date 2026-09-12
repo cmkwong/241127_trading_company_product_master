@@ -8,6 +8,7 @@ import Main_DateSelector from '../../../common/InputOptions/Date/Main_DateSelect
 import SplitLayout from '../../../common/Layouts/SplitLayout';
 import VerticalLayout from '../../../common/Layouts/VerticalLayout';
 import { useEntityField } from '../../../../store/GeneralContext';
+import { useMasterContext } from '../../../../store/MasterContext';
 import styles from './Main_SalesBasicInfo.module.css';
 
 export const STATUS_OPTIONS = [
@@ -66,11 +67,24 @@ const Main_SalesBasicInfo = ({
     'sales_quotations',
     'customer_address_id',
   );
+  const docType = useEntityField('sales_quotations', 'doc_type');
+  const { docType: docTypeMaster = [] } = useMasterContext();
   const createdAt = useEntityField('sales_quotations', 'created_at');
   const updatedAt = useEntityField('sales_quotations', 'updated_at');
   const remark = useEntityField('sales_quotations', 'remark');
 
   const selectedCustomerId = String(customerId || '').trim();
+
+  const docTypeName = useMemo(() => {
+    const normalizedId = String(docType || '').trim();
+    console.log('normalizedId', normalizedId);
+    if (!normalizedId) return '';
+    const found = (docTypeMaster || []).find(
+      (item) => String(item?.id || '').trim() === normalizedId,
+    );
+    console.log('docTypeName', { docType, normalizedId, found });
+    return found?.name || normalizedId;
+  }, [docTypeMaster, docType]);
 
   const filteredAddressOptions = useMemo(() => {
     const normalized = (customerAddressOptions || []).map((address) => ({
@@ -305,6 +319,13 @@ const Main_SalesBasicInfo = ({
         </VerticalLayout>
 
         <VerticalLayout>
+          <Main_InputContainer label="Document Type">
+            <Main_TextField
+              defaultValue={docTypeName}
+              disabled
+              placeholder=""
+            />
+          </Main_InputContainer>
           <Main_InputContainer label="Created At">
             <Main_DateSelector
               defaultValue={toDateInputValue(createdAt)}

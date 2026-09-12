@@ -49,6 +49,9 @@ const DEFAULT_TABLE_NAMES = [
   'master_selling_unit_types',
   'master_product_logistics_attributes',
   'master_product_customization_options',
+  'master_membership_tiers',
+  'master_doctype',
+  'master_doctype_base_relationship',
 ];
 
 const TABLE_INITIAL_DATA = {
@@ -85,6 +88,9 @@ const TABLE_INITIAL_DATA = {
   master_selling_unit_types: [],
   master_product_logistics_attributes: [],
   master_product_customization_options: [],
+  master_membership_tiers: [],
+  master_doctype: [],
+  master_doctype_base_relationship: [],
 };
 
 const LEGACY_TABLE_BINDINGS = [

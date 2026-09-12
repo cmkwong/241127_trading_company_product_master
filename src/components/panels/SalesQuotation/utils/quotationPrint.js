@@ -508,6 +508,12 @@ const buildQuotationHtml = ({
 <html>
   <head>
     <meta charset="utf-8" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap"
+      rel="stylesheet"
+    />
     <title>${escapeHtml(documentTitle || `quotation-${quotationNumber}`)}</title>
     <style>
       @page {
@@ -521,147 +527,216 @@ const buildQuotationHtml = ({
 
       body {
         margin: 0;
-        font-family: Arial, Helvetica, sans-serif;
-        color: #1f2937;
+        font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, Arial,
+          Helvetica, sans-serif;
+        color: #262626;
         background: #ffffff;
-        font-size: 12px;
+        font-size: 9px;
       }
 
       .page {
         width: 100%;
         min-height: 100%;
+        background: #ffffff;
+      }
+
+      @media screen {
+        body {
+          background: #f3f4f6;
+          padding: 24px;
+        }
+
+        .page {
+          max-width: 595px;
+          margin: 0 auto;
+          padding: 40px 48px;
+          border: 1px solid #e0e0e0;
+          box-shadow: 0px 2px 12px 0px rgba(0, 0, 0, 0.1);
+        }
       }
 
       .header {
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
-        margin-bottom: 14px;
+        width: 100%;
+        white-space: nowrap;
       }
 
       .logo {
-        width: 120px;
-        height: auto;
+        width: auto;
+        height: 80px;
+        max-width: 80px;
+        object-fit: contain;
       }
 
       .doc-title {
-        font-family: 'Inter', system-ui, -apple-system, sans-serif;
-        font-size: 42px;
+        font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+        font-size: 36px;
         font-weight: 700;
-        color: #1d4ed8;
-        letter-spacing: 0.5px;
+        color: #fa6d5a;
+        line-height: 1;
+      }
+
+      .divider {
+        width: 100%;
+        height: 2px;
+        margin: 16px 0 12px;
+        background: #fa6d5a;
       }
 
       .meta-grid {
         display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
-        gap: 16px;
-        margin: 8px 0 14px;
+        grid-template-columns: 175px 160px 1fr;
+        gap: 12px;
+        align-items: start;
+        padding-bottom: 16px;
       }
 
       .meta-title {
-        color: #6b7280;
-        font-size: 11px;
-        margin-bottom: 6px;
+        color: #fa6d5a;
+        font-size: 8px;
+        font-weight: 600;
         text-transform: uppercase;
+        text-decoration: underline;
+        margin-bottom: 3px;
       }
 
       .meta-heading {
-        font-size: 18px;
+        font-size: 12px;
         font-weight: 700;
-        margin-bottom: 6px;
+        color: #262626;
+        margin-bottom: 3px;
       }
 
       .meta-line {
-        font-size: 9px;
-        color: #4b5563;
+        font-size: 7px;
+        color: #262626;
         line-height: 1.45;
-        white-space: pre-wrap;
+        white-space: normal;
+        word-break: break-word;
       }
 
       .meta-line-quot {
-        display: grid;
-        grid-template-columns: minmax(120px, max-content) 1fr;
-        column-gap: 14px;
-        align-items: baseline;
-        color: #4b5563;
+        display: flex;
+        gap: 8px;
+        align-items: flex-start;
+        font-size: 8px;
         line-height: 1.45;
-        white-space: normal;
+        color: #262626;
       }
 
       .meta-line-quot-label {
-        color: #6b7280;
+        width: 75px;
+        flex-shrink: 0;
+        color: #94a3b8;
       }
 
       .meta-line-quot-value {
-        text-align: left;
-        color: #1f2937;
-        overflow-wrap: anywhere;
-        font-size: 11px;
+        color: #262626;
+        font-weight: 500;
+        white-space: nowrap;
       }
 
       table {
         width: 100%;
         border-collapse: collapse;
+        border: 1px solid #e2e8f0;
       }
 
       thead th {
-        background: #f3f4f6;
-        border: 1px solid #e5e7eb;
-        font-size: 11px;
-        color: #374151;
+        background: #fa6d5a;
+        border-left: 1px solid #ffffff;
+        font-size: 9px;
+        font-weight: 600;
+        color: #ffffff;
         text-align: left;
-        padding: 8px;
+        padding: 5px 6px;
+        font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+      }
+
+      thead th:first-child {
+        border-left: none;
+      }
+
+      thead th.th-num {
+        text-align: right;
       }
 
       tbody td {
-        border: 1px solid #e5e7eb;
+        border-left: 1px solid #e2e8f0;
+        border-bottom: 1px solid #e2e8f0;
         vertical-align: top;
-        padding: 8px;
+        padding: 8px 6px;
+      }
+
+      tbody tr:last-child td {
+        border-bottom: none;
       }
 
       .index-col {
-        width: 36px;
-        text-align: center;
-        font-weight: 700;
+        width: 28px;
+        text-align: left;
+        font-weight: 500;
+        font-size: 9px;
+        color: #262626;
+        border-left: none;
       }
 
       .item-col {
-        width: auto;
+        width: 237px;
         position: relative;
       }
 
       .qty-col,
       .rate-col,
       .amount-col {
-        width: 90px;
         text-align: right;
         white-space: nowrap;
+        font-size: 9px;
+        color: #262626;
+      }
+
+      .qty-col {
+        width: 68px;
+      }
+
+      .rate-col {
+        width: 72px;
+      }
+
+      .amount-col {
+        width: 74px;
       }
 
       .item-title {
         font-weight: 700;
-        margin-bottom: 4px;
+        font-size: 9px;
+        color: #262626;
+        margin-bottom: 3px;
+        word-break: break-word;
       }
 
       .item-detail {
-        color: #4b5563;
-        margin-top: 2px;
+        color: #94a3b8;
+        font-size: 8px;
+        margin-top: 0;
+        margin-bottom: 3px;
         line-height: 1.45;
         white-space: pre-line;
+        word-break: break-word;
       }
 
       .discount-badge {
         display: inline-block;
-        margin-top: 10px;
-        padding: 3px 9px;
-        border: 1.5px solid #f2a3b2;
-        border-radius: 7px;
+        margin-top: 2px;
+        padding: 2px 6px;
+        border: 1px solid #f2a3b2;
+        border-radius: 4px;
         background: #ffe8ee;
         color: #d54f6c;
-        font-size: 11px;
+        font-size: 8px;
         font-weight: 700;
-        letter-spacing: 0.2px;
         line-height: 1.2;
       }
 
@@ -674,73 +749,83 @@ const buildQuotationHtml = ({
       }
 
       .rate-new {
-        color: #111827;
+        color: #262626;
         font-weight: 700;
         line-height: 1.2;
       }
 
       .item-image {
         display: block;
-        max-height: 56px;
-        max-width: 92px;
-        object-fit: contain;
+        width: 60px;
+        height: 45px;
+        object-fit: cover;
+        background: #f5f5f5;
+        border-radius: 3px;
       }
 
       .item-images {
         display: flex;
         flex-wrap: wrap;
-        justify-content: flex-end;
-        gap: 6px;
-        margin-top: 8px;
+        gap: 4px;
+        margin-top: 4px;
       }
 
       .empty-row {
         text-align: center;
-        color: #6b7280;
+        color: #94a3b8;
         padding: 16px;
       }
 
+      .spacer {
+        width: 100%;
+        height: 20px;
+      }
+
       .footer {
-        margin-top: 16px;
-        display: grid;
-        grid-template-columns: 1fr 290px;
-        gap: 16px;
-        align-items: start;
+        margin-top: 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        white-space: nowrap;
       }
 
       .footer-no-total {
-        grid-template-columns: 1fr;
+        justify-content: flex-start;
       }
 
       .terms {
-        font-size: 11px;
-        color: #374151;
-        line-height: 1.6;
+        width: 280px;
+        font-size: 7px;
+        color: #94a3b8;
+        line-height: 1.45;
       }
 
       .terms-title {
         font-weight: 700;
-        margin-bottom: 5px;
+        font-size: 9px;
+        color: #262626;
+        text-decoration: underline;
+        margin-bottom: 2px;
       }
 
       .total-box {
-        background: #0f7bc1;
+        background: #fa6d5a;
         color: #ffffff;
-        border-radius: 3px;
+        border-radius: 4px;
         display: flex;
-        justify-content: space-between;
         align-items: center;
-        padding: 12px 14px;
-        font-size: 20px;
-        font-weight: 700;
+        gap: 12px;
+        padding: 10px 20px 10px 16px;
       }
 
       .total-label {
-        font-size: 14px;
+        font-size: 10px;
+        font-weight: 600;
       }
 
       .total-value {
         font-size: 24px;
+        font-weight: 700;
       }
     </style>
   </head>
@@ -751,21 +836,23 @@ const buildQuotationHtml = ({
         <div class="doc-title">Quotation</div>
       </div>
 
+      <div class="divider"></div>
+
       <div class="meta-grid">
-        <div>
+        <div class="from-col">
           <div class="meta-title">Quotation From</div>
           <div class="meta-heading">${escapeHtml(resolvedCompanyInfo.companyName)}</div>
           <div class="meta-line">${escapeHtml(resolvedCompanyInfo.companyAddress)}</div>
           <div class="meta-line">Contact Person: ${escapeHtml(resolvedCompanyInfo.contactPerson)}</div>
         </div>
 
-        <div>
+        <div class="for-col">
           <div class="meta-title">Quotation For</div>
           <div class="meta-heading">${escapeHtml(customerName || '-')}</div>
           <div class="meta-line">${escapeHtml(customerAddress || '-')}</div>
         </div>
 
-        <div>
+        <div class="details-col">
           <div class="meta-title">Details</div>
           <div class="meta-line-quot">
             <span class="meta-line-quot-label">Quotation No #</span>
@@ -785,17 +872,19 @@ const buildQuotationHtml = ({
       <table>
         <thead>
           <tr>
-            <th style="width: 36px;"></th>
-            <th>Item</th>
-            <th style="width: 90px; text-align: right;">Quantity</th>
-            <th style="width: 90px; text-align: right;">Rate</th>
-            <th style="width: 90px; text-align: right;">Amount</th>
+            <th style="width: 28px;"></th>
+            <th style="width: 237px;">Item</th>
+            <th class="th-num" style="width: 68px;">Quantity</th>
+            <th class="th-num" style="width: 72px;">Rate</th>
+            <th class="th-num" style="width: 74px;">Amount</th>
           </tr>
         </thead>
         <tbody>
           ${buildQuotationRowsHtml(lineItems, totalLabel)}
         </tbody>
       </table>
+
+      <div class="spacer"></div>
 
       <div class="footer ${showTotalPrice ? '' : 'footer-no-total'}">
         <div class="terms">

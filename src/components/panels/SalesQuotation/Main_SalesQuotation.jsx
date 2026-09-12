@@ -18,7 +18,6 @@ import {
   buildExchangeRateMap,
   buildNormalizedCurrencies,
   getLatestExchangeRateRow,
-  isSelectedFlag,
   toSafeString,
 } from './utils/quotationTotals';
 import { buildQuotationDocumentA4Html } from './utils/quotationPrint';
@@ -334,42 +333,12 @@ const Main_SalesQuotation = () => {
     shippingMethodOptions,
   ]);
 
-  const hasSelectedArInvoiceRows = useCallback(() => {
-    const selectedQuotation = getEntityRecord('sales_quotations');
-    const shippingRows = Array.isArray(selectedQuotation?.sales_shipping_prices)
-      ? selectedQuotation.sales_shipping_prices
-      : [];
-    const productRows = Array.isArray(selectedQuotation?.sales_product_details)
-      ? selectedQuotation.sales_product_details
-      : [];
-    const serviceRows = Array.isArray(selectedQuotation?.sales_service_details)
-      ? selectedQuotation.sales_service_details
-      : [];
+  const handlePreviewArInvoiceChange = useCallback((event) => {
+    const shouldPrintArInvoice = event.target.checked;
 
-    const hasSelectedArRows =
-      shippingRows.some((row) => isSelectedFlag(row?.ari_selected, true)) ||
-      productRows.some((row) => isSelectedFlag(row?.ari_selected, true)) ||
-      serviceRows.some((row) => isSelectedFlag(row?.ari_selected, true));
-
-    return hasSelectedArRows;
+    setPreviewPrintArInvoice(shouldPrintArInvoice);
+    setPreviewType(shouldPrintArInvoice ? 'ar-invoice' : 'quotation');
   }, []);
-
-  const handlePreviewArInvoiceChange = useCallback(
-    (event) => {
-      const shouldPrintArInvoice = event.target.checked;
-
-      if (shouldPrintArInvoice && !hasSelectedArInvoiceRows()) {
-        alert(
-          'No rows are selected for AR invoice preview. Tick AR Invoice on at least one row.',
-        );
-        return;
-      }
-
-      setPreviewPrintArInvoice(shouldPrintArInvoice);
-      setPreviewType(shouldPrintArInvoice ? 'ar-invoice' : 'quotation');
-    },
-    [hasSelectedArInvoiceRows],
-  );
 
   const handlePrintFromPreview = useCallback(() => {
     const iframe = previewIframeRef.current;

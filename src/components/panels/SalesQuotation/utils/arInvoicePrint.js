@@ -1,5 +1,4 @@
 import { buildQuotationDocumentA4Html } from './quotationPrint';
-import { isSelectedFlag } from './quotationTotals';
 
 const replaceFirst = (text, searchValue, replacementValue) => {
   const source = String(text || '');
@@ -19,28 +18,6 @@ const replaceFirst = (text, searchValue, replacementValue) => {
     String(replacementValue || '') +
     source.slice(index + search.length)
   );
-};
-
-const mapSelectedRows = (rows = [], defaultWhenMissing = true) => {
-  if (!Array.isArray(rows)) {
-    return [];
-  }
-
-  return rows.map((row) => ({
-    ...row,
-    selected: isSelectedFlag(row?.ari_selected, defaultWhenMissing),
-  }));
-};
-
-const buildArInvoiceReadyQuotation = (quotation) => {
-  const source = quotation && typeof quotation === 'object' ? quotation : {};
-
-  return {
-    ...source,
-    sales_shipping_prices: mapSelectedRows(source?.sales_shipping_prices, true),
-    sales_product_details: mapSelectedRows(source?.sales_product_details, true),
-    sales_service_details: mapSelectedRows(source?.sales_service_details, true),
-  };
 };
 
 const convertQuotationHtmlToArInvoiceHtml = (quotationHtml) => {
@@ -67,13 +44,7 @@ const convertQuotationHtmlToArInvoiceHtml = (quotationHtml) => {
 };
 
 export const buildArInvoiceDocumentA4Html = (options = {}) => {
-  const quotation = options?.quotation;
-  const normalizedQuotation = buildArInvoiceReadyQuotation(quotation);
-
-  const quotationHtml = buildQuotationDocumentA4Html({
-    ...options,
-    quotation: normalizedQuotation,
-  });
+  const quotationHtml = buildQuotationDocumentA4Html(options);
 
   return convertQuotationHtmlToArInvoiceHtml(quotationHtml);
 };

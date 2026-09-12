@@ -125,7 +125,6 @@ const Main_SalesProductDetails = ({
         override_product_name: '',
         remark: '',
         selected: true,
-        ari_selected: true,
         ...row,
         ...patch,
       };
@@ -198,7 +197,6 @@ const Main_SalesProductDetails = ({
         override_product_name: '',
         remark: '',
         selected: true,
-        ari_selected: true,
       },
     ]);
   }, [quotationId, productOptions, currencyOptions, setProductDetails]);
@@ -370,25 +368,6 @@ const Main_SalesProductDetails = ({
               onChange={(event) =>
                 handleUpsertProductDetail(row, {
                   selected: event.target.checked,
-                })
-              }
-            />
-          </div>
-        ),
-      },
-      {
-        key: 'ari_selected',
-        label: 'AR Invoice',
-        size: 'S',
-        sortType: 'string',
-        renderCell: (row) => (
-          <div className={styles.checkboxCell}>
-            <input
-              type="checkbox"
-              checked={isSelectedFlag(row?.ari_selected, true)}
-              onChange={(event) =>
-                handleUpsertProductDetail(row, {
-                  ari_selected: event.target.checked,
                 })
               }
             />

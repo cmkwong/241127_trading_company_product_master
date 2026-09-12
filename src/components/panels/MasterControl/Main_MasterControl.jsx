@@ -1460,20 +1460,6 @@ const MasterControlContent = () => {
       saveError={saveError}
     >
       <div className={styles.container}>
-        {/* <MasterControlHeader
-          isLoading={isLoading}
-          isSaving={isSaving}
-          selectedTable={selectedTable}
-          canEdit={canEdit}
-          onReload={handleReload}
-          onAddRow={handleAddRow}
-          showAddRowAction={!isCompanyInfoTable}
-          showCopyDateRangeAction={
-            selectedTable === 'master_exchange_rate_hkd' && canEdit
-          }
-          onCopyDateRange={handleCopyExchangeRateDateRange}
-        /> */}
-
         {!canEdit ? (
           <div className={styles.authNotice}>
             Please login to edit master data. View mode is enabled.
@@ -1569,6 +1555,8 @@ const MasterControlContent = () => {
               rows={draftRows}
               columns={tableColumns}
               rowKey={(row, rowIndex) => row.id || row._localId || rowIndex}
+              onAddRow={handleAddRow}
+              canAddRow={canEdit && !isSaving}
             />
           )}
         </div>

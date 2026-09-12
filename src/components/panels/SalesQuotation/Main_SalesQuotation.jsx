@@ -8,8 +8,13 @@ import Main_SalesShippingDetails from './ShippingDetails/Main_SalesShippingDetai
 import Main_SalesProductDetails from './ProductDetails/Main_SalesProductDetails';
 import Main_SalesServiceDetails from './ServiceDetails/Main_SalesServiceDetails';
 import SalesQuotationSummaryBar from './SalesQuotationSummaryBar/SalesQuotationSummaryBar';
+import Main_DocumentCopy from '../DocumentCopy/Main_DocumentCopy';
 import { useSalesQuotationContext } from '../../../store/SalesQuotationContext';
-import { getEntityRecord, useEntityField } from '../../../store/GeneralContext';
+import {
+  getEntityRecord,
+  useEntityField,
+  useEntityRows,
+} from '../../../store/GeneralContext';
 import { useMasterContext } from '../../../store/MasterContext';
 import DeleteBtn from '../../common/Buttons/DeleteBtn';
 import {
@@ -28,6 +33,8 @@ const Main_SalesQuotation = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDuplicating, setIsDuplicating] = useState(false);
+  const [isCopyOpen, setIsCopyOpen] = useState(false);
+  const [isCopying, setIsCopying] = useState(false);
   const [isSummaryCompact, setIsSummaryCompact] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [previewHtml, setPreviewHtml] = useState('');
@@ -57,16 +64,35 @@ const Main_SalesQuotation = () => {
     saveSelectedQuotation,
     createSalesQuotation,
     duplicateSelectedSalesQuotation,
+    copySelectedSalesQuotation,
     deleteSalesQuotation,
     getSalesQuotationDryRunData,
     refreshReferenceOptions,
     purchaseCosts,
   } = useSalesQuotationContext();
   const currentQuotationId = useEntityField('sales_quotations', 'id');
+  const currentDocTypeId = useEntityField('sales_quotations', 'doc_type');
+  const productDetailRows = useEntityRows(
+    'sales_quotations',
+    'sales_product_details',
+  );
+  const serviceDetailRows = useEntityRows(
+    'sales_quotations',
+    'sales_service_details',
+  );
+  const shippingDetailRows = useEntityRows(
+    'sales_quotations',
+    'sales_shipping_details',
+  );
 
   const selectSalesQuotationRef = useRef(selectSalesQuotation);
-  const { companyInfo, currencies, exchangeRateHkd, fetchMasterData } =
-    useMasterContext();
+  const {
+    companyInfo,
+    currencies,
+    exchangeRateHkd,
+    fetchMasterData,
+    getDocTypeTargetsByBaseId,
+  } = useMasterContext();
 
   useEffect(() => {
     refreshReferenceOptions();
@@ -211,6 +237,118 @@ const Main_SalesQuotation = () => {
       setIsDuplicating(false);
     }
   }, [duplicateSelectedSalesQuotation, isDuplicating, navigate]);
+
+  const productNameById = useMemo(() => {
+    const map = new Map();
+    (productOptions || []).forEach((item) => {
+      const id = toSafeString(item?.id);
+      if (id) map.set(id, toSafeString(item?.name) || id);
+    });
+    return map;
+  }, [productOptions]);
+
+  const serviceNameById = useMemo(() => {
+    const map = new Map();
+    (serviceOptions || []).forEach((item) => {
+      const id = toSafeString(item?.id);
+      if (id) map.set(id, toSafeString(item?.name) || id);
+    });
+    return map;
+  }, [serviceOptions]);
+
+  const documentCopyTargetOptions = useMemo(
+    () => getDocTypeTargetsByBaseId(currentDocTypeId),
+    [getDocTypeTargetsByBaseId, currentDocTypeId],
+  );
+
+  const documentCopyItems = useMemo(() => {
+    const amountOf = (price, qty, discount) =>
+      (Number(price) || 0) *
+      (Number(qty) || 0) *
+      (1 - (Number(discount) || 0) / 100);
+
+    const toItem = (row, sourceType, title) => {
+      const qty = Number(row?.qty ?? row?.quantity) || 0;
+      return {
+        key: `${sourceType}:${toSafeString(row?.id)}`,
+        id: toSafeString(row?.id),
+        sourceType,
+        title: title || toSafeString(row?.id),
+        subtitle: toSafeString(row?.details),
+        meta: '',
+        qty,
+        unitRate: row?.price != null ? Number(row?.price) : null,
+        discountPercent:
+          row?.discount_percent != null ? Number(row?.discount_percent) : null,
+        amount: amountOf(row?.price, qty, row?.discount_percent),
+      };
+    };
+
+    const items = [];
+    (Array.isArray(shippingDetailRows) ? shippingDetailRows : []).forEach(
+      (row, index) =>
+        items.push(toItem(row, 'shipping', `Shipping ${index + 1}`)),
+    );
+    (Array.isArray(productDetailRows) ? productDetailRows : []).forEach(
+      (row, index) =>
+        items.push(
+          toItem(
+            row,
+            'product',
+            productNameById.get(toSafeString(row?.product_id)) ||
+              `Product ${index + 1}`,
+          ),
+        ),
+    );
+    (Array.isArray(serviceDetailRows) ? serviceDetailRows : []).forEach(
+      (row, index) =>
+        items.push(
+          toItem(
+            row,
+            'service',
+            serviceNameById.get(toSafeString(row?.service_id)) ||
+              `Service ${index + 1}`,
+          ),
+        ),
+    );
+    return items;
+  }, [
+    shippingDetailRows,
+    productDetailRows,
+    serviceDetailRows,
+    productNameById,
+    serviceNameById,
+  ]);
+
+  const handleOpenCopy = useCallback(() => {
+    if (!toSafeString(currentQuotationId || selectedQuotationId)) return;
+    setIsCopyOpen(true);
+  }, [currentQuotationId, selectedQuotationId]);
+
+  const handleCopyConfirm = useCallback(
+    async ({ selectedItems, targetDocTypeId }) => {
+      if (isCopying) return;
+      setIsCopying(true);
+      try {
+        const duplicated = await copySelectedSalesQuotation({
+          selectedItems,
+          targetDocTypeId,
+        });
+        setIsCopyOpen(false);
+        if (duplicated?.id) {
+          navigate(`/panel/sales_quotation/${duplicated.id}`, {
+            replace: true,
+          });
+        }
+      } catch (error) {
+        console.error('Failed to copy document:', error);
+        alert(error?.message || 'Failed to copy document.');
+      } finally {
+        setIsCopying(false);
+      }
+    },
+    [copySelectedSalesQuotation, isCopying, navigate],
+  );
 
   const handleDeleteQuotation = useCallback(async () => {
     const selectedQuotation = getEntityRecord('sales_quotations');
@@ -415,6 +553,9 @@ const Main_SalesQuotation = () => {
       onPrint={handlePreviewQuotation}
       isPrinting={isPreparingPreview}
       showPrintButton
+      onCopyDocument={handleOpenCopy}
+      isCopying={isCopying}
+      showCopyDocumentButton
       leftBottomAction={
         <div className={styles.bottomActionGroup}>
           <DeleteBtn
@@ -581,6 +722,16 @@ const Main_SalesQuotation = () => {
           </div>
         </div>
       ) : null}
+
+      <Main_DocumentCopy
+        open={isCopyOpen}
+        onClose={() => setIsCopyOpen(false)}
+        items={documentCopyItems}
+        currencyCode={baseCurrencyCode}
+        targetOptions={documentCopyTargetOptions}
+        isSubmitting={isCopying}
+        onConfirm={handleCopyConfirm}
+      />
     </SalesQuotationSavePageContainer>
   );
 };

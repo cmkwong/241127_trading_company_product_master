@@ -17,6 +17,10 @@ const SalesQuotationSavePageContainer = ({
   printButtonText,
   isPrinting,
   showPrintButton,
+  onCopyDocument,
+  copyDocumentButtonText,
+  isCopying,
+  showCopyDocumentButton,
 }) => {
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -62,6 +66,10 @@ const SalesQuotationSavePageContainer = ({
       printButtonText={printButtonText}
       isPrinting={isPrinting}
       showPrintButton={showPrintButton}
+      onCopyDocument={onCopyDocument}
+      copyDocumentButtonText={copyDocumentButtonText}
+      isCopying={isCopying}
+      showCopyDocumentButton={showCopyDocumentButton}
     >
       {children}
     </Main_SavePage>

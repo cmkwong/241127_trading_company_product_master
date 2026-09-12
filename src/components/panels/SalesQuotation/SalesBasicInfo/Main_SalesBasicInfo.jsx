@@ -12,10 +12,8 @@ import { useMasterContext } from '../../../../store/MasterContext';
 import styles from './Main_SalesBasicInfo.module.css';
 
 export const STATUS_OPTIONS = [
-  { id: 'quotation', name: 'Quotation', color: '#2563eb' },
-  { id: 'ordered', name: 'Ordered', color: '#16a34a' },
-  { id: 'pending', name: 'Pending', color: '#f59e0b' },
-  { id: 'draft', name: 'Draft', color: '#6b7280' },
+  { id: 'open', name: 'Open', color: '#16a34a' },
+  { id: 'close', name: 'Close', color: '#6b7280' },
 ];
 
 const toDateInputValue = (value) => {

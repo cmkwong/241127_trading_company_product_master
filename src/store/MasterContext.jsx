@@ -450,6 +450,50 @@ export const MasterContext_Provider = ({ children }) => {
   const docTypeBaseRelationship =
     masterDataMap.master_doctype_base_relationship || [];
 
+  const getDocTypeByName = useCallback(
+    (name) => {
+      const normalized = String(name || '').trim().toLowerCase();
+      if (!normalized) return null;
+      return (
+        (docType || []).find(
+          (item) =>
+            String(item?.name || '').trim().toLowerCase() === normalized,
+        ) || null
+      );
+    },
+    [docType],
+  );
+
+  const getDocTypeIdByName = useCallback(
+    (name) => {
+      const found = getDocTypeByName(name);
+      return found ? String(found.id || '').trim() : '';
+    },
+    [getDocTypeByName],
+  );
+
+  const getDocTypeTargetsByBaseId = useCallback(
+    (baseId) => {
+      const normalizedBaseId = String(baseId || '').trim();
+      if (!normalizedBaseId) return [];
+      const docTypeMap = new Map(
+        (docType || []).map((item) => [String(item?.id || '').trim(), item]),
+      );
+      return (docTypeBaseRelationship || [])
+        .filter(
+          (rel) =>
+            String(rel?.base_doctype_id || '').trim() === normalizedBaseId,
+        )
+        .map((rel) => {
+          const doctypeId = String(rel?.doctype_id || '').trim();
+          const doctype = docTypeMap.get(doctypeId);
+          return { id: doctypeId, name: doctype?.name || doctypeId };
+        })
+        .filter((item) => item.id);
+    },
+    [docType, docTypeBaseRelationship],
+  );
+
   const getMasterTableData = useCallback(
     (tableName) => {
       if (!tableName || typeof tableName !== 'string') {
@@ -730,6 +774,9 @@ export const MasterContext_Provider = ({ children }) => {
     productKeywords,
     docType,
     docTypeBaseRelationship,
+    getDocTypeByName,
+    getDocTypeIdByName,
+    getDocTypeTargetsByBaseId,
     serviceImages,
     services,
     sizeType,

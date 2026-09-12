@@ -79,6 +79,10 @@ const Main_SavePage = ({
   printButtonText = 'Print',
   isPrinting = false,
   showPrintButton = false,
+  onCopyDocument = null,
+  copyDocumentButtonText = 'Copy Document',
+  showCopyDocumentButton = false,
+  isCopying = false,
 }) => {
   const [isDryRunning, setIsDryRunning] = useState(false);
   const [dryRunError, setDryRunError] = useState('');
@@ -148,6 +152,20 @@ const Main_SavePage = ({
           </div>
 
           <div className={styles.buttonContainer}>
+            {showCopyDocumentButton && typeof onCopyDocument === 'function' && (
+              <button
+                type="button"
+                className={styles.copyDocumentButton}
+                onClick={onCopyDocument}
+                disabled={isCopying}
+              >
+                <svg viewBox="0 0 16 16" aria-hidden="true">
+                  <rect x="5.5" y="5.5" width="7" height="7" rx="1" />
+                  <path d="M10.5 5V3.5a1 1 0 0 0-1-1h-6a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1H5" />
+                </svg>
+                {isCopying ? 'Copying...' : copyDocumentButtonText}
+              </button>
+            )}
             {showPrintButton && typeof onPrint === 'function' && (
               <button
                 type="button"

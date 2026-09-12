@@ -517,6 +517,9 @@ const normalizeSalesQuotation = (row = {}) => {
     remark: toSafeString(row?.remark),
     customer_id: toSafeString(row?.customer_id),
     customer_address_id: toSafeString(row?.customer_address_id),
+    doc_type: toSafeString(row?.doc_type),
+    base_type: toSafeString(row?.base_type),
+    base_entry: toSafeString(row?.base_entry),
     created_at: toSafeString(row?.created_at) || now,
     updated_at:
       toSafeString(row?.updated_at) || toSafeString(row?.created_at) || now,
@@ -766,6 +769,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
     shippingMethods,
     category,
     supplierType,
+    getDocTypeIdByName,
   } = useMasterContext();
 
   const storedCacheRef = useRef(readStoredQuotationCache());
@@ -1749,6 +1753,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
     discardSelectedQuotationUnsavedChanges();
 
     const newPayload = {
+      doc_type: getDocTypeIdByName('Sales Quotation'),
       status: 'draft',
       remark: '',
     };
@@ -1792,6 +1797,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
     discardSelectedQuotationUnsavedChanges,
     isDataUnchanged,
     refreshSalesQuotationList,
+    getDocTypeIdByName,
     token,
   ]);
 
@@ -2175,6 +2181,268 @@ export const SalesQuotationContext_Provider = ({ children }) => {
     return duplicatedRow;
   }, [cleanupQuotationFlags]);
 
+  const copySelectedSalesQuotation = useCallback(
+    async ({ selectedItems = [], targetDocTypeId = '' } = {}) => {
+      const selectedQuotation = getSalesQuotationPageData();
+
+      if (!selectedQuotation || !toSafeString(selectedQuotation?.id)) {
+        throw new Error('No sales quotation selected to copy.');
+      }
+      if (!targetDocTypeId) {
+        throw new Error('Target document type is required.');
+      }
+
+      const now = toIsoNow();
+      const sourceQuotation = cleanupQuotationFlags(selectedQuotation);
+      const nextQuotationId = uuidv4();
+
+      const copyQtyById = new Map();
+      const selectedProductIds = new Set();
+      const selectedServiceIds = new Set();
+      const selectedShippingIds = new Set();
+      for (const item of selectedItems || []) {
+        const id = toSafeString(item?.id);
+        if (!id) continue;
+        copyQtyById.set(id, Number(item?.copyQty) || 0);
+        if (item?.sourceType === 'product') selectedProductIds.add(id);
+        else if (item?.sourceType === 'service') selectedServiceIds.add(id);
+        else if (item?.sourceType === 'shipping') selectedShippingIds.add(id);
+      }
+
+      const shippingDetailIdMap = new Map();
+      const productDetailIdMap = new Map();
+      const serviceDetailIdMap = new Map();
+      const shippingPriceIdMap = new Map();
+
+      const applyCopyQty = (row) => {
+        const copyQty = copyQtyById.get(toSafeString(row?.id));
+        return copyQty !== undefined ? copyQty : row?.qty;
+      };
+
+      const sales_shipping_details = toArray(
+        sourceQuotation?.sales_shipping_details,
+      )
+        .filter((row) => selectedShippingIds.has(toSafeString(row?.id)))
+        .map((row) => {
+          const nextId = uuidv4();
+          shippingDetailIdMap.set(toSafeString(row?.id), nextId);
+          const rest = deepClone(row || {});
+          delete rest.sales_shipping_prices;
+          delete rest.sales_shipping_images;
+          delete rest.sales_shipping_internal_images;
+          delete rest.sales_shipping_internal_files;
+          delete rest.created_at;
+          delete rest.updated_at;
+          return {
+            ...rest,
+            id: nextId,
+            sales_quotation_id: nextQuotationId,
+            base_line_type: 'shipping',
+            base_line: toSafeString(row?.id),
+            qty: applyCopyQty(row),
+            created_at: now,
+            updated_at: now,
+          };
+        });
+
+      const sales_product_details = toArray(
+        sourceQuotation?.sales_product_details,
+      )
+        .filter((row) => selectedProductIds.has(toSafeString(row?.id)))
+        .map((row) => {
+          const nextId = uuidv4();
+          productDetailIdMap.set(toSafeString(row?.id), nextId);
+          const rest = deepClone(row || {});
+          delete rest.sales_product_detail_images;
+          delete rest.sales_product_detail_internal_images;
+          delete rest.sales_product_detail_internal_files;
+          delete rest.created_at;
+          delete rest.updated_at;
+          return {
+            ...rest,
+            id: nextId,
+            sales_quotation_id: nextQuotationId,
+            base_line_type: 'product',
+            base_line: toSafeString(row?.id),
+            qty: applyCopyQty(row),
+            created_at: now,
+            updated_at: now,
+          };
+        });
+
+      const sales_service_details = toArray(
+        sourceQuotation?.sales_service_details,
+      )
+        .filter((row) => selectedServiceIds.has(toSafeString(row?.id)))
+        .map((row) => {
+          const nextId = uuidv4();
+          serviceDetailIdMap.set(toSafeString(row?.id), nextId);
+          const rest = deepClone(row || {});
+          delete rest.sales_service_detail_images;
+          delete rest.sales_service_detail_internal_images;
+          delete rest.sales_service_detail_internal_files;
+          delete rest.created_at;
+          delete rest.updated_at;
+          return {
+            ...rest,
+            id: nextId,
+            sales_quotation_id: nextQuotationId,
+            base_line_type: 'service',
+            base_line: toSafeString(row?.id),
+            qty: applyCopyQty(row),
+            created_at: now,
+            updated_at: now,
+          };
+        });
+
+      const sales_shipping_prices = toArray(
+        sourceQuotation?.sales_shipping_prices,
+      )
+        .map((row) => {
+          const sourceId = toSafeString(row?.id);
+          const sourceDetailId = toSafeString(row?.sales_shipping_detail_id);
+          const nextDetailId = shippingDetailIdMap.get(sourceDetailId);
+          if (!nextDetailId) return null;
+          const nextId = uuidv4();
+          shippingPriceIdMap.set(sourceId, nextId);
+          const rest = deepClone(row || {});
+          delete rest.sales_shipping_price_images;
+          delete rest.sales_shipping_price_internal_images;
+          delete rest.sales_shipping_price_internal_files;
+          delete rest.created_at;
+          delete rest.updated_at;
+          return {
+            ...rest,
+            id: nextId,
+            sales_shipping_detail_id: nextDetailId,
+            created_at: now,
+            updated_at: now,
+          };
+        })
+        .filter(Boolean);
+
+
+      const cloneChildren = (sourceRows, parentField, parentIdMap) =>
+        toArray(sourceRows)
+          .map((row) => {
+            const nextParentId = parentIdMap.get(
+              toSafeString(row?.[parentField]),
+            );
+            if (!nextParentId) return null;
+            return cloneRowsWithNewIds([row], {
+              parentField,
+              nextParentId,
+              now,
+            })[0];
+          })
+          .filter(Boolean);
+
+      const sales_shipping_images = cloneChildren(
+        sourceQuotation?.sales_shipping_images,
+        'sales_shipping_detail_id',
+        shippingDetailIdMap,
+      );
+      const sales_shipping_internal_images = cloneChildren(
+        sourceQuotation?.sales_shipping_internal_images,
+        'sales_shipping_detail_id',
+        shippingDetailIdMap,
+      );
+      const sales_shipping_internal_files = cloneChildren(
+        sourceQuotation?.sales_shipping_internal_files,
+        'sales_shipping_detail_id',
+        shippingDetailIdMap,
+      );
+      const sales_shipping_price_images = cloneChildren(
+        sourceQuotation?.sales_shipping_price_images,
+        'sales_shipping_price_id',
+        shippingPriceIdMap,
+      );
+      const sales_shipping_price_internal_images = cloneChildren(
+        sourceQuotation?.sales_shipping_price_internal_images,
+        'sales_shipping_price_id',
+        shippingPriceIdMap,
+      );
+      const sales_shipping_price_internal_files = cloneChildren(
+        sourceQuotation?.sales_shipping_price_internal_files,
+        'sales_shipping_price_id',
+        shippingPriceIdMap,
+      );
+      const sales_product_detail_images = cloneChildren(
+        sourceQuotation?.sales_product_detail_images,
+        'sales_product_detail_id',
+        productDetailIdMap,
+      );
+      const sales_product_detail_internal_images = cloneChildren(
+        sourceQuotation?.sales_product_detail_internal_images,
+        'sales_product_detail_id',
+        productDetailIdMap,
+      );
+      const sales_product_detail_internal_files = cloneChildren(
+        sourceQuotation?.sales_product_detail_internal_files,
+        'sales_product_detail_id',
+        productDetailIdMap,
+      );
+      const sales_service_detail_images = cloneChildren(
+        sourceQuotation?.sales_service_detail_images,
+        'sales_service_detail_id',
+        serviceDetailIdMap,
+      );
+      const sales_service_detail_internal_images = cloneChildren(
+        sourceQuotation?.sales_service_detail_internal_images,
+        'sales_service_detail_id',
+        serviceDetailIdMap,
+      );
+      const sales_service_detail_internal_files = cloneChildren(
+        sourceQuotation?.sales_service_detail_internal_files,
+        'sales_service_detail_id',
+        serviceDetailIdMap,
+      );
+
+      const duplicatedRow = normalizeSalesQuotation({
+        id: nextQuotationId,
+        doc_type: targetDocTypeId,
+        base_type: toSafeString(sourceQuotation?.doc_type),
+        base_entry: toSafeString(sourceQuotation?.id),
+        status: 'open',
+        remark: toSafeString(sourceQuotation?.remark),
+        customer_id: toSafeString(sourceQuotation?.customer_id),
+        customer_address_id: toSafeString(sourceQuotation?.customer_address_id),
+        sales_shipping_details,
+        sales_shipping_prices,
+        sales_shipping_images,
+        sales_shipping_internal_images,
+        sales_shipping_internal_files,
+        sales_shipping_price_images,
+        sales_shipping_price_internal_images,
+        sales_shipping_price_internal_files,
+        sales_product_details,
+        sales_product_detail_images,
+        sales_product_detail_internal_images,
+        sales_product_detail_internal_files,
+        sales_service_details,
+        sales_service_detail_images,
+        sales_service_detail_internal_images,
+        sales_service_detail_internal_files,
+      });
+
+      setQuotations((previousRows) => {
+        const withoutDuplicate = previousRows.filter(
+          (row) => toSafeString(row?.id) !== toSafeString(duplicatedRow?.id),
+        );
+        return [duplicatedRow, ...withoutDuplicate];
+      });
+      setSelectedQuotationId(duplicatedRow.id);
+      setSalesQuotationPageData(deepClone(duplicatedRow));
+      setSaveError('');
+
+      localDraftQuotationsRef.current[duplicatedRow.id] =
+        deepClone(duplicatedRow);
+
+      return duplicatedRow;
+    },
+    [cleanupQuotationFlags],
+  );
+
   const deleteSalesQuotation = useCallback(
     async (quotationId) => {
       const targetId = toSafeString(quotationId || selectedQuotationId);
@@ -2425,6 +2693,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
     saveSelectedQuotation,
     createSalesQuotation,
     duplicateSelectedSalesQuotation,
+    copySelectedSalesQuotation,
     deleteSalesQuotation,
     selectSalesQuotation,
     getSalesQuotationDryRunData,

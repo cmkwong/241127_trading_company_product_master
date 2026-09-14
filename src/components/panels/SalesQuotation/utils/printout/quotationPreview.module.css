@@ -1,0 +1,404 @@
+.page {
+  width: var(--a4-width-mm);
+  min-height: var(--a4-height-mm);
+  padding: var(--page-padding-top-mm) var(--page-padding-side-mm);
+  background: #ffffff;
+  font-family:
+    'Inter',
+    'Segoe UI',
+    system-ui,
+    -apple-system,
+    Arial,
+    Helvetica,
+    sans-serif;
+  color: #262626;
+  font-size: 9px;
+}
+
+.page,
+.page * {
+  box-sizing: border-box;
+}
+
+@media screen {
+  .page {
+    width: var(--a4-width-px);
+    min-height: var(--a4-height-px);
+    margin: 0 auto;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0px 2px 12px 0px rgba(0, 0, 0, 0.1);
+  }
+}
+
+/* ---------- Top bar: logo + document title ---------- */
+
+.topBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  white-space: nowrap;
+}
+
+.logo {
+  width: auto;
+  height: 86px;
+  max-width: 80px;
+  object-fit: contain;
+}
+
+.docTitle {
+  font-family:
+    'Inter',
+    'Segoe UI',
+    system-ui,
+    -apple-system,
+    sans-serif;
+  font-size: 36px;
+  font-weight: 700;
+  color: #fa6d5a;
+  line-height: 1;
+}
+
+/* ---------- Header: divider + address / details ---------- */
+
+.divider {
+  width: 100%;
+  height: 2px;
+  margin: 16px 0 12px;
+  background: #fa6d5a;
+}
+
+.metaGrid {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0;
+  padding: 0 5px 16px;
+  word-break: break-word;
+}
+
+.fromCol {
+  flex: 0 0 175px;
+  width: 175px;
+  min-width: 0;
+}
+
+.forCol {
+  flex: 0 0 160px;
+  width: 160px;
+  min-width: 0;
+}
+
+.detailsCol {
+  flex: 0 0 150px;
+  min-width: 0;
+}
+
+.fromCol,
+.forCol,
+.detailsCol {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 3px;
+  overflow: hidden;
+}
+
+.metaTitle {
+  color: #fa6d5a;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  text-decoration: underline;
+}
+
+.metaHeading {
+  font-size: 12px;
+  font-weight: 700;
+  color: #262626;
+}
+
+.metaLine {
+  font-size: 9px;
+  color: #262626;
+  line-height: normal;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.metaLineQuot {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: 9px;
+  line-height: normal;
+  color: #262626;
+}
+
+.metaLineQuotLabel {
+  width: 75px;
+  flex-shrink: 0;
+  color: #94a3b8;
+}
+
+.metaLineQuotValue {
+  color: #262626;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* ---------- Body: line items table ---------- */
+
+.itemsTable {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid #e2e8f0;
+}
+
+.itemsTable thead th {
+  background: #fa6d5a;
+  border-left: 1px solid #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+  color: #ffffff;
+  text-align: left;
+  padding: 5px 6px;
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+}
+
+.itemsTable thead th:first-child {
+  border-left: none;
+}
+
+.itemsTable thead th.thNum {
+  text-align: right;
+}
+
+.itemsTable tbody td {
+  border-left: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0;
+  vertical-align: top;
+  padding: 8px 6px;
+}
+
+.itemsTable tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.indexCol {
+  width: 28px;
+  text-align: left;
+  font-weight: 500;
+  font-size: 11px;
+  color: #262626;
+  border-left: none;
+}
+
+.itemCol {
+  width: 237px;
+  position: relative;
+}
+
+.qtyCol,
+.rateCol,
+.amountCol {
+  text-align: right;
+  white-space: nowrap;
+  font-size: 11px;
+  color: #262626;
+}
+
+.qtyCol {
+  width: 68px;
+}
+
+.rateCol {
+  width: 72px;
+}
+
+.amountCol {
+  width: 94px;
+}
+
+.itemTitle {
+  font-weight: 700;
+  font-size: 12px;
+  color: #262626;
+  margin-bottom: 3px;
+  word-break: break-word;
+}
+
+.itemDetail {
+  color: #94a3b8;
+  font-size: 9px;
+  margin-top: 0;
+  margin-bottom: 3px;
+  line-height: 1.45;
+  white-space: pre-line;
+  word-break: break-word;
+}
+
+.discountBadge {
+  display: inline-block;
+  margin-top: 2px;
+  padding: 2px 6px;
+  border: 1px solid #f2a3b2;
+  border-radius: 4px;
+  background: #ffe8ee;
+  color: #d54f6c;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.rateOld {
+  color: #9ca3af;
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+  text-decoration-color: #9ca3af;
+  line-height: 1.2;
+}
+
+.rateNew {
+  color: #262626;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.itemImage {
+  display: block;
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  background: #f5f5f5;
+  border-radius: 3px;
+}
+
+.itemImages {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.emptyRow {
+  text-align: center;
+  color: #94a3b8;
+  padding: 16px;
+}
+
+.spacer {
+  width: 100%;
+  height: 20px;
+}
+
+/* ---------- Footer: terms + total ---------- */
+
+.footer {
+  margin-top: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  /* white-space: nowrap; */
+}
+
+.footerNoTotal {
+  justify-content: flex-start;
+}
+
+.terms {
+  width: 280px;
+  font-size: 11px;
+  color: #94a3b8;
+  line-height: 1.25;
+  gap: 4px;
+  display: flex;
+  flex-direction: column;
+}
+
+.termsTitle {
+  font-weight: 700;
+  font-size: 12px;
+  color: #262626;
+  text-decoration: underline;
+  margin-bottom: 2px;
+}
+
+.termsLine {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-left: 5px;
+}
+
+.totalBox {
+  background: #fa6d5a;
+  height: 69px;
+  color: #ffffff;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 20px 10px 16px;
+}
+
+.totalLabel {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.totalValue {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.downpaymentSummary {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.originalSummaryRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 0 6px;
+}
+
+.originalSummaryLabel {
+  font-size: 14px;
+  font-weight: 700;
+  color: #525252;
+  letter-spacing: 0.03em;
+}
+
+.originalSummaryValue {
+  font-size: 16px;
+  font-weight: 700;
+  color: #262626;
+  line-height: 1;
+}
+
+.adjustmentSummaryRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 0 6px;
+}
+
+.adjustmentSummaryLabel {
+  font-size: 14px;
+  font-weight: 700;
+  color: #525252;
+  letter-spacing: 0.02em;
+}
+
+.adjustmentSummaryValue {
+  font-size: 16px;
+  font-weight: 700;
+  color: #262626;
+  line-height: 1;
+}

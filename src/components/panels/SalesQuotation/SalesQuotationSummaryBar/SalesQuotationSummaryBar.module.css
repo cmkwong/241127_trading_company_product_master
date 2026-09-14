@@ -234,6 +234,12 @@
   color: #0c1e36;
 }
 
+.rundownHeaderActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .rundownModalBody {
   display: flex;
   gap: 16px;

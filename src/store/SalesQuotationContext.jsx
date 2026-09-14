@@ -58,6 +58,7 @@ const setSalesQuotationPageData = (valueOrUpdater) =>
   setEntityRecord(SALES_ENTITY_KEY, valueOrUpdater);
 
 const DEFAULT_QUOTATION_FILE_MAPPINGS = {
+  sales_docs: { url: 'file_url', base64: 'base64_file' },
   sales_shipping_images: { url: 'image_url', base64: 'base64_image' },
   sales_shipping_internal_images: { url: 'image_url', base64: 'base64_image' },
   sales_shipping_internal_files: { url: 'file_url', base64: 'base64_file' },
@@ -179,6 +180,32 @@ const FALLBACK_INCOTERM_OPTIONS = [
 ];
 
 const toSafeString = (value) => String(value || '').trim();
+
+const toDateOnlyString = (value) => {
+  if (!value) return '';
+  if (value instanceof Date) {
+    if (Number.isNaN(value.getTime())) return '';
+    const yyyy = String(value.getFullYear());
+    const mm = String(value.getMonth() + 1).padStart(2, '0');
+    const dd = String(value.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  }
+  const str = String(value).trim();
+  const dateOnlyMatch = str.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (dateOnlyMatch) return str;
+  const date = new Date(str);
+  if (Number.isNaN(date.getTime())) return '';
+  const yyyy = String(date.getFullYear());
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+};
+
+const toPercentValue = (value) => {
+  if (value === null || value === undefined || value === '') return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+};
 
 const SALES_QUOTATION_CACHE_KEY = 'trade_business_sales_quotation_cache';
 
@@ -377,6 +404,7 @@ const formatLabelWithCode = (label, code) => {
 
 const normalizeSalesQuotation = (row = {}) => {
   const now = toIsoNow();
+  const salesDocs = toArray(row?.sales_docs);
   const shippingDetails = toArray(row?.sales_shipping_details);
   const productDetails = toArray(row?.sales_product_details);
   const serviceDetails = toArray(row?.sales_service_details);
@@ -520,9 +548,12 @@ const normalizeSalesQuotation = (row = {}) => {
     doc_type: toSafeString(row?.doc_type),
     base_type: toSafeString(row?.base_type),
     base_entry: toSafeString(row?.base_entry),
+    posting_at: toDateOnlyString(row?.posting_at),
+    header_proforma_percent: toPercentValue(row?.header_proforma_percent),
     created_at: toSafeString(row?.created_at) || now,
     updated_at:
       toSafeString(row?.updated_at) || toSafeString(row?.created_at) || now,
+    sales_docs: salesDocs,
     sales_shipping_details: shippingDetails,
     sales_shipping_prices: shippingPrices,
     sales_shipping_images: shippingImages,
@@ -770,6 +801,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
     category,
     supplierType,
     getDocTypeIdByName,
+    fetchMasterData,
   } = useMasterContext();
 
   const storedCacheRef = useRef(readStoredQuotationCache());
@@ -1732,74 +1764,103 @@ export const SalesQuotationContext_Provider = ({ children }) => {
     resolveAuthoritativeEntityAfterSave,
   ]);
 
-  const createSalesQuotation = useCallback(async () => {
-    if (!token) {
-      return null;
-    }
+  const createSalesDocument = useCallback(
+    async (docTypeName = 'Sales Quotation') => {
+      if (!token) {
+        return null;
+      }
 
-    const selectedQuotation = getSalesQuotationPageData();
+      const selectedQuotation = getSalesQuotationPageData();
 
-    const canCreate = canProceedWithRecordSwitch({
-      hasRecordId: !!selectedQuotation?.id,
-      isDataUnchanged: isDataUnchanged(),
-      message:
-        'You have unsaved changes. Click OK to discard them and create a new sales quotation.',
-    });
-
-    if (!canCreate) {
-      return null;
-    }
-
-    discardSelectedQuotationUnsavedChanges();
-
-    const newPayload = {
-      doc_type: getDocTypeIdByName('Sales Quotation'),
-      status: 'draft',
-      remark: '',
-    };
-
-    const response = await apiPost(
-      `${SALES_API_BASE}/data`,
-      {
-        data: {
-          sales_quotations: [newPayload],
-        },
-      },
-      { token },
-    );
-
-    const createdRows = extractRowsFromResponse(response, SALES_TABLE_NAME)
-      .map(normalizeSalesQuotation)
-      .filter((row) => toSafeString(row?.id));
-
-    if (createdRows.length > 0) {
-      const createdRow = createdRows[0];
-
-      setQuotations((previousRows) => {
-        const withoutDuplicate = previousRows.filter(
-          (row) => row.id !== createdRow.id,
-        );
-        return [createdRow, ...withoutDuplicate];
+      const canCreate = canProceedWithRecordSwitch({
+        hasRecordId: !!selectedQuotation?.id,
+        isDataUnchanged: isDataUnchanged(),
+        message:
+          'You have unsaved changes. Click OK to discard them and create a new sales document.',
       });
-      setOriginalQuotationMap((previousMap) => ({
-        ...previousMap,
-        [createdRow.id]: deepClone(createdRow),
-      }));
-      setSelectedQuotationId(createdRow.id);
-      setSalesQuotationPageData(deepClone(createdRow));
 
-      return createdRow;
-    }
+      if (!canCreate) {
+        return null;
+      }
 
-    const refreshedRows = await refreshSalesQuotationList();
-    return refreshedRows[0] || null;
-  }, [
-    discardSelectedQuotationUnsavedChanges,
-    isDataUnchanged,
-    refreshSalesQuotationList,
-    getDocTypeIdByName,
-    token,
-  ]);
+      discardSelectedQuotationUnsavedChanges();
+
+      // Resolve the document type id, fetching the master list first if the
+      // doctype has not been loaded yet (avoids creating a row with an empty
+      // doc_type).
+      let docTypeId = getDocTypeIdByName(docTypeName);
+      if (!docTypeId) {
+        await fetchMasterData('master_doctype');
+        docTypeId = getDocTypeIdByName(docTypeName);
+      }
+      if (!docTypeId) {
+        throw new Error(
+          `The "${docTypeName}" document type is not available yet. Please try again.`,
+        );
+      }
+
+      const newPayload = {
+        doc_type: docTypeId,
+        status: 'draft',
+        remark: '',
+        posting_at: toDateOnlyString(new Date()),
+      };
+
+      const response = await apiPost(
+        `${SALES_API_BASE}/data`,
+        {
+          data: {
+            sales_quotations: [newPayload],
+          },
+        },
+        { token },
+      );
+
+      const createdRows = extractRowsFromResponse(response, SALES_TABLE_NAME)
+        .map(normalizeSalesQuotation)
+        .filter((row) => toSafeString(row?.id));
+
+      if (createdRows.length > 0) {
+        const createdRow = createdRows[0];
+
+        setQuotations((previousRows) => {
+          const withoutDuplicate = previousRows.filter(
+            (row) => row.id !== createdRow.id,
+          );
+          return [createdRow, ...withoutDuplicate];
+        });
+        setOriginalQuotationMap((previousMap) => ({
+          ...previousMap,
+          [createdRow.id]: deepClone(createdRow),
+        }));
+        setSelectedQuotationId(createdRow.id);
+        setSalesQuotationPageData(deepClone(createdRow));
+
+        return createdRow;
+      }
+
+      const refreshedRows = await refreshSalesQuotationList();
+      return refreshedRows[0] || null;
+    },
+    [
+      discardSelectedQuotationUnsavedChanges,
+      fetchMasterData,
+      getDocTypeIdByName,
+      isDataUnchanged,
+      refreshSalesQuotationList,
+      token,
+    ],
+  );
+
+  const createSalesQuotation = useCallback(
+    async () => createSalesDocument('Sales Quotation'),
+    [createSalesDocument],
+  );
+
+  const createSalesOrder = useCallback(
+    async () => createSalesDocument('Sales Order'),
+    [createSalesDocument],
+  );
 
   const duplicateSelectedSalesQuotation = useCallback(async () => {
     const selectedQuotation = getSalesQuotationPageData();
@@ -1815,6 +1876,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
     const sourceShippingDetails = toArray(
       sourceQuotation?.sales_shipping_details,
     );
+    const sourceSalesDocs = toArray(sourceQuotation?.sales_docs);
     const sourceProductDetails = toArray(
       sourceQuotation?.sales_product_details,
     );
@@ -1947,6 +2009,12 @@ export const SalesQuotationContext_Provider = ({ children }) => {
         };
       })
       .filter(Boolean);
+
+    const sales_docs = cloneRowsWithNewIds(sourceSalesDocs, {
+      parentField: 'sales_quotation_id',
+      nextParentId: nextQuotationId,
+      now,
+    });
 
     const sales_shipping_images = sourceShippingImages
       .map((row) => {
@@ -2147,6 +2215,11 @@ export const SalesQuotationContext_Provider = ({ children }) => {
       remark: toSafeString(sourceQuotation?.remark),
       customer_id: toSafeString(sourceQuotation?.customer_id),
       customer_address_id: toSafeString(sourceQuotation?.customer_address_id),
+      posting_at: toDateOnlyString(sourceQuotation?.posting_at),
+      header_proforma_percent: toPercentValue(
+        sourceQuotation?.header_proforma_percent,
+      ),
+      sales_docs,
       sales_shipping_details,
       sales_shipping_prices,
       sales_shipping_images,
@@ -2298,6 +2371,12 @@ export const SalesQuotationContext_Provider = ({ children }) => {
       const sales_shipping_prices = toArray(
         sourceQuotation?.sales_shipping_prices,
       )
+        .filter(
+          (row) =>
+            row?.selected === true ||
+            row?.selected === 1 ||
+            row?.selected === '1',
+        )
         .map((row) => {
           const sourceId = toSafeString(row?.id);
           const sourceDetailId = toSafeString(row?.sales_shipping_detail_id);
@@ -2321,6 +2400,11 @@ export const SalesQuotationContext_Provider = ({ children }) => {
         })
         .filter(Boolean);
 
+      const sales_docs = cloneRowsWithNewIds(sourceQuotation?.sales_docs, {
+        parentField: 'sales_quotation_id',
+        nextParentId: nextQuotationId,
+        now,
+      });
 
       const cloneChildren = (sourceRows, parentField, parentIdMap) =>
         toArray(sourceRows)
@@ -2407,6 +2491,11 @@ export const SalesQuotationContext_Provider = ({ children }) => {
         remark: toSafeString(sourceQuotation?.remark),
         customer_id: toSafeString(sourceQuotation?.customer_id),
         customer_address_id: toSafeString(sourceQuotation?.customer_address_id),
+        posting_at: toDateOnlyString(sourceQuotation?.posting_at),
+        header_proforma_percent: toPercentValue(
+          sourceQuotation?.header_proforma_percent,
+        ),
+        sales_docs,
         sales_shipping_details,
         sales_shipping_prices,
         sales_shipping_images,
@@ -2692,6 +2781,8 @@ export const SalesQuotationContext_Provider = ({ children }) => {
     upsertSalesQuotationPageData,
     saveSelectedQuotation,
     createSalesQuotation,
+    createSalesDocument,
+    createSalesOrder,
     duplicateSelectedSalesQuotation,
     copySelectedSalesQuotation,
     deleteSalesQuotation,

@@ -221,6 +221,19 @@
   margin-top: 2px;
 }
 
+.itemDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin-top: 3px;
+}
+
+.itemDetailLine {
+  font-size: 11px;
+  color: #6b7280;
+  line-height: 1.35;
+}
+
 .stepper {
   display: inline-flex;
   align-items: center;

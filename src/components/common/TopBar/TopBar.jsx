@@ -21,8 +21,8 @@ const VIEW_PATH_BY_KEY = {
   products: '/product_master',
   supplier: '/supplier_master',
   customer: '/customer_master',
-  salesQuotation: '/sales_quotation',
-  purchaseRequest: '/purchase_request',
+  salesQuotation: '/sales',
+  purchaseRequest: '/purchase',
   apInvoice: '/ap_invoice',
   masterControl: '/master_control',
 };
@@ -31,8 +31,8 @@ const VIEW_KEY_BY_PATH_PREFIX = {
   '/panel/product_master': 'products',
   '/panel/supplier_master': 'supplier',
   '/panel/customer_master': 'customer',
-  '/panel/sales_quotation': 'salesQuotation',
-  '/panel/purchase_request': 'purchaseRequest',
+  '/panel/sales': 'salesQuotation',
+  '/panel/purchase': 'purchaseRequest',
   '/panel/ap_invoice': 'apInvoice',
   '/panel/master_control': 'masterControl',
 };
@@ -41,8 +41,8 @@ const PAGE_TITLE_BY_VIEW = {
   products: 'Product Master',
   supplier: 'Supplier Master',
   customer: 'Customer Master',
-  salesQuotation: 'Sales Quotation',
-  purchaseRequest: 'Purchase Request',
+  salesQuotation: 'Sales',
+  purchaseRequest: 'Purchase',
   apInvoice: 'AP Invoice',
   masterControl: 'Master Control',
 };
@@ -179,7 +179,6 @@ const TopBar = () => {
   };
 
   const handleViewSwitch = (nextView) => {
-    console.log(nextView, activeView);
     const nextPath = VIEW_PATH_BY_KEY[nextView];
     if (!nextPath || nextView === activeView) {
       return;
@@ -547,13 +546,13 @@ const TopBar = () => {
               active={activeView === 'salesQuotation'}
               onClick={() => handleViewSwitch('salesQuotation')}
             >
-              Sales Quotation
+              Sales
             </NavButton>
             <NavButton
               active={activeView === 'purchaseRequest'}
               onClick={() => handleViewSwitch('purchaseRequest')}
             >
-              Purchase Request
+              Purchase
             </NavButton>
             <NavButton
               active={activeView === 'apInvoice'}

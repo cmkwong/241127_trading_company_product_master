@@ -18,3 +18,19 @@
 .button p {
   font-weight: var(--font-weight-medium);
 }
+
+.buttonActive {
+  background-color: #2563eb;
+  color: #ffffff;
+  border-color: #2563eb;
+}
+
+.buttonActive:hover {
+  background-color: #1d4ed8;
+  color: #ffffff;
+}
+
+.buttonDisabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}

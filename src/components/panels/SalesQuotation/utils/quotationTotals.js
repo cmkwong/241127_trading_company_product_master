@@ -129,6 +129,27 @@ export const buildExchangeRateMap = (row = {}) => {
   return map;
 };
 
+export const convertCurrencyToBase = (
+  amount,
+  currencyCode,
+  baseCurrencyCode,
+  exchangeRateMap = {},
+) => {
+  const parsed = toNumber(amount);
+  if (!Number.isFinite(parsed)) return null;
+
+  const sourceCode = toSafeString(currencyCode).toUpperCase();
+  const targetCode = toSafeString(baseCurrencyCode).toUpperCase();
+  if (!sourceCode || !targetCode) return null;
+
+  const sourceRate = exchangeRateMap[sourceCode];
+  const targetRate = exchangeRateMap[targetCode];
+  if (!Number.isFinite(sourceRate) || sourceRate <= 0) return null;
+  if (!Number.isFinite(targetRate) || targetRate <= 0) return null;
+
+  return (parsed / sourceRate) * targetRate;
+};
+
 export const buildNormalizedCurrencies = (currencies = []) => {
   return (Array.isArray(currencies) ? currencies : [])
     .map((item) => {

@@ -1603,7 +1603,7 @@ const Main_PurchaseRequest = () => {
       successMessage="Purchase request saved successfully!"
       onCreate={() => {
         handleCreate();
-        navigate('/panel/purchase_request', { replace: true });
+        navigate('/panel/purchase', { replace: true });
       }}
       createButtonText="Add Purchase Request"
       showCreateButton
@@ -1615,7 +1615,7 @@ const Main_PurchaseRequest = () => {
           text={isDeleting ? 'Deleting...' : 'Delete Purchase Request'}
           onClick={async () => {
             await handleDelete();
-            navigate('/panel/purchase_request', { replace: true });
+            navigate('/panel/purchase', { replace: true });
           }}
           disabled={!toSafeString(selectedId) || isDeleting}
           title="Delete selected purchase request"
@@ -1632,7 +1632,7 @@ const Main_PurchaseRequest = () => {
           onSelectRow={(row) => {
             handleSelectRow(row);
             navigate(
-              `/panel/purchase_request/${toSafeString(row?.id || row)}`,
+              `/panel/purchase/${toSafeString(row?.id || row)}`,
               {
                 replace: true,
               },

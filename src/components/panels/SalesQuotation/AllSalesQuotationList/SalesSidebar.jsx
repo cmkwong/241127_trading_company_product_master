@@ -1,7 +1,12 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import SearchSideBarList from '../../../common/SearchSideBarList/SearchSideBarList';
-import styles from './SalesQuotationSidebar.module.css';
-import { computeQuotationTotals, formatMoney } from '../utils/quotationTotals';
+import styles from './SalesSidebar.module.css';
+import {
+  computeQuotationTotals,
+  convertCurrencyToBase,
+  formatMoney,
+  toSafeString,
+} from '../utils/quotationTotals';
 import { STATUS_OPTIONS } from '../SalesBasicInfo/Main_SalesBasicInfo';
 
 const SALES_QUOTATION_SEARCH_HISTORY_KEY =
@@ -48,7 +53,7 @@ const resolveIconUrl = (iconUrl) => {
   return `${FILE_SERVER_BASE_URL}/${normalized}`;
 };
 
-const SalesQuotationSidebar = ({
+const SalesSidebar = ({
   quotations = [],
   selectedQuotationId,
   onSelectQuotation,
@@ -59,6 +64,13 @@ const SalesQuotationSidebar = ({
   baseCurrencyCode = 'HKD',
   currencyCodeById = {},
   exchangeRateMap = { HKD: 1 },
+  docTypeOptions = [],
+  purchaseCosts = null,
+  searchPlaceholder = 'Search sales quotations...',
+  noResultsMessage = 'No sales quotations found',
+  sidebarTitle = 'Quotation List',
+  exportFileName = 'sales_quotations_filtered_list',
+  exportSheetName = 'Sales Quotations',
 }) => {
   const [windowWidth, setWindowWidth] = useState(
     typeof window !== 'undefined' ? window.innerWidth : 1024,
@@ -101,6 +113,69 @@ const SalesQuotationSidebar = ({
 
     return map;
   }, [productOptions]);
+
+  const docTypeById = useMemo(() => {
+    const map = new Map();
+
+    (docTypeOptions || []).forEach((item) => {
+      const id = String(item?.id || '').trim();
+      if (!id) return;
+      map.set(id, {
+        name: String(item?.name || item?.label || '').trim(),
+        color: String(item?.color_code || '').trim(),
+      });
+    });
+
+    return map;
+  }, [docTypeOptions]);
+
+  const quotationTotalsById = useMemo(() => {
+    const map = new Map();
+
+    (quotations || []).forEach((quotation) => {
+      const id = String(quotation?.id || '').trim();
+      if (!id) return;
+      map.set(
+        id,
+        computeQuotationTotals(quotation, {
+          baseCurrencyCode,
+          currencyCodeById,
+          exchangeRateMap,
+        }),
+      );
+    });
+
+    return map;
+  }, [quotations, baseCurrencyCode, currencyCodeById, exchangeRateMap]);
+
+  const purchaseCostTotals = useMemo(() => {
+    const sumRows = (rows) =>
+      (Array.isArray(rows) ? rows : []).reduce((total, row) => {
+        const converted = convertCurrencyToBase(
+          row?.price,
+          row?.currency_code,
+          baseCurrencyCode,
+          exchangeRateMap,
+        );
+        return Number.isFinite(converted) ? total + converted : total;
+      }, 0);
+
+    const shippingTotal = sumRows(purchaseCosts?.shipping_costs);
+    const productTotal = sumRows(purchaseCosts?.product_costs);
+    const serviceTotal = sumRows(purchaseCosts?.service_costs);
+
+    return {
+      hasPoData:
+        !!purchaseCosts &&
+        ((Array.isArray(purchaseCosts?.shipping_costs) &&
+          purchaseCosts.shipping_costs.length > 0) ||
+          (Array.isArray(purchaseCosts?.product_costs) &&
+            purchaseCosts.product_costs.length > 0) ||
+          (Array.isArray(purchaseCosts?.service_costs) &&
+            purchaseCosts.service_costs.length > 0)),
+      total: shippingTotal + productTotal + serviceTotal,
+    };
+  }, [purchaseCosts, baseCurrencyCode, exchangeRateMap]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -162,12 +237,15 @@ const SalesQuotationSidebar = ({
     return (quotations || []).filter((quotation) => {
       const customerName =
         customerNameById.get(String(quotation?.customer_id || '').trim()) || '';
+      const docTypeName =
+        docTypeById.get(String(quotation?.doc_type || '').trim())?.name || '';
       const summary = [
         quotation?.id,
         quotation?.remark,
         quotation?.customer_id,
         quotation?.customer_address_id,
         customerName,
+        docTypeName,
         quotation?.status || 'draft',
         quotation?.created_at,
         quotation?.updated_at,
@@ -178,7 +256,7 @@ const SalesQuotationSidebar = ({
 
       return summary.includes(query);
     });
-  }, [searchTerm, quotations, customerNameById]);
+  }, [searchTerm, quotations, customerNameById, docTypeById]);
 
   const handleQuotationSelect = useCallback(
     (quotation) => {
@@ -241,36 +319,52 @@ const SalesQuotationSidebar = ({
     [quotations, getQuotationTitle, handleQuotationSelect],
   );
 
-  const statusColorMap = useMemo(() => {
-    const map = {};
-    STATUS_OPTIONS.forEach((opt) => {
-      map[opt.id] = opt.color;
-    });
-    return map;
+  const resolveStatusOption = useCallback((statusId) => {
+    const normalized = toSafeString(statusId).toLowerCase();
+    return (
+      STATUS_OPTIONS.find((opt) => opt.id === normalized) || STATUS_OPTIONS[0]
+    );
   }, []);
 
   const getQuotationRows = useCallback(
     (quotation) => {
-      const summary = computeQuotationTotals(quotation, {
-        baseCurrencyCode,
-        currencyCodeById,
-        exchangeRateMap,
-      });
+      const quotationId = String(quotation?.id || '').trim();
+      const summary = quotationTotalsById.get(quotationId);
 
-      const statusId = quotation?.status || 'draft';
+      const statusOption = resolveStatusOption(quotation?.status || 'open');
+      const docType = docTypeById.get(
+        String(quotation?.doc_type || '').trim(),
+      );
+      const isSelected =
+        String(selectedQuotationId || '').trim() === quotationId;
+      const hasRealCost = isSelected && purchaseCostTotals.hasPoData;
+
+      const sales = summary?.grandTotal;
+      const estimatedCost = summary?.costGrandTotal;
+      const realCost = hasRealCost ? purchaseCostTotals.total : null;
+
+      const estimatedProfitPercent =
+        Number.isFinite(estimatedCost) && estimatedCost > 0
+          ? ((sales - estimatedCost) / estimatedCost) * 100
+          : null;
+      const realProfitPercent =
+        Number.isFinite(realCost) && realCost > 0
+          ? ((sales - realCost) / realCost) * 100
+          : null;
+
+      const currencyCode =
+        toSafeString(summary?.baseCurrencyCode) || toSafeString(baseCurrencyCode);
 
       return [
         {
           label: 'Status:',
-          value:
-            quotation?.status === 'ordered'
-              ? 'Ordered'
-              : quotation?.status === 'pending'
-                ? 'Pending'
-                : quotation?.status === 'draft'
-                  ? 'Draft'
-                  : 'Quotation',
-          color: statusColorMap[statusId],
+          value: statusOption.name,
+          color: statusOption.color,
+        },
+        {
+          label: 'Document Type:',
+          value: docType?.name || '',
+          color: docType?.color || undefined,
         },
         {
           label: 'Customer:',
@@ -279,44 +373,46 @@ const SalesQuotationSidebar = ({
             '',
         },
         {
-          label: 'Shipping:',
-          value: `${summary.baseCurrencyCode} ${formatMoney(summary.shipping)}`,
+          label: 'Estimated Cost:',
+          value: `${currencyCode} ${formatMoney(estimatedCost)}`,
         },
         {
-          label: 'Products:',
-          value: `${summary.baseCurrencyCode} ${formatMoney(summary.product)}`,
+          label: 'Real Cost:',
+          value: Number.isFinite(realCost)
+            ? `${currencyCode} ${formatMoney(realCost)}`
+            : '-',
         },
         {
-          label: 'Services:',
-          value: `${summary.baseCurrencyCode} ${formatMoney(summary.service)}`,
+          label: 'Estimated Profit %:',
+          value: Number.isFinite(estimatedProfitPercent)
+            ? `${estimatedProfitPercent.toFixed(2)}%`
+            : '-',
         },
         {
-          label: 'Sales:',
-          value: `${summary.baseCurrencyCode} ${formatMoney(summary.grandTotal)}`,
-        },
-        {
-          label: 'Cost:',
-          value: `${summary.baseCurrencyCode} ${formatMoney(summary.costGrandTotal)}`,
-        },
-        {
-          label: 'Profit %:',
-          value: Number.isFinite(summary.profitPercent)
-            ? `${summary.profitPercent.toFixed(2)}%`
+          label: 'Real Profit %:',
+          value: Number.isFinite(realProfitPercent)
+            ? `${realProfitPercent.toFixed(2)}%`
             : '-',
         },
         {
           label: 'Updated At:',
           value: formatDateTime(quotation?.updated_at),
         },
+        {
+          label: 'Created At:',
+          value: formatDateTime(quotation?.created_at),
+        },
       ];
     },
     [
       baseCurrencyCode,
-      currencyCodeById,
       customerNameById,
-      exchangeRateMap,
+      docTypeById,
       formatDateTime,
-      statusColorMap,
+      purchaseCostTotals,
+      quotationTotalsById,
+      resolveStatusOption,
+      selectedQuotationId,
     ],
   );
 
@@ -363,9 +459,9 @@ const SalesQuotationSidebar = ({
           searchHistory={searchHistory}
           onSelectSearchHistory={handleSelectSearchHistory}
           onClearSearch={() => setSearchTerm('')}
-          searchPlaceholder="Search sales quotations..."
+          searchPlaceholder={searchPlaceholder}
           showCreateButton={false}
-          noResultsMessage="No sales quotations found"
+          noResultsMessage={noResultsMessage}
           getItemId={(quotation) => quotation.id}
           getItemTitle={getQuotationTitle}
           getItemRows={getQuotationRows}
@@ -374,9 +470,9 @@ const SalesQuotationSidebar = ({
             const customerName = getQuotationTitle(quotation);
             return customerName ? `${customerName} product` : 'Product';
           }}
-          exportFileName="sales_quotations_filtered_list"
-          exportSheetName="Sales Quotations"
-          sidebarTitle="Quotation List"
+          exportFileName={exportFileName}
+          exportSheetName={exportSheetName}
+          sidebarTitle={sidebarTitle}
         />
       </div>
 
@@ -392,4 +488,4 @@ const SalesQuotationSidebar = ({
   );
 };
 
-export default SalesQuotationSidebar;
+export default SalesSidebar;

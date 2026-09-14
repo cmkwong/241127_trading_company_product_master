@@ -2,7 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import Main_ProductMaster from '../components/panels/ProductMaster/Main_ProductMaster';
 import Main_SupplierMaster from '../components/panels/SupplierMaster/Main_SupplierMaster';
 import Main_CustomerMaster from '../components/panels/CustomerMaster/Main_CustomerMaster';
-import Main_SalesQuotation from '../components/panels/SalesQuotation/Main_SalesQuotation';
+import Main_SalesPanel from '../components/panels/SalesQuotation/Main_SalesPanel';
 import Main_PurchaseRequest from '../components/panels/PurchaseRequest/Main_PurchaseRequest';
 import Main_APInvoice from '../components/panels/APInvoice/Main_APInvoice';
 import Main_MasterControl from '../components/panels/MasterControl/Main_MasterControl';
@@ -33,16 +33,30 @@ const AppRouter = () => {
           element={<Main_CustomerMaster />}
         />
 
-        <Route path="sales_quotation" element={<Main_SalesQuotation />} />
+        <Route path="sales" element={<Main_SalesPanel />} />
+        <Route path="sales/:quotation_id" element={<Main_SalesPanel />} />
+
+        <Route
+          path="sales_quotation"
+          element={<Navigate to="/panel/sales" replace />}
+        />
         <Route
           path="sales_quotation/:quotation_id"
-          element={<Main_SalesQuotation />}
+          element={<Navigate to="/panel/sales" replace />}
         />
 
-        <Route path="purchase_request" element={<Main_PurchaseRequest />} />
+        <Route path="purchase" element={<Main_PurchaseRequest />} />
+        <Route
+          path="purchase/:purchase_request_id"
+          element={<Main_PurchaseRequest />}
+        />
+        <Route
+          path="purchase_request"
+          element={<Navigate to="/panel/purchase" replace />}
+        />
         <Route
           path="purchase_request/:purchase_request_id"
-          element={<Main_PurchaseRequest />}
+          element={<Navigate to="/panel/purchase" replace />}
         />
 
         <Route path="ap_invoice" element={<Main_APInvoice />} />

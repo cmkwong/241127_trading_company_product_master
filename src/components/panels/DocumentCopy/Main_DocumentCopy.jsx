@@ -75,7 +75,12 @@ const Main_DocumentCopy = ({
     const query = filterText.trim().toLowerCase();
     if (!query) return items;
     return items.filter((item) =>
-      [item.title, item.subtitle, item.meta]
+      [
+        item.title,
+        item.subtitle,
+        item.meta,
+        ...(Array.isArray(item.detailLines) ? item.detailLines : []),
+      ]
         .map((value) => toSafeString(value).toLowerCase())
         .join(' ')
         .includes(query),
@@ -267,6 +272,19 @@ const Main_DocumentCopy = ({
                       ) : null}
                       {item.meta ? (
                         <div className={styles.itemMeta}>{item.meta}</div>
+                      ) : null}
+                      {Array.isArray(item.detailLines) &&
+                      item.detailLines.length > 0 ? (
+                        <div className={styles.itemDetails}>
+                          {item.detailLines.map((line, lineIndex) => (
+                            <div
+                              key={`${item.key}-detail-${lineIndex}`}
+                              className={styles.itemDetailLine}
+                            >
+                              {line}
+                            </div>
+                          ))}
+                        </div>
                       ) : null}
                     </td>
                     <td className={styles.colQty}>{formatNumber(qty, 0)}</td>

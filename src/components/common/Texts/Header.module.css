@@ -31,27 +31,27 @@
 }
 
 .size_xl {
-  font-size: var(--font-size-5xl);
+  font-size: var(--font-size-xl);
   font-weight: var(--font-weight-semibold);
 }
 
 .size_l {
-  font-size: var(--font-size-xl);
+  font-size: var(--font-size-l);
   font-weight: var(--font-weight-semibold);
 }
 
 .size_m {
-  font-size: var(--font-size-xl);
+  font-size: var(--font-size-md);
   font-weight: var(--font-weight-semibold);
 }
 
 .size_s {
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-s);
   font-weight: var(--font-weight-semibold);
 }
 
 .size_xs {
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-xs);
   font-weight: var(--font-weight-bold);
 }
 

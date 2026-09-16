@@ -96,7 +96,7 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
     setIsSuppliersLoading(true);
     try {
       const response = await apiPost(
-        'http://localhost:3001/api/v1/trade_business/suppliers/data/list',
+        'http://localhost:3001/api/v1/trade_business/panel/suppliers/data/list',
         {
           includeBase64: true,
           compress: true,
@@ -145,7 +145,7 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
 
     try {
       const response = await apiGet(
-        'http://localhost:3001/api/v1/trade_business/suppliers/data/comparison-keys',
+        'http://localhost:3001/api/v1/trade_business/panel/suppliers/data/comparison-keys',
         { token },
       );
 
@@ -242,7 +242,7 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
     const current = getPageData();
     const preview = {
       endpoint:
-        'http://localhost:3001/api/v1/trade_business/suppliers/data/ids',
+        'http://localhost:3001/api/v1/trade_business/panel/suppliers/data/ids',
       method: 'PATCH + DELETE',
       create: {},
       update: {},
@@ -303,7 +303,7 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
           };
 
           const response = await apiPost(
-            'http://localhost:3001/api/v1/trade_business/suppliers/data/get/ids',
+            'http://localhost:3001/api/v1/trade_business/panel/suppliers/data/get/ids',
             requestBody,
             {
               token,
@@ -379,7 +379,7 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
 
           if (deletions) {
             await apiDelete(
-              'http://localhost:3001/api/v1/trade_business/suppliers/data/ids',
+              'http://localhost:3001/api/v1/trade_business/panel/suppliers/data/ids',
               {
                 token,
                 body: { data: deletions },
@@ -394,7 +394,7 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
             );
 
             await apiPatch(
-              'http://localhost:3001/api/v1/trade_business/suppliers/data/ids',
+              'http://localhost:3001/api/v1/trade_business/panel/suppliers/data/ids',
               { data: processedChanges },
               { token },
             );
@@ -448,7 +448,7 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
       }
 
       await apiDelete(
-        'http://localhost:3001/api/v1/trade_business/suppliers/data/ids',
+        'http://localhost:3001/api/v1/trade_business/panel/suppliers/data/ids',
         {
           token,
           body: {

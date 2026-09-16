@@ -14,7 +14,7 @@ import { ensureContextAvailable } from '../utils/contextDataUtils';
 export const MasterContext = createContext();
 
 const DEFAULT_MASTER_API_BASE =
-  'http://localhost:3001/api/v1/trade_business/master';
+  'http://localhost:3001/api/v1/trade_business/panel/master';
 const DEFAULT_TABLE_NAMES = [
   'master_address_types',
   'master_capacity_types',
@@ -452,12 +452,16 @@ export const MasterContext_Provider = ({ children }) => {
 
   const getDocTypeByName = useCallback(
     (name) => {
-      const normalized = String(name || '').trim().toLowerCase();
+      const normalized = String(name || '')
+        .trim()
+        .toLowerCase();
       if (!normalized) return null;
       return (
         (docType || []).find(
           (item) =>
-            String(item?.name || '').trim().toLowerCase() === normalized,
+            String(item?.name || '')
+              .trim()
+              .toLowerCase() === normalized,
         ) || null
       );
     },

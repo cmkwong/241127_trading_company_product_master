@@ -1358,7 +1358,7 @@ const MasterControlContent = () => {
     let hasRelatedChanges = false;
 
     const preview = {
-      endpoint: 'http://localhost:3001/api/v1/trade_business/master/rows',
+      endpoint: 'http://localhost:3001/api/v1/trade_business/panel/master/rows',
       method: 'POST',
       table: selectedTable,
       create: { [selectedTable]: createRows },

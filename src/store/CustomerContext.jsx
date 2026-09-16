@@ -53,7 +53,7 @@ const persistCustomers = (customersState) => {
 };
 
 const CUSTOMERS_API_BASE =
-  'http://localhost:3001/api/v1/trade_business/customers';
+  'http://localhost:3001/api/v1/trade_business/panel/customers';
 const CUSTOMER_ENTITY_KEY = 'customer';
 
 const getPageData = () => getEntityRecord(CUSTOMER_ENTITY_KEY);

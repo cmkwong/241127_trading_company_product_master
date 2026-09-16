@@ -558,6 +558,7 @@ const buildProductLineItems = ({
   productById,
   currencyCodeById,
   baseCurrencyCode,
+  showProductIcon = false,
 }) => {
   const productImageUrlsByDetail = buildImageUrlsByParent(
     quotation?.sales_product_detail_images,
@@ -586,7 +587,10 @@ const buildProductLineItems = ({
       const detailId = toSafeString(row?.id);
       const uploadedImageUrls = productImageUrlsByDetail.get(detailId) || [];
       const iconUrl = normalizeUrl(product?.icon_url);
-      const imageUrls = [iconUrl, ...uploadedImageUrls].filter(Boolean);
+      const imageUrls = [
+        ...(showProductIcon ? [iconUrl] : []),
+        ...uploadedImageUrls,
+      ].filter(Boolean);
       const uniqueImageUrls = [...new Set(imageUrls)];
 
       return {
@@ -1114,6 +1118,7 @@ export const buildQuotationViewData = ({
     baseCurrencyCode = 'USD',
     exchangeRateMap = { HKD: 1 },
     showTotalPrice = true,
+    showProductIcon = false,
   } = options;
 
   if (!quotation || !quotation?.id) {
@@ -1140,6 +1145,7 @@ export const buildQuotationViewData = ({
         productById,
         currencyCodeById,
         baseCurrencyCode,
+        showProductIcon,
       }),
     ),
     ...sortLineItemsByAmountDesc(

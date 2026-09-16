@@ -226,7 +226,7 @@ const Sub_ProductImagesRow = (props) => {
                 figmaStrip
                 label={subType.name}
                 showDownloadButton
-                downloadEndpoint="http://localhost:3001/api/v1/trade_business/products/data/images/download"
+                downloadEndpoint="http://localhost:3001/api/v1/trade_business/panel/products/data/images/download"
                 downloadRequestBody={{
                   product_id: productId,
                   image_type_id: subType.id,
@@ -263,7 +263,7 @@ const Sub_ProductImagesRow = (props) => {
                 )?.name || 'Main Type'
               } - main`}
               showDownloadButton
-              downloadEndpoint="http://localhost:3001/api/v1/trade_business/products/data/images/download"
+              downloadEndpoint="http://localhost:3001/api/v1/trade_business/panel/products/data/images/download"
               downloadRequestBody={{
                 product_id: productId,
                 image_type_id: mainImageTypeId,

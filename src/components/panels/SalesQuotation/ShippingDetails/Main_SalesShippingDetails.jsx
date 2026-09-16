@@ -855,7 +855,7 @@ const Main_SalesShippingDetails = ({
       {
         key: 'customer_address_id',
         label: 'Customer Address',
-        size: 'XXL',
+        size: 'XL',
         sortType: 'string',
         getSortValue: (row) =>
           addressSuggestionOptions.find(

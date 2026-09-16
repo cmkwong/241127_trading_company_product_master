@@ -35,14 +35,16 @@ import {
 
 export const SalesQuotationContext = createContext();
 
-const SALES_API_BASE = 'http://localhost:3001/api/v1/trade_business/sales';
+const SALES_API_BASE =
+  'http://localhost:3001/api/v1/trade_business/panel/sales';
 const CUSTOMERS_API_BASE =
-  'http://localhost:3001/api/v1/trade_business/customers';
+  'http://localhost:3001/api/v1/trade_business/panel/customers';
 const SUPPLIERS_API_BASE =
-  'http://localhost:3001/api/v1/trade_business/suppliers';
+  'http://localhost:3001/api/v1/trade_business/panel/suppliers';
 const PRODUCTS_API_BASE =
-  'http://localhost:3001/api/v1/trade_business/products';
-const MASTER_API_BASE = 'http://localhost:3001/api/v1/trade_business/master';
+  'http://localhost:3001/api/v1/trade_business/panel/products';
+const MASTER_API_BASE =
+  'http://localhost:3001/api/v1/trade_business/panel/master';
 
 const NO_CACHE_HEADERS = {
   'Cache-Control': 'no-cache, no-store, must-revalidate',
@@ -1864,6 +1866,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
 
   const duplicateSelectedSalesQuotation = useCallback(async () => {
     const selectedQuotation = getSalesQuotationPageData();
+    console.log('getSalesQuotationPageData: ', selectedQuotation);
 
     if (!selectedQuotation || !toSafeString(selectedQuotation?.id)) {
       throw new Error('No sales quotation selected to duplicate.');
@@ -2216,6 +2219,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
       customer_id: toSafeString(sourceQuotation?.customer_id),
       customer_address_id: toSafeString(sourceQuotation?.customer_address_id),
       posting_at: toDateOnlyString(sourceQuotation?.posting_at),
+      doc_type: toSafeString(sourceQuotation?.doc_type),
       header_proforma_percent: toPercentValue(
         sourceQuotation?.header_proforma_percent,
       ),

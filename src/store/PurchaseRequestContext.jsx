@@ -24,15 +24,17 @@ import {
 } from './GeneralContext';
 
 const PURCHASE_API_BASE =
-  'http://localhost:3001/api/v1/trade_business/purchase/data';
+  'http://localhost:3001/api/v1/trade_business/panel/purchase/data';
 const SUPPLIERS_API_BASE =
-  'http://localhost:3001/api/v1/trade_business/suppliers/data/list';
+  'http://localhost:3001/api/v1/trade_business/panel/suppliers/data/list';
 const PRODUCTS_API_BASE =
-  'http://localhost:3001/api/v1/trade_business/products/data/list';
+  'http://localhost:3001/api/v1/trade_business/panel/products/data/list';
 const CUSTOMERS_API_BASE =
-  'http://localhost:3001/api/v1/trade_business/customers/data';
-const MASTER_API_BASE = 'http://localhost:3001/api/v1/trade_business/master';
-const SALES_API_BASE = 'http://localhost:3001/api/v1/trade_business/sales/data';
+  'http://localhost:3001/api/v1/trade_business/panel/customers/data';
+const MASTER_API_BASE =
+  'http://localhost:3001/api/v1/trade_business/panel/master';
+const SALES_API_BASE =
+  'http://localhost:3001/api/v1/trade_business/panel/sales/data';
 
 const DEFAULT_PURCHASE_FILE_MAPPINGS = {
   purchase_shipping_images: { url: 'image_url', base64: 'base64_image' },

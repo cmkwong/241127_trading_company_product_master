@@ -199,7 +199,7 @@ export const buildMasterServiceImagesRelatedDryRunPreview = ({
   return {
     hasRelatedChanges: hasImageDelete || hasImageUpsert,
     relatedPayload: {
-      endpoint: 'http://localhost:3001/api/v1/trade_business/master/rows',
+      endpoint: 'http://localhost:3001/api/v1/trade_business/panel/master/rows',
       method: relatedMethod,
       createOrUpdate: {
         master_service_images: imageUpsertRows,
@@ -218,7 +218,8 @@ export const buildMasterServiceImagesRelatedDryRunPreview = ({
         },
       },
       deleteRequest: {
-        endpoint: 'http://localhost:3001/api/v1/trade_business/master/rows',
+        endpoint:
+          'http://localhost:3001/api/v1/trade_business/panel/master/rows',
         method: 'DELETE',
         body: {
           data: {

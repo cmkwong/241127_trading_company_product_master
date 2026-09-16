@@ -183,7 +183,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
     setIsProductsLoading(true);
     try {
       const response = await apiPost(
-        'http://localhost:3001/api/v1/trade_business/products/data/list',
+        'http://localhost:3001/api/v1/trade_business/panel/products/data/list',
         {
           includeBase64: false,
           fields: {
@@ -300,7 +300,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
 
       try {
         const response = await apiPost(
-          'http://localhost:3001/api/v1/trade_business/products/data/get/ids',
+          'http://localhost:3001/api/v1/trade_business/panel/products/data/get/ids',
           {
             includeBase64: true,
             iconOnly: true,
@@ -406,7 +406,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
 
     try {
       const response = await apiGet(
-        'http://localhost:3001/api/v1/trade_business/products/data/comparison-keys',
+        'http://localhost:3001/api/v1/trade_business/panel/products/data/comparison-keys',
         { token },
       );
 
@@ -520,7 +520,8 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
     const changesResult = getChangedData();
     const current = getPageData();
     const preview = {
-      endpoint: 'http://localhost:3001/api/v1/trade_business/products/data/ids',
+      endpoint:
+        'http://localhost:3001/api/v1/trade_business/panel/products/data/ids',
       method: 'PATCH + DELETE',
       create: {},
       update: {},
@@ -587,7 +588,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
         setIsProductsLoading(true);
         try {
           const response = await apiPost(
-            'http://localhost:3001/api/v1/trade_business/products/data/get/ids',
+            'http://localhost:3001/api/v1/trade_business/panel/products/data/get/ids',
             {
               includeBase64: true,
               compress: true,
@@ -699,7 +700,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
           // 1. Handle Deletions (DELETE)
           if (deletions) {
             await apiDelete(
-              'http://localhost:3001/api/v1/trade_business/products/data/ids',
+              'http://localhost:3001/api/v1/trade_business/panel/products/data/ids',
               {
                 token,
                 body: { data: deletions },
@@ -715,7 +716,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
             );
 
             await apiPatch(
-              'http://localhost:3001/api/v1/trade_business/products/data/ids',
+              'http://localhost:3001/api/v1/trade_business/panel/products/data/ids',
               { data: processedChanges },
               { token },
             );
@@ -770,7 +771,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
       }
 
       await apiDelete(
-        'http://localhost:3001/api/v1/trade_business/products/data/ids',
+        'http://localhost:3001/api/v1/trade_business/panel/products/data/ids',
         {
           token,
           body: {

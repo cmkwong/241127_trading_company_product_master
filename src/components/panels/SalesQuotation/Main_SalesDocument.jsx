@@ -265,6 +265,7 @@ const Main_SalesDocument = ({
 
   const handleDuplicateQuotation = useCallback(async () => {
     const selectedQuotation = getEntityRecord('sales_quotations');
+    console.log('selectedQuotation: ', selectedQuotation);
     if (
       !selectedQuotation ||
       !toSafeString(selectedQuotation?.id) ||

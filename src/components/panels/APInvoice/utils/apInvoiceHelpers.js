@@ -1,13 +1,13 @@
 import { processChangesWithBase64 } from '../../../../utils/objectUrlUtils';
 
 export const AP_API_BASE =
-  'http://localhost:3001/api/v1/trade_business/ap/data';
+  'http://localhost:3001/api/v1/trade_business/panel/ap/data';
 export const PURCHASE_API_BASE =
-  'http://localhost:3001/api/v1/trade_business/purchase/data';
+  'http://localhost:3001/api/v1/trade_business/panel/purchase/data';
 export const SUPPLIERS_API_BASE =
-  'http://localhost:3001/api/v1/trade_business/suppliers/data/list';
+  'http://localhost:3001/api/v1/trade_business/panel/suppliers/data/list';
 export const MASTER_API_BASE =
-  'http://localhost:3001/api/v1/trade_business/master';
+  'http://localhost:3001/api/v1/trade_business/panel/master';
 export const FILE_SERVER_BASE_URL = 'http://localhost:3001';
 
 export const AP_FILE_MAPPINGS = {

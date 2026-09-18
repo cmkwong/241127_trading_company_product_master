@@ -47,7 +47,7 @@ const Main_FileUploads = (props) => {
     downloadFileBaseName = 'files',
     downloadNameProductId = '',
     downloadNameImageType = '',
-    watermarkImagePath = '/assets/watermark_v1.png',
+    watermarkImagePath = '/assets/brand_logos/watermark_v1.png',
     fileUrlBase = '',
 
     // Initial state
@@ -78,6 +78,8 @@ const Main_FileUploads = (props) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isSequenceEditorOpen, setIsSequenceEditorOpen] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+  const [resizePercentage, setResizePercentage] = useState(50);
   const [applyWatermarkOnDownload, setApplyWatermarkOnDownload] =
     useState(true);
   const { addWatermarkToImageBlob } = useWatermarkFile({
@@ -126,6 +128,48 @@ const Main_FileUploads = (props) => {
     }
   }, []);
 
+  const readBlobAsDataUrl = useCallback((blob) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ''));
+      reader.onerror = () => {
+        reject(new Error('Failed to read image data.'));
+      };
+      reader.readAsDataURL(blob);
+    });
+  }, []);
+
+  const loadImageFromDataUrl = useCallback((dataUrl) => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error('Failed to decode image.'));
+      img.src = dataUrl;
+    });
+  }, []);
+
+  const canvasToBlob = useCallback((canvas, mimeType) => {
+    return new Promise((resolve, reject) => {
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            reject(new Error('Failed to generate resized image.'));
+            return;
+          }
+          resolve(blob);
+        },
+        mimeType,
+        0.92,
+      );
+    });
+  }, []);
+
+  const sanitizeResizePercentage = useCallback((value) => {
+    const num = Number(value);
+    if (!Number.isFinite(num)) return 50;
+    return Math.min(100, Math.max(1, Math.round(num)));
+  }, []);
+
   const getExtensionFromName = useCallback((filename = '') => {
     const base = String(filename || '');
     const idx = base.lastIndexOf('.');
@@ -143,6 +187,16 @@ const Main_FileUploads = (props) => {
     if (type.includes('webm')) return 'webm';
     if (type.includes('quicktime')) return 'mov';
     return 'bin';
+  }, []);
+
+  const getMimeFromExtension = useCallback((ext = '') => {
+    const e = String(ext || '').toLowerCase();
+    if (e === 'jpg' || e === 'jpeg') return 'image/jpeg';
+    if (e === 'png') return 'image/png';
+    if (e === 'webp') return 'image/webp';
+    if (e === 'gif') return 'image/gif';
+    if (e === 'bmp') return 'image/bmp';
+    return '';
   }, []);
 
   const buildDownloadFileName = useCallback(
@@ -359,11 +413,19 @@ const Main_FileUploads = (props) => {
         }
 
         if (blob) {
-          if (
-            applyWatermarkOnDownload &&
-            String(blob?.type || '').startsWith('image/')
-          ) {
-            blob = await addWatermarkToImageBlob(blob);
+          const blobType = String(blob?.type || '').toLowerCase();
+          const extForType = getExtensionFromName(
+            fallbackName || record?.image_name || record?.name || '',
+          );
+          const mimeFromExt = getMimeFromExtension(extForType);
+          const isImageBlob =
+            blobType.startsWith('image/') || Boolean(mimeFromExt);
+
+          if (applyWatermarkOnDownload && isImageBlob) {
+            blob = await addWatermarkToImageBlob(
+              blob,
+              mimeFromExt || blob.type,
+            );
           }
 
           const fileName = buildDownloadFileName(
@@ -418,6 +480,8 @@ const Main_FileUploads = (props) => {
     fileList,
     applyWatermarkOnDownload,
     addWatermarkToImageBlob,
+    getExtensionFromName,
+    getMimeFromExtension,
   ]);
 
   // Update state when defaultImages changes (for image mode)
@@ -635,6 +699,174 @@ const Main_FileUploads = (props) => {
     onChange(oldFiles, updatedFiles);
   }, [onChange]);
 
+  const handleResizeByPercentage = useCallback(async () => {
+    if (mode !== 'image') return;
+
+    const percentage = sanitizeResizePercentage(resizePercentage);
+    const selectedIdSet = new Set(
+      (selectedFileIds || []).map((id) => String(id || '').trim()),
+    );
+
+    if (selectedIdSet.size === 0) {
+      onError('Select at least one image to resize.');
+      return;
+    }
+
+    const oldFiles = [...fileListRef.current];
+    const updatedFiles = [...fileListRef.current];
+    const replacedIdMap = new Map();
+    let resizedCount = 0;
+
+    setIsResizing(true);
+    try {
+      for (let index = 0; index < oldFiles.length; index += 1) {
+        const record = oldFiles[index];
+        const recordId = String(record?.id || '').trim();
+        if (!selectedIdSet.has(recordId)) continue;
+
+        let sourceBlob = null;
+
+        if (record?.file instanceof Blob) {
+          sourceBlob = record.file;
+        }
+
+        const candidateUrl =
+          record?._original_file_url ||
+          record?.file_url ||
+          record?._original_image_url ||
+          record?.image_url ||
+          record?._original_url ||
+          record?.url ||
+          '';
+
+        if (!sourceBlob && String(candidateUrl || '').trim()) {
+          sourceBlob = await fetchBlobFromPath(
+            candidateUrl,
+            window.location.origin,
+          );
+        }
+
+        const base64Payload =
+          record?.base64_image || record?.base64_file || record?.base64;
+        if (!sourceBlob && base64Payload) {
+          sourceBlob = createBlobFromBase64(
+            base64Payload,
+            record?.name || record?.image_name || '',
+          );
+        }
+
+        if (!sourceBlob) {
+          continue;
+        }
+
+        const dataUrl = await readBlobAsDataUrl(sourceBlob);
+        const img = await loadImageFromDataUrl(dataUrl);
+
+        const factor = percentage / 100;
+        const targetWidth = Math.max(1, Math.round(img.width * factor));
+        const targetHeight = Math.max(1, Math.round(img.height * factor));
+
+        const canvas = document.createElement('canvas');
+        canvas.width = targetWidth;
+        canvas.height = targetHeight;
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          continue;
+        }
+
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+
+        const outputMime = String(sourceBlob.type || '').startsWith('image/')
+          ? sourceBlob.type
+          : 'image/jpeg';
+        const resizedBlob = await canvasToBlob(canvas, outputMime);
+
+        const existingName = String(
+          record?.name || record?.image_name || `image-${index + 1}`,
+        );
+        const extension =
+          getExtensionFromName(existingName) ||
+          getExtensionFromMime(outputMime);
+        const baseName =
+          extension && existingName.toLowerCase().endsWith(`.${extension}`)
+            ? existingName.slice(0, -(extension.length + 1))
+            : existingName;
+        const resizedName = `${baseName}-${percentage}pct.${extension}`;
+
+        const previousUrl = String(record?.url || '').trim();
+        if (previousUrl.startsWith('blob:')) {
+          URL.revokeObjectURL(previousUrl);
+        }
+
+        const nextId = uuidv4();
+        const resizedFile = new File([resizedBlob], resizedName, {
+          type: outputMime,
+        });
+
+        updatedFiles[index] = {
+          id: nextId,
+          file: resizedFile,
+          name: resizedName,
+          image_name: resizedName,
+          size: resizedBlob.size,
+          type: outputMime,
+          url: URL.createObjectURL(resizedBlob),
+          original_width: img.width,
+          original_height: img.height,
+          width: targetWidth,
+          height: targetHeight,
+          resize_from_width: img.width,
+          resize_from_height: img.height,
+          resize_to_width: targetWidth,
+          resize_to_height: targetHeight,
+          resize_dimension_preview: `${img.width}x${img.height} -> ${targetWidth}x${targetHeight}`,
+        };
+
+        replacedIdMap.set(recordId, nextId);
+        resizedCount += 1;
+      }
+
+      if (resizedCount === 0) {
+        onError('No selected images could be resized.');
+        return;
+      }
+
+      fileListRef.current = updatedFiles;
+      setFileList(updatedFiles);
+      setSelectedFileIds((prev) => {
+        return (prev || [])
+          .map((id) => {
+            const normalized = String(id || '').trim();
+            return replacedIdMap.get(normalized) || normalized;
+          })
+          .filter(Boolean);
+      });
+      onChange(oldFiles, updatedFiles);
+    } catch (error) {
+      console.error('Resize failed:', error);
+      onError(error?.message || 'Image resize failed.');
+    } finally {
+      setIsResizing(false);
+    }
+  }, [
+    mode,
+    sanitizeResizePercentage,
+    resizePercentage,
+    selectedFileIds,
+    onError,
+    fetchBlobFromPath,
+    createBlobFromBase64,
+    readBlobAsDataUrl,
+    loadImageFromDataUrl,
+    canvasToBlob,
+    getExtensionFromName,
+    getExtensionFromMime,
+    onChange,
+  ]);
+
   // Determine item type label for DropZone
   const itemType = mode === 'image' ? 'images' : 'files';
   const testIdPrefix = mode === 'image' ? 'image' : 'file';
@@ -726,6 +958,11 @@ const Main_FileUploads = (props) => {
       size: Number(file?.size || 0),
       type: String(file?.type || ''),
       url: resolveFileUrl(file?.url),
+      resizeDimensionPreview: String(file?.resize_dimension_preview || ''),
+      resizeFromWidth: Number(file?.resize_from_width || 0),
+      resizeFromHeight: Number(file?.resize_from_height || 0),
+      resizeToWidth: Number(file?.resize_to_width || file?.width || 0),
+      resizeToHeight: Number(file?.resize_to_height || file?.height || 0),
     }));
   }, [mode, fileList, resolveFileUrl]);
 
@@ -866,6 +1103,12 @@ const Main_FileUploads = (props) => {
           showSequencePreviewPanel={mode === 'image'}
           previewItems={sequencePreviewItems}
           onReorderPreview={handleMoveItem}
+          resizePercentage={resizePercentage}
+          onResizePercentageChange={(value) =>
+            setResizePercentage(sanitizeResizePercentage(value))
+          }
+          onResizeByPercentage={handleResizeByPercentage}
+          isResizing={isResizing}
           dropZoneProps={{
             ...baseDropZoneProps,
             testIdPrefix: `${testIdPrefix}-sequence-editor`,

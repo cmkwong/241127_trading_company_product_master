@@ -138,24 +138,29 @@ const buildChargeableWeightSummary = ({
     heightValue,
   );
 
-  let chargeablePerCarton = NaN;
-  if (
-    hasQty &&
-    (hasWeightPerCarton || Number.isFinite(volumetricWeightPerCarton))
-  ) {
-    const comparedWeight = Math.max(
-      hasWeightPerCarton ? weightValue : 0,
-      Number.isFinite(volumetricWeightPerCarton)
-        ? volumetricWeightPerCarton
-        : 0,
-    );
+  const comparedWeightPerCarton =
+    hasWeightPerCarton || Number.isFinite(volumetricWeightPerCarton)
+      ? Math.max(
+          hasWeightPerCarton ? weightValue : 0,
+          Number.isFinite(volumetricWeightPerCarton)
+            ? volumetricWeightPerCarton
+            : 0,
+        )
+      : NaN;
 
-    chargeablePerCarton = Math.max(comparedWeight, safeMinChargeableWeight);
-  }
+  const chargeablePerCarton =
+    hasQty && Number.isFinite(comparedWeightPerCarton)
+      ? Math.max(comparedWeightPerCarton, safeMinChargeableWeight)
+      : NaN;
 
-  const finalChargeableWeight =
+  const finalChargeableWeightSea =
     hasQty && Number.isFinite(chargeablePerCarton)
       ? chargeablePerCarton * qtyValue
+      : NaN;
+
+  const finalChargeableWeightAir =
+    hasQty && Number.isFinite(comparedWeightPerCarton)
+      ? comparedWeightPerCarton * qtyValue
       : NaN;
 
   return {
@@ -164,7 +169,9 @@ const buildChargeableWeightSummary = ({
     volumetricWeightPerCarton,
     volumetricWeightTotal,
     chargeablePerCarton,
-    finalChargeableWeight,
+    finalChargeableWeight: finalChargeableWeightSea,
+    finalChargeableWeightSea,
+    finalChargeableWeightAir,
     lengthPlusGirth,
     divisor: safeDivisor,
     minChargeableWeightPerCarton: safeMinChargeableWeight,
@@ -246,9 +253,14 @@ const buildShippingQuoteText = (row, addressPreview, summary) => {
         `Per Carton (with Min): ${formatWeight(summary.chargeablePerCarton)} kg`,
       );
     }
-    if (Number.isFinite(summary.finalChargeableWeight)) {
+    if (Number.isFinite(summary.finalChargeableWeightSea)) {
       lines.push(
-        `Final Chargeable: ${formatWeight(summary.finalChargeableWeight)} kg`,
+        `Final Chargeable(Sea): ${formatWeight(summary.finalChargeableWeightSea)} kg`,
+      );
+    }
+    if (Number.isFinite(summary.finalChargeableWeightAir)) {
+      lines.push(
+        `Final Chargeable(Air / Delivery Express): ${formatWeight(summary.finalChargeableWeightAir)} kg`,
       );
     }
     if (Number.isFinite(summary.lengthPlusGirth)) {
@@ -1276,12 +1288,25 @@ const Main_SalesShippingDetails = ({
                   </span>
                 </div>
 
-                <div className={styles.chargeableItemStrong}>
+                <div
+                  className={`${styles.chargeableItemStrong} ${styles.chargeableItemStrongHalf}`}
+                >
                   <span className={styles.chargeableLabel}>
-                    Final Chargeable
+                    Final Chargeable (Sea)
                   </span>
                   <span className={styles.chargeableValueStrong}>
-                    {formatWeight(summary.finalChargeableWeight)} kg
+                    {formatWeight(summary.finalChargeableWeightSea)} kg
+                  </span>
+                </div>
+
+                <div
+                  className={`${styles.chargeableItemStrong} ${styles.chargeableItemStrongHalf}`}
+                >
+                  <span className={styles.chargeableLabel}>
+                    Final Chargeable (Air / Delivery Express)
+                  </span>
+                  <span className={styles.chargeableValueStrong}>
+                    {formatWeight(summary.finalChargeableWeightAir)} kg
                   </span>
                 </div>
               </div>

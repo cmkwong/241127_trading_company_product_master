@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Main_InputContainer from '../../../common/Container/Main_InputContainer';
 import Main_TagInputField from '../../../common/InputOptions/Tagging/Main_TagInputField';
 import {
@@ -14,6 +14,16 @@ const Main_Category = () => {
   const productCategories = useEntityRows('products', 'product_categories');
 
   const [selectedCategoryIds, setSelectedCategoryIds] = useState([]);
+
+  const categoryOptions = useMemo(
+    () =>
+      (category || []).map((item) => {
+        const chineseName = String(item?.description_trad_chinese || '').trim();
+        if (!chineseName) return item;
+        return { ...item, name: `${item.name} (${chineseName})` };
+      }),
+    [category],
+  );
 
   useEffect(() => {
     setSelectedCategoryIds(
@@ -59,7 +69,7 @@ const Main_Category = () => {
     <Main_InputContainer label="Product Category">
       <Main_TagInputField
         key={`category-input`}
-        defaultOptions={category}
+        defaultOptions={categoryOptions}
         defaultSelectedOptions={selectedCategoryIds}
         onChange={handleCategoryChange}
         canAddNewOptions={false}

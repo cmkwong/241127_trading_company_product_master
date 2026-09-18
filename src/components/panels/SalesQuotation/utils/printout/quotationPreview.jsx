@@ -23,7 +23,7 @@ const DEFAULT_COMPANY_NAME = 'Rivolx Limited';
 const DEFAULT_COMPANY_ADDRESS =
   "RM A, 19/F MAX SHARE CTR 367-373 KING'S RD NORTH POINT, HONG KONG, China, Hong Kong";
 const DEFAULT_CONTACT_PERSON = 'Chris Cheung';
-const DEFAULT_COMPANY_LOGO_URL = '/assets/watermark_v1.png';
+const DEFAULT_COMPANY_LOGO_URL = '/assets/brand_logos/watermark_v1.png';
 const QUOTATION_VALID_DAYS = 15;
 const DEFAULT_DOWNPAYMENT_PERCENT = 30;
 const A4_FRAME_PX = getA4FramePx();

@@ -36,6 +36,10 @@ const Sub_SequenceEditorModal = ({
   showWatermarkToggle = false,
   applyWatermarkOnDownload = true,
   onToggleApplyWatermark = () => {},
+  resizePercentage = 50,
+  onResizePercentageChange = () => {},
+  onResizeByPercentage = () => {},
+  isResizing = false,
   selectionLabel = 'images',
   showSequencePreviewPanel = false,
   previewItems = [],
@@ -44,11 +48,18 @@ const Sub_SequenceEditorModal = ({
   children,
 }) => {
   const [showSortMenu, setShowSortMenu] = useState(false);
+  const [isPreviewExpanded, setIsPreviewExpanded] = useState(false);
   const [previewDragIndex, setPreviewDragIndex] = useState(null);
   const [previewDropTarget, setPreviewDropTarget] = useState({
     index: null,
     position: null,
   });
+
+  const resizePresets = [
+    { label: '25% smaller', value: 75 },
+    { label: '50% smaller', value: 50 },
+    { label: '75% smaller', value: 25 },
+  ];
 
   const canReorderPreview =
     showSequencePreviewPanel &&
@@ -365,93 +376,182 @@ const Sub_SequenceEditorModal = ({
           data-sequence-preview-window="true"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className={styles.sequencePreviewPanel}>
-            <div className={styles.sequencePreviewHeader}>
-              <span className={styles.sequencePreviewTitle}>
-                Description Preview
-              </span>
-              <span
-                className={styles.sequencePreviewCounter}
-              >{`${previewItems.length} items`}</span>
-            </div>
+          <div className={styles.sequenceSideRail}>
+            <section className={styles.toolsPanel}>
+              <div className={styles.toolsPanelHeader}>Tools</div>
 
-            <div className={styles.sequencePreviewList}>
-              {previewItems.length === 0 && (
-                <div className={styles.sequencePreviewEmpty}>
-                  No images to preview.
+              <div className={styles.toolsSection}>
+                <div className={styles.toolsSectionTitle}>Image Resize</div>
+                <div className={styles.resizeOptionHint}>By percentage</div>
+
+                <div className={styles.resizePresets}>
+                  {resizePresets.map((preset) => {
+                    const isActive = Number(resizePercentage) === preset.value;
+                    return (
+                      <button
+                        key={preset.value}
+                        type="button"
+                        className={`${styles.resizePresetBtn} ${
+                          isActive ? styles.resizePresetBtnActive : ''
+                        }`}
+                        onClick={() => onResizePercentageChange(preset.value)}
+                      >
+                        <span>{preset.label}</span>
+                        {isActive && (
+                          <span className={styles.resizeCheck}>✓</span>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
-              )}
 
-              {previewItems.map((item, itemIndex) => (
-                <article
-                  key={item?.id || `${item?.name || 'preview'}-${itemIndex}`}
-                  className={`${styles.sequencePreviewCard} ${
-                    canReorderPreview ? styles.sequencePreviewCardDraggable : ''
-                  } ${
-                    previewDragIndex === itemIndex
-                      ? styles.sequencePreviewCardDragging
-                      : ''
-                  } ${
-                    previewDropTarget.index === itemIndex &&
-                    previewDropTarget.position === 'before'
-                      ? styles.sequencePreviewCardDropBefore
-                      : ''
-                  } ${
-                    previewDropTarget.index === itemIndex &&
-                    previewDropTarget.position === 'after'
-                      ? styles.sequencePreviewCardDropAfter
-                      : ''
-                  }`}
-                  draggable={canReorderPreview}
-                  onDragStart={(event) =>
-                    handlePreviewDragStart(event, itemIndex)
-                  }
-                  onDragOver={(event) =>
-                    handlePreviewDragOver(event, itemIndex)
-                  }
-                  onDragLeave={handlePreviewDragLeave}
-                  onDrop={(event) => handlePreviewDrop(event, itemIndex)}
-                  onDragEnd={handlePreviewDragEnd}
-                  title={
-                    canReorderPreview
-                      ? 'Drag to reorder this preview image'
-                      : undefined
-                  }
+                <label
+                  className={styles.resizeCustomLabel}
+                  htmlFor="resize-percentage-input"
                 >
-                  <div className={styles.sequencePreviewImageWrap}>
-                    {item?.url ? (
-                      <img
-                        src={item.url}
-                        alt={item?.name || `Preview ${itemIndex + 1}`}
-                        className={styles.sequencePreviewImage}
-                      />
-                    ) : (
-                      <div className={styles.sequencePreviewImagePlaceholder}>
-                        No Preview
-                      </div>
-                    )}
-                    <div className={styles.sequencePreviewOrderBadge}>
-                      {itemIndex + 1}
-                    </div>
-                  </div>
+                  Custom percentage
+                </label>
+                <div className={styles.resizeCustomInputWrap}>
+                  <input
+                    id="resize-percentage-input"
+                    type="number"
+                    min="1"
+                    max="100"
+                    value={resizePercentage}
+                    onChange={(event) =>
+                      onResizePercentageChange(event.target.value)
+                    }
+                    className={styles.resizeCustomInput}
+                  />
+                  <span className={styles.resizePercentUnit}>%</span>
+                </div>
 
-                  {/* <div className={styles.sequencePreviewMeta}>
-                    <div
-                      className={styles.sequencePreviewName}
-                      title={item?.name || ''}
-                    >
-                      {item?.name || `Image ${itemIndex + 1}`}
+                <button
+                  type="button"
+                  className={styles.resizeApplyBtn}
+                  onClick={onResizeByPercentage}
+                  disabled={isResizing || totalCount === 0}
+                >
+                  {isResizing ? 'Resizing...' : 'Resize IMAGES'}
+                </button>
+              </div>
+            </section>
+
+            <div
+              className={`${styles.sequencePreviewPanel} ${
+                isPreviewExpanded ? styles.sequencePreviewPanelExpanded : ''
+              }`}
+            >
+              <div className={styles.sequencePreviewHeader}>
+                <span className={styles.sequencePreviewTitle}>
+                  Description Preview
+                </span>
+                <div className={styles.sequencePreviewHeaderRight}>
+                  <span
+                    className={styles.sequencePreviewCounter}
+                  >{`${previewItems.length} items`}</span>
+                  <button
+                    type="button"
+                    className={styles.previewExpandBtn}
+                    onClick={() => setIsPreviewExpanded((prev) => !prev)}
+                    title={
+                      isPreviewExpanded
+                        ? 'Restore preview window size'
+                        : 'Extend preview window'
+                    }
+                    aria-label={
+                      isPreviewExpanded
+                        ? 'Restore preview window size'
+                        : 'Extend preview window'
+                    }
+                  >
+                    {isPreviewExpanded ? 'Collapse' : 'Extend'}
+                  </button>
+                </div>
+              </div>
+
+              <div className={styles.sequencePreviewList}>
+                {previewItems.length === 0 && (
+                  <div className={styles.sequencePreviewEmpty}>
+                    No images to preview.
+                  </div>
+                )}
+
+                {previewItems.map((item, itemIndex) => (
+                  <article
+                    key={item?.id || `${item?.name || 'preview'}-${itemIndex}`}
+                    className={`${styles.sequencePreviewCard} ${
+                      canReorderPreview
+                        ? styles.sequencePreviewCardDraggable
+                        : ''
+                    } ${
+                      previewDragIndex === itemIndex
+                        ? styles.sequencePreviewCardDragging
+                        : ''
+                    } ${
+                      previewDropTarget.index === itemIndex &&
+                      previewDropTarget.position === 'before'
+                        ? styles.sequencePreviewCardDropBefore
+                        : ''
+                    } ${
+                      previewDropTarget.index === itemIndex &&
+                      previewDropTarget.position === 'after'
+                        ? styles.sequencePreviewCardDropAfter
+                        : ''
+                    }`}
+                    draggable={canReorderPreview}
+                    onDragStart={(event) =>
+                      handlePreviewDragStart(event, itemIndex)
+                    }
+                    onDragOver={(event) =>
+                      handlePreviewDragOver(event, itemIndex)
+                    }
+                    onDragLeave={handlePreviewDragLeave}
+                    onDrop={(event) => handlePreviewDrop(event, itemIndex)}
+                    onDragEnd={handlePreviewDragEnd}
+                    title={
+                      canReorderPreview
+                        ? 'Drag to reorder this preview image'
+                        : undefined
+                    }
+                  >
+                    <div className={styles.sequencePreviewImageWrap}>
+                      {item?.url ? (
+                        <img
+                          src={item.url}
+                          alt={item?.name || `Preview ${itemIndex + 1}`}
+                          className={styles.sequencePreviewImage}
+                        />
+                      ) : (
+                        <div className={styles.sequencePreviewImagePlaceholder}>
+                          No Preview
+                        </div>
+                      )}
+                      <div className={styles.sequencePreviewOrderBadge}>
+                        {itemIndex + 1}
+                      </div>
                     </div>
-                    <div className={styles.sequencePreviewInfoRow}>
-                      <span>{`${itemIndex + 1} / ${previewItems.length}`}</span>
-                      {formatFileSize(item?.size) && <span>•</span>}
-                      {formatFileSize(item?.size) && (
-                        <span>{formatFileSize(item?.size)}</span>
+                    <div className={styles.sequencePreviewMetaBar}>
+                      {item?.resizeDimensionPreview ? (
+                        <span className={styles.sequencePreviewDimensionText}>
+                          {item.resizeDimensionPreview}
+                        </span>
+                      ) : item?.resizeToWidth > 0 &&
+                        item?.resizeToHeight > 0 ? (
+                        <span className={styles.sequencePreviewDimensionText}>
+                          {`${item.resizeToWidth}x${item.resizeToHeight}`}
+                        </span>
+                      ) : (
+                        <span
+                          className={styles.sequencePreviewDimensionTextMuted}
+                        >
+                          Dimensions pending
+                        </span>
                       )}
                     </div>
-                  </div> */}
-                </article>
-              ))}
+                  </article>
+                ))}
+              </div>
             </div>
           </div>
         </aside>
@@ -484,6 +584,10 @@ Sub_SequenceEditorModal.propTypes = {
   showWatermarkToggle: PropTypes.bool,
   applyWatermarkOnDownload: PropTypes.bool,
   onToggleApplyWatermark: PropTypes.func,
+  resizePercentage: PropTypes.number,
+  onResizePercentageChange: PropTypes.func,
+  onResizeByPercentage: PropTypes.func,
+  isResizing: PropTypes.bool,
   selectionLabel: PropTypes.string,
   showSequencePreviewPanel: PropTypes.bool,
   previewItems: PropTypes.arrayOf(
@@ -493,6 +597,11 @@ Sub_SequenceEditorModal.propTypes = {
       size: PropTypes.number,
       type: PropTypes.string,
       url: PropTypes.string,
+      resizeDimensionPreview: PropTypes.string,
+      resizeFromWidth: PropTypes.number,
+      resizeFromHeight: PropTypes.number,
+      resizeToWidth: PropTypes.number,
+      resizeToHeight: PropTypes.number,
     }),
   ),
   onReorderPreview: PropTypes.func,

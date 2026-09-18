@@ -171,6 +171,10 @@
   background: #eff6ff;
 }
 
+.chargeableItemStrongHalf {
+  grid-column: span 1;
+}
+
 .chargeableLabel {
   font-size: 11px;
   color: #64748b;

@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import AddNewBtn from '../../../common/Buttons/AddNewBtn';
-import EditableDataForm from '../../../common/Forms/EditableDataForm';
+import Main_EditableTables from '../../../common/Tables/Main_EditableTables';
 import styles from '../Main_MasterControl.module.css';
 
 const MasterControlTablePanel = ({
@@ -10,6 +10,10 @@ const MasterControlTablePanel = ({
   rowKey,
   onAddRow,
   canAddRow = true,
+  canEdit = true,
+  onCellChange,
+  onInsertRowAfter,
+  onDeleteRow,
 }) => {
   const isEmpty = (rows || []).length === 0;
 
@@ -32,11 +36,15 @@ const MasterControlTablePanel = ({
       {error ? <div className={styles.error}>{error}</div> : null}
 
       <div className={styles.tableWrap}>
-        <EditableDataForm
+        <Main_EditableTables
           rows={rows}
           columns={columns}
           rowKey={rowKey}
           emptyMessage={emptyMessage}
+          canEdit={canEdit}
+          onCellChange={onCellChange}
+          onInsertRowAfter={onInsertRowAfter}
+          onDeleteRow={onDeleteRow}
         />
       </div>
     </section>
@@ -44,3 +52,4 @@ const MasterControlTablePanel = ({
 };
 
 export default memo(MasterControlTablePanel);
+

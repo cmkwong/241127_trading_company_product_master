@@ -1,0 +1,25 @@
+.excelInput {
+  width: 100%;
+  height: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  padding: 0 2px;
+  margin: 0;
+  font-size: var(--font-size-md);
+  font-family: inherit;
+  color: var(--color-text-heavy);
+  line-height: 22px;
+  box-sizing: border-box;
+}
+
+.excelInput::-webkit-outer-spin-button,
+.excelInput::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.excelInput[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}

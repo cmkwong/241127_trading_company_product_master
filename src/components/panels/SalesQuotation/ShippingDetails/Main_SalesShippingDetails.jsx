@@ -929,6 +929,7 @@ const Main_SalesShippingDetails = ({
         label: 'Length',
         size: 'M',
         sortType: 'number',
+        nextRow: true,
         renderCell: (row) => (
           <Main_TextField
             className={styles.cellInput}

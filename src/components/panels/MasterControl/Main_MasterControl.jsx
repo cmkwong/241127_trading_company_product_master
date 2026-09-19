@@ -3,8 +3,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useAuthContext } from '../../../store/AuthContext';
 import { useMasterContext } from '../../../store/MasterContext';
-import AddNewBtn from '../../common/Buttons/AddNewBtn';
-import DeleteBtn from '../../common/Buttons/DeleteBtn';
 import Main_Dropdown from '../../common/InputOptions/Dropdown/Main_Dropdown';
 import Main_DateSelector from '../../common/InputOptions/Date/Main_DateSelector';
 import Main_FileUploads from '../../common/InputOptions/FileUploads/Main_FileUploads';
@@ -20,6 +18,7 @@ import MasterControlSavePageContainer from './Container/MasterControlSavePageCon
 import {
   asInputValue,
   isBooleanType,
+  isNumberType,
   normalizeReferenceTarget,
   parseInputValue,
 } from './utils/masterControlUtils';
@@ -1009,6 +1008,8 @@ const MasterControlContent = () => {
             key: '__hierarchy_path',
             label: 'Hierarchy',
             sortable: true,
+            fillable: false,
+            width: '240px',
             getSortValue: (row) => {
               const key = row?.id || row?._localId;
               return hierarchyPathByRowKey.get(key) || '';
@@ -1024,76 +1025,99 @@ const MasterControlContent = () => {
         ]
       : [];
 
-    const dataColumns = columns.map((column) => ({
-      key: column,
-      label: column,
-      sortable: true,
-      renderCell: (row) => {
-        const rowKey = row?.id || row?._localId;
+    const dataColumns = columns.map((column) => {
+      const isReadonly = column === 'created_at' || column === 'updated_at';
+      const fieldType = schemaFieldByColumn[column]?.type;
+      const isBoolean = isBooleanType(fieldType);
+      const isDate = isDateType(fieldType);
+      const isSelfRef = column === selfReferenceField;
+      const foreignKeyConfig = foreignKeyConfigByColumn[column];
+      const isForeignKey = Boolean(foreignKeyConfig);
+      const isPlain = !isBoolean && !isDate && !isSelfRef && !isForeignKey;
 
-        const isReadonly = column === 'created_at' || column === 'updated_at';
+      const base = {
+        key: column,
+        label: column,
+        sortable: true,
+        fillField: column,
+        getCellValue: (row) => row?.[column],
+      };
 
-        if (isBooleanType(schemaFieldByColumn[column]?.type)) {
-          return (
-            <input
-              type="checkbox"
-              checked={Boolean(row?.[column])}
-              onChange={(event) =>
-                handleCellChange(rowKey, column, event.target.checked)
-              }
-              disabled={isReadonly || !canEdit}
-            />
-          );
-        }
+      if (isPlain) {
+        return {
+          ...base,
+          type: isNumberType(fieldType) ? 'number' : 'text',
+          editable: !isReadonly,
+          fillable: !isReadonly,
+        };
+      }
 
-        if (isDateType(schemaFieldByColumn[column]?.type)) {
-          return (
-            <Main_DateSelector
-              defaultValue={normalizeDateOnlyValue(row?.[column])}
-              onChange={(ov, nv) =>
-                handleCellChange(rowKey, column, formatLocalIsoDateString(nv))
-              }
-              disabled={isReadonly || !canEdit}
-            />
-          );
-        }
+      return {
+        ...base,
+        fillable: false,
+        renderCell: (row) => {
+          const rowKey = row?.id || row?._localId;
 
-        if (column === selfReferenceField) {
-          if (
-            selectedTable === 'master_supplier_types' ||
-            selectedTable === 'master_categories'
-          ) {
-            const currentId = String(row?.[column] || '').trim();
-            const displayValue =
-              selfReferenceSuggestionMaps.idToLabel.get(currentId) || currentId;
-
+          if (isBoolean) {
             return (
-              <Main_Suggest
-                defaultSuggestions={selfReferenceSuggestionMaps.suggestions}
-                defaultValue={displayValue}
-                onChange={(ov, nv) => {
-                  const resolved = resolveSuggestionToReferenceId(nv);
-                  if (!resolved.resolved) return;
-                  handleCellChange(rowKey, column, resolved.value);
-                }}
-                placeholder="Type to search parent..."
+              <input
+                type="checkbox"
+                checked={Boolean(row?.[column])}
+                onChange={(event) =>
+                  handleCellChange(rowKey, column, event.target.checked)
+                }
+                disabled={isReadonly || !canEdit}
               />
             );
           }
 
-          return (
-            <Main_Dropdown
-              defaultOptions={selfReferenceOptions}
-              defaultSelectedOption={String(row?.[column] || '')}
-              onChange={(ov, nv) => handleCellChange(rowKey, column, nv)}
-              size="S"
-              disabled={!canEdit || isSaving}
-            />
-          );
-        }
+          if (isDate) {
+            return (
+              <Main_DateSelector
+                defaultValue={normalizeDateOnlyValue(row?.[column])}
+                onChange={(ov, nv) =>
+                  handleCellChange(rowKey, column, formatLocalIsoDateString(nv))
+                }
+                disabled={isReadonly || !canEdit}
+              />
+            );
+          }
 
-        const foreignKeyConfig = foreignKeyConfigByColumn[column];
-        if (foreignKeyConfig) {
+          if (isSelfRef) {
+            if (
+              selectedTable === 'master_supplier_types' ||
+              selectedTable === 'master_categories'
+            ) {
+              const currentId = String(row?.[column] || '').trim();
+              const displayValue =
+                selfReferenceSuggestionMaps.idToLabel.get(currentId) ||
+                currentId;
+
+              return (
+                <Main_Suggest
+                  defaultSuggestions={selfReferenceSuggestionMaps.suggestions}
+                  defaultValue={displayValue}
+                  onChange={(ov, nv) => {
+                    const resolved = resolveSuggestionToReferenceId(nv);
+                    if (!resolved.resolved) return;
+                    handleCellChange(rowKey, column, resolved.value);
+                  }}
+                  placeholder="Type to search parent..."
+                />
+              );
+            }
+
+            return (
+              <Main_Dropdown
+                defaultOptions={selfReferenceOptions}
+                defaultSelectedOption={String(row?.[column] || '')}
+                onChange={(ov, nv) => handleCellChange(rowKey, column, nv)}
+                size="S"
+                disabled={!canEdit || isSaving}
+              />
+            );
+          }
+
           const currentId = String(row?.[column] || '').trim();
           const displayValue =
             foreignKeyConfig.idToLabel.get(currentId) || currentId;
@@ -1110,19 +1134,9 @@ const MasterControlContent = () => {
               placeholder={`Type to search ${foreignKeyConfig.referencedTable}...`}
             />
           );
-        }
-
-        return (
-          <Main_TextField
-            defaultValue={asInputValue(row?.[column])}
-            onChange={(ov, nv) => handleCellChange(rowKey, column, nv)}
-            disabled={isReadonly || !canEdit}
-            className={styles.cellTextField}
-            placeholder=""
-          />
-        );
-      },
-    }));
+        },
+      };
+    });
 
     const serviceImageColumn =
       selectedTable === 'master_services'
@@ -1131,6 +1145,8 @@ const MasterControlContent = () => {
               key: '__service_images',
               label: 'Service Images',
               sortable: false,
+              fillable: false,
+              width: '220px',
               renderCell: (row) => {
                 const relationId = String(row?.id || '').trim();
 
@@ -1171,35 +1187,10 @@ const MasterControlContent = () => {
       ...hierarchyColumn,
       ...dataColumns,
       ...serviceImageColumn,
-      {
-        key: '__actions',
-        label: 'Actions',
-        sortable: false,
-        renderCell: (row) => {
-          return (
-            <div className={styles.rowActionsGroup}>
-              <AddNewBtn
-                text="Insert Below"
-                onClick={() => handleInsertRowAfter(row)}
-                className={styles.inlineInsertBtn}
-                disabled={isSaving || !canEdit}
-              />
-              <DeleteBtn
-                text="Delete"
-                onClick={() => handleDeleteRow(row)}
-                disabled={isSaving || !canEdit}
-                className={styles.inlineDeleteBtn}
-              />
-            </div>
-          );
-        },
-      },
     ];
   }, [
     columns,
     handleCellChange,
-    handleDeleteRow,
-    handleInsertRowAfter,
     handleMasterServiceImagesChange,
     hierarchyPathByRowKey,
     isSaving,
@@ -1557,6 +1548,10 @@ const MasterControlContent = () => {
               rowKey={(row, rowIndex) => row.id || row._localId || rowIndex}
               onAddRow={handleAddRow}
               canAddRow={canEdit && !isSaving}
+              canEdit={canEdit && !isSaving}
+              onCellChange={handleCellChange}
+              onInsertRowAfter={handleInsertRowAfter}
+              onDeleteRow={handleDeleteRow}
             />
           )}
         </div>

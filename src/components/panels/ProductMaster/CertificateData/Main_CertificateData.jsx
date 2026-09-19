@@ -4,9 +4,7 @@ import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
 import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
 import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_FileUploads';
 import Main_InputContainer from '../../../common/Container/Main_InputContainer';
-import AddNewBtn from '../../../common/Buttons/AddNewBtn';
-import DeleteBtn from '../../../common/Buttons/DeleteBtn';
-import EditableDataTable from '../../../common/Table/EditableDataTable';
+import EditableDataForm from '../../../common/Forms/EditableDataForm';
 import {
   upsertEntityData,
   useEntityRows,
@@ -216,41 +214,24 @@ const Main_CertificateData = () => {
           />
         ),
       },
-      {
-        key: 'actions',
-        label: 'Actions',
-        size: 'S',
-        sortable: false,
-        renderCell: (row) => (
-          <DeleteBtn onClick={() => handleDeleteCertificateRow(row)} />
-        ),
-      },
     ],
     [
       certTypeOptions,
       upsertCertificateRow,
       handleCertificateFilesChange,
-      handleDeleteCertificateRow,
     ],
   );
 
   return (
     <Main_InputContainer label="Certificates">
-      <div
-        style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}
-      >
-        <AddNewBtn
-          onClick={handleAddCertificateRow}
-          text="Add Certificate"
-          ariaLabel="Add new certificate"
-          title="Add Certificate"
-        />
-      </div>
-      <EditableDataTable
+      <EditableDataForm
         rows={certificateRows}
         columns={columns}
         rowKey="id"
         emptyMessage="No certificates yet. Click Add Certificate."
+        onAddRow={handleAddCertificateRow}
+        addRowText="Add Certificate"
+        onRemoveRow={handleDeleteCertificateRow}
       />
     </Main_InputContainer>
   );

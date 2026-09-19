@@ -7,9 +7,7 @@ import Sub_SuggestionCard from '../../../common/InputOptions/Suggest/Sub_Suggest
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
 import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
 import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_FileUploads';
-import AddNewBtn from '../../../common/Buttons/AddNewBtn';
-import DeleteBtn from '../../../common/Buttons/DeleteBtn';
-import EditableDataTable from '../../../common/Table/EditableDataTable';
+import EditableDataForm from '../../../common/Forms/EditableDataForm';
 import {
   useEntityField,
   useEntityRows,
@@ -698,16 +696,6 @@ const Main_SalesProductDetails = ({
           );
         },
       },
-      {
-        key: 'actions',
-        label: 'Actions',
-        size: 'S',
-        sortable: false,
-        nextRow: true,
-        renderCell: (row) => (
-          <DeleteBtn onClick={() => handleDeleteProductDetail(row)} />
-        ),
-      },
     ],
     [
       productDropdownOptions,
@@ -716,7 +704,6 @@ const Main_SalesProductDetails = ({
       productInternalImages,
       productInternalFiles,
       handleUpsertProductDetail,
-      handleDeleteProductDetail,
       handleProductImagesChange,
       handleProductInternalImagesChange,
       handleProductInternalFilesChange,
@@ -726,20 +713,14 @@ const Main_SalesProductDetails = ({
   return (
     <Main_InputContainer label="Sales Product Details">
       <div className={styles.tableSection}>
-        <div className={styles.actionsBar}>
-          <AddNewBtn
-            onClick={handleAddProductDetail}
-            text="Add Product Detail"
-            ariaLabel="Add new product detail"
-            title="Add Product Detail"
-          />
-        </div>
-
-        <EditableDataTable
+        <EditableDataForm
           rows={productDetails}
           columns={productColumns}
           rowKey="id"
           emptyMessage="No product details yet. Click + Add Product Detail."
+          onAddRow={handleAddProductDetail}
+          addRowText="Add Product Detail"
+          onRemoveRow={handleDeleteProductDetail}
         />
       </div>
     </Main_InputContainer>

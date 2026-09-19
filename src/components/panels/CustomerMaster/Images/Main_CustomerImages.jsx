@@ -4,9 +4,7 @@ import Main_InputContainer from '../../../common/Container/Main_InputContainer';
 import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
 import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_FileUploads';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
-import AddNewBtn from '../../../common/Buttons/AddNewBtn';
-import DeleteBtn from '../../../common/Buttons/DeleteBtn';
-import EditableDataTable from '../../../common/Table/EditableDataTable';
+import EditableDataForm from '../../../common/Forms/EditableDataForm';
 import {
   upsertEntityData,
   useEntityField,
@@ -191,40 +189,25 @@ const Main_CustomerImages = () => {
           />
         ),
       },
-      {
-        key: 'actions',
-        label: 'Actions',
-        sortable: false,
-        renderCell: (row) => (
-          <DeleteBtn onClick={() => handleDeleteImageRow(row)} />
-        ),
-      },
     ],
     [
       imageTypeOptions,
       upsertImageRow,
       handleImageUploadChange,
-      handleDeleteImageRow,
     ],
   );
 
   return (
     <Main_InputContainer label="Customer Images">
       <div className={styles.tableSection}>
-        <div className={styles.actionsBar}>
-          <AddNewBtn
-            onClick={handleAddImageRow}
-            text="Add Image"
-            ariaLabel="Add new image"
-            title="Add Image"
-          />
-        </div>
-
-        <EditableDataTable
+        <EditableDataForm
           rows={sortedRows}
           columns={columns}
           rowKey="id"
           emptyMessage="No images yet. Click + Add Image."
+          onAddRow={handleAddImageRow}
+          addRowText="Add Image"
+          onRemoveRow={handleDeleteImageRow}
         />
       </div>
     </Main_InputContainer>

@@ -5,9 +5,7 @@ import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
 import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_FileUploads';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
 import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
-import AddNewBtn from '../../../common/Buttons/AddNewBtn';
-import DeleteBtn from '../../../common/Buttons/DeleteBtn';
-import EditableDataTable from '../../../common/Table/EditableDataTable';
+import EditableDataForm from '../../../common/Forms/EditableDataForm';
 import {
   upsertEntityData,
   useEntityField,
@@ -235,14 +233,6 @@ const Main_SupplierServices = () => {
         ),
       },
       {
-        key: 'actions',
-        label: 'Actions',
-        sortable: false,
-        renderCell: (row) => (
-          <DeleteBtn onClick={() => handleDeleteServiceRow(row)} />
-        ),
-      },
-      {
         key: 'remark',
         label: 'Remark',
         sortType: 'string',
@@ -349,27 +339,20 @@ const Main_SupplierServices = () => {
       handleUploadsError,
       serviceImages,
       handleServiceFilesChange,
-      handleDeleteServiceRow,
     ],
   );
 
   return (
     <Main_InputContainer label="Supplier Services">
       <div className={styles.tableSection}>
-        <div className={styles.actionsBar}>
-          <AddNewBtn
-            onClick={handleAddServiceRow}
-            text="Add Service"
-            ariaLabel="Add new service"
-            title="Add Service"
-          />
-        </div>
-
-        <EditableDataTable
+        <EditableDataForm
           rows={serviceRows}
           columns={columns}
           rowKey="id"
           emptyMessage="No services yet. Click + Add Service."
+          onAddRow={handleAddServiceRow}
+          addRowText="Add Service"
+          onRemoveRow={handleDeleteServiceRow}
         />
       </div>
     </Main_InputContainer>

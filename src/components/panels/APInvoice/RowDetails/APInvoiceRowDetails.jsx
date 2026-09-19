@@ -4,9 +4,7 @@ import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
 import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
 import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_FileUploads';
-import AddNewBtn from '../../../common/Buttons/AddNewBtn';
-import DeleteBtn from '../../../common/Buttons/DeleteBtn';
-import EditableDataTable from '../../../common/Table/EditableDataTable';
+import EditableDataForm from '../../../common/Forms/EditableDataForm';
 
 const APInvoiceRowDetails = ({
   rowDetails = [],
@@ -175,12 +173,6 @@ const APInvoiceRowDetails = ({
           />
         ),
       },
-      {
-        key: 'actions',
-        label: 'Actions',
-        sortable: false,
-        renderCell: (row) => <DeleteBtn onClick={() => onDeleteRow?.(row)} />,
-      },
     ],
     [
       buildDefaultUploadFiles,
@@ -189,27 +181,20 @@ const APInvoiceRowDetails = ({
       invoiceTypeDropdownOptions,
       onChangeFiles,
       onChangeImages,
-      onDeleteRow,
       onPatchRow,
     ],
   );
 
   return (
     <Main_InputContainer label="AP Invoice Row Details">
-      <div style={{ marginBottom: '10px' }}>
-        <AddNewBtn
-          text="Add Row Detail"
-          onClick={onAddRow}
-          title="Add AP invoice row detail"
-          ariaLabel="Add AP invoice row detail"
-        />
-      </div>
-
-      <EditableDataTable
+      <EditableDataForm
         rows={rowDetails}
         columns={columns}
         rowKey="id"
         emptyMessage="No row details yet. Click + Add Row Detail."
+        onAddRow={onAddRow}
+        addRowText="Add Row Detail"
+        onRemoveRow={onDeleteRow}
       />
     </Main_InputContainer>
   );

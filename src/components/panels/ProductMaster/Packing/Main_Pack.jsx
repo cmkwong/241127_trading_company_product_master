@@ -6,8 +6,7 @@ import Main_TextField from '../../../common/InputOptions/TextField/Main_TextFiel
 import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
 import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_FileUploads';
 import Main_InputContainer from '../../../common/Container/Main_InputContainer';
-import DeleteBtn from '../../../common/Buttons/DeleteBtn';
-import EditableDataTable from '../../../common/Table/EditableDataTable';
+import EditableDataForm from '../../../common/Forms/EditableDataForm';
 import {
   upsertEntityData,
   useEntityRows,
@@ -311,18 +310,6 @@ const Main_Pack = () => {
         ),
       },
       {
-        key: 'actions',
-        label: 'Actions',
-        sortable: false,
-        width: '90px',
-        minWidth: '90px',
-        maxWidth: '90px',
-        cellClassName: styles.tableCell,
-        renderCell: (row) => (
-          <DeleteBtn onClick={() => handleDeletePackRow(row)} />
-        ),
-      },
-      {
         key: 'remark',
         label: 'Remark',
         sortable: false,
@@ -382,7 +369,6 @@ const Main_Pack = () => {
       dropdownPackTypeOptions,
       dropdownReliabilityOptions,
       upsertPackRow,
-      handleDeletePackRow,
       handlePackFilesChange,
     ],
   );
@@ -399,17 +385,15 @@ const Main_Pack = () => {
         placeholder="Search logistics attributes..."
       />
 
-      <Main_InputContainer
-        label="Packing Details"
-        layout="column"
-        onAddNew={handleAddPackRow}
-        addNewText="Add Packing"
-      >
-        <EditableDataTable
+      <Main_InputContainer label="Packing Details" layout="column">
+        <EditableDataForm
           rows={packRows}
           columns={columns}
           rowKey="id"
           emptyMessage="No packing rows yet. Click + Add Packing."
+          onAddRow={handleAddPackRow}
+          addRowText="Add Packing"
+          onRemoveRow={handleDeletePackRow}
         />
       </Main_InputContainer>
     </Main_InputContainer>

@@ -1,6 +1,6 @@
 import { useMemo, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import EditableDataTable from '../../../common/Table/EditableDataTable';
+import EditableDataForm from '../../../common/Forms/EditableDataForm';
 import {
   upsertEntityData,
   useEntityRows,
@@ -182,33 +182,15 @@ const PriceByQtyTable = () => {
             row.sale_price,
           ),
       },
-      {
-        key: 'actions',
-        label: 'Actions',
-        sortable: false,
-        width: '80px',
-        minWidth: '80px',
-        maxWidth: '80px',
-        renderCell: (row) => (
-          <button
-            type="button"
-            className={styles.addTierBtn}
-            style={{ color: '#ef4444' }}
-            onClick={() => handleDelete(row)}
-          >
-            Delete
-          </button>
-        ),
-      },
     ],
-    [currencies, handleFieldChange, handleDelete],
+    [currencies, handleFieldChange],
   );
 
   return (
     <div className={styles.container}>
       <div className={styles.mainRow}>
         <div className={styles.tableSection}>
-          <EditableDataTable
+          <EditableDataForm
             rows={rows}
             columns={columns}
             rowKey="id"
@@ -216,20 +198,12 @@ const PriceByQtyTable = () => {
             onFillCellChange={(row, field, value) =>
               handleFieldChange(row, field, value)
             }
+            onAddRow={handleAddTier}
+            addRowText="Add Price Tier"
+            addRowDisabled={rows.length >= MAX_TIERS}
+            addRowHint={`Max ${MAX_TIERS} tiers allowed`}
+            onRemoveRow={handleDelete}
           />
-          <div className={styles.addTierRow}>
-            <button
-              type="button"
-              className={styles.addTierBtn}
-              disabled={rows.length >= MAX_TIERS}
-              onClick={handleAddTier}
-            >
-              + Add Price Tier
-            </button>
-            <span className={styles.addTierHint}>
-              Max {MAX_TIERS} tiers allowed
-            </span>
-          </div>
         </div>
 
         {previewRows.length > 0 && (

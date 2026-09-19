@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import AddNewBtn from '../../../common/Buttons/AddNewBtn';
-import EditableDataTable from '../../../common/Table/EditableDataTable';
+import EditableDataForm from '../../../common/Forms/EditableDataForm';
 import styles from '../Main_MasterControl.module.css';
 
 const MasterControlTablePanel = ({
@@ -32,7 +32,7 @@ const MasterControlTablePanel = ({
       {error ? <div className={styles.error}>{error}</div> : null}
 
       <div className={styles.tableWrap}>
-        <EditableDataTable
+        <EditableDataForm
           rows={rows}
           columns={columns}
           rowKey={rowKey}

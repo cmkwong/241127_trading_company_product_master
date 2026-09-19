@@ -4,7 +4,7 @@ import Main_InputContainer from '../../../common/Container/Main_InputContainer';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
 import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
 import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
-import EditableDataTable from '../../../common/Table/EditableDataTable';
+import EditableDataForm from '../../../common/Forms/EditableDataForm';
 import {
   upsertEntityData,
   useEntityField,
@@ -12,8 +12,6 @@ import {
 } from '../../../../store/GeneralContext';
 import { useMasterContext } from '../../../../store/MasterContext';
 import styles from './Main_SupplierLinks.module.css';
-import AddNewBtn from '../../../common/Buttons/AddNewBtn';
-import DeleteBtn from '../../../common/Buttons/DeleteBtn';
 
 const Main_SupplierLinks = () => {
   const { supplierLinkType } = useMasterContext();
@@ -110,34 +108,21 @@ const Main_SupplierLinks = () => {
           />
         ),
       },
-      {
-        key: 'actions',
-        label: 'Actions',
-        sortable: false,
-        renderCell: (row) => (
-          <DeleteBtn onClick={() => handleDeleteLinkRow(row)} />
-        ),
-      },
     ],
-    [supplierLinkType, upsertLinkRow, handleDeleteLinkRow],
+    [supplierLinkType, upsertLinkRow],
   );
 
   return (
     <Main_InputContainer label="Supplier Links">
       <div className={styles.tableSection}>
-        <div className={styles.actionsBar}>
-          <AddNewBtn
-            onClick={handleAddLinkRow}
-            ariaLabel="Add new link"
-            title="Add New Link"
-          />
-        </div>
-
-        <EditableDataTable
+        <EditableDataForm
           rows={linkRows}
           columns={columns}
           rowKey="id"
           emptyMessage="No links yet. Click + Add Link."
+          onAddRow={handleAddLinkRow}
+          addRowText="Add New Link"
+          onRemoveRow={handleDeleteLinkRow}
         />
       </div>
     </Main_InputContainer>

@@ -1,5 +1,5 @@
 .deleteBtn {
-  display: inline-flex;
+  display: block;
   align-items: center;
   gap: 6px;
   border: 0;

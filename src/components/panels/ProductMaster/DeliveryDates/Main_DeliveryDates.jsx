@@ -1,6 +1,6 @@
 import { useMemo, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import EditableDataTable from '../../../common/Table/EditableDataTable';
+import EditableDataForm from '../../../common/Forms/EditableDataForm';
 import {
   upsertEntityData,
   useEntityRows,
@@ -9,7 +9,6 @@ import {
 import { useMasterContext } from '../../../../store/MasterContext';
 import styles from './Main_DeliveryDates.module.css';
 import Main_InputContainer from '../../../common/Container/Main_InputContainer';
-import DeleteBtn from '../../../common/Buttons/DeleteBtn';
 
 const MAX_RANGES = 3;
 const DEFAULT_UNIT_LABEL = 'Pcs';
@@ -164,26 +163,15 @@ const Main_DeliveryDates = () => {
             row.delivery_day,
           ),
       },
-      {
-        key: 'actions',
-        label: 'Actions',
-        sortable: false,
-        width: '80px',
-        minWidth: '80px',
-        maxWidth: '80px',
-        renderCell: (row) => (
-          <DeleteBtn text="Delete" onClick={() => handleDelete(row)} />
-        ),
-      },
     ],
-    [handleFieldChange, handleDelete],
+    [handleFieldChange],
   );
 
   return (
     <Main_InputContainer label="Delivery Dates">
       <div className={styles.layout}>
         <div className={styles.left}>
-          <EditableDataTable
+          <EditableDataForm
             rows={rows}
             columns={columns}
             rowKey="id"
@@ -191,20 +179,12 @@ const Main_DeliveryDates = () => {
             onFillCellChange={(row, field, value) =>
               handleFieldChange(row, field, value)
             }
+            onAddRow={handleAddRange}
+            addRowText="Add Quantity Range"
+            addRowDisabled={rows.length >= MAX_RANGES}
+            addRowHint={`Max ${MAX_RANGES} ranges allowed`}
+            onRemoveRow={handleDelete}
           />
-          <div className={styles.addRow}>
-            <button
-              type="button"
-              className={styles.addBtn}
-              disabled={rows.length >= MAX_RANGES}
-              onClick={handleAddRange}
-            >
-              + Add Quantity Range
-            </button>
-            <span className={styles.addHint}>
-              Max {MAX_RANGES} ranges allowed
-            </span>
-          </div>
         </div>
 
         {previewRows.length > 0 && (

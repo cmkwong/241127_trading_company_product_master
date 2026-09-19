@@ -5,8 +5,7 @@ import Main_TextField from '../../../common/InputOptions/TextField/Main_TextFiel
 import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
 import Main_DateSelector from '../../../common/InputOptions/Date/Main_DateSelector';
 import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_FileUploads';
-import DeleteBtn from '../../../common/Buttons/DeleteBtn';
-import EditableDataTable from '../../../common/Table/EditableDataTable';
+import EditableDataForm from '../../../common/Forms/EditableDataForm';
 import {
   upsertEntityData,
   useEntityRows,
@@ -175,18 +174,6 @@ const Main_ProductLink = () => {
         ),
       },
       {
-        key: 'actions',
-        label: 'Actions',
-        sortable: false,
-        width: '110px',
-        minWidth: '90px',
-        maxWidth: '220px',
-        cellClassName: styles.middleCell,
-        renderCell: (row) => (
-          <DeleteBtn onClick={() => handleDeleteLinkRow(row)} />
-        ),
-      },
-      {
         key: 'remark',
         label: 'Remark',
         sortable: false,
@@ -269,21 +256,20 @@ const Main_ProductLink = () => {
         },
       },
     ],
-    [upsertLinkRow, handleLinkImagesChange, handleDeleteLinkRow, productId],
+    [upsertLinkRow, handleLinkImagesChange, productId],
   );
 
   return (
-    <Main_InputContainer
-      label="Product Links"
-      onAddNew={handleAddLinkRow}
-      addNewText="Add Product Link"
-    >
+    <Main_InputContainer label="Product Links">
       <div className={styles.tableSection}>
-        <EditableDataTable
+        <EditableDataForm
           rows={productLinks}
           columns={columns}
           rowKey="id"
           emptyMessage="No product links yet. Click + Add Product Link."
+          onAddRow={handleAddLinkRow}
+          addRowText="Add Product Link"
+          onRemoveRow={handleDeleteLinkRow}
         />
       </div>
     </Main_InputContainer>

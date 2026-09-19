@@ -4,9 +4,7 @@ import Main_InputContainer from '../../../common/Container/Main_InputContainer';
 import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
 import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
-import AddNewBtn from '../../../common/Buttons/AddNewBtn';
-import DeleteBtn from '../../../common/Buttons/DeleteBtn';
-import EditableDataTable from '../../../common/Table/EditableDataTable';
+import EditableDataForm from '../../../common/Forms/EditableDataForm';
 import {
   upsertEntityData,
   useEntityField,
@@ -129,40 +127,25 @@ const Main_CustomerNames = () => {
           />
         ),
       },
-      {
-        key: 'actions',
-        label: 'Actions',
-        sortable: false,
-        renderCell: (row) => (
-          <DeleteBtn onClick={() => handleDeleteNameRow(row)} />
-        ),
-      },
     ],
     [
       customerNameTypeOptions,
       getRowNameTypeId,
       upsertNameRow,
-      handleDeleteNameRow,
     ],
   );
 
   return (
     <Main_InputContainer label="Customer Names">
       <div className={styles.tableSection}>
-        <div className={styles.actionsBar}>
-          <AddNewBtn
-            onClick={handleAddNameRow}
-            text="Add Name"
-            ariaLabel="Add new name"
-            title="Add Name"
-          />
-        </div>
-
-        <EditableDataTable
+        <EditableDataForm
           rows={nameRows}
           columns={columns}
           rowKey="id"
           emptyMessage="No names yet. Click + Add Name."
+          onAddRow={handleAddNameRow}
+          addRowText="Add Name"
+          onRemoveRow={handleDeleteNameRow}
         />
       </div>
     </Main_InputContainer>

@@ -5,9 +5,7 @@ import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
 import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
 import Main_Suggest from '../../../common/InputOptions/Suggest/Main_Suggest';
 import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_FileUploads';
-import AddNewBtn from '../../../common/Buttons/AddNewBtn';
-import DeleteBtn from '../../../common/Buttons/DeleteBtn';
-import EditableDataTable from '../../../common/Table/EditableDataTable';
+import EditableDataForm from '../../../common/Forms/EditableDataForm';
 import styles from '../Main_PurchaseRequest.module.css';
 
 const toSafeString = (value) => String(value || '').trim();
@@ -324,14 +322,6 @@ const PurchaseRequestShippingDetails = ({
           </div>
         ),
       },
-      {
-        key: 'actions',
-        label: 'Actions',
-        size: 'S',
-        sortable: false,
-        nextRow: true,
-        renderCell: (row) => <DeleteBtn onClick={() => onRemove?.(row?.id)} />,
-      },
     ],
     [
       buildDefaultUploadFiles,
@@ -341,7 +331,6 @@ const PurchaseRequestShippingDetails = ({
       quotationSuggestionOptions,
       onFilesChange,
       onQuotationSuggestionSelect,
-      onRemove,
       onSetField,
     ],
   );
@@ -349,22 +338,14 @@ const PurchaseRequestShippingDetails = ({
   return (
     <Main_InputContainer label="Shipping Details">
       <div className={styles.tableSection}>
-        <div className={styles.tableActions}>
-          <div className={styles.tableActionsRight}>
-            <AddNewBtn
-              onClick={onAdd}
-              text="Add Shipping Detail"
-              ariaLabel="Add shipping detail"
-              title="Add shipping detail"
-            />
-          </div>
-        </div>
-
-        <EditableDataTable
+        <EditableDataForm
           rows={rows}
           columns={columns}
           rowKey="id"
           emptyMessage="No shipping details yet. Click + Add Shipping Detail."
+          onAddRow={onAdd}
+          addRowText="Add Shipping Detail"
+          onRemoveRow={(row) => onRemove?.(row?.id)}
         />
       </div>
     </Main_InputContainer>

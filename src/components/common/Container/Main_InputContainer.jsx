@@ -1,14 +1,7 @@
-import AddNewBtn from '../Buttons/AddNewBtn';
 import Header from '../Texts/Header';
 import styles from './Main_InputContainer.module.css';
 
-const Main_InputContainer = ({
-  label: title,
-  children,
-  layout = 'column',
-  onAddNew,
-  addNewText = 'Add New',
-}) => {
+const Main_InputContainer = ({ label: title, children, layout = 'column' }) => {
   return (
     <div
       className={
@@ -21,7 +14,6 @@ const Main_InputContainer = ({
         ) : (
           title
         )}
-        {onAddNew && <AddNewBtn onClick={onAddNew} text={addNewText} />}
       </div>
       <div className={styles.inputContainer}>{children}</div>
     </div>

@@ -3,8 +3,7 @@ import Main_Suggest from '../../../common/InputOptions/Suggest/Main_Suggest';
 import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
 import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_FileUploads';
 import Main_InputContainer from '../../../common/Container/Main_InputContainer';
-import DeleteBtn from '../../../common/Buttons/DeleteBtn';
-import EditableDataTable from '../../../common/Table/EditableDataTable';
+import EditableDataForm from '../../../common/Forms/EditableDataForm';
 import {
   upsertEntityData,
   useEntityRows,
@@ -203,18 +202,6 @@ const Main_Customization = () => {
         ),
       },
       {
-        key: 'actions',
-        label: 'Actions',
-        sortable: false,
-        width: '90px',
-        minWidth: '90px',
-        maxWidth: '90px',
-        cellClassName: styles.tableCell,
-        renderCell: (row) => (
-          <DeleteBtn onClick={() => handleDeleteCustomizationRow(row)} />
-        ),
-      },
-      {
         key: 'remark',
         label: 'Remark',
         sortable: false,
@@ -276,23 +263,21 @@ const Main_Customization = () => {
       supplierSuggestions,
       customizationOptionSuggestions,
       upsertCustomizationRow,
-      handleDeleteCustomizationRow,
       handleCustomizationImagesChange,
     ],
   );
 
   return (
-    <Main_InputContainer
-      label="Customization Options"
-      onAddNew={handleAddCustomizationRow}
-      addNewText="Add Customization"
-    >
+    <Main_InputContainer label="Customization Options">
       <div className={styles.tableSection}>
-        <EditableDataTable
+        <EditableDataForm
           rows={customizations}
           columns={columns}
           rowKey="id"
           emptyMessage="No customizations yet. Click + Add Customization."
+          onAddRow={handleAddCustomizationRow}
+          addRowText="Add Customization"
+          onRemoveRow={handleDeleteCustomizationRow}
         />
       </div>
     </Main_InputContainer>

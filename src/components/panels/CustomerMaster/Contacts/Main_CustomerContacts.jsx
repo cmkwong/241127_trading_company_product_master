@@ -4,9 +4,7 @@ import Main_InputContainer from '../../../common/Container/Main_InputContainer';
 import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
 import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
-import AddNewBtn from '../../../common/Buttons/AddNewBtn';
-import DeleteBtn from '../../../common/Buttons/DeleteBtn';
-import EditableDataTable from '../../../common/Table/EditableDataTable';
+import EditableDataForm from '../../../common/Forms/EditableDataForm';
 import {
   upsertEntityData,
   useEntityField,
@@ -149,35 +147,21 @@ const Main_CustomerContacts = () => {
           />
         ),
       },
-      {
-        key: 'actions',
-        label: 'Actions',
-        sortable: false,
-        renderCell: (row) => (
-          <DeleteBtn onClick={() => handleDeleteContactRow(row)} />
-        ),
-      },
     ],
-    [contactTypeOptions, upsertContactRow, handleDeleteContactRow],
+    [contactTypeOptions, upsertContactRow],
   );
 
   return (
     <Main_InputContainer label="Customer Contacts">
       <div className={styles.tableSection}>
-        <div className={styles.actionsBar}>
-          <AddNewBtn
-            onClick={handleAddContactRow}
-            text="Add Contact"
-            ariaLabel="Add new contact"
-            title="Add Contact"
-          />
-        </div>
-
-        <EditableDataTable
+        <EditableDataForm
           rows={contactRows}
           columns={columns}
           rowKey="id"
           emptyMessage="No contacts yet. Click + Add Contact."
+          onAddRow={handleAddContactRow}
+          addRowText="Add Contact"
+          onRemoveRow={handleDeleteContactRow}
         />
       </div>
     </Main_InputContainer>

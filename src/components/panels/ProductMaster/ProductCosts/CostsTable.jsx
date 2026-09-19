@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import EditableDataTable from '../../../common/Table/EditableDataTable';
+import EditableDataForm from '../../../common/Forms/EditableDataForm';
 import { getCapacityLabel } from './productCostsUtils';
 import styles from './CostsTable.module.css';
 
@@ -135,7 +135,7 @@ const CostsTable = ({
   );
 
   return (
-    <EditableDataTable
+    <EditableDataForm
       rows={gridRows}
       columns={columns}
       rowKey="id"

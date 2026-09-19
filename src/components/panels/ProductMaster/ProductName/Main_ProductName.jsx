@@ -4,6 +4,7 @@ import Main_InputContainer from '../../../common/Container/Main_InputContainer';
 import Main_Suggest from '../../../common/InputOptions/Suggest/Main_Suggest';
 import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
 import RemoveRowBtn from '../../../common/Buttons/RemoveRowBtn';
+import AddNewBtn from '../../../common/Buttons/AddNewBtn';
 import EmptyState from '../../../common/State/EmptyState';
 import {
   upsertEntityData,
@@ -180,11 +181,7 @@ const Main_ProductName = () => {
   );
 
   return (
-    <Main_InputContainer
-      label="Product Names"
-      onAddNew={handleRowAdd}
-      addNewText="Add Name"
-    >
+    <Main_InputContainer label="Product Names">
       <div className={styles.namesList}>
         {rowIds.length === 0 ? (
           <EmptyState message="No product names added yet." />
@@ -251,6 +248,9 @@ const Main_ProductName = () => {
             );
           })
         )}
+      </div>
+      <div className={styles.addRow}>
+        <AddNewBtn onClick={handleRowAdd} text="Add Name" />
       </div>
     </Main_InputContainer>
   );

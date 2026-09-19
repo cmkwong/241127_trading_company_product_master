@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import EditableDataTable from '../../../common/Table/EditableDataTable';
+import EditableDataForm from '../../../common/Forms/EditableDataForm';
 import {
   upsertEntityData,
   useEntityField,
@@ -364,7 +364,7 @@ const PriceByVariantsTable = () => {
   );
 
   return (
-    <EditableDataTable
+    <EditableDataForm
       rows={gridRows}
       columns={columns}
       rowKey="id"

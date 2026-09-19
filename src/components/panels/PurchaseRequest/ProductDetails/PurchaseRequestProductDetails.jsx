@@ -5,9 +5,7 @@ import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
 import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
 import Main_Suggest from '../../../common/InputOptions/Suggest/Main_Suggest';
 import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_FileUploads';
-import AddNewBtn from '../../../common/Buttons/AddNewBtn';
-import DeleteBtn from '../../../common/Buttons/DeleteBtn';
-import EditableDataTable from '../../../common/Table/EditableDataTable';
+import EditableDataForm from '../../../common/Forms/EditableDataForm';
 import styles from '../Main_PurchaseRequest.module.css';
 
 const toSafeString = (value) => String(value || '').trim();
@@ -209,13 +207,6 @@ const PurchaseRequestProductDetails = ({
         ),
       },
       {
-        key: 'actions',
-        label: 'Actions',
-        size: 'S',
-        sortable: false,
-        renderCell: (row) => <DeleteBtn onClick={() => onRemove?.(row?.id)} />,
-      },
-      {
         key: 'currency_id',
         label: 'Currency',
         size: 'L',
@@ -333,7 +324,6 @@ const PurchaseRequestProductDetails = ({
       currencyDropdownOptions,
       onImageFilesChange,
       onFilesChange,
-      onRemove,
       onSetField,
       productSuggestionOptions,
       quotationSuggestionOptions,
@@ -346,22 +336,14 @@ const PurchaseRequestProductDetails = ({
   return (
     <Main_InputContainer label="Product Details">
       <div className={styles.tableSection}>
-        <div className={styles.tableActions}>
-          <div className={styles.tableActionsRight}>
-            <AddNewBtn
-              onClick={onAdd}
-              text="Add Product Detail"
-              ariaLabel="Add product detail"
-              title="Add product detail"
-            />
-          </div>
-        </div>
-
-        <EditableDataTable
+        <EditableDataForm
           rows={rows}
           columns={columns}
           rowKey="id"
           emptyMessage="No product details yet. Click + Add Product Detail."
+          onAddRow={onAdd}
+          addRowText="Add Product Detail"
+          onRemoveRow={(row) => onRemove?.(row?.id)}
         />
       </div>
     </Main_InputContainer>

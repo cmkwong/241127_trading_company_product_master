@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import Main_InputContainer from '../../../common/Container/Main_InputContainer';
 import EmptyState from '../../../common/State/EmptyState';
+import AddNewBtn from '../../../common/Buttons/AddNewBtn';
+import RemoveRowBtn from '../../../common/Buttons/RemoveRowBtn';
 import {
   upsertEntityData,
   useEntityRows,
@@ -80,11 +82,7 @@ const Main_ProductImages = () => {
   );
 
   return (
-    <Main_InputContainer
-      label="Product Images"
-      onAddNew={handleRowAdd}
-      addNewText="Add Image Row"
-    >
+    <Main_InputContainer label="Product Images">
       <div className={styles.list}>
         {rowIds.length === 0 ? (
           <EmptyState message="No image rows added yet." />
@@ -99,20 +97,13 @@ const Main_ProductImages = () => {
               <div className={styles.rowBadge}>
                 <span className={styles.rowBadgeText}>{rowIndex + 1}</span>
               </div>
-              <button
-                type="button"
-                className={styles.removeButton}
-                onClick={() => handleRowRemove(rowId)}
-                title="Remove row"
-                aria-label={`Remove row ${rowIndex + 1}`}
-              >
-                <svg viewBox="0 0 16 16" aria-hidden="true">
-                  <path d="M3 8h10" />
-                </svg>
-              </button>
+              <RemoveRowBtn onClick={() => handleRowRemove(rowId)} />
             </div>
           ))
         )}
+      </div>
+      <div className={styles.addRow}>
+        <AddNewBtn onClick={handleRowAdd} text="Add Image Row" />
       </div>
     </Main_InputContainer>
   );

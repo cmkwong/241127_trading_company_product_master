@@ -4,7 +4,7 @@ import Main_InputContainer from '../../../common/Container/Main_InputContainer';
 import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
 import Main_RadioGroup from '../../../common/InputOptions/RadioGroup/Main_RadioGroup';
-import EditableDataTable from '../../../common/Table/EditableDataTable';
+import EditableDataForm from '../../../common/Forms/EditableDataForm';
 import {
   upsertEntityData,
   useEntityField,
@@ -436,7 +436,7 @@ const Main_SampleServices = () => {
           <>
             <p className={styles.sectionTitle}>Sample Price</p>
 
-            <EditableDataTable
+            <EditableDataForm
               rows={gridRows}
               columns={columns}
               rowKey="id"

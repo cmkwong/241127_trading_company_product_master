@@ -7,9 +7,7 @@ import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
 import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
 import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_FileUploads';
-import AddNewBtn from '../../../common/Buttons/AddNewBtn';
-import DeleteBtn from '../../../common/Buttons/DeleteBtn';
-import EditableDataTable from '../../../common/Table/EditableDataTable';
+import EditableDataForm from '../../../common/Forms/EditableDataForm';
 import {
   useEntityField,
   useEntityRows,
@@ -1340,16 +1338,6 @@ const Main_SalesShippingDetails = ({
           );
         },
       },
-      {
-        key: 'actions',
-        label: 'Actions',
-        size: 'S',
-        nextRow: true,
-        sortable: false,
-        renderCell: (row) => (
-          <DeleteBtn onClick={() => handleDeleteShippingDetail(row)} />
-        ),
-      },
     ],
     [
       addressSuggestionOptions,
@@ -1361,7 +1349,6 @@ const Main_SalesShippingDetails = ({
       handleShippingInternalImagesChange,
       handleShippingInternalFilesChange,
       handleUpsertShippingDetail,
-      handleDeleteShippingDetail,
     ],
   );
 
@@ -1626,7 +1613,7 @@ const Main_SalesShippingDetails = ({
       },
       {
         key: 'delivery_lead_time_from',
-        label: 'Lead Time From (Days)',
+        label: 'Lead Days From',
         size: 'M',
         sortType: 'number',
         renderCell: (row) => (
@@ -1645,7 +1632,7 @@ const Main_SalesShippingDetails = ({
       },
       {
         key: 'delivery_lead_time_to',
-        label: 'Lead Time To (Days)',
+        label: 'Lead Days To',
         size: 'M',
         sortType: 'number',
         renderCell: (row) => (
@@ -1841,16 +1828,6 @@ const Main_SalesShippingDetails = ({
           );
         },
       },
-      {
-        key: 'actions',
-        label: 'Actions',
-        size: 'S',
-        nextRow: true,
-        sortable: false,
-        renderCell: (row) => (
-          <DeleteBtn onClick={() => handleDeleteShippingPrice(row)} />
-        ),
-      },
     ],
     [
       supplierDropdownOptions,
@@ -1865,7 +1842,6 @@ const Main_SalesShippingDetails = ({
       handleShippingPriceImagesChange,
       handleShippingPriceInternalImagesChange,
       handleShippingPriceInternalFilesChange,
-      handleDeleteShippingPrice,
     ],
   );
 
@@ -1873,20 +1849,14 @@ const Main_SalesShippingDetails = ({
     <div className={styles.sectionStack}>
       <Main_InputContainer label="Sales Shipping Details">
         <div className={styles.tableSection}>
-          <div className={styles.actionsBar}>
-            <AddNewBtn
-              onClick={handleAddShippingDetail}
-              text="Add Shipping Detail"
-              ariaLabel="Add new shipping detail"
-              title="Add Shipping Detail"
-            />
-          </div>
-
-          <EditableDataTable
+          <EditableDataForm
             rows={shippingDetails}
             columns={shippingDetailColumns}
             rowKey="id"
             emptyMessage="No shipping details yet. Click + Add Shipping Detail."
+            onAddRow={handleAddShippingDetail}
+            addRowText="Add Shipping Detail"
+            onRemoveRow={handleDeleteShippingDetail}
           />
 
           <div className={styles.pricesByDetailSection}>
@@ -1932,16 +1902,9 @@ const Main_SalesShippingDetails = ({
                 >
                   <div className={styles.detailPriceHeader}>
                     <h4 className={styles.detailPriceTitle}>{detailLabel}</h4>
-                    <AddNewBtn
-                      onClick={() => handleAddShippingPrice(detailId)}
-                      text="Add Shipping Price"
-                      ariaLabel={`Add shipping price for ${detailLabel}`}
-                      title="Add Shipping Price"
-                      disabled={!detailId}
-                    />
                   </div>
 
-                  <EditableDataTable
+                  <EditableDataForm
                     rows={shippingPrices.filter(
                       (item) =>
                         String(item?.sales_shipping_detail_id || '') ===
@@ -1950,6 +1913,10 @@ const Main_SalesShippingDetails = ({
                     columns={shippingPriceColumns}
                     rowKey="id"
                     emptyMessage="No shipping prices for this detail yet."
+                    onAddRow={() => handleAddShippingPrice(detailId)}
+                    addRowText="Add Shipping Price"
+                    addRowDisabled={!detailId}
+                    onRemoveRow={handleDeleteShippingPrice}
                   />
                 </div>
               );

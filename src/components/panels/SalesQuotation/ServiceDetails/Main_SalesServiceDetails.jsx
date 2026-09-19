@@ -7,9 +7,7 @@ import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
 import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
 import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_FileUploads';
-import AddNewBtn from '../../../common/Buttons/AddNewBtn';
-import DeleteBtn from '../../../common/Buttons/DeleteBtn';
-import EditableDataTable from '../../../common/Table/EditableDataTable';
+import EditableDataForm from '../../../common/Forms/EditableDataForm';
 import {
   useEntityField,
   useEntityRows,
@@ -732,16 +730,6 @@ const Main_SalesServiceDetails = ({
           );
         },
       },
-      {
-        key: 'actions',
-        label: 'Actions',
-        size: 'S',
-        sortable: false,
-        nextRow: true,
-        renderCell: (row) => (
-          <DeleteBtn onClick={() => handleDeleteServiceDetail(row)} />
-        ),
-      },
     ],
     [
       supplierDropdownOptions,
@@ -751,7 +739,6 @@ const Main_SalesServiceDetails = ({
       serviceInternalImages,
       serviceInternalFiles,
       handleUpsertServiceDetail,
-      handleDeleteServiceDetail,
       handleServiceImagesChange,
       handleServiceInternalImagesChange,
       handleServiceInternalFilesChange,
@@ -761,20 +748,14 @@ const Main_SalesServiceDetails = ({
   return (
     <Main_InputContainer label="Sales Service Details">
       <div className={styles.tableSection}>
-        <div className={styles.actionsBar}>
-          <AddNewBtn
-            onClick={handleAddServiceDetail}
-            text="Add Service Detail"
-            ariaLabel="Add new service detail"
-            title="Add Service Detail"
-          />
-        </div>
-
-        <EditableDataTable
+        <EditableDataForm
           rows={serviceDetails}
           columns={serviceColumns}
           rowKey="id"
           emptyMessage="No service details yet. Click + Add Service Detail."
+          onAddRow={handleAddServiceDetail}
+          addRowText="Add Service Detail"
+          onRemoveRow={handleDeleteServiceDetail}
         />
       </div>
     </Main_InputContainer>

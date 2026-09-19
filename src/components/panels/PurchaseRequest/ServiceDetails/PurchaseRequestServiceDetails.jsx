@@ -5,9 +5,7 @@ import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
 import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
 import Main_Suggest from '../../../common/InputOptions/Suggest/Main_Suggest';
 import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_FileUploads';
-import AddNewBtn from '../../../common/Buttons/AddNewBtn';
-import DeleteBtn from '../../../common/Buttons/DeleteBtn';
-import EditableDataTable from '../../../common/Table/EditableDataTable';
+import EditableDataForm from '../../../common/Forms/EditableDataForm';
 import styles from '../Main_PurchaseRequest.module.css';
 
 const toSafeString = (value) => String(value || '').trim();
@@ -205,13 +203,6 @@ const PurchaseRequestServiceDetails = ({
         ),
       },
       {
-        key: 'actions',
-        label: 'Actions',
-        size: 'S',
-        sortable: false,
-        renderCell: (row) => <DeleteBtn onClick={() => onRemove?.(row?.id)} />,
-      },
-      {
         key: 'details',
         label: 'Details',
         size: 'XL',
@@ -300,7 +291,6 @@ const PurchaseRequestServiceDetails = ({
       fileUrlBase,
       onImageFilesChange,
       onFilesChange,
-      onRemove,
       onSetField,
       serviceSuggestionOptions,
       quotationSuggestionOptions,
@@ -311,22 +301,14 @@ const PurchaseRequestServiceDetails = ({
   return (
     <Main_InputContainer label="Service Details">
       <div className={styles.tableSection}>
-        <div className={styles.tableActions}>
-          <div className={styles.tableActionsRight}>
-            <AddNewBtn
-              onClick={onAdd}
-              text="Add Service Detail"
-              ariaLabel="Add service detail"
-              title="Add service detail"
-            />
-          </div>
-        </div>
-
-        <EditableDataTable
+        <EditableDataForm
           rows={rows}
           columns={columns}
           rowKey="id"
           emptyMessage="No service details yet. Click + Add Service Detail."
+          onAddRow={onAdd}
+          addRowText="Add Service Detail"
+          onRemoveRow={(row) => onRemove?.(row?.id)}
         />
       </div>
     </Main_InputContainer>

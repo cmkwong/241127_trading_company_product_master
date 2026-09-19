@@ -4,9 +4,7 @@ import Main_InputContainer from '../../../common/Container/Main_InputContainer';
 import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
 import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
-import AddNewBtn from '../../../common/Buttons/AddNewBtn';
-import DeleteBtn from '../../../common/Buttons/DeleteBtn';
-import EditableDataTable from '../../../common/Table/EditableDataTable';
+import EditableDataForm from '../../../common/Forms/EditableDataForm';
 import {
   upsertEntityData,
   useEntityField,
@@ -358,21 +356,11 @@ const Main_CustomerAddresses = () => {
           />
         ),
       },
-      {
-        key: 'actions',
-        label: 'Actions',
-        sortable: false,
-        nextRow: true,
-        renderCell: (row) => (
-          <DeleteBtn onClick={() => handleDeleteAddressRow(row)} />
-        ),
-      },
     ],
     [
       addressTypeOptions,
       detailedAddressDrafts,
       upsertAddressRow,
-      handleDeleteAddressRow,
       handleParseDetailedAddress,
       handleCopyStandardAddress,
       setDetailedAddressDraft,
@@ -383,20 +371,14 @@ const Main_CustomerAddresses = () => {
   return (
     <Main_InputContainer label="Customer Addresses">
       <div className={styles.tableSection}>
-        <div className={styles.actionsBar}>
-          <AddNewBtn
-            onClick={handleAddAddressRow}
-            text="Add Address"
-            ariaLabel="Add new address"
-            title="Add Address"
-          />
-        </div>
-
-        <EditableDataTable
+        <EditableDataForm
           rows={addressRows}
           columns={columns}
           rowKey="id"
           emptyMessage="No addresses yet. Click + Add Address."
+          onAddRow={handleAddAddressRow}
+          addRowText="Add Address"
+          onRemoveRow={handleDeleteAddressRow}
         />
       </div>
     </Main_InputContainer>

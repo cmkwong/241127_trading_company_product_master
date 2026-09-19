@@ -5,6 +5,13 @@
   width: 100%;
 }
 
+.addRow {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%;
+}
+
 .nameRow {
   display: flex;
   align-items: center;

@@ -37,7 +37,7 @@ const FilterIcon = () => (
 const Main_DocumentCopy = ({
   open = false,
   onClose = () => {},
-  title = 'Copy Line Items from Source Document',
+  title = 'Copy from Source Document',
   items = [],
   currencyCode = '',
   targetOptions = [],
@@ -365,7 +365,7 @@ const Main_DocumentCopy = ({
               type="button"
               className={styles.confirmButton}
               onClick={handleConfirm}
-              disabled={isSubmitting || selectedItems.length === 0}
+              disabled={isSubmitting}
             >
               {isSubmitting ? 'Copying...' : 'Copy'}
             </button>

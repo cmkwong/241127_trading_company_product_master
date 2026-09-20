@@ -18,14 +18,19 @@ const Sub_DocumentNode = ({ data }) => {
       className={`${styles.node} ${isSales ? styles.salesNode : styles.purchaseNode}`}
       title={isSales ? 'Open document' : 'Open purchase request'}
     >
-      <Handle
-        id="header"
-        type="target"
-        position={Position.Top}
-        className={styles.handle}
-      />
-
       <div className={styles.header}>
+        <Handle
+          id="header-in"
+          type="target"
+          position={Position.Left}
+          className={styles.handle}
+        />
+        <Handle
+          id="header-out"
+          type="source"
+          position={Position.Right}
+          className={styles.handle}
+        />
         <div className={styles.headerTitle}>{data?.label || 'Document'}</div>
         {data?.referenceId ? (
           <div className={styles.referenceId}>{data.referenceId}</div>

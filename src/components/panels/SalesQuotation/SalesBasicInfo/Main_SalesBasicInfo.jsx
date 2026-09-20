@@ -96,6 +96,11 @@ const Main_SalesBasicInfo = ({
     'sales_quotations',
     'header_proforma_percent',
   );
+  const assignedPicker = useEntityField('sales_quotations', 'assigned_picker');
+  const assignedPickerAddress = useEntityField(
+    'sales_quotations',
+    'assigned_picker_address',
+  );
   const shippingPriceRows = useEntityRows(
     'sales_quotations',
     'sales_shipping_prices',
@@ -122,6 +127,7 @@ const Main_SalesBasicInfo = ({
   }, [docTypeMaster, docType]);
 
   const isDownpayment = docTypeName === 'AR Downpayment Invoice';
+  const isPackingList = docTypeName === 'Packing List';
 
   const totalsSummary = useMemo(() => {
     return computeQuotationTotals(
@@ -305,7 +311,7 @@ const Main_SalesBasicInfo = ({
           <Main_InputContainer label="Order Status">
             <Main_Dropdown
               defaultOptions={STATUS_OPTIONS}
-              defaultSelectedOption={status || 'draft'}
+              defaultSelectedOption={status || 'open'}
               onChange={(ov, nv) => {
                 onPatchQuotation({ status: nv });
               }}
@@ -452,6 +458,31 @@ const Main_SalesBasicInfo = ({
               }}
             />
           </Main_InputContainer>
+
+          {isPackingList ? (
+            <>
+              <Main_InputContainer label="Assigned Picker">
+                <Main_TextField
+                  defaultValue={assignedPicker || ''}
+                  placeholder="e.g. Alex Wong (ID: #4092)"
+                  onChange={(ov, nv) => {
+                    onPatchQuotation({ assigned_picker: nv });
+                  }}
+                />
+              </Main_InputContainer>
+
+              <Main_InputContainer label="Assigned Picker Address">
+                <Main_TextArea
+                  defaultValue={assignedPickerAddress || ''}
+                  placeholder="Picker address"
+                  rows={4}
+                  onChange={(ov, nv) => {
+                    onPatchQuotation({ assigned_picker_address: nv });
+                  }}
+                />
+              </Main_InputContainer>
+            </>
+          ) : null}
 
           {isDownpayment ? (
             <>

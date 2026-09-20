@@ -7,6 +7,7 @@ import Main_SalesBasicInfo from './SalesBasicInfo/Main_SalesBasicInfo';
 import Main_SalesShippingDetails from './ShippingDetails/Main_SalesShippingDetails';
 import Main_SalesProductDetails from './ProductDetails/Main_SalesProductDetails';
 import Main_SalesServiceDetails from './ServiceDetails/Main_SalesServiceDetails';
+import Main_SalesPackingItems from './PackingItems/Main_SalesPackingItems';
 import SalesQuotationSummaryBar from './SalesQuotationSummaryBar/SalesQuotationSummaryBar';
 import Main_DocumentCopy from '../DocumentCopy/Main_DocumentCopy';
 import { useSalesQuotationContext } from '../../../store/SalesQuotationContext';
@@ -30,6 +31,7 @@ import { buildArInvoiceDocumentA4Html } from './utils/printout/arInvoicePrint';
 import { buildSalesOrderDocumentA4Html } from './utils/printout/salesOrderPrint';
 import { buildArDownpaymentInvoiceDocumentA4Html } from './utils/printout/arDownpaymentInvoicePrint';
 import { buildDeliveryNoteDocumentA4Html } from './utils/printout/deliveryNotePrint';
+import { buildPackingListDocumentA4Html } from './utils/printout/packingListPrint';
 import Label from '../../common/Texts/Label';
 
 const Main_SalesDocument = ({
@@ -115,6 +117,7 @@ const Main_SalesDocument = ({
   const isArInvoiceDoc = docTypeName === 'AR Invoice';
   const isArDownpaymentDoc = docTypeName === 'AR Downpayment Invoice';
   const isDeliveryNoteDoc = docTypeName === 'Delivery Note';
+  const isPackingListDoc = docTypeName === 'Packing List';
 
   const scopedQuotations = useMemo(() => {
     if (!docTypeId) return quotations || [];
@@ -533,26 +536,30 @@ const Main_SalesDocument = ({
         exchangeRateMap,
         showTotalPrice: previewShowTotalPrice,
       };
-      const html = isSalesOrderDoc
-        ? buildSalesOrderDocumentA4Html(previewOptions)
-        : isArInvoiceDoc
-          ? buildArInvoiceDocumentA4Html(previewOptions)
-          : isArDownpaymentDoc
-            ? buildArDownpaymentInvoiceDocumentA4Html(previewOptions)
-            : isDeliveryNoteDoc
-              ? buildDeliveryNoteDocumentA4Html(previewOptions)
-              : buildQuotationDocumentA4Html(previewOptions);
+      const html = isPackingListDoc
+        ? buildPackingListDocumentA4Html(previewOptions)
+        : isSalesOrderDoc
+          ? buildSalesOrderDocumentA4Html(previewOptions)
+          : isArInvoiceDoc
+            ? buildArInvoiceDocumentA4Html(previewOptions)
+            : isArDownpaymentDoc
+              ? buildArDownpaymentInvoiceDocumentA4Html(previewOptions)
+              : isDeliveryNoteDoc
+                ? buildDeliveryNoteDocumentA4Html(previewOptions)
+                : buildQuotationDocumentA4Html(previewOptions);
 
       setPreviewType(
-        isSalesOrderDoc
-          ? 'sales-order'
-          : isArInvoiceDoc
-            ? 'ar-invoice'
-            : isArDownpaymentDoc
-              ? 'ar-downpayment-invoice'
-              : isDeliveryNoteDoc
-                ? 'delivery-note'
-                : 'quotation',
+        isPackingListDoc
+          ? 'packing-list'
+          : isSalesOrderDoc
+            ? 'sales-order'
+            : isArInvoiceDoc
+              ? 'ar-invoice'
+              : isArDownpaymentDoc
+                ? 'ar-downpayment-invoice'
+                : isDeliveryNoteDoc
+                  ? 'delivery-note'
+                  : 'quotation',
       );
       setPreviewHtml(html);
       setIsPreviewOpen(true);
@@ -573,6 +580,7 @@ const Main_SalesDocument = ({
     isArInvoiceDoc,
     isArDownpaymentDoc,
     isDeliveryNoteDoc,
+    isPackingListDoc,
     isPreparingPreview,
     isSalesOrderDoc,
     previewShowTotalPrice,
@@ -607,29 +615,31 @@ const Main_SalesDocument = ({
         baseCurrencyCode,
         exchangeRateMap,
       };
-      const html = isSalesOrderDoc
-        ? buildSalesOrderDocumentA4Html({
-            ...previewOptions,
-            showTotalPrice: previewShowTotalPrice,
-          })
-        : isArInvoiceDoc
-          ? buildArInvoiceDocumentA4Html({
+      const html = isPackingListDoc
+        ? buildPackingListDocumentA4Html(previewOptions)
+        : isSalesOrderDoc
+          ? buildSalesOrderDocumentA4Html({
               ...previewOptions,
               showTotalPrice: previewShowTotalPrice,
             })
-          : isArDownpaymentDoc
-            ? buildArDownpaymentInvoiceDocumentA4Html({
+          : isArInvoiceDoc
+            ? buildArInvoiceDocumentA4Html({
                 ...previewOptions,
                 showTotalPrice: previewShowTotalPrice,
               })
-            : isDeliveryNoteDoc
-              ? buildDeliveryNoteDocumentA4Html(previewOptions)
-              : previewPrintArInvoice && isSalesQuotationDoc
-                ? buildArInvoiceDocumentA4Html(previewOptions)
-                : buildQuotationDocumentA4Html({
-                    ...previewOptions,
-                    showTotalPrice: previewShowTotalPrice,
-                  });
+            : isArDownpaymentDoc
+              ? buildArDownpaymentInvoiceDocumentA4Html({
+                  ...previewOptions,
+                  showTotalPrice: previewShowTotalPrice,
+                })
+              : isDeliveryNoteDoc
+                ? buildDeliveryNoteDocumentA4Html(previewOptions)
+                : previewPrintArInvoice && isSalesQuotationDoc
+                  ? buildArInvoiceDocumentA4Html(previewOptions)
+                  : buildQuotationDocumentA4Html({
+                      ...previewOptions,
+                      showTotalPrice: previewShowTotalPrice,
+                    });
       setPreviewHtml(html);
     } catch (error) {
       console.error('Failed to refresh quotation preview:', error);
@@ -645,6 +655,7 @@ const Main_SalesDocument = ({
     isArInvoiceDoc,
     isArDownpaymentDoc,
     isDeliveryNoteDoc,
+    isPackingListDoc,
     isSalesOrderDoc,
     isSalesQuotationDoc,
     isPreviewOpen,
@@ -834,6 +845,7 @@ const Main_SalesDocument = ({
                   exchangeRateMap={exchangeRateMap}
                   isCompact={isSummaryCompact}
                   purchaseCosts={purchaseCosts}
+                  showBalances={!isPackingListDoc}
                 />
 
                 <Main_SalesBasicInfo
@@ -846,28 +858,37 @@ const Main_SalesDocument = ({
                   exchangeRateMap={exchangeRateMap}
                 />
 
-                <Main_SalesShippingDetails
-                  customerAddressOptions={customerAddressOptions}
-                  supplierOptions={supplierOptions}
-                  shippingMethodOptions={shippingMethodOptions}
-                  currencyOptions={currencyOptions}
-                  incotermOptions={incotermOptions}
-                  onPatchQuotation={patchSelectedQuotation}
-                  onRefreshReferenceOptions={refreshReferenceOptions}
-                />
+                {isPackingListDoc ? (
+                  <Main_SalesPackingItems
+                    productOptions={productOptions}
+                    onPatchQuotation={patchSelectedQuotation}
+                  />
+                ) : (
+                  <>
+                    <Main_SalesShippingDetails
+                      customerAddressOptions={customerAddressOptions}
+                      supplierOptions={supplierOptions}
+                      shippingMethodOptions={shippingMethodOptions}
+                      currencyOptions={currencyOptions}
+                      incotermOptions={incotermOptions}
+                      onPatchQuotation={patchSelectedQuotation}
+                      onRefreshReferenceOptions={refreshReferenceOptions}
+                    />
 
-                <Main_SalesProductDetails
-                  productOptions={productOptions}
-                  currencyOptions={currencyOptions}
-                  onPatchQuotation={patchSelectedQuotation}
-                />
+                    <Main_SalesProductDetails
+                      productOptions={productOptions}
+                      currencyOptions={currencyOptions}
+                      onPatchQuotation={patchSelectedQuotation}
+                    />
 
-                <Main_SalesServiceDetails
-                  supplierOptions={supplierOptions}
-                  serviceOptions={serviceOptions}
-                  currencyOptions={currencyOptions}
-                  onPatchQuotation={patchSelectedQuotation}
-                />
+                    <Main_SalesServiceDetails
+                      supplierOptions={supplierOptions}
+                      serviceOptions={serviceOptions}
+                      currencyOptions={currencyOptions}
+                      onPatchQuotation={patchSelectedQuotation}
+                    />
+                  </>
+                )}
               </>
             ) : (
               <div className={styles.emptyState}>
@@ -899,10 +920,13 @@ const Main_SalesDocument = ({
                       ? 'AR Downpayment Invoice A4 Preview'
                       : previewType === 'delivery-note'
                         ? 'Delivery Note A4 Preview'
-                        : 'Quotation A4 Preview'}
+                        : previewType === 'packing-list'
+                          ? 'Packing List A4 Preview'
+                          : 'Quotation A4 Preview'}
               </div>
               <div className={styles.previewModalActions}>
-                {previewType !== 'delivery-note' ? (
+                {previewType !== 'delivery-note' &&
+                previewType !== 'packing-list' ? (
                   <Label className={styles.previewOptionToggle}>
                     <input
                       type="checkbox"
@@ -951,7 +975,9 @@ const Main_SalesDocument = ({
                       ? 'AR Downpayment Invoice Preview'
                       : previewType === 'delivery-note'
                         ? 'Delivery Note Preview'
-                        : 'Quotation Preview'
+                        : previewType === 'packing-list'
+                          ? 'Packing List Preview'
+                          : 'Quotation Preview'
                 }
                 className={styles.previewFrame}
                 srcDoc={previewHtml}

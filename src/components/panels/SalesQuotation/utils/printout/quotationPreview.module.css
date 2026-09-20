@@ -288,6 +288,24 @@
   padding: 16px;
 }
 
+.pickedCol {
+  text-align: center;
+  vertical-align: middle;
+}
+
+.pickedBox {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 1px solid #94a3b8;
+  border-radius: 3px;
+  background: #ffffff;
+}
+
+.pickedHeader {
+  text-align: center;
+}
+
 .spacer {
   width: 100%;
   height: 20px;
@@ -305,6 +323,10 @@
 
 .footerNoTotal {
   justify-content: flex-start;
+}
+
+.footerWideTerms .terms {
+  width: 100%;
 }
 
 .terms {

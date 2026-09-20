@@ -1,0 +1,3 @@
+/* Packing List currently shares quotation styles; keep this module as a
+   dedicated customization point for future per-document overrides. */
+@import './quotationPreview.module.css';

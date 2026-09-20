@@ -91,6 +91,15 @@ const DEFAULT_QUOTATION_FILE_MAPPINGS = {
     url: 'file_url',
     base64: 'base64_file',
   },
+  sales_packing_item_images: { url: 'image_url', base64: 'base64_image' },
+  sales_packing_item_internal_images: {
+    url: 'image_url',
+    base64: 'base64_image',
+  },
+  sales_packing_item_internal_files: {
+    url: 'file_url',
+    base64: 'base64_file',
+  },
 };
 
 const SALES_CHILD_TABLE_RENEST_CONFIG = [
@@ -171,6 +180,24 @@ const SALES_CHILD_TABLE_RENEST_CONFIG = [
     detailKey: 'sales_service_details',
     parentField: 'sales_service_detail_id',
     nestedChildKey: 'sales_service_detail_internal_files',
+  },
+  {
+    rootChildKey: 'sales_packing_item_images',
+    detailKey: 'sales_packing_items',
+    parentField: 'sales_packing_item_id',
+    nestedChildKey: 'sales_packing_item_images',
+  },
+  {
+    rootChildKey: 'sales_packing_item_internal_images',
+    detailKey: 'sales_packing_items',
+    parentField: 'sales_packing_item_id',
+    nestedChildKey: 'sales_packing_item_internal_images',
+  },
+  {
+    rootChildKey: 'sales_packing_item_internal_files',
+    detailKey: 'sales_packing_items',
+    parentField: 'sales_packing_item_id',
+    nestedChildKey: 'sales_packing_item_internal_files',
   },
 ];
 
@@ -410,6 +437,7 @@ const normalizeSalesQuotation = (row = {}) => {
   const shippingDetails = toArray(row?.sales_shipping_details);
   const productDetails = toArray(row?.sales_product_details);
   const serviceDetails = toArray(row?.sales_service_details);
+  const packingItems = toArray(row?.sales_packing_items);
 
   const shippingPrices =
     toArray(row?.sales_shipping_prices).length > 0
@@ -541,6 +569,36 @@ const normalizeSalesQuotation = (row = {}) => {
           'service_detail_id',
         );
 
+  const packingItemImages =
+    toArray(row?.sales_packing_item_images).length > 0
+      ? toArray(row?.sales_packing_item_images)
+      : flattenNestedRows(
+          packingItems,
+          'sales_packing_item_images',
+          'sales_packing_item_id',
+          'packing_item_id',
+        );
+
+  const packingItemInternalImages =
+    toArray(row?.sales_packing_item_internal_images).length > 0
+      ? toArray(row?.sales_packing_item_internal_images)
+      : flattenNestedRows(
+          packingItems,
+          'sales_packing_item_internal_images',
+          'sales_packing_item_id',
+          'packing_item_id',
+        );
+
+  const packingItemInternalFiles =
+    toArray(row?.sales_packing_item_internal_files).length > 0
+      ? toArray(row?.sales_packing_item_internal_files)
+      : flattenNestedRows(
+          packingItems,
+          'sales_packing_item_internal_files',
+          'sales_packing_item_id',
+          'packing_item_id',
+        );
+
   return {
     id: toSafeString(row?.id),
     status: toSafeString(row?.status),
@@ -552,6 +610,8 @@ const normalizeSalesQuotation = (row = {}) => {
     base_entry: toSafeString(row?.base_entry),
     posting_at: toDateOnlyString(row?.posting_at),
     header_proforma_percent: toPercentValue(row?.header_proforma_percent),
+    assigned_picker: toSafeString(row?.assigned_picker),
+    assigned_picker_address: toSafeString(row?.assigned_picker_address),
     created_at: toSafeString(row?.created_at) || now,
     updated_at:
       toSafeString(row?.updated_at) || toSafeString(row?.created_at) || now,
@@ -572,6 +632,10 @@ const normalizeSalesQuotation = (row = {}) => {
     sales_service_detail_images: serviceImages,
     sales_service_detail_internal_images: serviceInternalImages,
     sales_service_detail_internal_files: serviceInternalFiles,
+    sales_packing_items: packingItems,
+    sales_packing_item_images: packingItemImages,
+    sales_packing_item_internal_images: packingItemInternalImages,
+    sales_packing_item_internal_files: packingItemInternalFiles,
   };
 };
 
@@ -1803,7 +1867,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
 
       const newPayload = {
         doc_type: docTypeId,
-        status: 'draft',
+        status: 'open',
         remark: '',
         posting_at: toDateOnlyString(new Date()),
       };
@@ -2212,6 +2276,75 @@ export const SalesQuotationContext_Provider = ({ children }) => {
       })
       .filter(Boolean);
 
+    const packingItemIdMap = new Map();
+    const sales_packing_items = toArray(sourceQuotation?.sales_packing_items).map(
+      (row) => {
+        const nextId = uuidv4();
+        packingItemIdMap.set(toSafeString(row?.id), nextId);
+        const rest = deepClone(row || {});
+        delete rest.sales_packing_item_images;
+        delete rest.sales_packing_item_internal_images;
+        delete rest.sales_packing_item_internal_files;
+        delete rest.created_at;
+        delete rest.updated_at;
+        return {
+          ...rest,
+          id: nextId,
+          sales_quotation_id: nextQuotationId,
+          created_at: now,
+          updated_at: now,
+        };
+      },
+    );
+
+    const sales_packing_item_images = toArray(
+      sourceQuotation?.sales_packing_item_images,
+    )
+      .map((row) => {
+        const nextParentId = packingItemIdMap.get(
+          toSafeString(row?.sales_packing_item_id),
+        );
+        if (!nextParentId) return null;
+        return cloneRowsWithNewIds([row], {
+          parentField: 'sales_packing_item_id',
+          nextParentId,
+          now,
+        })[0];
+      })
+      .filter(Boolean);
+
+    const sales_packing_item_internal_images = toArray(
+      sourceQuotation?.sales_packing_item_internal_images,
+    )
+      .map((row) => {
+        const nextParentId = packingItemIdMap.get(
+          toSafeString(row?.sales_packing_item_id),
+        );
+        if (!nextParentId) return null;
+        return cloneRowsWithNewIds([row], {
+          parentField: 'sales_packing_item_id',
+          nextParentId,
+          now,
+        })[0];
+      })
+      .filter(Boolean);
+
+    const sales_packing_item_internal_files = toArray(
+      sourceQuotation?.sales_packing_item_internal_files,
+    )
+      .map((row) => {
+        const nextParentId = packingItemIdMap.get(
+          toSafeString(row?.sales_packing_item_id),
+        );
+        if (!nextParentId) return null;
+        return cloneRowsWithNewIds([row], {
+          parentField: 'sales_packing_item_id',
+          nextParentId,
+          now,
+        })[0];
+      })
+      .filter(Boolean);
+
     const duplicatedRow = normalizeSalesQuotation({
       id: nextQuotationId,
       status: toSafeString(sourceQuotation?.status),
@@ -2222,6 +2355,10 @@ export const SalesQuotationContext_Provider = ({ children }) => {
       doc_type: toSafeString(sourceQuotation?.doc_type),
       header_proforma_percent: toPercentValue(
         sourceQuotation?.header_proforma_percent,
+      ),
+      assigned_picker: toSafeString(sourceQuotation?.assigned_picker),
+      assigned_picker_address: toSafeString(
+        sourceQuotation?.assigned_picker_address,
       ),
       sales_docs,
       sales_shipping_details,
@@ -2240,6 +2377,10 @@ export const SalesQuotationContext_Provider = ({ children }) => {
       sales_service_detail_images,
       sales_service_detail_internal_images,
       sales_service_detail_internal_files,
+      sales_packing_items,
+      sales_packing_item_images,
+      sales_packing_item_internal_images,
+      sales_packing_item_internal_files,
     });
 
     setQuotations((previousRows) => {
@@ -2486,6 +2627,43 @@ export const SalesQuotationContext_Provider = ({ children }) => {
         serviceDetailIdMap,
       );
 
+      const packingItemIdMap = new Map();
+      const sales_packing_items = toArray(
+        sourceQuotation?.sales_packing_items,
+      ).map((row) => {
+        const nextId = uuidv4();
+        packingItemIdMap.set(toSafeString(row?.id), nextId);
+        const rest = deepClone(row || {});
+        delete rest.sales_packing_item_images;
+        delete rest.sales_packing_item_internal_images;
+        delete rest.sales_packing_item_internal_files;
+        delete rest.created_at;
+        delete rest.updated_at;
+        return {
+          ...rest,
+          id: nextId,
+          sales_quotation_id: nextQuotationId,
+          created_at: now,
+          updated_at: now,
+        };
+      });
+
+      const sales_packing_item_images = cloneChildren(
+        sourceQuotation?.sales_packing_item_images,
+        'sales_packing_item_id',
+        packingItemIdMap,
+      );
+      const sales_packing_item_internal_images = cloneChildren(
+        sourceQuotation?.sales_packing_item_internal_images,
+        'sales_packing_item_id',
+        packingItemIdMap,
+      );
+      const sales_packing_item_internal_files = cloneChildren(
+        sourceQuotation?.sales_packing_item_internal_files,
+        'sales_packing_item_id',
+        packingItemIdMap,
+      );
+
       const duplicatedRow = normalizeSalesQuotation({
         id: nextQuotationId,
         doc_type: targetDocTypeId,
@@ -2498,6 +2676,10 @@ export const SalesQuotationContext_Provider = ({ children }) => {
         posting_at: toDateOnlyString(sourceQuotation?.posting_at),
         header_proforma_percent: toPercentValue(
           sourceQuotation?.header_proforma_percent,
+        ),
+        assigned_picker: toSafeString(sourceQuotation?.assigned_picker),
+        assigned_picker_address: toSafeString(
+          sourceQuotation?.assigned_picker_address,
         ),
         sales_docs,
         sales_shipping_details,
@@ -2516,6 +2698,10 @@ export const SalesQuotationContext_Provider = ({ children }) => {
         sales_service_detail_images,
         sales_service_detail_internal_images,
         sales_service_detail_internal_files,
+        sales_packing_items,
+        sales_packing_item_images,
+        sales_packing_item_internal_images,
+        sales_packing_item_internal_files,
       });
 
       setQuotations((previousRows) => {

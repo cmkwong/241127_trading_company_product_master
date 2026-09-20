@@ -10,9 +10,24 @@ const LINE_TYPES = [
 ];
 
 const COST_CONFIG = [
-  ['shipping', 'shipping_costs', 'sales_shipping_detail_id', 'purchase_shipping_detail_id'],
-  ['product', 'product_costs', 'sales_product_detail_id', 'purchase_product_detail_id'],
-  ['service', 'service_costs', 'sales_service_detail_id', 'purchase_service_detail_id'],
+  [
+    'shipping',
+    'shipping_costs',
+    'sales_shipping_detail_id',
+    'purchase_shipping_detail_id',
+  ],
+  [
+    'product',
+    'product_costs',
+    'sales_product_detail_id',
+    'purchase_product_detail_id',
+  ],
+  [
+    'service',
+    'service_costs',
+    'sales_service_detail_id',
+    'purchase_service_detail_id',
+  ],
 ];
 
 const NODE_WIDTH = 300;
@@ -103,24 +118,25 @@ export const buildDocumentFlowGraph = ({
   (quotations || []).forEach((q) => {
     const docId = toSafe(q?.id);
     const byDetail = new Map();
-    (Array.isArray(q?.sales_shipping_prices) ? q.sales_shipping_prices : []).forEach(
-      (priceRow) => {
-        const detailId = toSafe(priceRow?.sales_shipping_detail_id);
-        if (!detailId) return;
-        const isSelected =
-          priceRow?.selected === true ||
-          priceRow?.selected === 1 ||
-          priceRow?.selected === '1';
-        const existing = byDetail.get(detailId);
-        const existingSelected =
-          existing?.selected === true ||
-          existing?.selected === 1 ||
-          existing?.selected === '1';
-        if (!existing || (isSelected && !existingSelected)) {
-          byDetail.set(detailId, priceRow);
-        }
-      },
-    );
+    (Array.isArray(q?.sales_shipping_prices)
+      ? q.sales_shipping_prices
+      : []
+    ).forEach((priceRow) => {
+      const detailId = toSafe(priceRow?.sales_shipping_detail_id);
+      if (!detailId) return;
+      const isSelected =
+        priceRow?.selected === true ||
+        priceRow?.selected === 1 ||
+        priceRow?.selected === '1';
+      const existing = byDetail.get(detailId);
+      const existingSelected =
+        existing?.selected === true ||
+        existing?.selected === 1 ||
+        existing?.selected === '1';
+      if (!existing || (isSelected && !existingSelected)) {
+        byDetail.set(detailId, priceRow);
+      }
+    });
     selectedShippingPriceByDocAndDetail.set(docId, byDetail);
   });
 
@@ -211,6 +227,7 @@ export const buildDocumentFlowGraph = ({
 
   const nodes = [];
   const edges = [];
+  const salesLineageCountByPair = new Map();
 
   includedSalesIds.forEach((docId) => {
     const doc = salesDocsById.get(docId);
@@ -245,6 +262,8 @@ export const buildDocumentFlowGraph = ({
     const doc = salesDocsById.get(docId);
     const baseEntry = toSafe(doc?.base_entry);
     if (!baseEntry || !includedSalesIds.has(baseEntry)) return;
+
+    const pairKey = `${baseEntry}->${docId}`;
     LINE_TYPES.forEach(([type, key]) => {
       (Array.isArray(doc?.[key]) ? doc[key] : []).forEach((line) => {
         const baseLine = toSafe(line?.base_line);
@@ -258,8 +277,25 @@ export const buildDocumentFlowGraph = ({
           targetHandle: `in:${type}:${lineId}`,
           animated: true,
         });
+        salesLineageCountByPair.set(
+          pairKey,
+          (salesLineageCountByPair.get(pairKey) || 0) + 1,
+        );
       });
     });
+
+    // Fallback: if this parent-child document pair has no line-level links,
+    // connect document headers so relation is still visible.
+    if ((salesLineageCountByPair.get(pairKey) || 0) === 0) {
+      edges.push({
+        id: `lineage-header:${baseEntry}:${docId}`,
+        source: `sales:${baseEntry}`,
+        sourceHandle: 'header-out',
+        target: `sales:${docId}`,
+        targetHandle: 'header-in',
+        animated: true,
+      });
+    }
   });
 
   const prGroups = new Map();

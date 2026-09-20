@@ -147,6 +147,7 @@ const SalesQuotationSummaryBar = ({
   exchangeRateMap,
   isCompact,
   purchaseCosts,
+  showBalances = true,
 }) => {
   const [isDocumentFlowOpen, setIsDocumentFlowOpen] = useState(false);
   const shippingPriceRows = useEntityRows(
@@ -218,6 +219,69 @@ const SalesQuotationSummaryBar = ({
     [purchaseCosts, baseCurrencyCode, exchangeRateMap],
   );
   const poGrandTotal = poShippingTotal + poProductTotal + poServiceTotal;
+
+  if (showBalances === false) {
+    return (
+      <div className={styles.summaryBar}>
+        <div className={styles.currencyRow}>
+          <span className={styles.baseCurrencyLabel}>Base Currency</span>
+          <Main_Dropdown
+            defaultOptions={baseCurrencyOptions}
+            defaultSelectedOption={baseCurrencyCode}
+            onChange={(ov, nv) =>
+              onBaseCurrencyChange(toSafeString(nv).toUpperCase() || 'USD')
+            }
+            size="S"
+          />
+          <span className={styles.rateMetaText}>
+            Rate Date: {toSafeString(latestExchangeRateRow?.Date) || '-'}
+          </span>
+
+          <button
+            type="button"
+            className={styles.viewCostsButton}
+            onClick={() => setIsDocumentFlowOpen((prev) => !prev)}
+          >
+            {isDocumentFlowOpen ? 'Hide Document Flow' : 'Document Flow'}
+          </button>
+        </div>
+
+        {isDocumentFlowOpen && (
+          <div
+            className={styles.rundownModalBackdrop}
+            onClick={() => setIsDocumentFlowOpen(false)}
+          >
+            <div
+              className={styles.rundownModalWindow}
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className={styles.rundownModalHeader}>
+                <span className={styles.rundownModalTitle}>Document Flow</span>
+                <button
+                  type="button"
+                  className={styles.rundownModalClose}
+                  onClick={() => setIsDocumentFlowOpen(false)}
+                  aria-label="Close document flow"
+                  title="Close"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className={styles.rundownModalBody}>
+                <Main_DocumentFlow
+                  purchaseCosts={purchaseCosts}
+                  baseCurrencyCode={baseCurrencyCode}
+                  exchangeRateMap={exchangeRateMap}
+                  currencyCodeById={currencyCodeById}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   if (isCompact) {
     return (

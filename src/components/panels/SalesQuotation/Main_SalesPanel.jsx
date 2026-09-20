@@ -8,6 +8,7 @@ import Main_SalesOrder from './Main_SalesOrder';
 import Main_SalesDN from './Main_SalesDN';
 import Main_SalesDPINV from './Main_SalesDPINV';
 import Main_SalesINV from './Main_SalesINV';
+import Main_SalesPacking from './Main_SalesPacking';
 
 const Main_SalesPanel = () => {
   const { quotations, selectedQuotationId } = useSalesQuotationContext();
@@ -46,6 +47,12 @@ const Main_SalesPanel = () => {
     selectedDocTypeId === getDocTypeIdByName('AR Invoice')
   ) {
     return <Main_SalesINV />;
+  }
+  if (
+    selectedDocTypeId &&
+    selectedDocTypeId === getDocTypeIdByName('Packing List')
+  ) {
+    return <Main_SalesPacking />;
   }
 
   return <Main_SalesQuotation />;

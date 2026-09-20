@@ -246,7 +246,7 @@ const SalesSidebar = ({
         quotation?.customer_address_id,
         customerName,
         docTypeName,
-        quotation?.status || 'draft',
+        quotation?.status || 'open',
         quotation?.created_at,
         quotation?.updated_at,
       ]

@@ -1,0 +1,17 @@
+.tableSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.cellInput {
+  width: 100%;
+}
+
+.suggestCell {
+  min-width: 240px;
+}
+
+.uploadsCell {
+  min-width: 220px;
+}

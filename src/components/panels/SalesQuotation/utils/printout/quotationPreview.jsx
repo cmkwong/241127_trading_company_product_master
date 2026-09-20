@@ -147,6 +147,46 @@ const AR_INVOICE_LABELS = {
   ],
 };
 
+const PACKING_LIST_LABELS = {
+  ...QUOTATION_LABELS,
+  documentType: 'Packing List',
+  fromTitle: 'Packing From',
+  forTitle: 'Assigned Picker',
+  detailsTitle: 'Document Details',
+  numberLabel: '',
+  dateLabel: 'List Date',
+  validTillLabel: '',
+  emptyItems: 'No packing items.',
+  filePrefix: 'packing-list',
+  termsTitle: 'Picking Instructions & Conditions',
+  termsLines: [
+    'Handle all items with extreme care; products are highly fragile and prone to breakage.',
+    'Place items gently into the picking cart. Do not drop, throw, or stack heavy items on top of fragile goods.',
+    'Inspect packaging during picking. If any item appears damaged or broken, do not pick it and report to the supervisor immediately.',
+  ],
+  showPricingColumns: false,
+  showQuantityColumn: true,
+  showRateColumn: false,
+  showAmountColumn: false,
+  showTotalPrice: false,
+  showValidTillDate: false,
+  showPickedColumn: true,
+  showDetailTotals: true,
+  totalLinesLabel: 'Total Lines',
+  totalQtyLabel: 'Total Qty',
+  totalLinesSuffix: 'Items',
+  totalQtySuffix: 'Units',
+  showFromColumn: false,
+  indexHeaderLabel: '#',
+  itemHeaderLabel: 'Product Description',
+  quantityHeaderLabel: 'Qty',
+  pickedHeaderLabel: 'Picked [✓]',
+  indexColWidth: '42px',
+  quantityColWidth: '48px',
+  pickedColWidth: '96px',
+  termsFullWidth: true,
+};
+
 export const getDocumentLabels = (variant = 'quotation') =>
   variant === 'ar-invoice'
     ? AR_INVOICE_LABELS
@@ -156,7 +196,9 @@ export const getDocumentLabels = (variant = 'quotation') =>
         ? AR_DOWNPAYMENT_LABELS
         : variant === 'delivery-note'
           ? DELIVERY_NOTE_LABELS
-          : QUOTATION_LABELS;
+          : variant === 'packing-list'
+            ? PACKING_LIST_LABELS
+            : QUOTATION_LABELS;
 
 const resolveDownpaymentPercent = (rawValue) => {
   const numeric = toNumber(rawValue);
@@ -753,6 +795,56 @@ const buildShippingLineItems = ({
     });
 };
 
+const buildPackingLineItems = ({
+  quotation,
+  productById,
+  baseCurrencyCode,
+}) => {
+  const packingImageUrlsByItem = buildImageUrlsByParent(
+    quotation?.sales_packing_item_images,
+    'sales_packing_item_id',
+  );
+
+  return (
+    Array.isArray(quotation?.sales_packing_items)
+      ? quotation.sales_packing_items
+      : []
+  ).map((row) => {
+    const product = productById.get(toSafeString(row?.product_id));
+    const qty = Number.isFinite(toNumber(row?.qty)) ? toNumber(row?.qty) : 0;
+    const dimensionParts = [row?.length, row?.width, row?.height]
+      .map((value) => toSafeString(value))
+      .filter(Boolean);
+    const itemId = toSafeString(row?.id);
+    const imageUrls = packingImageUrlsByItem.get(itemId) || [];
+
+    return {
+      itemName:
+        toSafeString(product?.name) ||
+        toSafeString(product?.label) ||
+        'Packing Item',
+      details: [
+        dimensionParts.length === 3
+          ? `Dimensions (cm): ${dimensionParts.join(' x ')}`
+          : dimensionParts.length > 0
+            ? `Dimensions: ${dimensionParts.join(' x ')}`
+            : '',
+        toSafeString(row?.weight)
+          ? `Weight (kg): ${toSafeString(row?.weight)}`
+          : '',
+        toSafeString(row?.details),
+      ].filter(Boolean),
+      qty,
+      rate: 0,
+      discountPercent: 0,
+      discountedRate: 0,
+      amount: 0,
+      currencyCode: baseCurrencyCode,
+      imageUrls,
+    };
+  });
+};
+
 const formatLineMoney = (value) => {
   if (!Number.isFinite(value)) {
     return '-';
@@ -779,7 +871,10 @@ const QuotationRow = ({
   item,
   index,
   baseCurrencyCode,
-  showPricingColumns,
+  showQuantityColumn,
+  showRateColumn,
+  showAmountColumn,
+  showPickedColumn,
 }) => {
   const rowDetails = (item.details || []).map((line) => (
     <div key={line} className={styles.itemDetail}>
@@ -817,50 +912,55 @@ const QuotationRow = ({
     toSafeString(item.currencyCode).toUpperCase() !==
     toSafeString(baseCurrencyCode).toUpperCase();
   const currencySuffix = showCurrencySuffix ? ` ${item.currencyCode}` : '';
+  const showAnyPricing = showRateColumn || showAmountColumn;
 
-  return showPricingColumns ? (
+  return (
     <tr>
       <td className={styles.indexCol}>{index + 1}.</td>
-      <td className={styles.itemCol}>
+      <td
+        className={styles.itemCol}
+        style={{ width: showAnyPricing ? '237px' : 'auto' }}
+      >
         <div className={styles.itemTitle}>{item.itemName}</div>
         {rowDetails}
         {discountTag}
         {imageBlock}
       </td>
-      <td className={styles.qtyCol}>{String(item.qty)}</td>
-      <td className={styles.rateCol}>
-        {hasDiscount ? (
-          <>
-            <div className={styles.rateOld}>
+      {showQuantityColumn ? (
+        <td className={styles.qtyCol}>{String(item.qty)}</td>
+      ) : null}
+      {showRateColumn ? (
+        <td className={styles.rateCol}>
+          {hasDiscount ? (
+            <>
+              <div className={styles.rateOld}>
+                {formatLineRate(item.rate)}
+                {currencySuffix}
+              </div>
+              <div className={styles.rateNew}>
+                {formatLineRate(item.discountedRate)}
+                {currencySuffix}
+              </div>
+            </>
+          ) : (
+            <>
               {formatLineRate(item.rate)}
               {currencySuffix}
-            </div>
-            <div className={styles.rateNew}>
-              {formatLineRate(item.discountedRate)}
-              {currencySuffix}
-            </div>
-          </>
-        ) : (
-          <>
-            {formatLineRate(item.rate)}
-            {currencySuffix}
-          </>
-        )}
-      </td>
-      <td className={styles.amountCol}>
-        {formatLineMoney(item.amount)}
-        {currencySuffix}
-      </td>
-    </tr>
-  ) : (
-    <tr>
-      <td className={styles.indexCol}>{index + 1}.</td>
-      <td className={styles.itemCol}>
-        <div className={styles.itemTitle}>{item.itemName}</div>
-        {rowDetails}
-        {discountTag}
-        {imageBlock}
-      </td>
+            </>
+          )}
+        </td>
+      ) : null}
+      {showAmountColumn ? (
+        <td className={styles.amountCol}>
+          {formatLineMoney(item.amount)}
+          {currencySuffix}
+        </td>
+      ) : null}
+      {showPickedColumn ? (
+        <td className={styles.pickedCol}>
+          <span className={styles.pickedBox} />
+        </td>
+      ) : null}
     </tr>
   );
 };
@@ -868,35 +968,72 @@ const QuotationRow = ({
 const QuotationBody = ({ lineItems, baseCurrencyCode, labels }) => {
   const isEmpty = lineItems.length === 0;
   const showPricingColumns = labels?.showPricingColumns !== false;
+  const showQuantityColumn =
+    labels?.showQuantityColumn !== undefined
+      ? labels.showQuantityColumn
+      : showPricingColumns;
+  const showRateColumn =
+    labels?.showRateColumn !== undefined
+      ? labels.showRateColumn
+      : showPricingColumns;
+  const showAmountColumn =
+    labels?.showAmountColumn !== undefined
+      ? labels.showAmountColumn
+      : showPricingColumns;
+  const showPickedColumn = labels?.showPickedColumn === true;
+  const showAnyPricing = showRateColumn || showAmountColumn;
+  const indexHeaderLabel = toSafeString(labels?.indexHeaderLabel);
+  const itemHeaderLabel = toSafeString(labels?.itemHeaderLabel) || 'Item';
+  const quantityHeaderLabel =
+    toSafeString(labels?.quantityHeaderLabel) || 'Quantity';
+  const pickedHeaderLabel = toSafeString(labels?.pickedHeaderLabel) || 'Picked';
+  const indexColWidth = toSafeString(labels?.indexColWidth) || '28px';
+  const quantityColWidth = toSafeString(labels?.quantityColWidth) || '68px';
+  const pickedColWidth = toSafeString(labels?.pickedColWidth) || '64px';
+  const colSpan =
+    2 +
+    (showQuantityColumn ? 1 : 0) +
+    (showRateColumn ? 1 : 0) +
+    (showAmountColumn ? 1 : 0) +
+    (showPickedColumn ? 1 : 0);
 
   return (
     <table className={styles.itemsTable}>
       <thead>
         <tr>
-          <th style={{ width: '28px' }} />
-          <th style={{ width: '237px' }}>Item</th>
-          {showPricingColumns ? (
-            <>
-              <th className={styles.thNum} style={{ width: '68px' }}>
-                Quantity
-              </th>
-              <th className={styles.thNum} style={{ width: '72px' }}>
-                Rate
-              </th>
-              <th className={styles.thNum} style={{ width: '94px' }}>
-                Amount
-              </th>
-            </>
+          <th style={{ width: indexColWidth }}>{indexHeaderLabel}</th>
+          <th style={{ width: showAnyPricing ? '237px' : 'auto' }}>
+            {itemHeaderLabel}
+          </th>
+          {showQuantityColumn ? (
+            <th className={styles.thNum} style={{ width: quantityColWidth }}>
+              {quantityHeaderLabel}
+            </th>
+          ) : null}
+          {showRateColumn ? (
+            <th className={styles.thNum} style={{ width: '72px' }}>
+              Rate
+            </th>
+          ) : null}
+          {showAmountColumn ? (
+            <th className={styles.thNum} style={{ width: '94px' }}>
+              Amount
+            </th>
+          ) : null}
+          {showPickedColumn ? (
+            <th
+              className={styles.pickedHeader}
+              style={{ width: pickedColWidth }}
+            >
+              {pickedHeaderLabel}
+            </th>
           ) : null}
         </tr>
       </thead>
       <tbody>
         {isEmpty ? (
           <tr>
-            <td
-              className={styles.emptyRow}
-              colSpan={showPricingColumns ? 5 : 2}
-            >
+            <td className={styles.emptyRow} colSpan={colSpan}>
               {labels.emptyItems}
             </td>
           </tr>
@@ -907,7 +1044,10 @@ const QuotationBody = ({ lineItems, baseCurrencyCode, labels }) => {
               item={item}
               index={index}
               baseCurrencyCode={baseCurrencyCode}
-              showPricingColumns={showPricingColumns}
+              showQuantityColumn={showQuantityColumn}
+              showRateColumn={showRateColumn}
+              showAmountColumn={showAmountColumn}
+              showPickedColumn={showPickedColumn}
             />
           ))
         )}
@@ -933,16 +1073,20 @@ const QuotationHeader = ({
   quotationNumber,
   createdDate,
   validTillDate,
+  totalLines,
+  totalQty,
 }) => (
   <>
     <div className={styles.divider} />
     <div className={styles.metaGrid}>
-      <div className={styles.fromCol}>
-        <div className={styles.metaTitle}>{labels.fromTitle}</div>
-        <div className={styles.metaHeading}>{companyName}</div>
-        <div className={styles.metaLine}>{companyAddress}</div>
-        <div className={styles.metaLine}>Contact Person: {contactPerson}</div>
-      </div>
+      {labels?.showFromColumn === false ? null : (
+        <div className={styles.fromCol}>
+          <div className={styles.metaTitle}>{labels.fromTitle}</div>
+          <div className={styles.metaHeading}>{companyName}</div>
+          <div className={styles.metaLine}>{companyAddress}</div>
+          <div className={styles.metaLine}>Contact Person: {contactPerson}</div>
+        </div>
+      )}
 
       <div className={styles.forCol}>
         <div className={styles.metaTitle}>{labels.forTitle}</div>
@@ -952,10 +1096,14 @@ const QuotationHeader = ({
 
       <div className={styles.detailsCol}>
         <div className={styles.metaTitle}>{labels.detailsTitle}</div>
-        <div className={styles.metaLineQuot}>
-          <span className={styles.metaLineQuotLabel}>{labels.numberLabel}</span>
-          <span className={styles.metaLineQuotValue}>{quotationNumber}</span>
-        </div>
+        {toSafeString(labels?.numberLabel) ? (
+          <div className={styles.metaLineQuot}>
+            <span className={styles.metaLineQuotLabel}>
+              {labels.numberLabel}
+            </span>
+            <span className={styles.metaLineQuotValue}>{quotationNumber}</span>
+          </div>
+        ) : null}
         <div className={styles.metaLineQuot}>
           <span className={styles.metaLineQuotLabel}>{labels.dateLabel}</span>
           <span className={styles.metaLineQuotValue}>{createdDate}</span>
@@ -967,6 +1115,32 @@ const QuotationHeader = ({
             </span>
             <span className={styles.metaLineQuotValue}>{validTillDate}</span>
           </div>
+        ) : null}
+        {labels?.showDetailTotals === true ? (
+          <>
+            <div className={styles.metaLineQuot}>
+              <span className={styles.metaLineQuotLabel}>
+                {labels.totalLinesLabel}
+              </span>
+              <span className={styles.metaLineQuotValue}>
+                {totalLines}
+                {toSafeString(labels?.totalLinesSuffix)
+                  ? ` ${toSafeString(labels.totalLinesSuffix)}`
+                  : ''}
+              </span>
+            </div>
+            <div className={styles.metaLineQuot}>
+              <span className={styles.metaLineQuotLabel}>
+                {labels.totalQtyLabel}
+              </span>
+              <span className={styles.metaLineQuotValue}>
+                {totalQty}
+                {toSafeString(labels?.totalQtySuffix)
+                  ? ` ${toSafeString(labels.totalQtySuffix)}`
+                  : ''}
+              </span>
+            </div>
+          </>
         ) : null}
       </div>
     </div>
@@ -993,7 +1167,9 @@ const QuotationFooter = ({
 
   return (
     <div
-      className={`${styles.footer} ${showTotalPrice ? '' : styles.footerNoTotal}`}
+      className={`${styles.footer} ${showTotalPrice ? '' : styles.footerNoTotal} ${
+        labels?.termsFullWidth === true ? styles.footerWideTerms : ''
+      }`}
     >
       <div className={styles.terms}>
         <div className={styles.termsTitle}>
@@ -1064,6 +1240,8 @@ const QuotationPreviewPage = ({
   totalLabel,
   totalAmount,
   paymentSummary,
+  totalLines,
+  totalQty,
 }) => (
   <div className={styles.page} style={PAGE_STYLE}>
     <QuotationTopBar logoUrl={logoUrl} documentType={documentType} />
@@ -1077,6 +1255,8 @@ const QuotationPreviewPage = ({
       quotationNumber={quotationNumber}
       createdDate={createdDate}
       validTillDate={validTillDate}
+      totalLines={totalLines}
+      totalQty={totalQty}
     />
     <QuotationBody
       lineItems={lineItems}
@@ -1138,34 +1318,49 @@ export const buildQuotationViewData = ({
     toSafeString(quotation?.customer_address_id),
   );
 
-  const lineItems = [
-    ...sortLineItemsByAmountDesc(
-      buildProductLineItems({
+  const isPackingList = variant === 'packing-list';
+
+  const lineItems = isPackingList
+    ? buildPackingLineItems({
         quotation,
         productById,
-        currencyCodeById,
         baseCurrencyCode,
-        showProductIcon,
-      }),
-    ),
-    ...sortLineItemsByAmountDesc(
-      buildServiceLineItems({
-        quotation,
-        serviceById,
-        currencyCodeById,
-        baseCurrencyCode,
-      }),
-    ),
-    ...sortLineItemsByAmountDesc(
-      buildShippingLineItems({
-        quotation,
-        shippingMethodById,
-        addressById,
-        currencyCodeById,
-        baseCurrencyCode,
-      }),
-    ),
-  ];
+      })
+    : [
+        ...sortLineItemsByAmountDesc(
+          buildProductLineItems({
+            quotation,
+            productById,
+            currencyCodeById,
+            baseCurrencyCode,
+            showProductIcon,
+          }),
+        ),
+        ...sortLineItemsByAmountDesc(
+          buildServiceLineItems({
+            quotation,
+            serviceById,
+            currencyCodeById,
+            baseCurrencyCode,
+          }),
+        ),
+        ...sortLineItemsByAmountDesc(
+          buildShippingLineItems({
+            quotation,
+            shippingMethodById,
+            addressById,
+            currencyCodeById,
+            baseCurrencyCode,
+          }),
+        ),
+      ];
+
+  const totalLines = lineItems.length;
+  const totalQty = lineItems.reduce(
+    (sum, item) =>
+      sum + (Number.isFinite(toNumber(item?.qty)) ? toNumber(item?.qty) : 0),
+    0,
+  );
 
   const summary = computeQuotationTotals(quotation, {
     baseCurrencyCode,
@@ -1173,8 +1368,12 @@ export const buildQuotationViewData = ({
     exchangeRateMap,
   });
 
-  const customerName =
-    pickCustomerName(customer) || toSafeString(quotation?.customer_id);
+  const customerName = isPackingList
+    ? toSafeString(quotation?.assigned_picker) || '-'
+    : pickCustomerName(customer) || toSafeString(quotation?.customer_id);
+  const resolvedCustomerAddress = isPackingList
+    ? toSafeString(quotation?.assigned_picker_address) || '-'
+    : pickAddressLine(customerAddress);
   const resolvedCompanyInfo = resolveCompanyInfo(companyInfo);
   const documentTitle = buildQuotationPdfFileName({
     quotationNumber: toSafeString(quotation?.id),
@@ -1282,11 +1481,13 @@ export const buildQuotationViewData = ({
     companyAddress: resolvedCompanyInfo.companyAddress,
     contactPerson: resolvedCompanyInfo.contactPerson,
     customerName,
-    customerAddress: pickAddressLine(customerAddress),
+    customerAddress: resolvedCustomerAddress,
     quotationNumber: rawQuotationNumber.slice(0, 8).toUpperCase(),
     createdDate,
     validTillDate,
     lineItems,
+    totalLines,
+    totalQty,
     baseCurrencyCode,
     totalLabel,
     totalAmount,

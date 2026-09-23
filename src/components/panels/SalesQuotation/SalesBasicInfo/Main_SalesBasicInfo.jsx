@@ -82,6 +82,7 @@ const Main_SalesBasicInfo = ({
   const quotationId = useEntityField('sales_quotations', 'id');
   const status = useEntityField('sales_quotations', 'status');
   const customerId = useEntityField('sales_quotations', 'customer_id');
+  const customerNameId = useEntityField('sales_quotations', 'customer_name_id');
   const customerAddressId = useEntityField(
     'sales_quotations',
     'customer_address_id',
@@ -218,6 +219,16 @@ const Main_SalesBasicInfo = ({
           item?.customer_id || item?.customer_code || item?.code || '',
         ).trim(),
         customer_type_name: String(item?.customer_type_name || '').trim(),
+        customer_names: (Array.isArray(item?.customer_names)
+          ? item.customer_names
+          : []
+        )
+          .map((nameRow) => ({
+            id: String(nameRow?.id || '').trim(),
+            name: String(nameRow?.name || '').trim(),
+            customer_id: String(nameRow?.customer_id || item?.id || '').trim(),
+          }))
+          .filter((nameRow) => nameRow.name),
         searchText: [
           String(item?.searchText || '').trim(),
           String(item?.customer_display_name || '').trim(),
@@ -261,6 +272,27 @@ const Main_SalesBasicInfo = ({
       ) || null,
     [customerSuggestionOptions, selectedCustomerId],
   );
+
+  const headerNameSuggestionOptions = useMemo(() => {
+    const rows = Array.isArray(selectedCustomerOption?.customer_names)
+      ? selectedCustomerOption.customer_names
+      : [];
+
+    return rows
+      .map((row) => ({
+        id: String(row?.id || '').trim(),
+        name: String(row?.name || '').trim(),
+        customer_id: String(row?.customer_id || selectedCustomerId).trim(),
+        searchText: [
+          String(row?.name || '').trim(),
+          String(row?.customer_id || selectedCustomerId).trim(),
+          String(row?.id || '').trim(),
+        ]
+          .filter(Boolean)
+          .join(' '),
+      }))
+      .filter((row) => row.id && row.name);
+  }, [selectedCustomerId, selectedCustomerOption]);
 
   const defaultSalesDocFiles = useMemo(() => {
     return (salesDocRows || [])
@@ -340,6 +372,20 @@ const Main_SalesBasicInfo = ({
                   suggestion?.id || '',
                 ).trim();
 
+                const nextCustomerNameOptions = Array.isArray(
+                  suggestion?.customer_names,
+                )
+                  ? suggestion.customer_names
+                  : [];
+
+                const currentNameId = String(customerNameId || '').trim();
+                const hasMatchingName = nextCustomerNameOptions.some(
+                  (item) => String(item?.id || '').trim() === currentNameId,
+                );
+                const fallbackNameId = String(
+                  nextCustomerNameOptions[0]?.id || '',
+                ).trim();
+
                 const nextCustomerAddressOptions =
                   normalizedNextCustomerId.length === 0
                     ? customerAddressOptions || []
@@ -357,6 +403,9 @@ const Main_SalesBasicInfo = ({
 
                 onPatchQuotation({
                   customer_id: normalizedNextCustomerId,
+                  customer_name_id: hasMatchingName
+                    ? currentNameId
+                    : fallbackNameId,
                   customer_address_id: hasMatchingAddress
                     ? currentAddressId
                     : '',
@@ -365,16 +414,40 @@ const Main_SalesBasicInfo = ({
               onFetchSuggestions={onRefreshReferenceOptions}
             />
           </Main_InputContainer>
-
-          <Main_InputContainer label="Customer Type">
-            <Main_TextField
-              defaultValue={selectedCustomerOption?.customer_type_name || ''}
-              disabled
-              placeholder="Customer type"
+          <Main_InputContainer label="Header Name">
+            <Main_Suggest
+              defaultSuggestions={headerNameSuggestionOptions}
+              defaultValue={
+                headerNameSuggestionOptions.find(
+                  (item) => item.id === String(customerNameId || '').trim(),
+                )?.name || ''
+              }
+              placeholder="Search header name"
+              autoComplete="new-password"
+              getSuggestionLabel={(suggestion) => suggestion?.name || ''}
+              getSuggestionSearchText={(suggestion) =>
+                String(
+                  suggestion?.searchText ||
+                    [suggestion?.name, suggestion?.customer_id, suggestion?.id]
+                      .filter(Boolean)
+                      .join(' '),
+                )
+              }
+              onChange={(ov, nv) => {
+                if (!String(nv || '').trim()) {
+                  onPatchQuotation({ customer_name_id: '' });
+                }
+              }}
+              onSelectSuggestion={(suggestion) => {
+                onPatchQuotation({
+                  customer_name_id: String(suggestion?.id || '').trim(),
+                });
+              }}
+              onFetchSuggestions={onRefreshReferenceOptions}
             />
           </Main_InputContainer>
 
-          <Main_InputContainer label="Customer Address">
+          <Main_InputContainer label="Header Address">
             <Main_Suggest
               defaultSuggestions={addressSuggestionOptions}
               defaultValue={
@@ -525,7 +598,13 @@ const Main_SalesBasicInfo = ({
               </Main_InputContainer>
             </>
           ) : null}
-
+          <Main_InputContainer label="Customer Type">
+            <Main_TextField
+              defaultValue={selectedCustomerOption?.customer_type_name || ''}
+              disabled
+              placeholder="Customer type"
+            />
+          </Main_InputContainer>
           <Main_InputContainer label="Created At">
             <Main_DateSelector
               defaultValue={toDateInputValue(createdAt)}

@@ -3,12 +3,17 @@ import { useParams } from 'react-router-dom';
 import { useSalesQuotationContext } from '../../../store/SalesQuotationContext';
 import { useMasterContext } from '../../../store/MasterContext';
 import { toSafeString } from './utils/quotationTotals';
-import Main_SalesQuotation from './Main_SalesQuotation';
-import Main_SalesOrder from './Main_SalesOrder';
-import Main_SalesDN from './Main_SalesDN';
-import Main_SalesDPINV from './Main_SalesDPINV';
-import Main_SalesINV from './Main_SalesINV';
-import Main_SalesPacking from './Main_SalesPacking';
+import Main_SalesDocument from './Main_SalesDocument';
+
+const SALES_ROUTE_PATH = '/panel/sales';
+const DEFAULT_DOC_TYPE_NAME = 'Sales Quotation';
+const DOC_TYPE_NAMES = [
+  'Sales Order',
+  'Delivery Note',
+  'AR Downpayment Invoice',
+  'AR Invoice',
+  'Packing List',
+];
 
 const Main_SalesPanel = () => {
   const { quotations, selectedQuotationId } = useSalesQuotationContext();
@@ -24,38 +29,24 @@ const Main_SalesPanel = () => {
     return toSafeString(selectedDoc?.doc_type);
   }, [quotation_id, selectedQuotationId, quotations]);
 
-  if (
-    selectedDocTypeId &&
-    selectedDocTypeId === getDocTypeIdByName('Sales Order')
-  ) {
-    return <Main_SalesOrder />;
-  }
-  if (
-    selectedDocTypeId &&
-    selectedDocTypeId === getDocTypeIdByName('Delivery Note')
-  ) {
-    return <Main_SalesDN />;
-  }
-  if (
-    selectedDocTypeId &&
-    selectedDocTypeId === getDocTypeIdByName('AR Downpayment Invoice')
-  ) {
-    return <Main_SalesDPINV />;
-  }
-  if (
-    selectedDocTypeId &&
-    selectedDocTypeId === getDocTypeIdByName('AR Invoice')
-  ) {
-    return <Main_SalesINV />;
-  }
-  if (
-    selectedDocTypeId &&
-    selectedDocTypeId === getDocTypeIdByName('Packing List')
-  ) {
-    return <Main_SalesPacking />;
-  }
+  const docTypeName = useMemo(() => {
+    if (!selectedDocTypeId) {
+      return DEFAULT_DOC_TYPE_NAME;
+    }
 
-  return <Main_SalesQuotation />;
+    const matchedName = DOC_TYPE_NAMES.find(
+      (name) => selectedDocTypeId === getDocTypeIdByName(name),
+    );
+
+    return matchedName || DEFAULT_DOC_TYPE_NAME;
+  }, [selectedDocTypeId, getDocTypeIdByName]);
+
+  return (
+    <Main_SalesDocument
+      docTypeName={docTypeName}
+      routePath={SALES_ROUTE_PATH}
+    />
+  );
 };
 
 export default Main_SalesPanel;

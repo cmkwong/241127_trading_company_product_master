@@ -4,6 +4,7 @@ import Main_InputContainer from '../../../common/Container/Main_InputContainer';
 import Main_Suggest from '../../../common/InputOptions/Suggest/Main_Suggest';
 import Sub_SuggestionCard from '../../../common/InputOptions/Suggest/Sub_SuggestionCard';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
+import Main_TextArea from '../../../common/InputOptions/TextArea/Main_TextArea';
 import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_FileUploads';
 import EditableDataForm from '../../../common/Forms/EditableDataForm';
 import {
@@ -63,17 +64,47 @@ const Main_SalesPackingItems = ({ productOptions = [], onPatchQuotation }) => {
   );
 
   const setPackingItemImages = useCallback(
-    (nextRows) => onPatchQuotation({ sales_packing_item_images: nextRows }),
+    (nextRowsOrUpdater) => {
+      onPatchQuotation((currentQuotation) => {
+        const previousRows = currentQuotation?.sales_packing_item_images || [];
+        const nextRows =
+          typeof nextRowsOrUpdater === 'function'
+            ? nextRowsOrUpdater(previousRows)
+            : nextRowsOrUpdater;
+
+        return { sales_packing_item_images: nextRows };
+      });
+    },
     [onPatchQuotation],
   );
   const setPackingItemInternalImages = useCallback(
-    (nextRows) =>
-      onPatchQuotation({ sales_packing_item_internal_images: nextRows }),
+    (nextRowsOrUpdater) => {
+      onPatchQuotation((currentQuotation) => {
+        const previousRows =
+          currentQuotation?.sales_packing_item_internal_images || [];
+        const nextRows =
+          typeof nextRowsOrUpdater === 'function'
+            ? nextRowsOrUpdater(previousRows)
+            : nextRowsOrUpdater;
+
+        return { sales_packing_item_internal_images: nextRows };
+      });
+    },
     [onPatchQuotation],
   );
   const setPackingItemInternalFiles = useCallback(
-    (nextRows) =>
-      onPatchQuotation({ sales_packing_item_internal_files: nextRows }),
+    (nextRowsOrUpdater) => {
+      onPatchQuotation((currentQuotation) => {
+        const previousRows =
+          currentQuotation?.sales_packing_item_internal_files || [];
+        const nextRows =
+          typeof nextRowsOrUpdater === 'function'
+            ? nextRowsOrUpdater(previousRows)
+            : nextRowsOrUpdater;
+
+        return { sales_packing_item_internal_files: nextRows };
+      });
+    },
     [onPatchQuotation],
   );
 
@@ -85,12 +116,12 @@ const Main_SalesPackingItems = ({ productOptions = [], onPatchQuotation }) => {
             String(file?.sales_packing_item_id || '') !==
             String(parentId || ''),
         );
-        const nextRows = (nextFiles || []).map((file) => ({
+        const nextRows = (nextFiles || []).map((file, index) => ({
           id: file.id,
           sales_packing_item_id: parentId,
           image_name: file.name,
           image_url: file.url,
-          display_order: file.display_order,
+          display_order: file.display_order ?? index + 1,
         }));
         return [...withoutParent, ...nextRows];
       });
@@ -106,12 +137,12 @@ const Main_SalesPackingItems = ({ productOptions = [], onPatchQuotation }) => {
             String(file?.sales_packing_item_id || '') !==
             String(parentId || ''),
         );
-        const nextRows = (nextFiles || []).map((file) => ({
+        const nextRows = (nextFiles || []).map((file, index) => ({
           id: file.id,
           sales_packing_item_id: parentId,
           image_name: file.name,
           image_url: file.url,
-          display_order: file.display_order,
+          display_order: file.display_order ?? index + 1,
         }));
         return [...withoutParent, ...nextRows];
       });
@@ -127,12 +158,12 @@ const Main_SalesPackingItems = ({ productOptions = [], onPatchQuotation }) => {
             String(file?.sales_packing_item_id || '') !==
             String(parentId || ''),
         );
-        const nextRows = (nextFiles || []).map((file) => ({
+        const nextRows = (nextFiles || []).map((file, index) => ({
           id: file.id,
           sales_packing_item_id: parentId,
           file_name: file.name,
           file_url: file.url,
-          display_order: file.display_order,
+          display_order: file.display_order ?? index + 1,
         }));
         return [...withoutParent, ...nextRows];
       });
@@ -376,7 +407,7 @@ const Main_SalesPackingItems = ({ productOptions = [], onPatchQuotation }) => {
         sortType: 'string',
         nextRow: true,
         renderCell: (row) => (
-          <Main_TextField
+          <Main_TextArea
             className={styles.cellInput}
             defaultValue={row.details || ''}
             placeholder="Description shown on printout"
@@ -390,7 +421,7 @@ const Main_SalesPackingItems = ({ productOptions = [], onPatchQuotation }) => {
         size: 'L',
         sortType: 'string',
         renderCell: (row) => (
-          <Main_TextField
+          <Main_TextArea
             className={styles.cellInput}
             defaultValue={row.remark || ''}
             placeholder="Internal remark (not for print)"
@@ -555,6 +586,7 @@ const Main_SalesPackingItems = ({ productOptions = [], onPatchQuotation }) => {
       handlePackingItemImagesChange,
       handlePackingItemInternalImagesChange,
       handlePackingItemInternalFilesChange,
+      renderNumberCell,
     ],
   );
 

@@ -835,6 +835,11 @@
   gap: 12px;
 }
 
+.sequenceGridEditor > * {
+  flex: 0 0 auto;
+  display: block;
+}
+
 @media (max-width: 1180px) {
   .sequenceEditorModal {
     width: min(860px, 100%);

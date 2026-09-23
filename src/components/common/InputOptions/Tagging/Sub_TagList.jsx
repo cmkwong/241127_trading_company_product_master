@@ -29,6 +29,7 @@ const Sub_TagList = (props) => {
               key={el.id}
               id={el.id}
               name={el.name}
+              parentTrail={el.parentTrail || ''}
               level={el.level || 0}
               hasChildren={Boolean(el.hasChildren)}
               isCollapsed={Boolean(el.isCollapsed)}

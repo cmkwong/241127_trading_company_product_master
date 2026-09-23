@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import SearchSideBarListItem from './SearchSideBarListItem';
 import SearchSideBarListNoResults from './SearchSideBarListNoResults';
 import SearchSideBarListSearchBar from './SearchSideBarListSearchBar';
@@ -7,6 +7,11 @@ import styles from './SearchSideBarList.module.css';
 
 const toItemKey = (value) =>
   value === undefined || value === null ? '' : String(value);
+
+// Remembers each sidebar list's scroll offset for the current browsing session
+// so selecting a card (which may re-render or remount the sidebar) never
+// teleports the list back to the top.
+const scrollOffsetMemory = new Map();
 
 const SearchSideBarList = ({
   items = [],
@@ -44,11 +49,73 @@ const SearchSideBarList = ({
   renderItemInfo,
   className = '',
   listClassName = '',
+  persistScroll = true,
+  scrollPersistenceKey,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const itemRefs = useRef(new Map());
   const listRef = useRef(null);
   const pendingHistoryScrollRef = useRef(false);
+  const scrollKey =
+    toItemKey(scrollPersistenceKey) || toItemKey(exportSheetName) || 'default';
+  const hasRestoredScrollRef = useRef(false);
+
+  const saveListScrollOffset = useCallback(() => {
+    const root = listRef.current;
+    if (!root || !persistScroll) return;
+    scrollOffsetMemory.set(scrollKey, root.scrollTop);
+  }, [persistScroll, scrollKey]);
+
+  // Capture the current offset on unmount so the next mount can restore it.
+  useLayoutEffect(() => {
+    const root = listRef.current;
+    if (!root) return undefined;
+
+    return () => {
+      if (!persistScroll) return;
+      scrollOffsetMemory.set(scrollKey, root.scrollTop);
+    };
+  }, [persistScroll, scrollKey]);
+
+  // Restore the remembered offset before paint, once the list has content.
+  useLayoutEffect(() => {
+    if (!persistScroll || hasRestoredScrollRef.current) return;
+    const root = listRef.current;
+    if (!root || items.length === 0) return;
+
+    hasRestoredScrollRef.current = true;
+
+    const stored = scrollOffsetMemory.get(scrollKey);
+    if (typeof stored !== 'number' || stored <= 0) return;
+    const maxOffset = Math.max(0, root.scrollHeight - root.clientHeight);
+    root.scrollTop = Math.min(stored, maxOffset);
+  }, [persistScroll, scrollKey, items]);
+
+  // Keep the remembered offset in sync as the user scrolls.
+  useEffect(() => {
+    const root = listRef.current;
+    if (!root || !persistScroll) return undefined;
+
+    let rafId = null;
+
+    const handleScroll = () => {
+      if (rafId !== null) return;
+
+      rafId = window.requestAnimationFrame(() => {
+        saveListScrollOffset();
+        rafId = null;
+      });
+    };
+
+    root.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      root.removeEventListener('scroll', handleScroll);
+      if (rafId !== null) {
+        window.cancelAnimationFrame(rafId);
+      }
+    };
+  }, [persistScroll, saveListScrollOffset]);
 
   const emitVisibleItemIdsFromScroll = useCallback(() => {
     if (typeof onVisibleItemIdsChange !== 'function') {
@@ -126,8 +193,10 @@ const SearchSideBarList = ({
       behavior: 'smooth',
     });
 
+    scrollOffsetMemory.set(scrollKey, desiredTop);
+
     targetNode.focus({ preventScroll: true });
-  }, [selectedItemId]);
+  }, [selectedItemId, scrollKey]);
 
   useEffect(() => {
     if (!pendingHistoryScrollRef.current) {

@@ -36,6 +36,9 @@ const normalizeHistoryEntry = (entry) => {
 
 const FILE_SERVER_BASE_URL = 'http://localhost:3001';
 
+const PACKING_LIST_DOC_TYPE_NAME = 'Packing List';
+const PACKING_LIST_ICON_URL = '/assets/icons/packing_list_icon.svg';
+
 const resolveIconUrl = (iconUrl) => {
   const normalized = String(iconUrl || '').trim();
   if (!normalized) {
@@ -128,6 +131,18 @@ const SalesSidebar = ({
 
     return map;
   }, [docTypeOptions]);
+
+  const isPackingListQuotation = useCallback(
+    (quotation) => {
+      const docTypeName =
+        docTypeById.get(String(quotation?.doc_type || '').trim())?.name || '';
+      return (
+        docTypeName.trim().toLowerCase() ===
+        PACKING_LIST_DOC_TYPE_NAME.toLowerCase()
+      );
+    },
+    [docTypeById],
+  );
 
   const quotationTotalsById = useMemo(() => {
     const map = new Map();
@@ -418,6 +433,10 @@ const SalesSidebar = ({
 
   const getQuotationIconUrl = useCallback(
     (quotation) => {
+      if (isPackingListQuotation(quotation)) {
+        return PACKING_LIST_ICON_URL;
+      }
+
       const firstProductId = String(
         quotation?.sales_product_details?.[0]?.product_id || '',
       ).trim();
@@ -429,7 +448,7 @@ const SalesSidebar = ({
       const product = productOptionById.get(firstProductId);
       return resolveIconUrl(product?.icon_url);
     },
-    [productOptionById],
+    [isPackingListQuotation, productOptionById],
   );
 
   useEffect(() => {
@@ -467,6 +486,10 @@ const SalesSidebar = ({
           getItemRows={getQuotationRows}
           getItemIconUrl={getQuotationIconUrl}
           getItemIconAlt={(quotation) => {
+            if (isPackingListQuotation(quotation)) {
+              return 'Packing list';
+            }
+
             const customerName = getQuotationTitle(quotation);
             return customerName ? `${customerName} product` : 'Product';
           }}

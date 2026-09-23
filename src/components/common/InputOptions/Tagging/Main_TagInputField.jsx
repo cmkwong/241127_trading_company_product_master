@@ -78,7 +78,20 @@ const Main_TagInputField = (props) => {
   const parentById = useMemo(() => {
     const map = new Map();
     (options || []).forEach((item) => {
-      map.set(item?.id, item?.parent_id ?? null);
+      const id = String(item?.id || '');
+      if (!id) return;
+      const parentId = item?.parent_id ?? item?.parentId ?? null;
+      map.set(id, parentId != null ? String(parentId) : null);
+    });
+    return map;
+  }, [options]);
+
+  const optionById = useMemo(() => {
+    const map = new Map();
+    (options || []).forEach((item) => {
+      const id = String(item?.id || '');
+      if (!id) return;
+      map.set(id, item);
     });
     return map;
   }, [options]);
@@ -86,18 +99,43 @@ const Main_TagInputField = (props) => {
   const getAncestorIds = useCallback(
     (startId) => {
       const ancestors = [];
-      const visited = new Set([startId]);
-      let cursor = parentById.get(startId);
+      const startKey = String(startId || '');
+      const visited = new Set([startKey]);
+      let cursor = parentById.get(startKey);
 
       while (cursor != null && !visited.has(cursor)) {
-        ancestors.push(cursor);
+        const parentOption = optionById.get(cursor);
+        if (!parentOption) break;
+
+        ancestors.push(parentOption.id);
         visited.add(cursor);
         cursor = parentById.get(cursor);
       }
 
       return ancestors;
     },
-    [parentById],
+    [parentById, optionById],
+  );
+
+  const getAncestorTrail = useCallback(
+    (startId) => {
+      const trail = [];
+      const startKey = String(startId || '');
+      const visited = new Set([startKey]);
+      let cursor = parentById.get(startKey);
+
+      while (cursor != null && !visited.has(cursor)) {
+        const parentOption = optionById.get(cursor);
+        if (!parentOption) break;
+
+        trail.unshift(parentOption);
+        visited.add(cursor);
+        cursor = parentById.get(cursor);
+      }
+
+      return trail;
+    },
+    [parentById, optionById],
   );
 
   // Update selection for one option
@@ -191,9 +229,13 @@ const Main_TagInputField = (props) => {
     if (!inputValue) return options || [];
     const v = inputValue.toLowerCase();
     return (options || []).filter((el) => {
-      return el.name.toLowerCase().includes(v);
+      const selfName = String(el?.name || '').toLowerCase();
+      const parentNames = getAncestorTrail(el?.id).map((ancestor) =>
+        String(ancestor?.name || '').toLowerCase(),
+      );
+      return [selfName, ...parentNames].join(' ').includes(v);
     });
-  }, [options, inputValue]);
+  }, [options, inputValue, getAncestorTrail]);
 
   useEffect(() => {
     const validIds = new Set((options || []).map((item) => item?.id));
@@ -287,6 +329,10 @@ const Main_TagInputField = (props) => {
     if (inputValue) {
       return filteredOptions.map((item) => ({
         ...item,
+        parentTrail: getAncestorTrail(item?.id)
+          .map((ancestor) => ancestor?.name)
+          .filter(Boolean)
+          .join(' > '),
         level: 0,
         hasChildren: false,
         isCollapsed: false,
@@ -304,6 +350,7 @@ const Main_TagInputField = (props) => {
   }, [
     inputValue,
     filteredOptions,
+    getAncestorTrail,
     showHierarchy,
     hierarchicalOptions,
     options,

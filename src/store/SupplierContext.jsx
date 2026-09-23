@@ -53,6 +53,72 @@ const persistSuppliers = (suppliersState) => {
   );
 };
 
+const cloneSupplierForDuplication = (sourceSupplier) => {
+  const source = cleanupNestedInternalFlags(sourceSupplier || {});
+  const idMap = new Map();
+
+  const collectRowIds = (value) => {
+    if (Array.isArray(value)) {
+      value.forEach((item) => {
+        if (item?._delete) return;
+        collectRowIds(item);
+      });
+      return;
+    }
+
+    if (!value || typeof value !== 'object') return;
+
+    const id = String(value.id || '').trim();
+    if (id && !idMap.has(id)) {
+      idMap.set(id, uuidv4());
+    }
+
+    Object.values(value).forEach(collectRowIds);
+  };
+
+  const cloneValue = (value) => {
+    if (Array.isArray(value)) {
+      return value
+        .filter((item) => !item?._delete)
+        .map((item) => cloneValue(item));
+    }
+
+    if (!value || typeof value !== 'object') return value;
+
+    return Object.entries(value).reduce((copy, [key, nestedValue]) => {
+      if (
+        key === '_delete' ||
+        key === '_base64_changed' ||
+        key === '_objUrl' ||
+        key === 'created_at' ||
+        key === 'updated_at'
+      ) {
+        return copy;
+      }
+
+      if (key === 'id') {
+        const replacementId = idMap.get(String(nestedValue || '').trim());
+        if (replacementId) {
+          copy.id = replacementId;
+        }
+        return copy;
+      }
+
+      if (key.endsWith('_id')) {
+        const replacementId = idMap.get(String(nestedValue || '').trim());
+        copy[key] = replacementId || nestedValue;
+        return copy;
+      }
+
+      copy[key] = cloneValue(nestedValue);
+      return copy;
+    }, {});
+  };
+
+  collectRowIds(source);
+  return cloneValue(source);
+};
+
 export const SupplierContext_Provider = ({ children, initialData = {} }) => {
   const { token } = useAuthContext();
   const { fileMappings, isFileMappingsLoading } = useGeneralContext();
@@ -520,6 +586,7 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
       id: newSupplierId,
       code: newSupplierCode,
       supplier_code: newSupplierCode,
+      status: 'active',
       score: 1,
       supplier_types: [],
       supplier_addresses: [],
@@ -536,6 +603,31 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
     discardCurrentSupplierUnsavedChanges,
   ]);
 
+  const duplicateSelectedSupplier = useCallback(() => {
+    const current = getPageData();
+    if (!String(current?.id || '').trim()) {
+      throw new Error('No supplier selected to duplicate.');
+    }
+
+    const duplicatedSupplier = cloneSupplierForDuplication(current);
+    const duplicatedSupplierId = String(duplicatedSupplier?.id || '').trim();
+
+    if (!duplicatedSupplierId) {
+      throw new Error('Failed to create a duplicate supplier draft.');
+    }
+
+    const nextSupplierCode = generateNextSupplierCode();
+    duplicatedSupplier.supplier_code = nextSupplierCode;
+    duplicatedSupplier.code = nextSupplierCode;
+
+    setPageData(duplicatedSupplier);
+    setOriginalPageData({});
+    setSelectedSupplierId(duplicatedSupplierId);
+    setSaveError(null);
+
+    return duplicatedSupplier;
+  }, [generateNextSupplierCode]);
+
   const getAllData = useCallback(() => {
     return getPageData();
   }, []);
@@ -550,6 +642,7 @@ export const SupplierContext_Provider = ({ children, initialData = {} }) => {
         refreshSupplierList,
         handleSupplierSave,
         createNewSupplier,
+        duplicateSelectedSupplier,
         deleteSupplierById,
         getAllData,
         isSaving,

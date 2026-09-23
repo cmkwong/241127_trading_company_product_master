@@ -45,6 +45,7 @@ const SupplierMasterContent = ({ onSelectSupplier }) => {
 const Main_SupplierMaster = () => {
   const [selectedSupplier, setSelectedSupplier] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isDuplicating, setIsDuplicating] = useState(false);
   const navigate = useNavigate();
   const { supplier_id } = useParams();
   const {
@@ -53,6 +54,7 @@ const Main_SupplierMaster = () => {
     getAllSuppliers,
     deleteSupplierById,
     createNewSupplier,
+    duplicateSelectedSupplier,
   } = useSupplierContext();
   const pageDataId = useEntityField('supplier', 'id');
 
@@ -87,13 +89,20 @@ const Main_SupplierMaster = () => {
     }
   }, [supplier_id, selectedSupplierId, navigate]);
 
-  const supplierId = String(pageDataId || '').trim();
+  const activeSupplierId = String(
+    selectedSupplierId || pageDataId || '',
+  ).trim();
   const hasPersistedSupplier = (getAllSuppliers() || []).some(
-    (item) => String(item?.id || '').trim() === supplierId,
+    (item) => String(item?.id || '').trim() === activeSupplierId,
   );
 
   const handleDeleteSupplier = useCallback(async () => {
-    if (!supplierId || !hasPersistedSupplier || isDeleting) {
+    if (
+      !activeSupplierId ||
+      !hasPersistedSupplier ||
+      isDeleting ||
+      isDuplicating
+    ) {
       return;
     }
 
@@ -106,7 +115,7 @@ const Main_SupplierMaster = () => {
 
     setIsDeleting(true);
     try {
-      await deleteSupplierById(supplierId);
+      await deleteSupplierById(activeSupplierId);
       navigate('/panel/supplier_master', { replace: true });
       alert('Supplier deleted successfully.');
     } catch (error) {
@@ -119,7 +128,30 @@ const Main_SupplierMaster = () => {
     deleteSupplierById,
     hasPersistedSupplier,
     isDeleting,
-    supplierId,
+    activeSupplierId,
+    isDuplicating,
+    navigate,
+  ]);
+
+  const handleDuplicateSupplier = useCallback(async () => {
+    if (!hasPersistedSupplier || isDuplicating) {
+      return;
+    }
+
+    setIsDuplicating(true);
+    try {
+      await duplicateSelectedSupplier();
+      navigate('/panel/supplier_master', { replace: true });
+    } catch (error) {
+      console.error('Failed to duplicate supplier:', error);
+      alert(error?.message || 'Failed to duplicate supplier.');
+    } finally {
+      setIsDuplicating(false);
+    }
+  }, [
+    duplicateSelectedSupplier,
+    hasPersistedSupplier,
+    isDuplicating,
     navigate,
   ]);
 
@@ -145,19 +177,41 @@ const Main_SupplierMaster = () => {
       createButtonText="Add Supplier"
       showCreateButton
       leftBottomAction={
-        <DeleteBtn
-          text={isDeleting ? 'Deleting...' : 'Delete Supplier'}
-          onClick={handleDeleteSupplier}
-          disabled={!supplierId || !hasPersistedSupplier || isDeleting}
-          title="Delete supplier"
-          ariaLabel="Delete supplier"
-        />
+        <div className={styles.bottomActionGroup}>
+          <DeleteBtn
+            text={isDeleting ? 'Deleting...' : 'Delete Supplier'}
+            onClick={handleDeleteSupplier}
+            disabled={
+              !activeSupplierId ||
+              !hasPersistedSupplier ||
+              isDeleting ||
+              isDuplicating
+            }
+            title="Delete supplier"
+            ariaLabel="Delete supplier"
+          />
+          <button
+            type="button"
+            className={styles.duplicateBottomButton}
+            onClick={handleDuplicateSupplier}
+            disabled={!hasPersistedSupplier || isDuplicating}
+            title="Duplicate selected supplier"
+            aria-label="Duplicate selected supplier"
+          >
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <rect x="5.5" y="5.5" width="7" height="7" rx="1" />
+              <path d="M10.5 5V3.5a1 1 0 0 0-1-1h-6a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1H5" />
+            </svg>
+            {isDuplicating ? 'Duplicating...' : 'Duplicate Supplier'}
+          </button>
+        </div>
       }
       initialData={
         selectedSupplier || {
           id: null,
           code: '',
           name: '',
+          status: 'active',
           supplier_type_id: '',
           supplier_types: [],
           remark: '',

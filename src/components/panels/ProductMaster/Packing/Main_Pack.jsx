@@ -54,7 +54,33 @@ const Main_Pack = () => {
     [packingReliabilityType],
   );
 
-  const selectedLogisticsIds = logisticsId ? [logisticsId] : [];
+  const selectedLogisticsIds = useMemo(() => {
+    if (!logisticsId) return [];
+
+    const byId = new Map(
+      (productLogisticsAttributes || []).map((item) => [
+        String(item?.id),
+        item,
+      ]),
+    );
+
+    const selectedIds = [logisticsId];
+    const visited = new Set([String(logisticsId)]);
+    let cursor = byId.get(String(logisticsId));
+    let parentId = cursor?.parent_id ?? cursor?.parentId ?? null;
+
+    while (parentId != null) {
+      const parentKey = String(parentId);
+      if (!parentKey || visited.has(parentKey)) break;
+
+      selectedIds.push(parentId);
+      visited.add(parentKey);
+      cursor = byId.get(parentKey);
+      parentId = cursor?.parent_id ?? cursor?.parentId ?? null;
+    }
+
+    return selectedIds;
+  }, [logisticsId, productLogisticsAttributes]);
 
   const handleLogisticsChange = useCallback(
     (ov, nv) => {

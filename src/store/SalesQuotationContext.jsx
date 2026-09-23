@@ -604,6 +604,7 @@ const normalizeSalesQuotation = (row = {}) => {
     status: toSafeString(row?.status),
     remark: toSafeString(row?.remark),
     customer_id: toSafeString(row?.customer_id),
+    customer_name_id: toSafeString(row?.customer_name_id),
     customer_address_id: toSafeString(row?.customer_address_id),
     doc_type: toSafeString(row?.doc_type),
     base_type: toSafeString(row?.base_type),
@@ -1133,6 +1134,10 @@ export const SalesQuotationContext_Provider = ({ children }) => {
       customerResponse,
       'customer_addresses',
     );
+    const customerNameRows = extractRowsFromResponse(
+      customerResponse,
+      'customer_names',
+    );
     const customerTypeRows = extractRowsFromResponse(
       customerResponse,
       'customer_types',
@@ -1201,16 +1206,61 @@ export const SalesQuotationContext_Provider = ({ children }) => {
           customerCode;
         const label = customerName || customerCode;
 
-        const nestedCustomerNames = toArray(customer?.customer_names)
-          .map((row) =>
-            pickFirstLabel(row, [
-              'name',
-              'customer_name',
-              'display_name',
-              'full_name',
-              'label',
-            ]),
-          )
+        const nestedCustomerNameRows = toArray(customer?.customer_names).map(
+          (row) => ({
+            ...row,
+            customer_id: toSafeString(row?.customer_id) || id,
+          }),
+        );
+
+        const linkedCustomerNameRows = customerNameRows.filter(
+          (row) => toSafeString(row?.customer_id) === id,
+        );
+
+        const normalizedCustomerNames = [
+          ...nestedCustomerNameRows,
+          ...linkedCustomerNameRows,
+        ].reduce((acc, row) => {
+          const nameId = toSafeString(row?.id);
+          const name = pickFirstLabel(row, [
+            'name',
+            'customer_name',
+            'display_name',
+            'full_name',
+            'label',
+          ]);
+
+          if (!name) {
+            return acc;
+          }
+
+          const dedupeKey = nameId || `name:${name.toLowerCase()}`;
+          if (acc.some((item) => item._dedupeKey === dedupeKey)) {
+            return acc;
+          }
+
+          acc.push({
+            _dedupeKey: dedupeKey,
+            id: nameId,
+            customer_id: id,
+            name,
+            name_type_id: toSafeString(
+              row?.name_type_id || row?.customer_name_type_id,
+            ),
+          });
+
+          return acc;
+        }, []);
+
+        const customerNameOptions = normalizedCustomerNames.map((item) => ({
+          id: item.id,
+          customer_id: item.customer_id,
+          name: item.name,
+          name_type_id: item.name_type_id,
+        }));
+
+        const nestedCustomerNames = customerNameOptions
+          .map((item) => item.name)
           .filter(Boolean);
 
         const customerSearchTokens = [
@@ -1284,6 +1334,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
           ...option,
           customer_display_name: customerName || option.name,
           customer_type_name: typeNames.join(', '),
+          customer_names: customerNameOptions,
           customer_code: customerCode,
           customer_id:
             pickFirstLabel(customer, ['customer_id']) || customerCode,
@@ -1598,8 +1649,22 @@ export const SalesQuotationContext_Provider = ({ children }) => {
           return row;
         }
 
-        const upsertedRow = upsertNestedData(row, nestedData);
-        const replacedArrayRow = Object.entries(nestedData || {}).reduce(
+        // Resolve updater functions supplied as values inside the patch object
+        // (e.g. `{ sales_packing_item_images: (prev) => [...] }`). Without this,
+        // the function would be stored verbatim on the record instead of the
+        // resulting array, silently dropping the nested rows.
+        const resolvedNestedData = {};
+        for (const [key, value] of Object.entries(nestedData || {})) {
+          resolvedNestedData[key] =
+            typeof value === 'function'
+              ? value(Array.isArray(row[key]) ? row[key] : [])
+              : value;
+        }
+
+        const upsertedRow = upsertNestedData(row, resolvedNestedData);
+        const replacedArrayRow = Object.entries(
+          resolvedNestedData || {},
+        ).reduce(
           (acc, [key, value]) => {
             if (Array.isArray(value)) {
               acc[key] = value;
@@ -2277,25 +2342,25 @@ export const SalesQuotationContext_Provider = ({ children }) => {
       .filter(Boolean);
 
     const packingItemIdMap = new Map();
-    const sales_packing_items = toArray(sourceQuotation?.sales_packing_items).map(
-      (row) => {
-        const nextId = uuidv4();
-        packingItemIdMap.set(toSafeString(row?.id), nextId);
-        const rest = deepClone(row || {});
-        delete rest.sales_packing_item_images;
-        delete rest.sales_packing_item_internal_images;
-        delete rest.sales_packing_item_internal_files;
-        delete rest.created_at;
-        delete rest.updated_at;
-        return {
-          ...rest,
-          id: nextId,
-          sales_quotation_id: nextQuotationId,
-          created_at: now,
-          updated_at: now,
-        };
-      },
-    );
+    const sales_packing_items = toArray(
+      sourceQuotation?.sales_packing_items,
+    ).map((row) => {
+      const nextId = uuidv4();
+      packingItemIdMap.set(toSafeString(row?.id), nextId);
+      const rest = deepClone(row || {});
+      delete rest.sales_packing_item_images;
+      delete rest.sales_packing_item_internal_images;
+      delete rest.sales_packing_item_internal_files;
+      delete rest.created_at;
+      delete rest.updated_at;
+      return {
+        ...rest,
+        id: nextId,
+        sales_quotation_id: nextQuotationId,
+        created_at: now,
+        updated_at: now,
+      };
+    });
 
     const sales_packing_item_images = toArray(
       sourceQuotation?.sales_packing_item_images,
@@ -2350,6 +2415,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
       status: toSafeString(sourceQuotation?.status),
       remark: toSafeString(sourceQuotation?.remark),
       customer_id: toSafeString(sourceQuotation?.customer_id),
+      customer_name_id: toSafeString(sourceQuotation?.customer_name_id),
       customer_address_id: toSafeString(sourceQuotation?.customer_address_id),
       posting_at: toDateOnlyString(sourceQuotation?.posting_at),
       doc_type: toSafeString(sourceQuotation?.doc_type),
@@ -2672,6 +2738,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
         status: 'open',
         remark: toSafeString(sourceQuotation?.remark),
         customer_id: toSafeString(sourceQuotation?.customer_id),
+        customer_name_id: toSafeString(sourceQuotation?.customer_name_id),
         customer_address_id: toSafeString(sourceQuotation?.customer_address_id),
         posting_at: toDateOnlyString(sourceQuotation?.posting_at),
         header_proforma_percent: toPercentValue(

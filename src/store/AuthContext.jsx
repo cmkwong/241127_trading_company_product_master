@@ -9,7 +9,7 @@ import PropTypes from 'prop-types';
 import { apiPost } from '../utils/crud';
 
 const DEFAULT_TOKEN_ENDPOINT =
-  'http://localhost:3001/api/v1/trade_business/auth/panel/getToken';
+  'http://localhost:3001/api/v1/trade_business/panel/auth/getToken';
 
 const TOKEN_STORAGE_KEY = 'trade_business_token';
 const ROLE_STORAGE_KEY = 'trade_business_role';

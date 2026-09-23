@@ -4,6 +4,10 @@ import styles from './SupplierSidebar.module.css';
 import SearchSideBarList from '../../../common/SearchSideBarList/SearchSideBarList';
 import { useSupplierContext } from '../../../../store/SupplierContext';
 import { useMasterContext } from '../../../../store/MasterContext';
+import {
+  useEntityField,
+  useEntityRows,
+} from '../../../../store/GeneralContext';
 
 const SUPPLIER_SEARCH_HISTORY_KEY = 'supplier_sidebar_search_history';
 const MAX_SEARCH_HISTORY_ITEMS = 15;
@@ -33,9 +37,21 @@ const SupplierSidebar = ({
   onToggleCollapse,
 }) => {
   const navigate = useNavigate();
-  const { getSupplierData, suppliers, selectedSupplierId } =
-    useSupplierContext();
+  const {
+    getSupplierData,
+    suppliers,
+    selectedSupplierId,
+    setSelectedSupplierId,
+  } = useSupplierContext();
   const { supplierType, services } = useMasterContext();
+  const pageSupplierId = useEntityField('supplier', 'id');
+  const pageSupplierName = useEntityField('supplier', 'name');
+  const pageSupplierCode = useEntityField('supplier', 'supplier_code');
+  const pageSupplierCodeCompat = useEntityField('supplier', 'code');
+  const pageSupplierStatus = useEntityField('supplier', 'status');
+  const pageSupplierScore = useEntityField('supplier', 'score');
+  const pageSupplierTypeId = useEntityField('supplier', 'supplier_type_id');
+  const pageSupplierTypes = useEntityRows('supplier', 'supplier_types');
 
   const [windowWidth, setWindowWidth] = useState(
     typeof window !== 'undefined' ? window.innerWidth : 1024,
@@ -44,10 +60,54 @@ const SupplierSidebar = ({
   const [searchHistory, setSearchHistory] = useState([]);
   const [filteredSuppliers, setFilteredSuppliers] = useState([]);
 
-  const searchHistoryWithIcons = useMemo(() => {
-    const currentSupplierList = Array.isArray(suppliers)
+  const supplierListForSidebar = useMemo(() => {
+    const baseList = Array.isArray(suppliers)
       ? suppliers
       : suppliers?.suppliers || [];
+
+    const normalizedPageId = String(pageSupplierId || '').trim();
+    const normalizedSelectedId = String(selectedSupplierId || '').trim();
+
+    if (!normalizedPageId || normalizedPageId !== normalizedSelectedId) {
+      return baseList;
+    }
+
+    const existsInList = baseList.some(
+      (item) => String(item?.id || '').trim() === normalizedPageId,
+    );
+
+    if (existsInList) {
+      return baseList;
+    }
+
+    const draftSupplier = {
+      id: normalizedPageId,
+      name: String(pageSupplierName || '').trim(),
+      supplier_code: String(pageSupplierCode || '').trim(),
+      code: String(pageSupplierCodeCompat || pageSupplierCode || '').trim(),
+      status: String(pageSupplierStatus || 'active').trim() || 'active',
+      score: pageSupplierScore,
+      supplier_type_id: String(pageSupplierTypeId || '').trim(),
+      supplier_types: Array.isArray(pageSupplierTypes) ? pageSupplierTypes : [],
+      _isContextDraft: true,
+    };
+
+    return [draftSupplier, ...baseList];
+  }, [
+    suppliers,
+    pageSupplierId,
+    selectedSupplierId,
+    pageSupplierName,
+    pageSupplierCode,
+    pageSupplierCodeCompat,
+    pageSupplierStatus,
+    pageSupplierScore,
+    pageSupplierTypeId,
+    pageSupplierTypes,
+  ]);
+
+  const searchHistoryWithIcons = useMemo(() => {
+    const currentSupplierList = supplierListForSidebar;
 
     return (searchHistory || []).map((entry) => {
       const normalizedId = String(entry?.id || '').trim();
@@ -64,7 +124,7 @@ const SupplierSidebar = ({
         icon_url: String(matchedSupplier?.icon_url || entry?.icon_url || ''),
       };
     });
-  }, [searchHistory, suppliers]);
+  }, [searchHistory, supplierListForSidebar]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -84,9 +144,7 @@ const SupplierSidebar = ({
   }, []);
 
   useEffect(() => {
-    const currentSupplierList = Array.isArray(suppliers)
-      ? suppliers
-      : suppliers?.suppliers || [];
+    const currentSupplierList = supplierListForSidebar;
 
     if (!searchTerm.trim()) {
       setFilteredSuppliers(currentSupplierList);
@@ -98,6 +156,7 @@ const SupplierSidebar = ({
       const name = supplier?.name || '';
       const code = supplier?.code || '';
       const id = supplier?.id || '';
+      const status = supplier?.status || '';
       const createdAt = supplier?.created_at || '';
       const updatedAt = supplier?.updated_at || '';
 
@@ -105,13 +164,14 @@ const SupplierSidebar = ({
         String(name).toLowerCase().includes(lowerSearchTerm) ||
         String(code).toLowerCase().includes(lowerSearchTerm) ||
         String(id).toLowerCase().includes(lowerSearchTerm) ||
+        String(status).toLowerCase().includes(lowerSearchTerm) ||
         String(createdAt).toLowerCase().includes(lowerSearchTerm) ||
         String(updatedAt).toLowerCase().includes(lowerSearchTerm)
       );
     });
 
     setFilteredSuppliers(filtered);
-  }, [searchTerm, suppliers]);
+  }, [searchTerm, supplierListForSidebar]);
 
   const formatDateTime = useCallback((value) => {
     if (!value) return '';
@@ -213,6 +273,23 @@ const SupplierSidebar = ({
 
   const handleSupplierSelect = useCallback(
     (supplier) => {
+      const isContextDraft = Boolean(supplier?._isContextDraft);
+
+      if (isContextDraft) {
+        setSelectedSupplierId(String(supplier?.id || '').trim() || null);
+        navigate('/panel/supplier_master', { replace: true });
+
+        if (windowWidth <= 768) {
+          onToggleCollapse(true);
+        }
+
+        if (onSelectSupplier) {
+          onSelectSupplier(supplier);
+        }
+
+        return;
+      }
+
       const getSupplierDataSuccess = getSupplierData(supplier.id);
       if (!getSupplierDataSuccess) return;
 
@@ -255,6 +332,7 @@ const SupplierSidebar = ({
       saveSearchHistory,
       getSupplierName,
       navigate,
+      setSelectedSupplierId,
     ],
   );
 
@@ -267,9 +345,7 @@ const SupplierSidebar = ({
       const normalized = normalizeHistoryEntry(entry);
       if (!normalized) return;
 
-      const currentSupplierList = Array.isArray(suppliers)
-        ? suppliers
-        : suppliers?.suppliers || [];
+      const currentSupplierList = supplierListForSidebar;
 
       const found = currentSupplierList.find((item) => {
         const byId =
@@ -291,7 +367,7 @@ const SupplierSidebar = ({
 
       setSearchTerm(normalized.title);
     },
-    [suppliers, getSupplierName, handleSupplierSelect],
+    [supplierListForSidebar, getSupplierName, handleSupplierSelect],
   );
 
   const handleClearSearch = useCallback(() => {
@@ -301,6 +377,11 @@ const SupplierSidebar = ({
   const getSupplierRows = useCallback(
     (supplier) => {
       const supplierTypeLabel = formatSupplierTypeLabel(supplier);
+      const status = String(supplier?.status || 'active').trim();
+      const statusLabel =
+        status.length > 0
+          ? `${status.charAt(0).toUpperCase()}${status.slice(1)}`
+          : 'Active';
 
       return [
         { label: 'ID:', value: supplier?.id || '' },
@@ -308,6 +389,7 @@ const SupplierSidebar = ({
           label: 'Code:',
           value: supplier?.code || supplier?.supplier_code || '',
         },
+        { label: 'Status:', value: statusLabel },
         { label: 'Score:', value: supplier?.score ?? '' },
         { label: 'Type:', value: supplierTypeLabel },
         { label: 'Created At:', value: formatDateTime(supplier?.created_at) },
@@ -320,6 +402,11 @@ const SupplierSidebar = ({
   const getSupplierExpandedRows = useCallback(
     (supplier) => {
       const supplierTypeLabel = formatSupplierTypeLabel(supplier);
+      const status = String(supplier?.status || 'active').trim();
+      const statusLabel =
+        status.length > 0
+          ? `${status.charAt(0).toUpperCase()}${status.slice(1)}`
+          : 'Active';
 
       return [
         { label: 'ID:', value: supplier?.id || '' },
@@ -327,6 +414,7 @@ const SupplierSidebar = ({
           label: 'Code:',
           value: supplier?.code || supplier?.supplier_code || '',
         },
+        { label: 'Status:', value: statusLabel },
         { label: 'Score:', value: supplier?.score ?? '' },
         { label: 'Type:', value: supplierTypeLabel },
         { label: 'Created At:', value: formatDateTime(supplier?.created_at) },

@@ -572,6 +572,17 @@ const pickCustomerName = (customer) => {
   );
 };
 
+const pickCustomerNameRowLabel = (row) => {
+  return toSafeString(
+    row?.name ||
+      row?.customer_name ||
+      row?.display_name ||
+      row?.full_name ||
+      row?.label ||
+      row?.id,
+  );
+};
+
 const pickAddressLine = (address) => {
   const detail = toSafeString(address?.address_detail);
   if (detail) return detail;
@@ -1308,12 +1319,28 @@ export const buildQuotationViewData = ({
   const labels = getDocumentLabels(variant);
 
   const customerById = buildLookupMap(customerOptions);
+  const customerNameById = new Map();
+  (Array.isArray(customerOptions) ? customerOptions : []).forEach(
+    (customer) => {
+      (Array.isArray(customer?.customer_names)
+        ? customer.customer_names
+        : []
+      ).forEach((nameRow) => {
+        const nameId = toSafeString(nameRow?.id);
+        if (!nameId || customerNameById.has(nameId)) return;
+        customerNameById.set(nameId, nameRow);
+      });
+    },
+  );
   const addressById = buildLookupMap(customerAddressOptions);
   const shippingMethodById = buildLookupMap(shippingMethodOptions);
   const productById = buildLookupMap(productOptions);
   const serviceById = buildLookupMap(serviceOptions);
 
   const customer = customerById.get(toSafeString(quotation?.customer_id));
+  const selectedCustomerName = customerNameById.get(
+    toSafeString(quotation?.customer_name_id),
+  );
   const customerAddress = addressById.get(
     toSafeString(quotation?.customer_address_id),
   );
@@ -1370,7 +1397,9 @@ export const buildQuotationViewData = ({
 
   const customerName = isPackingList
     ? toSafeString(quotation?.assigned_picker) || '-'
-    : pickCustomerName(customer) || toSafeString(quotation?.customer_id);
+    : pickCustomerNameRowLabel(selectedCustomerName) ||
+      pickCustomerName(customer) ||
+      toSafeString(quotation?.customer_id);
   const resolvedCustomerAddress = isPackingList
     ? toSafeString(quotation?.assigned_picker_address) || '-'
     : pickAddressLine(customerAddress);

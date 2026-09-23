@@ -4,12 +4,13 @@
   box-sizing: border-box;
   position: relative;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
   justify-content: flex-start;
   cursor: pointer;
   border-radius: 4px;
-  min-height: 16px;
+  min-height: 36px;
+  padding: 4px 0;
   color: var(--color-text-neutral);
   transition: background-color 0.14s ease;
 }
@@ -23,8 +24,8 @@
   width: 16px;
   height: 16px;
   flex: 0 0 16px;
+  margin-top: 2px;
   box-sizing: border-box;
-  margin: 0;
   border: 1.5px solid var(--color-border);
   border-radius: 4px;
   background: var(--color-white);
@@ -52,6 +53,7 @@
   width: 12px;
   min-width: 12px;
   height: 12px;
+  margin-top: 3px;
   padding: 0;
   border: none;
   background: transparent;
@@ -78,7 +80,28 @@
   color: var(--color-text-neutral);
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-regular);
-  line-height: normal;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.textWrap {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  overflow: hidden;
+}
+
+.parentTrail {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  color: var(--color-text-subtle);
+  font-size: var(--font-size-md);
+  line-height: 1.2;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

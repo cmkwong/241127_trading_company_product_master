@@ -4,6 +4,7 @@ const Sub_TagListRow = (props) => {
   const {
     id,
     name,
+    parentTrail,
     checked,
     updateOptionData,
     level = 0,
@@ -63,9 +64,14 @@ const Sub_TagListRow = (props) => {
         onClick={(event) => event.stopPropagation()}
         type="checkbox"
       />
-      <p id={id} className={styles.label}>
-        {name}
-      </p>
+      <div className={styles.textWrap}>
+        <p id={id} className={styles.label}>
+          {name}
+        </p>
+        {parentTrail ? (
+          <p className={styles.parentTrail}>{parentTrail}</p>
+        ) : null}
+      </div>
     </div>
   );
 };

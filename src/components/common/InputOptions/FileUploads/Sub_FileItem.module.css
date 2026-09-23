@@ -316,7 +316,7 @@
   width: 100px;
   height: 100px;
   border-radius: 4px;
-  overflow: visible;
+  overflow: hidden;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
   background-color: var(--color-surface-grey-hairline);
   display: flex;
@@ -350,12 +350,25 @@
 }
 
 .editorModePreview {
-  width: 110px;
-  height: 110px;
+  width: 132px;
+  height: 132px;
+  min-width: 132px;
+  min-height: 132px;
+  max-width: 132px;
+  max-height: 132px;
+  flex: 0 0 132px;
 }
 
 .editorModePreview .previewImg {
-  height: 150px;
+  height: 92px;
+  width: 100%;
+  object-fit: cover;
+}
+
+.editorModePreview .imageInfo {
+  min-height: 40px;
+  max-height: 40px;
+  height: 40px;
 }
 
 .editorModePreview .imageName {

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
 import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
 import Main_TagInputField from '../../../common/InputOptions/Tagging/Main_TagInputField';
+import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
 import Main_InputContainer from '../../../common/Container/Main_InputContainer';
 import {
   upsertEntityData,
@@ -19,6 +20,7 @@ const Main_SupplierBasicInfo = () => {
   const supplierCode = useEntityField('supplier', 'supplier_code');
   const supplierCodeCompat = useEntityField('supplier', 'code');
   const supplierName = useEntityField('supplier', 'name');
+  const supplierStatus = useEntityField('supplier', 'status');
   const supplierScore = useEntityField('supplier', 'score');
   const supplierTypeId = useEntityField('supplier', 'supplier_type_id');
   const supplierRemark = useEntityField('supplier', 'remark');
@@ -101,6 +103,27 @@ const Main_SupplierBasicInfo = () => {
             }}
           />
         </Main_InputContainer>
+        <Main_InputContainer label="Supplier Status">
+          <Main_Dropdown
+            defaultOptions={[
+              { id: 'active', name: 'Active' },
+              { id: 'inactive', name: 'Inactive' },
+            ]}
+            defaultSelectedOption={
+              String(supplierStatus || '').toLowerCase() || 'active'
+            }
+            onChange={(ov, nv) => {
+              upsertEntityData('supplier', {
+                status: nv || 'active',
+              });
+            }}
+          />
+        </Main_InputContainer>
+      </VerticalLayout>
+      <Main_InputContainer
+        label="Company Remark"
+        className={styles.companyRemarkContainer}
+      >
         <Main_InputContainer label="Supplier Score">
           <Main_TextField
             defaultValue={String(supplierScore ?? 1)}
@@ -126,11 +149,6 @@ const Main_SupplierBasicInfo = () => {
             hierarchyToggleLabel="Show Hierarchy"
           />
         </Main_InputContainer>
-      </VerticalLayout>
-      <Main_InputContainer
-        label="Company Remark"
-        className={styles.companyRemarkContainer}
-      >
         <Main_TextArea
           label="Remark"
           defaultValue={supplierRemark || ''}

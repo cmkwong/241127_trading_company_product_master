@@ -4,7 +4,7 @@ import Main_InputContainer from '../../../common/Container/Main_InputContainer';
 import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
 import Main_RadioGroup from '../../../common/InputOptions/RadioGroup/Main_RadioGroup';
-import EditableDataForm from '../../../common/Forms/EditableDataForm';
+import Main_EditableTables from '../../../common/Tables/Main_EditableTables';
 import {
   upsertEntityData,
   useEntityField,
@@ -318,14 +318,29 @@ const Main_SampleServices = () => {
     [productCosts, upsertEntityData, productId],
   );
 
+  // Main_EditableTables emits row *keys* from fill drags, so map them back to
+  // rows to reuse the existing handleSampleFieldChange(row, field, value) callback.
+  const rowByKey = useMemo(() => {
+    const map = new Map();
+    (gridRows || []).forEach((row) => map.set(String(row.id), row));
+    return map;
+  }, [gridRows]);
+
+  const handleCellChange = useCallback(
+    (rowKey, columnKey, value) => {
+      const row = rowByKey.get(String(rowKey));
+      if (row) handleSampleFieldChange(row, columnKey, value);
+    },
+    [rowByKey, handleSampleFieldChange],
+  );
+
   const columns = useMemo(
     () => [
       {
         key: 'variant',
         label: 'Color-Capacity-Size',
-        sortType: 'string',
-        minWidth: '160px',
-        maxWidth: '320px',
+        width: '300px',
+        fillable: false,
         getSortValue: (row) => row.variantLabel || '',
         renderCell: (row) => (
           <div className={styles.variantCell}>
@@ -340,47 +355,35 @@ const Main_SampleServices = () => {
       {
         key: 'sample_currency_id',
         label: 'Currency',
-        sortType: 'string',
-        minWidth: '160px',
-        maxWidth: '320px',
-        getSortValue: (row) => currencyLabelMap[row.sample_currency_id] || '',
+        width: '200px',
         fillField: 'sample_currency_id',
-        renderCell: (row, { rowIndex, wrapWithFill }) =>
-          wrapWithFill(
-            <Main_Dropdown
-              size="100%"
-              defaultOptions={currencyOptions}
-              defaultSelectedOption={row.sample_currency_id || ''}
-              onChange={(ov, nv) =>
-                handleSampleFieldChange(row, 'sample_currency_id', nv)
-              }
-            />,
-            'sample_currency_id',
-            rowIndex,
-            row.sample_currency_id || '',
-          ),
+        getSortValue: (row) => currencyLabelMap[row.sample_currency_id] || '',
+        renderCell: (row) => (
+          <Main_Dropdown
+            size="100%"
+            defaultOptions={currencyOptions}
+            defaultSelectedOption={row.sample_currency_id || ''}
+            onChange={(ov, nv) =>
+              handleSampleFieldChange(row, 'sample_currency_id', nv)
+            }
+          />
+        ),
       },
       {
         key: 'sample_price',
         label: 'Sample Price',
-        sortType: 'number',
+        width: '200px',
         fillField: 'sample_price',
-        minWidth: '160px',
-        maxWidth: '320px',
-        renderCell: (row, { rowIndex, wrapWithFill }) =>
-          wrapWithFill(
-            <Main_TextField
-              type="number"
-              defaultValue={String(row.sample_price ?? '')}
-              placeholder="0.00"
-              onChange={(ov, nv) =>
-                handleSampleFieldChange(row, 'sample_price', nv)
-              }
-            />,
-            'sample_price',
-            rowIndex,
-            row.sample_price ?? '',
-          ),
+        renderCell: (row) => (
+          <Main_TextField
+            type="number"
+            defaultValue={String(row.sample_price ?? '')}
+            placeholder="0.00"
+            onChange={(ov, nv) =>
+              handleSampleFieldChange(row, 'sample_price', nv)
+            }
+          />
+        ),
       },
     ],
     [currencyOptions, currencyLabelMap, handleSampleFieldChange],
@@ -436,14 +439,12 @@ const Main_SampleServices = () => {
           <>
             <p className={styles.sectionTitle}>Sample Price</p>
 
-            <EditableDataForm
+            <Main_EditableTables
               rows={gridRows}
               columns={columns}
               rowKey="id"
               emptyMessage="Select at least one variant (Color / Capacity / Size) to configure sample prices."
-              onFillCellChange={(row, field, value) =>
-                handleSampleFieldChange(row, field, value)
-              }
+              onCellChange={handleCellChange}
             />
           </>
         )}

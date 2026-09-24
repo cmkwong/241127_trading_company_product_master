@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import EditableDataForm from '../../../common/Forms/EditableDataForm';
+import Main_EditableTables from '../../../common/Tables/Main_EditableTables';
 import {
   upsertEntityData,
   useEntityField,
@@ -289,89 +289,93 @@ const PriceByVariantsTable = () => {
     [productCosts, upsertEntityData, productId],
   );
 
+  // Main_EditableTables emits row *keys* from fill drags, so map them back to
+  // rows to reuse the existing handleSalesFieldChange(row, field, value) callback.
+  const rowByKey = useMemo(() => {
+    const map = new Map();
+    (gridRows || []).forEach((row) => map.set(String(row.id), row));
+    return map;
+  }, [gridRows]);
+
+  const handleCellChange = useCallback(
+    (rowKey, columnKey, value) => {
+      const row = rowByKey.get(String(rowKey));
+      if (row) handleSalesFieldChange(row, columnKey, value);
+    },
+    [rowByKey, handleSalesFieldChange],
+  );
+
   const columns = useMemo(
     () => [
       {
         key: 'color',
         label: 'Color',
-        sortType: 'string',
+        fillable: false,
         getSortValue: (row) => row.colorLabel || '',
         renderCell: (row) => row.colorLabel || '-',
       },
       {
         key: 'capacity',
         label: 'Capacity',
-        sortType: 'string',
+        fillable: false,
         getSortValue: (row) => row.capacityLabel || '',
         renderCell: (row) => row.capacityLabel || '-',
       },
       {
         key: 'size',
         label: 'Size',
-        sortType: 'string',
+        fillable: false,
         getSortValue: (row) => row.sizeLabel || '',
         renderCell: (row) => row.sizeLabel || '-',
       },
       {
         key: 'sales_currency_id',
         label: 'Sales Currency',
-        sortType: 'string',
-        getSortValue: (row) => currencyLabelMap[row.sales_currency_id] || '',
         fillField: 'sales_currency_id',
-        renderCell: (row, { rowIndex, wrapWithFill }) =>
-          wrapWithFill(
-            <select
-              className={styles.cellInput}
-              value={row.sales_currency_id || ''}
-              onChange={(e) =>
-                handleSalesFieldChange(row, 'sales_currency_id', e.target.value)
-              }
-            >
-              <option value="">Select currency</option>
-              {(currencies || []).map((currency) => (
-                <option key={currency.id} value={currency.id}>
-                  {currency?.code || currency?.name || currency?.id}
-                </option>
-              ))}
-            </select>,
-            'sales_currency_id',
-            rowIndex,
-            row.sales_currency_id || '',
-          ),
+        getSortValue: (row) => currencyLabelMap[row.sales_currency_id] || '',
+        renderCell: (row) => (
+          <select
+            className={styles.cellInput}
+            value={row.sales_currency_id || ''}
+            onChange={(e) =>
+              handleSalesFieldChange(row, 'sales_currency_id', e.target.value)
+            }
+          >
+            <option value="">Select currency</option>
+            {(currencies || []).map((currency) => (
+              <option key={currency.id} value={currency.id}>
+                {currency?.code || currency?.name || currency?.id}
+              </option>
+            ))}
+          </select>
+        ),
       },
       {
         key: 'sales_price',
         label: 'Sales Price',
-        sortType: 'number',
         fillField: 'sales_price',
-        renderCell: (row, { rowIndex, wrapWithFill }) =>
-          wrapWithFill(
-            <input
-              className={styles.cellInput}
-              value={row.sales_price}
-              onChange={(e) =>
-                handleSalesFieldChange(row, 'sales_price', e.target.value)
-              }
-              placeholder="Enter value"
-            />,
-            'sales_price',
-            rowIndex,
-            row.sales_price,
-          ),
+        renderCell: (row) => (
+          <input
+            className={styles.cellInput}
+            value={row.sales_price}
+            onChange={(e) =>
+              handleSalesFieldChange(row, 'sales_price', e.target.value)
+            }
+            placeholder="Enter value"
+          />
+        ),
       },
     ],
     [currencyLabelMap, currencies, handleSalesFieldChange],
   );
 
   return (
-    <EditableDataForm
+    <Main_EditableTables
       rows={gridRows}
       columns={columns}
       rowKey="id"
       emptyMessage="Select at least one variant (Color / Capacity / Size)."
-      onFillCellChange={(row, field, value) =>
-        handleSalesFieldChange(row, field, value)
-      }
+      onCellChange={handleCellChange}
     />
   );
 };

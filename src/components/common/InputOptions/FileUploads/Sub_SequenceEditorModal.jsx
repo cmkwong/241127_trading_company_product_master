@@ -12,6 +12,7 @@ const FIGMA_EDIT_ICON = '/assets/figma/table-edit.svg';
 const FIGMA_WATERMARK_ICON_INACTIVE =
   '/assets/figma/table-watermark-inactive.svg';
 const FIGMA_WATERMARK_ICON_ACTIVE = '/assets/figma/table-watermark-active.svg';
+const FIGMA_AI_ICON = '/assets/figma/table-ai.svg';
 
 const Sub_SequenceEditorModal = ({
   isOpen,
@@ -40,6 +41,9 @@ const Sub_SequenceEditorModal = ({
   onResizePercentageChange = () => {},
   onResizeByPercentage = () => {},
   isResizing = false,
+  showAiGenerateButton = false,
+  isAiGenerating = false,
+  onAiGenerate = () => {},
   selectionLabel = 'images',
   showSequencePreviewPanel = false,
   previewItems = [],
@@ -324,6 +328,24 @@ const Sub_SequenceEditorModal = ({
                 </>
               )}
 
+              {showAiGenerateButton && (
+                <button
+                  type="button"
+                  className={`${styles.sequenceEditorIconBtn} ${styles.sequenceEditorToolbarIconBtn}`}
+                  onClick={onAiGenerate}
+                  title={isAiGenerating ? 'AI editing…' : 'AI edit images'}
+                  aria-label={isAiGenerating ? 'AI editing…' : 'AI edit images'}
+                  disabled={isAiGenerating}
+                >
+                  <img
+                    src={FIGMA_AI_ICON}
+                    alt=""
+                    className={styles.tableCellIcon16}
+                    aria-hidden="true"
+                  />
+                </button>
+              )}
+
               <span
                 className={`${styles.sequenceEditorIconBtn} ${styles.sequenceEditorToolbarIconBtn} ${styles.sequenceEditorToolbarStaticIcon}`}
                 aria-hidden="true"
@@ -588,6 +610,9 @@ Sub_SequenceEditorModal.propTypes = {
   onResizePercentageChange: PropTypes.func,
   onResizeByPercentage: PropTypes.func,
   isResizing: PropTypes.bool,
+  showAiGenerateButton: PropTypes.bool,
+  isAiGenerating: PropTypes.bool,
+  onAiGenerate: PropTypes.func,
   selectionLabel: PropTypes.string,
   showSequencePreviewPanel: PropTypes.bool,
   previewItems: PropTypes.arrayOf(

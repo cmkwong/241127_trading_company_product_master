@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useMasterContext } from '../../../../store/MasterContext';
+import { useProductContext } from '../../../../store/ProductContext';
 import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
 import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_FileUploads';
+import { DEFAULT_PRODUCT_IMAGE_AI_PROMPT } from '../../../common/InputOptions/FileUploads/aiPromptDefaults';
 import {
   upsertEntityData,
   useEntityField,
@@ -14,6 +16,7 @@ const Sub_ProductImagesRow = (props) => {
   const { imageData, rowindex, rowId } = props;
 
   const { productImageType } = useMasterContext();
+  const { getProductData } = useProductContext();
   const productId = useEntityField('products', 'id');
   const pageImages = useEntityRows('products', 'product_images');
   const [productImageSubType, setProductImageSubType] = useState([]);
@@ -235,6 +238,15 @@ const Sub_ProductImagesRow = (props) => {
                 downloadFileBaseName={`${String(subType.name || 'images').replace(/\s+/g, '')}`}
                 downloadNameProductId={productId || ''}
                 downloadNameImageType={subType.name || 'images'}
+                showAiGenerateButton
+                aiGenerateEndpoint="http://localhost:3001/api/v1/trade_business/panel/products/data/images/ai-generate"
+                aiGenerateRequestBody={{
+                  product_id: productId,
+                  image_type_id: subType.id,
+                  image_row: currentImageRow,
+                }}
+                defaultAiPrompt={DEFAULT_PRODUCT_IMAGE_AI_PROMPT}
+                onAiReload={() => getProductData(productId)}
                 onError={handleImageError}
                 onChange={(oldImages, newImages) =>
                   handleImageChange(subType.id, oldImages, newImages)
@@ -276,6 +288,15 @@ const Sub_ProductImagesRow = (props) => {
               ).replace(/\s+/g, '')}_main`}
               downloadNameProductId={productId || ''}
               downloadNameImageType="main"
+              showAiGenerateButton
+              aiGenerateEndpoint="http://localhost:3001/api/v1/trade_business/panel/products/data/images/ai-generate"
+              aiGenerateRequestBody={{
+                product_id: productId,
+                image_type_id: mainImageTypeId,
+                image_row: currentImageRow,
+              }}
+              defaultAiPrompt={DEFAULT_PRODUCT_IMAGE_AI_PROMPT}
+              onAiReload={() => getProductData(productId)}
               onError={handleImageError}
               onChange={(oldImages, newImages) =>
                 handleImageChange(mainImageTypeId, oldImages, newImages)

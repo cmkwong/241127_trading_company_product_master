@@ -860,3 +860,197 @@
   padding: 8px 0;
   font-size: var(--font-size-lg);
 }
+
+/* ------------------------------------------------------------------ */
+/* AI prompt modal                                                      */
+/* ------------------------------------------------------------------ */
+.aiPromptModal {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+  width: min(640px, 100%);
+  min-height: 0;
+  max-height: calc(100vh - 40px);
+}
+
+.aiPromptHeader {
+  cursor: move;
+  user-select: none;
+  touch-action: none;
+}
+
+.aiPromptOverlay {
+  z-index: 10050;
+}
+
+.aiPromptBody {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 24px 32px;
+  overflow: auto;
+}
+
+.aiPromptTextarea {
+  width: 100%;
+  min-height: 240px;
+  resize: vertical;
+  border: 1px solid var(--color-border-slate);
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-family: inherit;
+  font-size: var(--font-size-base);
+  line-height: 1.6;
+  color: var(--color-primary);
+  background: var(--color-white);
+}
+
+.aiPromptTextarea:disabled {
+  background: var(--color-surface-subtle);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
+.aiPromptToolbar {
+  display: flex;
+  align-items: center;
+}
+
+.aiPromptResetLink {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: var(--color-blue-focus);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+}
+
+.aiPromptResetLink:hover:not(:disabled) {
+  text-decoration: underline;
+}
+
+.aiPromptResetLink:disabled {
+  color: var(--color-text-subtle);
+  cursor: not-allowed;
+}
+
+.aiPromptProgress {
+  color: var(--color-blue-focus);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+}
+
+.aiPromptSuccess {
+  color: var(--color-success, #16a34a);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+}
+
+.aiPromptError {
+  color: var(--color-error, #dc2626);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+}
+
+.aiPromptActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.aiPromptPrimaryBtn {
+  border: 0;
+  border-radius: 8px;
+  height: 34px;
+  padding: 0 18px;
+  background: var(--color-blue-focus);
+  color: var(--color-white);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+}
+
+.aiPromptPrimaryBtn:hover:not(:disabled) {
+  background: var(--color-blue-hover);
+}
+
+.aiPromptPrimaryBtn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.aiPromptSecondaryBtn {
+  border: 1px solid var(--color-text-muted);
+  border-radius: 8px;
+  height: 34px;
+  padding: 0 16px;
+  background: var(--color-white);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+}
+
+.aiPromptSecondaryBtn:hover:not(:disabled) {
+  background: var(--color-surface-subtle);
+}
+
+.aiPromptTargets {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--color-border-slate);
+  border-radius: 10px;
+  background: var(--color-surface-subtle);
+}
+
+.aiPromptTargetsHeader {
+  color: var(--color-primary);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+}
+
+.aiPromptTargetEmpty {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-base);
+}
+
+.aiPromptTargetList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 140px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.aiPromptTargetItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: var(--color-white);
+  font-size: var(--font-size-sm);
+}
+
+.aiPromptTargetId {
+  color: var(--color-text-muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.aiPromptTargetName {
+  color: var(--color-text-subtle);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

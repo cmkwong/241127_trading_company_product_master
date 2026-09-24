@@ -6,7 +6,9 @@ import Sub_FileItem from './Sub_FileItem';
 import { v4 as uuidv4 } from 'uuid';
 import Sub_FileUploadsHeader from './Sub_FileUploadsHeader';
 import Sub_SequenceEditorModal from './Sub_SequenceEditorModal';
-import { apiPost } from '../../../../utils/crud';
+import Sub_AiPromptModal from './Sub_AiPromptModal';
+import { apiPost, apiGet } from '../../../../utils/crud';
+import { DEFAULT_PRODUCT_IMAGE_AI_PROMPT } from './aiPromptDefaults';
 import { useAuthContext } from '../../../../store/AuthContext';
 import {
   processDefaultImages,
@@ -56,6 +58,15 @@ const Main_FileUploads = (props) => {
 
     // Mode control
     mode = 'file', // 'file' or 'image'
+
+    // AI editing (NanoBanana)
+    showAiGenerateButton = false,
+    aiGenerateEndpoint = '',
+    aiGenerateRequestBody = null,
+    defaultAiPrompt = DEFAULT_PRODUCT_IMAGE_AI_PROMPT,
+    aiPollIntervalMs = 5000,
+    aiPollTimeoutMs = 20 * 60 * 1000,
+    onAiReload = null,
   } = props;
   const { token } = useAuthContext();
 
@@ -82,6 +93,10 @@ const Main_FileUploads = (props) => {
   const [resizePercentage, setResizePercentage] = useState(50);
   const [applyWatermarkOnDownload, setApplyWatermarkOnDownload] =
     useState(true);
+  const [isAiPromptOpen, setIsAiPromptOpen] = useState(false);
+  const [isAiGenerating, setIsAiGenerating] = useState(false);
+  const [aiJob, setAiJob] = useState(null);
+  const [aiError, setAiError] = useState(null);
   const { addWatermarkToImageBlob } = useWatermarkFile({
     watermarkImagePath,
   });
@@ -949,6 +964,112 @@ const Main_FileUploads = (props) => {
     onChange(oldFiles, updatedFiles);
   }, [disabled, selectedFileIds, onChange]);
 
+  const openAiPrompt = useCallback(() => {
+    setAiJob(null);
+    setAiError(null);
+    setIsAiPromptOpen(true);
+  }, []);
+
+  const handleAiGenerate = useCallback(
+    async (prompt) => {
+      const trimmed = String(prompt || '').trim();
+      if (!trimmed) {
+        setAiError('Prompt is required.');
+        return;
+      }
+      if (!aiGenerateEndpoint) {
+        setAiError('AI generate endpoint is not configured.');
+        return;
+      }
+
+      setIsAiGenerating(true);
+      setAiError(null);
+      setAiJob(null);
+
+      try {
+        const selectedIds = (selectedFileIds || [])
+          .map((id) => String(id || '').trim())
+          .filter(Boolean);
+
+        const body = {
+          ...(aiGenerateRequestBody || {}),
+          ids: selectedIds,
+          prompt: trimmed,
+        };
+
+        const submitResponse = await apiPost(aiGenerateEndpoint, body, {
+          token,
+        });
+        const jobId = submitResponse?.jobId;
+        if (!jobId) {
+          throw new Error('No jobId returned from AI generate endpoint.');
+        }
+
+        const startedAt = Date.now();
+        let job = null;
+        // Wait one interval before the first poll to let the job register.
+        while (Date.now() - startedAt < aiPollTimeoutMs) {
+          await new Promise((resolve) => setTimeout(resolve, aiPollIntervalMs));
+          const statusResponse = await apiGet(
+            `${aiGenerateEndpoint}/${jobId}`,
+            { token },
+          );
+          job = statusResponse?.job || null;
+          setAiJob(job);
+
+          if (
+            job &&
+            ['completed', 'completed-with-errors', 'failed'].includes(
+              job.status,
+            )
+          ) {
+            break;
+          }
+        }
+
+        if (
+          !job ||
+          !['completed', 'completed-with-errors', 'failed'].includes(job.status)
+        ) {
+          setAiError(
+            'AI generation timed out. It may still finish on the server.',
+          );
+        }
+      } catch (error) {
+        console.error('AI generate failed:', error);
+        setAiError(error?.message || 'AI generation failed.');
+      } finally {
+        setIsAiGenerating(false);
+      }
+    },
+    [
+      aiGenerateEndpoint,
+      aiGenerateRequestBody,
+      selectedFileIds,
+      token,
+      aiPollIntervalMs,
+      aiPollTimeoutMs,
+    ],
+  );
+
+  const handleAiReload = useCallback(() => {
+    if (typeof onAiReload === 'function') {
+      onAiReload();
+    }
+  }, [onAiReload]);
+
+  const selectedImages = useMemo(() => {
+    const selectedSet = new Set(
+      (selectedFileIds || []).map((id) => String(id || '').trim()).filter(Boolean),
+    );
+    return (fileList || [])
+      .filter((file) => selectedSet.has(String(file?.id || '').trim()))
+      .map((file) => ({
+        id: String(file?.id || '').trim(),
+        name: String(file?.name || file?.image_name || ''),
+      }));
+  }, [fileList, selectedFileIds]);
+
   const sequencePreviewItems = useMemo(() => {
     if (mode !== 'image') return [];
 
@@ -1059,6 +1180,11 @@ const Main_FileUploads = (props) => {
         onToggleApplyWatermark={() =>
           setApplyWatermarkOnDownload((prev) => !prev)
         }
+        showAiGenerateButton={
+          showAiGenerateButton && mode === 'image' && !!aiGenerateEndpoint
+        }
+        isAiGenerating={isAiGenerating}
+        onAiGenerate={openAiPrompt}
       />
 
       <div className={styles.dropZoneEditorWrap}>
@@ -1109,6 +1235,11 @@ const Main_FileUploads = (props) => {
           }
           onResizeByPercentage={handleResizeByPercentage}
           isResizing={isResizing}
+          showAiGenerateButton={
+            showAiGenerateButton && mode === 'image' && !!aiGenerateEndpoint
+          }
+          isAiGenerating={isAiGenerating}
+          onAiGenerate={openAiPrompt}
           dropZoneProps={{
             ...baseDropZoneProps,
             testIdPrefix: `${testIdPrefix}-sequence-editor`,
@@ -1119,6 +1250,19 @@ const Main_FileUploads = (props) => {
           {renderPreviewContent(true)}
         </Sub_SequenceEditorModal>
       )}
+
+      <Sub_AiPromptModal
+        isOpen={isAiPromptOpen}
+        onClose={() => setIsAiPromptOpen(false)}
+        defaultPrompt={defaultAiPrompt}
+        selectedCount={selectedCount}
+        selectedImages={selectedImages}
+        isGenerating={isAiGenerating}
+        job={aiJob}
+        error={aiError}
+        onGenerate={handleAiGenerate}
+        onReload={handleAiReload}
+      />
     </div>
   );
 };
@@ -1167,6 +1311,15 @@ Main_FileUploads.propTypes = {
 
   // Mode control
   mode: PropTypes.oneOf(['file', 'image']),
+
+  // AI editing (NanoBanana)
+  showAiGenerateButton: PropTypes.bool,
+  aiGenerateEndpoint: PropTypes.string,
+  aiGenerateRequestBody: PropTypes.object,
+  defaultAiPrompt: PropTypes.string,
+  aiPollIntervalMs: PropTypes.number,
+  aiPollTimeoutMs: PropTypes.number,
+  onAiReload: PropTypes.func,
 };
 
 export default Main_FileUploads;

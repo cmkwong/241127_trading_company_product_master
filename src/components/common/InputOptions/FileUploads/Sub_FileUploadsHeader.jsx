@@ -8,6 +8,7 @@ const FIGMA_EDIT_ICON = '/assets/figma/table-edit.svg';
 const FIGMA_WATERMARK_ICON_INACTIVE =
   '/assets/figma/table-watermark-inactive.svg';
 const FIGMA_WATERMARK_ICON_ACTIVE = '/assets/figma/table-watermark-active.svg';
+const FIGMA_AI_ICON = '/assets/figma/table-ai.svg';
 
 const Sub_FileUploadsHeader = ({
   label,
@@ -34,6 +35,9 @@ const Sub_FileUploadsHeader = ({
   showWatermarkToggle,
   applyWatermarkOnDownload,
   onToggleApplyWatermark,
+  showAiGenerateButton,
+  isAiGenerating,
+  onAiGenerate,
 }) => {
   const useFigmaImageHeader = Boolean(
     (isImageMode && !tableCell) || figmaStrip,
@@ -141,6 +145,24 @@ const Sub_FileUploadsHeader = ({
                 )}
               </button>
             </>
+          )}
+
+          {showAiGenerateButton && (
+            <button
+              type="button"
+              className={`${styles.sequenceEditorIconBtn} ${tableCell ? styles.tableCellTool : ''} ${useFigmaImageHeader ? styles.figmaHeaderTool : ''}`}
+              onClick={onAiGenerate}
+              title={isAiGenerating ? 'AI editing…' : 'AI edit images'}
+              aria-label={isAiGenerating ? 'AI editing…' : 'AI edit images'}
+              disabled={isAiGenerating}
+            >
+              <img
+                src={FIGMA_AI_ICON}
+                alt=""
+                className={styles.tableCellIcon16}
+                aria-hidden="true"
+              />
+            </button>
           )}
 
           {canOpenSequenceEditor && (
@@ -259,6 +281,9 @@ Sub_FileUploadsHeader.propTypes = {
   showWatermarkToggle: PropTypes.bool,
   applyWatermarkOnDownload: PropTypes.bool,
   onToggleApplyWatermark: PropTypes.func,
+  showAiGenerateButton: PropTypes.bool,
+  isAiGenerating: PropTypes.bool,
+  onAiGenerate: PropTypes.func,
 };
 
 export default Sub_FileUploadsHeader;

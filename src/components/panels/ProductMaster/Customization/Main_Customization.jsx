@@ -1,6 +1,8 @@
 import { useCallback, useMemo } from 'react';
 import Main_Suggest from '../../../common/InputOptions/Suggest/Main_Suggest';
 import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
+import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
+import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
 import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_FileUploads';
 import Main_InputContainer from '../../../common/Container/Main_InputContainer';
 import EditableDataForm from '../../../common/Forms/EditableDataForm';
@@ -15,7 +17,7 @@ import { sortByDisplayOrder } from '../../../../utils/arr';
 import styles from './Main_Customization.module.css';
 
 const Main_Customization = () => {
-  const { productCustomizationOptions } = useMasterContext();
+  const { productCustomizationOptions, currencies } = useMasterContext();
   const productId = useEntityField('products', 'id');
   const customizations = useEntityRows('products', 'product_customizations');
 
@@ -27,18 +29,25 @@ const Main_Customization = () => {
       })),
     [productCustomizationOptions],
   );
-  const supplierSuggestions = useMemo(
+
+  const currencyOptions = useMemo(
     () =>
-      [].map((supplier, index) => ({
-        id: `${supplier.code || 'supplier'}-${index + 1}`,
-        code: String(supplier.code || '').trim(),
-        companyName: String(supplier.companyName || '').trim(),
-        searchText: [supplier.code, supplier.companyName]
-          .map((value) => String(value || '').trim())
-          .filter(Boolean)
-          .join(' '),
+      (currencies || []).map((currency) => ({
+        id: currency.id,
+        name:
+          currency?.code || currency?.name || currency?.label || currency?.id,
       })),
-    [],
+    [currencies],
+  );
+
+  const currencyLabelMap = useMemo(
+    () =>
+      (currencies || []).reduce((acc, currency) => {
+        acc[currency.id] =
+          currency?.code || currency?.name || currency?.label || currency?.id;
+        return acc;
+      }, {}),
+    [currencies],
   );
 
   const upsertCustomizationRow = useCallback(
@@ -63,7 +72,10 @@ const Main_Customization = () => {
           id: uuidv4(),
           product_id: productId,
           name: '',
-          code: '',
+          value: '',
+          MOQ: '',
+          price_arise_per_pcs: '',
+          price_arise_currency: '',
           remark: '',
           product_customization_images: [],
         },
@@ -166,37 +178,69 @@ const Main_Customization = () => {
         ),
       },
       {
-        key: 'code',
-        label: 'Supplier',
+        key: 'value',
+        label: 'Value',
         sortType: 'string',
-        minWidth: '200px',
+        minWidth: '180px',
         maxWidth: '300px',
         cellClassName: styles.tableCell,
         renderCell: (row) => (
-          <Main_Suggest
-            defaultSuggestions={supplierSuggestions}
-            placeholder="Suppliers"
-            autoComplete="new-password"
-            defaultValue={row.code || ''}
-            getSuggestionLabel={(suggestion) => suggestion?.code || ''}
-            getSuggestionSearchText={(suggestion) =>
-              String(suggestion?.searchText || suggestion?.code || '')
+          <Main_TextField
+            defaultValue={String(row.value ?? '')}
+            placeholder="Value"
+            onChange={(ov, nv) => upsertCustomizationRow(row, { value: nv })}
+          />
+        ),
+      },
+      {
+        key: 'MOQ',
+        label: 'MOQ',
+        sortType: 'number',
+        minWidth: '120px',
+        maxWidth: '180px',
+        cellClassName: styles.tableCell,
+        renderCell: (row) => (
+          <Main_TextField
+            type="number"
+            defaultValue={String(row.MOQ ?? '')}
+            placeholder="0"
+            onChange={(ov, nv) => upsertCustomizationRow(row, { MOQ: nv })}
+          />
+        ),
+      },
+      {
+        key: 'price_arise_currency',
+        label: 'Currency',
+        sortType: 'string',
+        minWidth: '150px',
+        maxWidth: '220px',
+        cellClassName: styles.tableCell,
+        getSortValue: (row) => currencyLabelMap[row.price_arise_currency] || '',
+        renderCell: (row) => (
+          <Main_Dropdown
+            size="100%"
+            defaultOptions={currencyOptions}
+            defaultSelectedOption={row.price_arise_currency || ''}
+            onChange={(ov, nv) =>
+              upsertCustomizationRow(row, { price_arise_currency: nv })
             }
-            renderSuggestion={(suggestion) => (
-              <div className={styles.suggestionItemWrap}>
-                <span className={styles.suggestionCode}>
-                  {suggestion?.code || ''}
-                </span>
-                <span className={styles.suggestionName}>
-                  {suggestion?.companyName || ''}
-                </span>
-              </div>
-            )}
-            onChange={(ov, nv) => upsertCustomizationRow(row, { code: nv })}
-            onSelectSuggestion={(suggestion) =>
-              upsertCustomizationRow(row, {
-                code: String(suggestion?.code || '').trim(),
-              })
+          />
+        ),
+      },
+      {
+        key: 'price_arise_per_pcs',
+        label: 'Price Arise / Pcs',
+        sortType: 'number',
+        minWidth: '160px',
+        maxWidth: '220px',
+        cellClassName: styles.tableCell,
+        renderCell: (row) => (
+          <Main_TextField
+            type="number"
+            defaultValue={String(row.price_arise_per_pcs ?? '')}
+            placeholder="0.0000"
+            onChange={(ov, nv) =>
+              upsertCustomizationRow(row, { price_arise_per_pcs: nv })
             }
           />
         ),
@@ -260,8 +304,9 @@ const Main_Customization = () => {
       },
     ],
     [
-      supplierSuggestions,
       customizationOptionSuggestions,
+      currencyOptions,
+      currencyLabelMap,
       upsertCustomizationRow,
       handleCustomizationImagesChange,
     ],

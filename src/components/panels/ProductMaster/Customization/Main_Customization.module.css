@@ -6,21 +6,3 @@
   /* Placeholder for any cell-specific overrides */
 }
 
-.suggestionItemWrap {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.suggestionCode {
-  color: #0c1e36;
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1.25;
-}
-
-.suggestionName {
-  color: #64748b;
-  font-size: 12px;
-  line-height: 1.3;
-}

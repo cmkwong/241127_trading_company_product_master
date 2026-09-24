@@ -73,7 +73,8 @@ const getDefaultRowKey = (row, index) => row?.id ?? index;
  *
  * Columns: `{ key, label, renderCell(row, { rowIndex }), size, width, fillable,
  *   fillField, getFillValue(row) }`
- * Callbacks: `onCellChange(rowKey, columnKey, value)` (fill-drag copy),
+ * Callbacks: `onCellChange(rowKey, columnKey, value)` (fill-drag copy and
+ *   double-click fill-down),
  *   `onInsertRowAfter(row, rowIndex)`, `onDeleteRow(row, rowIndex)` (context menu),
  *   `onAddRow` (footer button).
  */
@@ -304,6 +305,37 @@ const Main_EditableTables = ({
       onCellChange(resolveRowKey(displayRows[index], index), columnKey, value);
     }
   }, [fillDrag, fillHoverIndex, onCellChange, resolveRowKey, displayRows]);
+
+  // Excel-like: double-clicking the fill handle copies the source value down
+  // through every remaining row (to the end of the table).
+  const fillDownToEnd = useCallback(
+    (column, rowIndex, row) => {
+      if (
+        !canEdit ||
+        !isFillableColumn(column) ||
+        typeof onCellChange !== 'function'
+      ) {
+        return;
+      }
+
+      const lastIndex = displayRows.length - 1;
+      if (lastIndex <= rowIndex) return;
+
+      const value = getFillValue(column, row);
+
+      for (let index = rowIndex + 1; index <= lastIndex; index += 1) {
+        onCellChange(resolveRowKey(displayRows[index], index), column.key, value);
+      }
+    },
+    [
+      canEdit,
+      isFillableColumn,
+      onCellChange,
+      displayRows,
+      getFillValue,
+      resolveRowKey,
+    ],
+  );
 
   useEffect(() => {
     const handleMouseUp = () => {
@@ -601,11 +633,16 @@ const Main_EditableTables = ({
                           <span
                             className={styles.fillHandle}
                             role="button"
-                            aria-label="Drag to copy value"
-                            title="Drag to copy value"
+                            aria-label="Drag to copy value, double-click to fill down"
+                            title="Drag to copy value, double-click to fill down"
                             onMouseDown={(event) =>
                               startFillDrag(column, rowIndex, row, event)
                             }
+                            onDoubleClick={(event) => {
+                              event.preventDefault();
+                              event.stopPropagation();
+                              fillDownToEnd(column, rowIndex, row);
+                            }}
                           />
                         )}
                       </td>

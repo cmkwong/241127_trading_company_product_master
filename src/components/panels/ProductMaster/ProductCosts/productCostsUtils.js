@@ -39,3 +39,36 @@ export const getCostComboKey = (
   [colorVariantId || '', capacityVariantId || '', sizeVariantId || ''].join(
     '|',
   );
+
+export const parseRateDate = (value) => {
+  const match = String(value ?? '').match(/^(\d{4}-\d{2}-\d{2})/);
+  return match ? match[1] : '';
+};
+
+/**
+ * Pick the exchange-rate row effective on (or just before) the given date.
+ * Falls back to the latest available row when the date is missing.
+ */
+export const selectExchangeRateRow = (rows, dateStr) => {
+  const list = Array.isArray(rows) ? rows : [];
+  if (list.length === 0) return null;
+
+  const target = parseRateDate(dateStr);
+  const eligible = target
+    ? list.filter((r) => {
+        const d = parseRateDate(r?.Date);
+        return d && d <= target;
+      })
+    : list;
+
+  const pool = eligible.length > 0 ? eligible : list;
+  return [...pool].sort((a, b) =>
+    (parseRateDate(b?.Date) || '').localeCompare(parseRateDate(a?.Date) || ''),
+  )[0];
+};
+
+export const toNumberOrNull = (value) => {
+  if (value === '' || value === null || value === undefined) return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+};

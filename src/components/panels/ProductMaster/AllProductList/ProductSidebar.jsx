@@ -32,6 +32,33 @@ const normalizeHistoryEntry = (entry) => {
   return { id, title, icon_url };
 };
 
+const getProductTime = (product, key) => {
+  const value = new Date(product?.[key] || 0).getTime();
+  return Number.isFinite(value) ? value : 0;
+};
+
+// Order item cards by most recent first:
+// 1) updated_at (falling back to created_at when updated_at is missing)
+// 2) created_at as the tie-breaker
+// Non-mutating so the context array is left untouched.
+const sortProductsByRecent = (rows = []) => {
+  const source = Array.isArray(rows) ? rows : [];
+
+  return [...source].sort((a, b) => {
+    const aUpdated =
+      getProductTime(a, 'updated_at') || getProductTime(a, 'created_at');
+    const bUpdated =
+      getProductTime(b, 'updated_at') || getProductTime(b, 'created_at');
+    if (aUpdated !== bUpdated) return bUpdated - aUpdated;
+
+    const aCreated = getProductTime(a, 'created_at');
+    const bCreated = getProductTime(b, 'created_at');
+    if (aCreated !== bCreated) return bCreated - aCreated;
+
+    return String(a?.id || '').localeCompare(String(b?.id || ''));
+  });
+};
+
 const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
   const navigate = useNavigate();
   const { getProductData, products, selectedProductId, hydrateProductIcons } =
@@ -167,9 +194,9 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
   }, []);
 
   useEffect(() => {
-    const currentProductList = Array.isArray(products)
-      ? products
-      : products?.products || [];
+    const currentProductList = sortProductsByRecent(
+      Array.isArray(products) ? products : products?.products || [],
+    );
 
     if (!searchTerm.trim()) {
       setFilteredProducts(currentProductList);

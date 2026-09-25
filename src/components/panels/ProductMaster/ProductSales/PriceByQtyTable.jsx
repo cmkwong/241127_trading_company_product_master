@@ -228,7 +228,7 @@ const PriceByQtyTable = () => {
         {
           id: uuidv4(),
           product_id: productId,
-          min_order_qty: 1,
+          min_order_qty: 10,
           currency_id: '',
           sale_price: '',
         },

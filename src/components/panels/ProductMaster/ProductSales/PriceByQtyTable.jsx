@@ -20,6 +20,7 @@ import styles from './PriceByQtyTable.module.css';
 
 const MAX_TIERS = 4;
 const DEFAULT_UNIT_LABEL = 'Pcs';
+const TIER_QTY_PRESETS = [10, 100, 500, 1000];
 
 const PriceByQtyTable = () => {
   const { currencies, sellingUnitType, fetchMasterData, exchangeRateHkd } =
@@ -169,55 +170,22 @@ const PriceByQtyTable = () => {
     previewTiers,
   ]);
 
-  const handleFieldChange = useCallback(
+  // Non-destructive field write: only ever updates the row being edited. It
+  // never deletes or merges rows, so partial input while typing (e.g. typing
+  // "100" one key at a time) can no longer accidentally remove a row.
+  const applyFieldChange = useCallback(
     (row, field, value) => {
-      const nextMinOrderQty =
-        field === 'min_order_qty'
-          ? Number(value) || 0
-          : (row?.min_order_qty ?? 0);
-      const nextCurrencyId =
-        field === 'currency_id' ? value : (row?.currency_id ?? '');
-
-      // product_sale_prices_by_qty has a unique key on
-      // (product_id, min_order_qty, currency_id). If the edited values would
-      // collide with a different existing tier, merge into that tier and drop
-      // the row being edited to avoid a duplicate-key save failure.
-      const clash = rows.find(
-        (r) =>
-          r?.id &&
-          r.id !== row?.id &&
-          Number(r?.min_order_qty ?? 0) === nextMinOrderQty &&
-          (r?.currency_id ?? '') === nextCurrencyId,
-      );
-
-      if (clash) {
-        upsertEntityData('products', {
-          product_sale_prices_by_qty: [
-            {
-              id: clash.id,
-              product_id: productId,
-              min_order_qty: nextMinOrderQty,
-              currency_id: nextCurrencyId,
-              sale_price:
-                field === 'sale_price' ? value : (clash?.sale_price ?? ''),
-              sales_multiplier:
-                field === 'sales_multiplier'
-                  ? value
-                  : (clash?.sales_multiplier ?? ''),
-            },
-            ...(row?.id ? [{ id: row.id, _delete: true }] : []),
-          ],
-        });
-        return;
-      }
-
       upsertEntityData('products', {
         product_sale_prices_by_qty: [
           {
             id: row?.id || uuidv4(),
             product_id: productId,
-            min_order_qty: nextMinOrderQty,
-            currency_id: nextCurrencyId,
+            min_order_qty:
+              field === 'min_order_qty'
+                ? Number(value) || 0
+                : (row?.min_order_qty ?? 0),
+            currency_id:
+              field === 'currency_id' ? value : (row?.currency_id ?? ''),
             sale_price:
               field === 'sale_price' ? value : (row?.sale_price ?? ''),
             sales_multiplier:
@@ -228,11 +196,11 @@ const PriceByQtyTable = () => {
         ],
       });
     },
-    [upsertEntityData, productId, rows],
+    [upsertEntityData, productId],
   );
 
   // Main_EditableTables emits row *keys* from fill drags, so map them back to
-  // rows to reuse the existing handleFieldChange(row, field, value) callback.
+  // rows to reuse the existing applyFieldChange(row, field, value) callback.
   const rowByKey = useMemo(() => {
     const map = new Map();
     (rows || []).forEach((row) => map.set(String(row.id), row));
@@ -242,9 +210,56 @@ const PriceByQtyTable = () => {
   const handleCellChange = useCallback(
     (rowKey, columnKey, value) => {
       const row = rowByKey.get(String(rowKey));
-      if (row) handleFieldChange(row, columnKey, value);
+      if (row) applyFieldChange(row, columnKey, value);
     },
-    [rowByKey, handleFieldChange],
+    [rowByKey, applyFieldChange],
+  );
+
+  // Runs when a quantity/currency cell loses focus (i.e. the value is final,
+  // not a half-typed number). product_sale_prices_by_qty has a unique key on
+  // (product_id, min_order_qty, currency_id); if the committed value collides
+  // with a different tier, fold this row into that tier and drop the extra row
+  // so the save still succeeds.
+  const handleFieldCommit = useCallback(
+    (rowKey, field) => {
+      if (field !== 'min_order_qty' && field !== 'currency_id') return;
+
+      const row = rowByKey.get(String(rowKey));
+      if (!row) return;
+
+      const minOrderQty = Number(row?.min_order_qty) || 0;
+      const currencyId = row?.currency_id ?? '';
+
+      const clash = rows.find(
+        (r) =>
+          r?.id &&
+          r.id !== row.id &&
+          Number(r?.min_order_qty ?? 0) === minOrderQty &&
+          (r?.currency_id ?? '') === currencyId,
+      );
+
+      if (!clash) return;
+
+      upsertEntityData('products', {
+        product_sale_prices_by_qty: [
+          {
+            id: clash.id,
+            product_id: productId,
+            min_order_qty: minOrderQty,
+            currency_id: currencyId,
+            sale_price: row?.sale_price || clash?.sale_price || '',
+            sales_multiplier:
+              row?.sales_multiplier || clash?.sales_multiplier || '',
+          },
+          { id: row.id, _delete: true },
+        ],
+      });
+
+      setPriceMessage(
+        `Merged tier with same quantity (${minOrderQty}) and currency.`,
+      );
+    },
+    [rowByKey, rows, productId, upsertEntityData],
   );
 
   const handleDelete = useCallback(
@@ -267,8 +282,15 @@ const PriceByQtyTable = () => {
         .map((r) => Number(r?.min_order_qty))
         .filter((n) => Number.isFinite(n)),
     );
-    let nextQty = 10;
-    while (used.has(nextQty)) nextQty += 10;
+
+    // Pre-fill the standard tier ladder (10 / 100 / 500 / 1000), skipping any
+    // quantity already in use; fall back to the next free multiple of 10 if
+    // every preset has been taken.
+    let nextQty = TIER_QTY_PRESETS.find((preset) => !used.has(preset));
+    if (nextQty === undefined) {
+      nextQty = 10;
+      while (used.has(nextQty)) nextQty += 10;
+    }
 
     upsertEntityData('products', {
       product_sale_prices_by_qty: [
@@ -372,6 +394,7 @@ const PriceByQtyTable = () => {
       {
         key: 'min_order_qty',
         label: '* Min Order Qty',
+        fillable: false,
         fillField: 'min_order_qty',
         renderCell: (row) => (
           <input
@@ -379,8 +402,9 @@ const PriceByQtyTable = () => {
             type="number"
             value={row.min_order_qty ?? ''}
             onChange={(e) =>
-              handleFieldChange(row, 'min_order_qty', e.target.value)
+              applyFieldChange(row, 'min_order_qty', e.target.value)
             }
+            onBlur={() => handleFieldCommit(String(row.id), 'min_order_qty')}
             placeholder="0"
           />
         ),
@@ -395,8 +419,9 @@ const PriceByQtyTable = () => {
             className={styles.cellInput}
             value={row.currency_id || ''}
             onChange={(e) =>
-              handleFieldChange(row, 'currency_id', e.target.value)
+              applyFieldChange(row, 'currency_id', e.target.value)
             }
+            onBlur={() => handleFieldCommit(String(row.id), 'currency_id')}
           >
             <option value="">Select currency</option>
             {(currencies || []).map((currency) => (
@@ -416,7 +441,7 @@ const PriceByQtyTable = () => {
             className={styles.cellInput}
             value={row.sales_multiplier ?? ''}
             onChange={(e) =>
-              handleFieldChange(row, 'sales_multiplier', e.target.value)
+              applyFieldChange(row, 'sales_multiplier', e.target.value)
             }
             placeholder="k"
           />
@@ -431,14 +456,14 @@ const PriceByQtyTable = () => {
             className={styles.cellInput}
             value={row.sale_price ?? ''}
             onChange={(e) =>
-              handleFieldChange(row, 'sale_price', e.target.value)
+              applyFieldChange(row, 'sale_price', e.target.value)
             }
             placeholder="0.00"
           />
         ),
       },
     ],
-    [currencies, currencyLabelMap, handleFieldChange],
+    [currencies, currencyLabelMap, applyFieldChange, handleFieldCommit],
   );
 
   return (

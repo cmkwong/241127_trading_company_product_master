@@ -184,10 +184,15 @@ const Main_ProductCosts = () => {
 
   const handleRemoveColorRow = useCallback(
     (variantId) => {
+      const removedTypeId = getVariantTypeId(
+        variantColors.find((row) => row.id === variantId),
+        'color',
+      );
+
       upsertEntityData('products', {
         product_varient_colors: [{ id: variantId, _delete: true }],
         product_costs: productCosts
-          .filter((cost) => cost.product_varient_color_id === variantId)
+          .filter((cost) => cost.color_type_id === removedTypeId)
           .map((cost) => ({ id: cost.id, _delete: true })),
       });
 
@@ -197,7 +202,7 @@ const Main_ProductCosts = () => {
         return copy;
       });
     },
-    [upsertEntityData, productCosts],
+    [upsertEntityData, productCosts, variantColors],
   );
 
   const resolveColorTypeByName = useCallback(
@@ -306,7 +311,7 @@ const Main_ProductCosts = () => {
         upsertEntityData('products', {
           product_varient_sizes: [{ id: matched.id, _delete: true }],
           product_costs: productCosts
-            .filter((cost) => cost.product_varient_size_id === matched.id)
+            .filter((cost) => cost.size_type_id === typeId)
             .map((cost) => ({ id: cost.id, _delete: true })),
         });
       }
@@ -337,7 +342,7 @@ const Main_ProductCosts = () => {
         upsertEntityData('products', {
           product_varient_capacities: [{ id: matched.id, _delete: true }],
           product_costs: productCosts
-            .filter((cost) => cost.product_varient_capacity_id === matched.id)
+            .filter((cost) => cost.capacity_type_id === typeId)
             .map((cost) => ({ id: cost.id, _delete: true })),
         });
       }
@@ -512,9 +517,9 @@ const Main_ProductCosts = () => {
     const map = new Map();
     productCosts.forEach((cost) => {
       const key = getCostComboKey(
-        cost.product_varient_color_id,
-        cost.product_varient_capacity_id,
-        cost.product_varient_size_id,
+        cost.color_type_id,
+        cost.capacity_type_id,
+        cost.size_type_id,
       );
       map.set(key, cost);
     });
@@ -612,24 +617,30 @@ const Main_ProductCosts = () => {
     colorAxis.forEach((colorVar) => {
       capacityAxis.forEach((capacityVar) => {
         sizeAxis.forEach((sizeVar) => {
+          const colorTypeId = colorVar
+            ? getVariantTypeId(colorVar, 'color')
+            : null;
+          const capacityTypeId = capacityVar
+            ? getVariantTypeId(capacityVar, 'capacity')
+            : null;
+          const sizeTypeId = sizeVar ? getVariantTypeId(sizeVar, 'size') : null;
+
           const comboKey = getCostComboKey(
-            colorVar?.id,
-            capacityVar?.id,
-            sizeVar?.id,
+            colorTypeId,
+            capacityTypeId,
+            sizeTypeId,
           );
           const found = costMapByCombo.get(comboKey);
 
           rows.push({
-            id: found?.id || comboKey,
+            id: comboKey,
             comboKey,
-            product_varient_color_id: colorVar?.id || null,
-            product_varient_capacity_id: capacityVar?.id || null,
-            product_varient_size_id: sizeVar?.id || null,
-            colorTypeId: colorVar ? getVariantTypeId(colorVar, 'color') : null,
-            capacityTypeId: capacityVar
-              ? getVariantTypeId(capacityVar, 'capacity')
-              : null,
-            sizeTypeId: sizeVar ? getVariantTypeId(sizeVar, 'size') : null,
+            color_type_id: colorTypeId,
+            capacity_type_id: capacityTypeId,
+            size_type_id: sizeTypeId,
+            colorTypeId,
+            capacityTypeId,
+            sizeTypeId,
             unit_cost: found?.unit_cost ?? '',
             stock_qty: found?.stock_qty ?? 0,
             currency_id: found?.currency_id ?? '',
@@ -648,50 +659,42 @@ const Main_ProductCosts = () => {
     costMapByCombo,
   ]);
 
+  const defaultCurrencyId = useMemo(() => {
+    const list = currencies || [];
+    const preferred = list.find((currency) => {
+      const code = String(currency?.code || '').toUpperCase();
+      return code === 'CNY' || code === 'RMB';
+    });
+    return preferred?.id || list[0]?.id || '';
+  }, [currencies]);
+
   useEffect(() => {
     if (isSyncingRef.current) return;
     if (gridRows.length === 0 && productCosts.length === 0) return;
 
     const targetKeys = new Set(gridRows.map((row) => row.comboKey));
-    const existingKeys = new Set(
-      productCosts.map((cost) =>
-        getCostComboKey(
-          cost.product_varient_color_id,
-          cost.product_varient_capacity_id,
-          cost.product_varient_size_id,
-        ),
-      ),
-    );
 
-    const additions = gridRows
-      .filter((row) => !existingKeys.has(row.comboKey))
-      .map((row) => ({
-        id: uuidv4(),
-        product_id: productId,
-        product_varient_size_id: row.product_varient_size_id || null,
-        product_varient_color_id: row.product_varient_color_id || null,
-        product_varient_capacity_id: row.product_varient_capacity_id || null,
-        unit_cost: '',
-        stock_qty: 0,
-        currency_id: '',
-      }));
-
+    // Do NOT auto-create empty cost rows: product_costs.unit_cost and
+    // product_costs.currency_id are NOT NULL, and a blank row would fail the
+    // whole product-save transaction (rolling back color/capacity/size edits).
+    // Cost rows are only created once the user actually enters a value via
+    // handleCostFieldChange.
     const deletions = productCosts
       .filter((cost) => {
         const key = getCostComboKey(
-          cost.product_varient_color_id,
-          cost.product_varient_capacity_id,
-          cost.product_varient_size_id,
+          cost.color_type_id,
+          cost.capacity_type_id,
+          cost.size_type_id,
         );
         return !targetKeys.has(key);
       })
       .map((cost) => ({ id: cost.id, _delete: true }));
 
-    if (additions.length === 0 && deletions.length === 0) return;
+    if (deletions.length === 0) return;
 
     isSyncingRef.current = true;
     upsertEntityData('products', {
-      product_costs: [...additions, ...deletions],
+      product_costs: deletions,
     });
 
     setTimeout(() => {
@@ -703,12 +706,22 @@ const Main_ProductCosts = () => {
     (row, field, value) => {
       const existing = productCosts.find((cost) => {
         return (
-          cost.product_varient_color_id === row.product_varient_color_id &&
-          cost.product_varient_capacity_id ===
-            row.product_varient_capacity_id &&
-          cost.product_varient_size_id === row.product_varient_size_id
+          cost.color_type_id === row.color_type_id &&
+          cost.capacity_type_id === row.capacity_type_id &&
+          cost.size_type_id === row.size_type_id
         );
       });
+
+      const nextUnitCost =
+        field === 'unit_cost' ? value : (existing?.unit_cost ?? row.unit_cost);
+      const nextCurrencyId =
+        field === 'currency_id'
+          ? value
+          : (existing?.currency_id || row.currency_id || defaultCurrencyId);
+
+      // currency_id is NOT NULL in product_costs; unit_cost is now nullable
+      // ("not yet priced"), so a row can be created from a currency/stock edit.
+      if (!nextCurrencyId) return;
 
       const targetId = existing?.id || uuidv4();
 
@@ -717,34 +730,24 @@ const Main_ProductCosts = () => {
           {
             id: targetId,
             product_id: productId,
-            product_varient_size_id: row.product_varient_size_id,
-            product_varient_color_id: row.product_varient_color_id,
-            product_varient_capacity_id: row.product_varient_capacity_id,
+            size_type_id: row.size_type_id,
+            color_type_id: row.color_type_id,
+            capacity_type_id: row.capacity_type_id,
             unit_cost:
-              field === 'unit_cost'
-                ? value
-                : (existing?.unit_cost ?? row.unit_cost),
+              nextUnitCost === '' || nextUnitCost === null ||
+              nextUnitCost === undefined
+                ? null
+                : nextUnitCost,
             stock_qty:
               field === 'stock_qty'
                 ? Number(value) || 0
                 : Number(existing?.stock_qty ?? row.stock_qty) || 0,
-            currency_id:
-              field === 'currency_id'
-                ? value
-                : (existing?.currency_id ?? row.currency_id ?? ''),
-            // sales_price:
-            //   field === 'sales_price'
-            //     ? value
-            //     : (existing?.sales_price ?? row.sales_price ?? ''),
-            // sales_currency_id:
-            //   field === 'sales_currency_id'
-            //     ? value
-            //     : (existing?.sales_currency_id ?? row.sales_currency_id ?? ''),
+            currency_id: nextCurrencyId,
           },
         ],
       });
     },
-    [productCosts, upsertEntityData, productId],
+    [productCosts, upsertEntityData, productId, defaultCurrencyId],
   );
 
   return (

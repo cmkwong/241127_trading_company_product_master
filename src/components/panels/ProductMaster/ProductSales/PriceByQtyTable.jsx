@@ -171,17 +171,53 @@ const PriceByQtyTable = () => {
 
   const handleFieldChange = useCallback(
     (row, field, value) => {
+      const nextMinOrderQty =
+        field === 'min_order_qty'
+          ? Number(value) || 0
+          : (row?.min_order_qty ?? 0);
+      const nextCurrencyId =
+        field === 'currency_id' ? value : (row?.currency_id ?? '');
+
+      // product_sale_prices_by_qty has a unique key on
+      // (product_id, min_order_qty, currency_id). If the edited values would
+      // collide with a different existing tier, merge into that tier and drop
+      // the row being edited to avoid a duplicate-key save failure.
+      const clash = rows.find(
+        (r) =>
+          r?.id &&
+          r.id !== row?.id &&
+          Number(r?.min_order_qty ?? 0) === nextMinOrderQty &&
+          (r?.currency_id ?? '') === nextCurrencyId,
+      );
+
+      if (clash) {
+        upsertEntityData('products', {
+          product_sale_prices_by_qty: [
+            {
+              id: clash.id,
+              product_id: productId,
+              min_order_qty: nextMinOrderQty,
+              currency_id: nextCurrencyId,
+              sale_price:
+                field === 'sale_price' ? value : (clash?.sale_price ?? ''),
+              sales_multiplier:
+                field === 'sales_multiplier'
+                  ? value
+                  : (clash?.sales_multiplier ?? ''),
+            },
+            ...(row?.id ? [{ id: row.id, _delete: true }] : []),
+          ],
+        });
+        return;
+      }
+
       upsertEntityData('products', {
         product_sale_prices_by_qty: [
           {
             id: row?.id || uuidv4(),
             product_id: productId,
-            min_order_qty:
-              field === 'min_order_qty'
-                ? Number(value) || 0
-                : (row?.min_order_qty ?? 0),
-            currency_id:
-              field === 'currency_id' ? value : (row?.currency_id ?? ''),
+            min_order_qty: nextMinOrderQty,
+            currency_id: nextCurrencyId,
             sale_price:
               field === 'sale_price' ? value : (row?.sale_price ?? ''),
             sales_multiplier:
@@ -192,7 +228,7 @@ const PriceByQtyTable = () => {
         ],
       });
     },
-    [upsertEntityData, productId],
+    [upsertEntityData, productId, rows],
   );
 
   // Main_EditableTables emits row *keys* from fill drags, so map them back to
@@ -223,18 +259,29 @@ const PriceByQtyTable = () => {
 
   const handleAddTier = useCallback(() => {
     if (rows.length >= MAX_TIERS) return;
+
+    // Pick a min_order_qty that isn't already used so a newly-added tier never
+    // collides with the (product_id, min_order_qty, currency_id) unique key.
+    const used = new Set(
+      rows
+        .map((r) => Number(r?.min_order_qty))
+        .filter((n) => Number.isFinite(n)),
+    );
+    let nextQty = 10;
+    while (used.has(nextQty)) nextQty += 10;
+
     upsertEntityData('products', {
       product_sale_prices_by_qty: [
         {
           id: uuidv4(),
           product_id: productId,
-          min_order_qty: 10,
-          currency_id: '',
+          min_order_qty: nextQty,
+          currency_id: defaultCostCurrencyId || '',
           sale_price: '',
         },
       ],
     });
-  }, [rows.length, upsertEntityData, productId]);
+  }, [rows, upsertEntityData, productId, defaultCostCurrencyId]);
 
   const handleGetSalesPrice = useCallback(() => {
     if (previewTiers.length === 0) {

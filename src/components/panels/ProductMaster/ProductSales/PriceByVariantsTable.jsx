@@ -208,9 +208,9 @@ const PriceByVariantsTable = () => {
     const map = new Map();
     productCosts.forEach((cost) => {
       const key = getCostComboKey(
-        cost.product_varient_color_id,
-        cost.product_varient_capacity_id,
-        cost.product_varient_size_id,
+        cost.color_type_id,
+        cost.capacity_type_id,
+        cost.size_type_id,
       );
       map.set(key, cost);
     });
@@ -238,28 +238,32 @@ const PriceByVariantsTable = () => {
     colorAxis.forEach((colorVar) => {
       capacityAxis.forEach((capacityVar) => {
         sizeAxis.forEach((sizeVar) => {
+          const colorTypeId = colorVar
+            ? getVariantTypeId(colorVar, 'color')
+            : null;
+          const capacityTypeId = capacityVar
+            ? getVariantTypeId(capacityVar, 'capacity')
+            : null;
+          const sizeTypeId = sizeVar ? getVariantTypeId(sizeVar, 'size') : null;
+
           const comboKey = getCostComboKey(
-            colorVar?.id,
-            capacityVar?.id,
-            sizeVar?.id,
+            colorTypeId,
+            capacityTypeId,
+            sizeTypeId,
           );
           const found = costMapByCombo.get(comboKey);
 
           rows.push({
             id: found?.id || comboKey,
             comboKey,
-            product_varient_color_id: colorVar?.id || null,
-            product_varient_capacity_id: capacityVar?.id || null,
-            product_varient_size_id: sizeVar?.id || null,
+            color_type_id: colorTypeId,
+            capacity_type_id: capacityTypeId,
+            size_type_id: sizeTypeId,
             colorLabel: colorVar ? getColorDisplayName(colorVar) : '-',
             capacityLabel: capacityVar
-              ? getCapacityLabel(
-                  capacityTypeMap[getVariantTypeId(capacityVar, 'capacity')],
-                )
+              ? getCapacityLabel(capacityTypeMap[capacityTypeId])
               : '-',
-            sizeLabel: sizeVar
-              ? sizeTypeMap[getVariantTypeId(sizeVar, 'size')]?.name
-              : '-',
+            sizeLabel: sizeVar ? sizeTypeMap[sizeTypeId]?.name : '-',
             unit_cost: found?.unit_cost ?? '',
             currency_id: found?.currency_id ?? '',
             sales_price: found?.sales_price ?? '',
@@ -285,10 +289,9 @@ const PriceByVariantsTable = () => {
     (row, field, value) => {
       const existing = productCosts.find((cost) => {
         return (
-          cost.product_varient_color_id === row.product_varient_color_id &&
-          cost.product_varient_capacity_id ===
-            row.product_varient_capacity_id &&
-          cost.product_varient_size_id === row.product_varient_size_id
+          cost.color_type_id === row.color_type_id &&
+          cost.capacity_type_id === row.capacity_type_id &&
+          cost.size_type_id === row.size_type_id
         );
       });
 
@@ -299,9 +302,9 @@ const PriceByVariantsTable = () => {
           {
             id: targetId,
             product_id: productId,
-            product_varient_size_id: row.product_varient_size_id,
-            product_varient_color_id: row.product_varient_color_id,
-            product_varient_capacity_id: row.product_varient_capacity_id,
+            size_type_id: row.size_type_id,
+            color_type_id: row.color_type_id,
+            capacity_type_id: row.capacity_type_id,
             sales_price:
               field === 'sales_price'
                 ? value
@@ -360,19 +363,18 @@ const PriceByVariantsTable = () => {
 
       const existing = productCosts.find((cost) => {
         return (
-          cost.product_varient_color_id === row.product_varient_color_id &&
-          cost.product_varient_capacity_id ===
-            row.product_varient_capacity_id &&
-          cost.product_varient_size_id === row.product_varient_size_id
+          cost.color_type_id === row.color_type_id &&
+          cost.capacity_type_id === row.capacity_type_id &&
+          cost.size_type_id === row.size_type_id
         );
       });
 
       updates.push({
         id: existing?.id || uuidv4(),
         product_id: productId,
-        product_varient_size_id: row.product_varient_size_id,
-        product_varient_color_id: row.product_varient_color_id,
-        product_varient_capacity_id: row.product_varient_capacity_id,
+        size_type_id: row.size_type_id,
+        color_type_id: row.color_type_id,
+        capacity_type_id: row.capacity_type_id,
         currency_id: existing?.currency_id ?? row.currency_id ?? '',
         unit_cost: existing?.unit_cost ?? row.unit_cost ?? '',
         sales_currency_id: row.sales_currency_id ?? '',

@@ -99,6 +99,7 @@ const Main_EditableTables = ({
   const [contextMenu, setContextMenu] = useState(null); // { x, y, row, rowIndex }
   const [sortState, setSortState] = useState(null); // { columnKey, direction }
   const [colWidths, setColWidths] = useState({}); // { [columnKey]: number }
+  const [hoverCell, setHoverCell] = useState(null); // { rowIndex, columnKey }
   const menuRef = useRef(null);
   const resizeStartRef = useRef(null);
 
@@ -353,6 +354,17 @@ const Main_EditableTables = ({
     setFillHoverIndex(rowIndex);
   };
 
+  // Excel-like cross highlight: remember which cell is hovered so its whole
+  // row and column can be tinted. Short-circuit when unchanged to avoid
+  // re-rendering the grid on every pixel move within the same cell.
+  const handleCellHover = useCallback((columnKey, rowIndex) => {
+    setHoverCell((prev) =>
+      prev && prev.rowIndex === rowIndex && prev.columnKey === columnKey
+        ? prev
+        : { rowIndex, columnKey },
+    );
+  }, []);
+
   const getFillCellClassName = (columnKey, rowIndex) => {
     if (
       !fillDrag ||
@@ -501,6 +513,7 @@ const Main_EditableTables = ({
           role="grid"
           style={{ width: `${totalWidth}px` }}
           onKeyDown={handleTableKeyDown}
+          onMouseLeave={() => setHoverCell(null)}
         >
           <colgroup>
             <col style={{ width: INDEX_COLUMN_WIDTH }} />
@@ -523,6 +536,7 @@ const Main_EditableTables = ({
                   sortState?.columnKey === column.key
                     ? sortState.direction
                     : null;
+                const colHovered = hoverCell?.columnKey === column.key;
 
                 return (
                   <th
@@ -530,6 +544,7 @@ const Main_EditableTables = ({
                     className={[
                       styles.headerCell,
                       sortable ? styles.sortableHeader : '',
+                      colHovered ? styles.crossHoverCol : '',
                     ]
                       .filter(Boolean)
                       .join(' ')}
@@ -571,14 +586,26 @@ const Main_EditableTables = ({
                 </td>
               </tr>
             ) : (
-              displayRows.map((row, rowIndex) => (
+              displayRows.map((row, rowIndex) => {
+                const rowHovered = hoverCell?.rowIndex === rowIndex;
+                return (
                 <tr key={resolveRowKey(row, rowIndex)} className={styles.row}>
-                  <td className={styles.indexCell}>{rowIndex + 1}</td>
+                  <td
+                    className={[
+                      styles.indexCell,
+                      rowHovered ? styles.crossHoverRow : '',
+                    ]
+                      .filter(Boolean)
+                      .join(' ')}
+                  >
+                    {rowIndex + 1}
+                  </td>
                   {normalizedColumns.map((column, columnIndex) => {
                     const isActive = isCellActive(rowIndex, column.key);
                     const fillClass = getFillCellClassName(column.key, rowIndex);
                     const cellEditable =
                       canEdit && isColumnEditable(column, row);
+                    const colHovered = hoverCell?.columnKey === column.key;
 
                     let content;
                     if (column.renderCell) {
@@ -615,15 +642,17 @@ const Main_EditableTables = ({
                           styles.cell,
                           isActive ? styles.cellActive : '',
                           fillClass,
+                          rowHovered || colHovered ? styles.crossHover : '',
                         ]
                           .filter(Boolean)
                           .join(' ')}
                         onMouseDown={() =>
                           setActiveCell({ rowIndex, columnKey: column.key })
                         }
-                        onMouseEnter={() =>
-                          handleCellMouseEnter(column.key, rowIndex)
-                        }
+                        onMouseEnter={() => {
+                          handleCellMouseEnter(column.key, rowIndex);
+                          handleCellHover(column.key, rowIndex);
+                        }}
                         onContextMenu={(event) =>
                           openContextMenu(event, rowIndex)
                         }
@@ -649,7 +678,8 @@ const Main_EditableTables = ({
                     );
                   })}
                 </tr>
-              ))
+                );
+              })
             )}
           </tbody>
         </table>

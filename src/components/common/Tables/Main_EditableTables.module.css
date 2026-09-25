@@ -152,6 +152,15 @@
   box-sizing: border-box;
 }
 
+.crossHover {
+  background: var(--color-cross-hover);
+}
+
+.crossHoverRow,
+.crossHoverCol {
+  background: var(--color-cross-hover-solid);
+}
+
 .fillPreviewCell {
   background: var(--color-info-bg);
 }

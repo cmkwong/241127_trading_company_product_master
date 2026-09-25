@@ -143,3 +143,54 @@
   padding: 12px;
   background: #f8fafc;
 }
+
+.editBtn {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  border-radius: 6px;
+  cursor: pointer;
+  flex-shrink: 0;
+  opacity: 0;
+  transition:
+    color 0.14s ease,
+    opacity 0.14s ease,
+    background 0.14s ease;
+}
+
+.checkboxItem:hover .editBtn,
+.editBtn:focus-visible {
+  opacity: 1;
+}
+
+.editBtn:hover {
+  color: #1d4ed8;
+  background: #e0ebff;
+}
+
+.editIcon {
+  width: 13px;
+  height: 13px;
+}
+
+.editInput {
+  flex: 1;
+  min-width: 0;
+  height: 22px;
+  padding: 0 6px;
+  border: 1px solid #93c5fd;
+  border-radius: 6px;
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family-base);
+  color: #1e293b;
+  background: #fff;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.18);
+}

@@ -465,6 +465,49 @@ const Main_ProductCosts = () => {
     variantCapacities,
   ]);
 
+  const handleEditSize = useCallback(
+    async (item, newName) => {
+      try {
+        await updateMasterTableData('master_size_types', {
+          id: item.id,
+          name: newName,
+        });
+
+        setMasterSizes((prev) =>
+          prev.map((s) => (s.id === item.id ? { ...s, name: newName } : s)),
+        );
+      } catch (error) {
+        alert(error?.message || 'Failed to update size.');
+      }
+    },
+    [updateMasterTableData],
+  );
+
+  const handleEditCapacity = useCallback(
+    async (item, newText) => {
+      try {
+        const parts = newText.trim().split(/\s+/);
+        const unit = parts.length > 1 ? parts[parts.length - 1] : '';
+        const valueRaw = parts.slice(0, parts.length > 1 ? -1 : 1).join('');
+        const numeric = Number(valueRaw);
+        const value = Number.isNaN(numeric) ? valueRaw : numeric;
+
+        await updateMasterTableData('master_capacity_types', {
+          id: item.id,
+          value,
+          unit,
+        });
+
+        setMasterCapacities((prev) =>
+          prev.map((c) => (c.id === item.id ? { ...c, value, unit } : c)),
+        );
+      } catch (error) {
+        alert(error?.message || 'Failed to update capacity.');
+      }
+    },
+    [updateMasterTableData],
+  );
+
   const costMapByCombo = useMemo(() => {
     const map = new Map();
     productCosts.forEach((cost) => {
@@ -727,6 +770,7 @@ const Main_ProductCosts = () => {
           getLabel={getCapacityLabel}
           onToggle={handleToggleCapacity}
           onAddNew={handleAddNewCapacity}
+          onEditCommit={handleEditCapacity}
         />
 
         <VariantCheckboxSection
@@ -736,6 +780,7 @@ const Main_ProductCosts = () => {
           getLabel={(item) => item.name}
           onToggle={handleToggleSize}
           onAddNew={handleAddNewSize}
+          onEditCommit={handleEditSize}
         />
 
         <CostsTable

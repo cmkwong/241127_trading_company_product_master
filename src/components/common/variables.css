@@ -78,6 +78,10 @@
   --color-surface-blue-light-2: #f0f7ff;
   --color-surface-blue-slate-light: #e2ecf8;
 
+  /* ===== Cross (row/column) hover highlight ===== */
+  --color-cross-hover: rgba(59, 130, 246, 0.06); /* very light transparent tint */
+  --color-cross-hover-solid: #eef4fb; /* opaque equivalent for sticky cells */
+
   /* ===== Success soft backgrounds ===== */
   --color-success-bg: #f0fdf4;
   --color-success-border: #bbf7d0;

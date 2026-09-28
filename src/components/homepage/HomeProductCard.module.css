@@ -4,7 +4,6 @@
   border-radius: 12px;
   background: #ffffff;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.03);
-  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
@@ -13,6 +12,7 @@
   width: 100%;
   aspect-ratio: 1 / 1;
   background: #f8fafc;
+  overflow: hidden;
 }
 
 .productImage {

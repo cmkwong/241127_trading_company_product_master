@@ -1,13 +1,23 @@
 import Label from '../common/Texts/Label';
 import styles from './HomeProductCard.module.css';
 
+const formatMoney = (value) => (Number.isFinite(value) ? value.toFixed(2) : null);
+
 const HomeProductCard = ({ product }) => {
+  const priceFrom = formatMoney(product.priceFrom);
+  const priceTo = formatMoney(product.priceTo);
+  const priceText =
+    product.priceDisplay ||
+    (priceFrom !== null || priceTo !== null
+      ? `$${priceFrom ?? '—'} - $${priceTo ?? '—'}`
+      : '—');
+
   return (
     <article className={styles.productCard} data-node-id="1078:725">
       <div className={styles.imageWrap}>
         <img
-          src={product.image}
-          alt={product.name}
+          src={product.image || ''}
+          alt={product.name || 'Product'}
           className={styles.productImage}
         />
       </div>
@@ -16,11 +26,9 @@ const HomeProductCard = ({ product }) => {
         <p className={styles.productName}>{product.name}</p>
 
         <div className={styles.priceRow}>
-          <p className={styles.priceRange}>
-            ${product.priceFrom.toFixed(2)} - ${product.priceTo.toFixed(2)}
-          </p>
+          <p className={styles.priceRange}>{priceText}</p>
           <Label className={styles.moqText} size="XS" weight="regular">
-            MOQ: {product.moq} pcs
+            {Number.isFinite(product.moq) ? `MOQ: ${product.moq} pcs` : 'MOQ: —'}
           </Label>
         </div>
 
@@ -35,7 +43,9 @@ const HomeProductCard = ({ product }) => {
               />
             </svg>
           </span>
-          <span className={styles.rating}>{product.rating.toFixed(1)}</span>
+          <span className={styles.rating}>
+            {Number.isFinite(product.rating) ? product.rating.toFixed(1) : '—'}
+          </span>
         </div>
       </div>
     </article>
@@ -43,3 +53,4 @@ const HomeProductCard = ({ product }) => {
 };
 
 export default HomeProductCard;
+

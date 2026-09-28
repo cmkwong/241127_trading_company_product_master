@@ -14,6 +14,7 @@ import {
 import { useMasterContext } from '../../../../store/MasterContext';
 import { v4 as uuidv4 } from 'uuid';
 import { sortByDisplayOrder } from '../../../../utils/arr';
+import { buildProductImagesPath } from '../../../../utils/filePickerUtils';
 import styles from './Main_Customization.module.css';
 
 const Main_Customization = () => {
@@ -139,7 +140,7 @@ const Main_Customization = () => {
             ...(addedImageIds.has(img.id)
               ? {
                   image_name: img.name,
-                  image_url: img.url,
+                  image_url: img.storedPath || img.url,
                 }
               : {}),
           })),
@@ -292,6 +293,9 @@ const Main_Customization = () => {
               maxFiles={12}
               maxSizeInMB={5}
               defaultImages={defaultImages}
+              fileBankDirectoryPath={
+                productId ? `${buildProductImagesPath(productId)}/customizations` : ''
+              }
               onError={(error) => {
                 console.error('Customization image upload error:', error);
               }}
@@ -309,6 +313,7 @@ const Main_Customization = () => {
       currencyLabelMap,
       upsertCustomizationRow,
       handleCustomizationImagesChange,
+      productId,
     ],
   );
 

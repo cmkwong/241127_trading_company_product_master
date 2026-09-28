@@ -3,6 +3,13 @@ import IconUpload from '../../../common/InputOptions/IconUpload/IconUpload';
 import AddNewBtn from '../../../common/Buttons/AddNewBtn';
 import styles from './ColorRowsSection.module.css';
 
+const ACCEPTED_IMAGE_TYPES = [
+  'image/jpeg',
+  'image/png',
+  'image/gif',
+  'image/webp',
+];
+
 const ColorRowsSection = ({
   variantColors,
   getColorImageRecord,
@@ -12,6 +19,8 @@ const ColorRowsSection = ({
   setColorDraftByVariantId,
   commitColorDraft,
   handleColorImageFileChange,
+  handleColorImageReuse,
+  colorImagesDirectoryPath,
   handleRemoveColorRow,
   handleAddColorRow,
 }) => {
@@ -61,6 +70,9 @@ const ColorRowsSection = ({
                     imageRecord?.image_name || row.image_name || 'color'
                   }
                   onSelectFile={(file) => handleColorImageFileChange(row, file)}
+                  onSelectExisting={(entry) => handleColorImageReuse(row, entry)}
+                  directoryPath={colorImagesDirectoryPath}
+                  accept={ACCEPTED_IMAGE_TYPES.join(',')}
                   title="Select color image"
                   sizePx={42}
                   placeholder="+"

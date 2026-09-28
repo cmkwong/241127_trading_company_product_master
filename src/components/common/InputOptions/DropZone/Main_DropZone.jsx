@@ -37,6 +37,12 @@ const Main_DropZone = ({
   tableCell = false,
   figmaImageStrip = false,
   expandedPreview = false,
+
+  // File bank (optional): when provided, a "File Banks" button is shown in the
+  // bottom-right of the upload prompt and opens the in-app picker.
+  onOpenFileBank = null,
+  fileBankLabel = 'File Banks',
+  fileBankDisabled = false,
 }) => {
   const fileInputRef = useRef(null);
   const dropZoneRef = useRef(null);
@@ -176,6 +182,30 @@ const Main_DropZone = ({
             Maximum {maxFiles} {itemType} reached
           </div>
         )}
+
+        {onOpenFileBank && canAddMoreItems && (
+          <button
+            type="button"
+            className={styles.fileBankBtn}
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              onOpenFileBank();
+            }}
+            disabled={fileBankDisabled}
+            title={fileBankLabel}
+            aria-label={fileBankLabel}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path d="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" />
+            </svg>
+          </button>
+        )}
       </div>
     );
   };
@@ -269,6 +299,11 @@ Main_DropZone.propTypes = {
   tableCell: PropTypes.bool,
   figmaImageStrip: PropTypes.bool,
   expandedPreview: PropTypes.bool,
+
+  // File bank
+  onOpenFileBank: PropTypes.func,
+  fileBankLabel: PropTypes.string,
+  fileBankDisabled: PropTypes.bool,
 };
 
 export default Main_DropZone;

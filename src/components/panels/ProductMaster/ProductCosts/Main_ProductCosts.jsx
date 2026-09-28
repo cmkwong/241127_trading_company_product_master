@@ -18,6 +18,8 @@ import {
   getCostComboKey,
 } from './productCostsUtils';
 import { sortByDisplayOrder } from '../../../../utils/arr';
+import { buildProductImagesPath } from '../../../../utils/filePickerUtils';
+import { getEntryDisplayName } from '../../../../components/common/FileSelector/fileSelectorUtils';
 import styles from './Main_ProductCosts.module.css';
 
 const Main_ProductCosts = () => {
@@ -143,6 +145,13 @@ const Main_ProductCosts = () => {
       );
     },
     [colorTypeMap],
+  );
+
+  // File-bank start folder for colour images (mirrors the model's
+  // `fileConfig.uploadDir: 'public/products/{id}/colors/'`).
+  const colorImagesDirectoryPath = useMemo(
+    () => (productId ? `${buildProductImagesPath(productId)}/colors` : ''),
+    [productId],
   );
 
   const getColorImageRecord = useCallback((variantRow) => {
@@ -279,6 +288,36 @@ const Main_ProductCosts = () => {
                 image_url: objectUrl,
                 image_name: file.name,
                 display_order: existingImage?.display_order ?? 1,
+              },
+            ],
+          },
+        ],
+      });
+    },
+    [upsertEntityData, getColorImageRecord],
+  );
+
+  // Zero-copy selection from the file bank: store the existing `/public/...`
+  // colour image path verbatim instead of uploading a new copy.
+  const handleColorImageReuse = useCallback(
+    (variantRow, entry) => {
+      if (!variantRow?.id || !entry?.path) return;
+
+      const existingImage = getColorImageRecord(variantRow);
+
+      upsertEntityData('products', {
+        product_varient_colors: [
+          {
+            id: variantRow.id,
+            product_varient_color_images: [
+              {
+                id: existingImage?.id || uuidv4(),
+                product_varient_color_id: variantRow.id,
+                image_url: entry.path,
+                image_name: getEntryDisplayName(entry),
+                display_order: existingImage?.display_order ?? 1,
+                reuse_existing_file: true,
+                _base64_changed: false,
               },
             ],
           },
@@ -762,6 +801,8 @@ const Main_ProductCosts = () => {
           setColorDraftByVariantId={setColorDraftByVariantId}
           commitColorDraft={commitColorDraft}
           handleColorImageFileChange={handleColorImageFileChange}
+          handleColorImageReuse={handleColorImageReuse}
+          colorImagesDirectoryPath={colorImagesDirectoryPath}
           handleRemoveColorRow={handleRemoveColorRow}
           handleAddColorRow={handleAddColorRow}
         />

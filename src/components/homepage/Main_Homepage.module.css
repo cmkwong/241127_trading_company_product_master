@@ -30,13 +30,12 @@
 }
 
 .productsSectionWrap {
-  min-height: 0;
-  flex: 1;
   border-radius: 12px;
   background: #ffffff;
   border: 1px solid #e5ebf3;
   box-shadow: 0 4px 18px rgba(12, 30, 54, 0.04);
   padding: 16px;
+  height: max-content;
 }
 
 @media (max-width: 1480px) {

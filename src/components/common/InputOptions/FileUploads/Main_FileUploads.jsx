@@ -15,6 +15,12 @@ import {
   shouldReplaceImageList,
 } from './fileUploadsUtils';
 import useWatermarkFile from './Watermark_file';
+import Main_FileSelector from '../../FileSelector/Main_FileSelector';
+import { getEntryDisplayName } from '../../FileSelector/fileSelectorUtils';
+import {
+  resolveDisplayFileUrl,
+  SERVER_ORIGIN,
+} from '../../../../utils/filePickerUtils';
 
 /**
  * Main_FileUploads Component
@@ -52,6 +58,11 @@ const Main_FileUploads = (props) => {
     watermarkImagePath = '/assets/brand_logos/watermark_v1.png',
     fileUrlBase = '',
 
+    // File bank: when provided, a "File Banks" button is shown in the drop
+    // zone so the user can pick an already-stored `/public/...` file (zero-copy).
+    fileBankDirectoryPath = '',
+    fileBankLabel = 'File Banks',
+
     // Initial state
     defaultFiles = [],
     defaultImages = [],
@@ -87,6 +98,7 @@ const Main_FileUploads = (props) => {
       .filter(Boolean),
   );
   const [isDragging, setIsDragging] = useState(false);
+  const [isFileBankOpen, setIsFileBankOpen] = useState(false);
   const [isSequenceEditorOpen, setIsSequenceEditorOpen] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
@@ -265,26 +277,7 @@ const Main_FileUploads = (props) => {
   }, []);
 
   const resolveFileUrl = useCallback(
-    (rawUrl) => {
-      const url = String(rawUrl || '').trim();
-      if (!url) {
-        return '';
-      }
-
-      if (/^(blob:|data:|https?:\/\/)/i.test(url)) {
-        return url;
-      }
-
-      const base = String(fileUrlBase || '')
-        .trim()
-        .replace(/\/+$/, '');
-      if (!base) {
-        return url;
-      }
-
-      const normalizedPath = url.replace(/^\/+/, '');
-      return `${base}/${normalizedPath}`;
-    },
+    (rawUrl) => resolveDisplayFileUrl(rawUrl, fileUrlBase || SERVER_ORIGIN),
     [fileUrlBase],
   );
 
@@ -584,33 +577,55 @@ const Main_FileUploads = (props) => {
       const newFiles = [];
       const errors = [];
 
-      Array.from(selectedFiles).forEach((file) => {
+      Array.from(selectedFiles).forEach((item) => {
+        // A pre-shaped entry comes from the file bank (an already-stored
+        // `/public/...` file with no `File` blob). A native pick carries real
+        // `File` objects.
+        const isFileBankEntry =
+          item && !(item instanceof File) && (item.storedPath || item.fromFileBank);
+
+        const name = item?.name || '';
+        const size = Number(item?.size) || 0;
+        const type = item?.type || 'application/octet-stream';
+
         // Validate file type if acceptedTypes is not empty
-        if (acceptedTypes.length > 0 && !acceptedTypes.includes(file.type)) {
+        if (acceptedTypes.length > 0 && !acceptedTypes.includes(type)) {
           errors.push(
-            `File "${file.name}" is not a supported ${mode === 'image' ? 'image' : 'file'} type.`,
+            `File "${name}" is not a supported ${mode === 'image' ? 'image' : 'file'} type.`,
           );
           return;
         }
 
         // Validate file size
-        if (file.size > maxSizeInMB * 1024 * 1024) {
+        if (size > maxSizeInMB * 1024 * 1024) {
           errors.push(
-            `File "${file.name}" exceeds the maximum size of ${maxSizeInMB}MB.`,
+            `File "${name}" exceeds the maximum size of ${maxSizeInMB}MB.`,
           );
           return;
         }
 
-        newFile = {
-          file: file,
-          name: file.name,
-          size: file.size,
-          type: file.type,
-          id: uuidv4(),
-        };
+        if (isFileBankEntry) {
+          newFile = {
+            id: item.id || uuidv4(),
+            name,
+            size,
+            type,
+            url: item.url,
+            storedPath: item.storedPath,
+            fromFileBank: true,
+          };
+        } else {
+          newFile = {
+            file: item,
+            name,
+            size,
+            type,
+            id: uuidv4(),
+          };
 
-        // Create object URL for preview/download
-        newFile.url = URL.createObjectURL(file);
+          // Create object URL for preview/download
+          newFile.url = URL.createObjectURL(item);
+        }
 
         newFiles.push(newFile);
       });
@@ -634,6 +649,28 @@ const Main_FileUploads = (props) => {
       }
     },
     [maxFiles, acceptedTypes, maxSizeInMB, mode, onError, onChange],
+  );
+
+  // Handle a selection made inside the File Banks picker (zero-copy): build a
+  // path-backed entry and feed it through the normal selection pipeline so
+  // validation, preview and onChange all behave like a native pick.
+  const handleSelectFromFileBank = useCallback(
+    (entry) => {
+      if (!entry || !entry.path) return;
+      setIsFileBankOpen(false);
+      handleFileSelection([
+        {
+          id: uuidv4(),
+          name: getEntryDisplayName(entry),
+          size: Number(entry.size) || 0,
+          type: entry.mimeType || 'application/octet-stream',
+          url: entry.url, // absolute static URL → previews without fileUrlBase
+          storedPath: entry.path, // /public/... → stored verbatim (zero-copy)
+          fromFileBank: true,
+        },
+      ]);
+    },
+    [handleFileSelection],
   );
 
   // Handle file removal
@@ -1145,6 +1182,11 @@ const Main_FileUploads = (props) => {
     showMaxItemsNotice,
     itemType,
     compactButtonText,
+    onOpenFileBank: fileBankDirectoryPath
+      ? () => setIsFileBankOpen(true)
+      : null,
+    fileBankLabel,
+    fileBankDisabled: disabled,
   };
 
   return (
@@ -1263,6 +1305,20 @@ const Main_FileUploads = (props) => {
         onGenerate={handleAiGenerate}
         onReload={handleAiReload}
       />
+
+      {fileBankDirectoryPath && (
+        <Main_FileSelector
+          isOpen={isFileBankOpen}
+          onClose={() => setIsFileBankOpen(false)}
+          startPath={fileBankDirectoryPath}
+          mode={mode === 'image' ? 'image' : 'file'}
+          onSelect={handleSelectFromFileBank}
+          onError={(error) => {
+            console.error('File bank error:', error);
+            onError('Could not open the file bank.');
+          }}
+        />
+      )}
     </div>
   );
 };
@@ -1297,6 +1353,10 @@ Main_FileUploads.propTypes = {
   downloadNameImageType: PropTypes.string,
   watermarkImagePath: PropTypes.string,
   fileUrlBase: PropTypes.string,
+
+  // File bank
+  fileBankDirectoryPath: PropTypes.string,
+  fileBankLabel: PropTypes.string,
 
   // Initial state
   defaultFiles: PropTypes.arrayOf(

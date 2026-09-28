@@ -10,6 +10,7 @@ import {
   useEntityRows,
 } from '../../../../store/GeneralContext';
 import { sortByDisplayOrder } from '../../../../utils/arr';
+import { buildProductImagesPath } from '../../../../utils/filePickerUtils';
 import styles from './Sub_ProductImagesRow.module.css';
 
 const Sub_ProductImagesRow = (props) => {
@@ -165,7 +166,7 @@ const Sub_ProductImagesRow = (props) => {
             ...(addedImageIds.has(img.id)
               ? {
                   image_name: img.name,
-                  image_url: img.url,
+                  image_url: img.storedPath || img.url,
                   size: img.size,
                 }
               : {}),
@@ -247,6 +248,9 @@ const Sub_ProductImagesRow = (props) => {
                 }}
                 defaultAiPrompt={DEFAULT_PRODUCT_IMAGE_AI_PROMPT}
                 onAiReload={() => getProductData(productId)}
+                fileBankDirectoryPath={
+                  productId ? `${buildProductImagesPath(productId)}/images` : ''
+                }
                 onError={handleImageError}
                 onChange={(oldImages, newImages) =>
                   handleImageChange(subType.id, oldImages, newImages)
@@ -297,6 +301,9 @@ const Sub_ProductImagesRow = (props) => {
               }}
               defaultAiPrompt={DEFAULT_PRODUCT_IMAGE_AI_PROMPT}
               onAiReload={() => getProductData(productId)}
+              fileBankDirectoryPath={
+                productId ? `${buildProductImagesPath(productId)}/images` : ''
+              }
               onError={handleImageError}
               onChange={(oldImages, newImages) =>
                 handleImageChange(mainImageTypeId, oldImages, newImages)

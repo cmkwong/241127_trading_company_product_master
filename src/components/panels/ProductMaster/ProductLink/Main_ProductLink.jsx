@@ -13,6 +13,7 @@ import {
 } from '../../../../store/GeneralContext';
 import { v4 as uuidv4 } from 'uuid';
 import { sortByDisplayOrder } from '../../../../utils/arr';
+import { buildProductImagesPath } from '../../../../utils/filePickerUtils';
 
 const Main_ProductLink = () => {
   const productId = useEntityField('products', 'id');
@@ -104,7 +105,7 @@ const Main_ProductLink = () => {
             display_order: index + 1,
             ...(addedImageIds.has(img.id)
               ? {
-                  image_url: img.url,
+                  image_url: img.storedPath || img.url,
                   image_name: img.name,
                 }
               : {}),
@@ -246,6 +247,9 @@ const Main_ProductLink = () => {
                 downloadNameProductId={productId || ''}
                 downloadNameImageType="link"
                 defaultImages={defaultImages}
+                fileBankDirectoryPath={
+                  productId ? `${buildProductImagesPath(productId)}/product_links` : ''
+                }
                 onError={(error) => {
                   console.error('Link image upload error:', error);
                 }}

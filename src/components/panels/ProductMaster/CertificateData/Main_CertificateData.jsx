@@ -12,6 +12,7 @@ import {
 } from '../../../../store/GeneralContext';
 import { useMasterContext } from '../../../../store/MasterContext';
 import { sortByDisplayOrder } from '../../../../utils/arr';
+import { buildProductImagesPath } from '../../../../utils/filePickerUtils';
 
 const Main_CertificateData = () => {
   const { certType } = useMasterContext();
@@ -113,7 +114,7 @@ const Main_CertificateData = () => {
                   file_name: file.name,
                   file_size: file.size,
                   file_type: file.type,
-                  file_url: file.url,
+                  file_url: file.storedPath || file.url,
                 }
               : {}),
           })),
@@ -174,6 +175,9 @@ const Main_CertificateData = () => {
               tableCell
               compactButtonText="Upload"
               defaultFiles={defaultFiles}
+              fileBankDirectoryPath={
+                productId ? `${buildProductImagesPath(productId)}/certificates` : ''
+              }
               maxFiles={5}
               maxSizeInMB={2}
               acceptedTypes={[
@@ -219,6 +223,7 @@ const Main_CertificateData = () => {
       certTypeOptions,
       upsertCertificateRow,
       handleCertificateFilesChange,
+      productId,
     ],
   );
 

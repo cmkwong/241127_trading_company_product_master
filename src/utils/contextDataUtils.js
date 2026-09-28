@@ -63,8 +63,25 @@ export const buildNestedChangedData = ({
       }
     }
 
+    // Zero-copy "reuse existing file" path: the client picked an existing
+    // `/public/...` file from the file bank and opts in to storing that path
+    // verbatim (no base64 payload, no byte copy on the server).
+    if (current.reuse_existing_file) {
+      const config = base64Config?.[tableName];
+      if (config && config.url) {
+        diff[config.url] = current[config.url];
+        diff.reuse_existing_file = true;
+        hasChanges = true;
+      }
+    }
+
     for (const key of keysToCompare) {
-      if (key === '_base64_changed' || key === '_objUrl') continue;
+      if (
+        key === '_base64_changed' ||
+        key === '_objUrl' ||
+        key === 'reuse_existing_file'
+      )
+        continue;
       if (current[key] === undefined && original[key] === undefined) continue;
 
       if (Array.isArray(current[key])) {
@@ -126,7 +143,8 @@ export const buildNestedChangedData = ({
         typeof current[key] === 'object' &&
         current[key] !== null &&
         key !== '_objUrl' &&
-        key !== '_base64_changed'
+        key !== '_base64_changed' &&
+        key !== 'reuse_existing_file'
       ) {
         if (typeof original[key] !== 'object' || original[key] === null) {
           diff[key] = current[key];
@@ -181,7 +199,7 @@ export const buildNestedChangedData = ({
  */
 export const cleanupNestedInternalFlags = (
   obj,
-  flagsToRemove = ['_base64_changed'],
+  flagsToRemove = ['_base64_changed', 'reuse_existing_file'],
 ) => {
   if (!obj || typeof obj !== 'object') return obj;
 
@@ -257,7 +275,10 @@ export const getEffectiveComparisonKeys = ({
   }
 
   return Object.keys(pageData || {}).filter(
-    (key) => key !== '_objUrl' && key !== '_base64_changed',
+    (key) =>
+      key !== '_objUrl' &&
+      key !== '_base64_changed' &&
+      key !== 'reuse_existing_file',
   );
 };
 

@@ -14,6 +14,7 @@ import {
 } from '../../../../store/GeneralContext';
 import { useMasterContext } from '../../../../store/MasterContext';
 import { sortByDisplayOrder } from '../../../../utils/arr';
+import { buildProductImagesPath } from '../../../../utils/filePickerUtils';
 import styles from './Main_Pack.module.css';
 
 const parseNumericInput = (value) => {
@@ -190,7 +191,7 @@ const Main_Pack = () => {
             ...(addedFileIds.has(img.id)
               ? {
                   file_name: img.name,
-                  file_url: img.url,
+                  file_url: img.storedPath || img.url,
                 }
               : {}),
           })),
@@ -382,6 +383,9 @@ const Main_Pack = () => {
               hoverPreview
               compactButtonText="Upload"
               defaultFiles={defaultFiles}
+              fileBankDirectoryPath={
+                productId ? `${buildProductImagesPath(productId)}/packings` : ''
+              }
               onChange={(ov, nv) => handlePackFilesChange(row, ov, nv)}
               onError={(error) => {
                 console.error('Packing file upload error:', error);
@@ -396,6 +400,7 @@ const Main_Pack = () => {
       dropdownReliabilityOptions,
       upsertPackRow,
       handlePackFilesChange,
+      productId,
     ],
   );
 

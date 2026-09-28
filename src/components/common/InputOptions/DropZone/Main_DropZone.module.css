@@ -285,6 +285,7 @@
 }
 
 .uploadPrompt {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -422,4 +423,39 @@
   color: var(--color-text-faint);
   text-align: center;
   padding: 8px;
+}
+
+.fileBankBtn {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 12px;
+  height: 12px;
+  padding: 0;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #333;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  z-index: 1;
+}
+
+.fileBankBtn svg {
+  width: 12px;
+  height: 12px;
+  display: block;
+}
+
+.fileBankBtn:hover {
+  background: #fff;
+  color: #1d4ed8;
+}
+
+.fileBankBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }

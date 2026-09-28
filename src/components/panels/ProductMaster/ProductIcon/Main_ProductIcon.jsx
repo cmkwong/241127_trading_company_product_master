@@ -10,6 +10,11 @@ import {
 import { useMasterContext } from '../../../../store/MasterContext';
 import IconUpload from '../../../common/InputOptions/IconUpload/IconUpload';
 import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
+import {
+  buildProductFolderWindowsPath,
+  buildProductImagesPath,
+} from '../../../../utils/filePickerUtils';
+import { getEntryDisplayName } from '../../../../components/common/FileSelector/fileSelectorUtils';
 
 const ACCEPTED_IMAGE_TYPES = [
   'image/jpeg',
@@ -19,7 +24,6 @@ const ACCEPTED_IMAGE_TYPES = [
 ];
 
 const MAX_IMAGE_SIZE_MB = 5;
-const PRODUCT_IMAGES_BASE_PATH = 'E:\\Pet Product Images\\public\\products';
 
 const Main_ProductIcon = ({ showMaxImagesNotice = false }) => {
   const { productStatus } = useMasterContext();
@@ -74,6 +78,18 @@ const Main_ProductIcon = ({ showMaxImagesNotice = false }) => {
     });
   };
 
+  // Zero-copy selection from the file bank: store the existing `/public/...`
+  // path verbatim instead of uploading a new copy.
+  const handleExistingIconSelect = (entry) => {
+    if (!entry?.path) return;
+    upsertEntityData('products', {
+      icon_url: entry.path,
+      icon_name: getEntryDisplayName(entry),
+      reuse_existing_file: true,
+      _base64_changed: false,
+    });
+  };
+
   const handleRemoveIcon = () => {
     upsertEntityData('products', {
       icon_url: '',
@@ -85,14 +101,10 @@ const Main_ProductIcon = ({ showMaxImagesNotice = false }) => {
   const handleOpenProductFolder = async () => {
     if (!id) return;
 
-    const windowsPath = `${PRODUCT_IMAGES_BASE_PATH}\\${id}`;
-    const fileUrl = `file:///${windowsPath.replace(/\\/g, '/')}`;
-
-    window.open(fileUrl, '_blank', 'noopener,noreferrer');
+    const windowsPath = buildProductFolderWindowsPath(id);
 
     try {
       await navigator.clipboard.writeText(windowsPath);
-      alert('Folder path copied to clipboard.');
     } catch {
       // ignore clipboard failure
     }
@@ -108,6 +120,7 @@ const Main_ProductIcon = ({ showMaxImagesNotice = false }) => {
               imageUrl={iconUrl || ''}
               imageName={iconName || 'product-icon'}
               onSelectFile={handleIconSelectFile}
+              onSelectExisting={handleExistingIconSelect}
               accept={ACCEPTED_IMAGE_TYPES.join(',')}
               size="XL"
               title={
@@ -115,6 +128,7 @@ const Main_ProductIcon = ({ showMaxImagesNotice = false }) => {
                   ? 'Select product icon (max 1)'
                   : 'Select product icon'
               }
+              directoryPath={id ? buildProductImagesPath(id) : ''}
             />
 
             {!!iconUrl && (

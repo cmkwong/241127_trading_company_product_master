@@ -553,7 +553,7 @@ const Sub_SequenceEditorModal = ({
                         {itemIndex + 1}
                       </div>
                     </div>
-                    <div className={styles.sequencePreviewMetaBar}>
+                    {/* <div className={styles.sequencePreviewMetaBar}>
                       {item?.resizeDimensionPreview ? (
                         <span className={styles.sequencePreviewDimensionText}>
                           {item.resizeDimensionPreview}
@@ -570,7 +570,7 @@ const Sub_SequenceEditorModal = ({
                           Dimensions pending
                         </span>
                       )}
-                    </div>
+                    </div> */}
                   </article>
                 ))}
               </div>

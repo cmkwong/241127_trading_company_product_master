@@ -41,6 +41,7 @@
 
 .priceRow {
   display: flex;
+  flex-direction: column;
   align-items: baseline;
   justify-content: space-between;
   gap: 8px;
@@ -49,7 +50,7 @@
 .priceRange {
   margin: 0;
   color: #fa6d5a;
-  font-size: 20px;
+  font-size: var(--font-size-base);
   font-weight: 800;
   line-height: 1;
   font-family: var(--font-family-display);
@@ -57,19 +58,7 @@
 
 .moqText {
   color: #4a5e73;
-  font-size: 12px;
-}
-
-.divider {
-  height: 1px;
-  width: 100%;
-  background: #e5e7eb;
-}
-
-.supplierRow {
-  display: flex;
-  align-items: center;
-  gap: 3px;
+  font-size: var(--font-size-sm);
 }
 
 .starIcon {
@@ -84,10 +73,4 @@
 .starIcon svg {
   width: 10px;
   height: 10px;
-}
-
-.rating {
-  color: #0c1e36;
-  font-size: 12px;
-  font-weight: 700;
 }

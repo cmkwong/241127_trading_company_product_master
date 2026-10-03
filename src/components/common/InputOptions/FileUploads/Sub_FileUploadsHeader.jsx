@@ -1,7 +1,9 @@
+import { useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import styles from './Main_FileUploads.module.css';
 import Label from '../../Texts/Label';
 
+const FIGMA_SORT_ICON = '/assets/figma/modal-sort.svg';
 const FIGMA_DESELECT_ICON = '/assets/figma/table-deselect.svg';
 const FIGMA_DOWNLOAD_ICON = '/assets/figma/table-download.svg';
 const FIGMA_EDIT_ICON = '/assets/figma/table-edit.svg';
@@ -22,6 +24,10 @@ const Sub_FileUploadsHeader = ({
   showDownloadButton,
   isDownloading,
   onDownload,
+  showSortButton = false,
+  canSort = false,
+  onSortByName = () => {},
+  onSortBySize = () => {},
   showSelectAll,
   allSelected,
   selectedCount,
@@ -43,6 +49,35 @@ const Sub_FileUploadsHeader = ({
     (isImageMode && !tableCell) || figmaStrip,
   );
 
+  const [showSortMenu, setShowSortMenu] = useState(false);
+  const sortMenuRef = useRef(null);
+
+  useEffect(() => {
+    if (!showSortMenu) {
+      return undefined;
+    }
+
+    const handleClickOutside = (event) => {
+      if (sortMenuRef.current && !sortMenuRef.current.contains(event.target)) {
+        setShowSortMenu(false);
+      }
+    };
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setShowSortMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [showSortMenu]);
+
   return (
     <div
       className={`${styles.headerRow} ${tableCell ? styles.tableCellHeaderRow : ''} ${useFigmaImageHeader ? styles.figmaImageHeaderRow : ''}`}
@@ -52,6 +87,54 @@ const Sub_FileUploadsHeader = ({
         className={`${styles.headerActions} ${useFigmaImageHeader ? styles.figmaImageHeaderActions : ''}`}
       >
         <div className={useFigmaImageHeader ? styles.figmaImageToolbar : ''}>
+          {showSortButton && (
+            <div className={styles.sortActionWrap} ref={sortMenuRef}>
+              <button
+                type="button"
+                className={`${styles.sequenceEditorIconBtn} ${tableCell ? styles.tableCellTool : ''} ${useFigmaImageHeader ? styles.figmaHeaderTool : ''}`}
+                title="Sort"
+                aria-label="Sort"
+                aria-haspopup="menu"
+                aria-expanded={Boolean(showSortMenu)}
+                onClick={() => setShowSortMenu((prev) => !prev)}
+                disabled={!canSort}
+              >
+                <img
+                  src={FIGMA_SORT_ICON}
+                  alt=""
+                  className={styles.tableCellIcon14}
+                  aria-hidden="true"
+                />
+              </button>
+
+              {showSortMenu && canSort && (
+                <div className={styles.sortMenu} role="menu">
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className={styles.sortMenuItem}
+                    onClick={() => {
+                      onSortByName();
+                      setShowSortMenu(false);
+                    }}
+                  >
+                    Sort by Name
+                  </button>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className={styles.sortMenuItem}
+                    onClick={() => {
+                      onSortBySize();
+                      setShowSortMenu(false);
+                    }}
+                  >
+                    Sort by File Size
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
           {showSelectAll && (
             <Label
               className={`${styles.selectAllWrap} ${tableCell ? styles.tableCellTool : ''} ${useFigmaImageHeader ? styles.figmaSelectAllWrap : ''}`}
@@ -268,6 +351,10 @@ Sub_FileUploadsHeader.propTypes = {
   showDownloadButton: PropTypes.bool,
   isDownloading: PropTypes.bool,
   onDownload: PropTypes.func,
+  showSortButton: PropTypes.bool,
+  canSort: PropTypes.bool,
+  onSortByName: PropTypes.func,
+  onSortBySize: PropTypes.func,
   showSelectAll: PropTypes.bool,
   allSelected: PropTypes.bool,
   selectedCount: PropTypes.number,

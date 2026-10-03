@@ -1207,6 +1207,10 @@ const Main_FileUploads = (props) => {
         showDownloadButton={effectiveShowDownloadButton}
         isDownloading={isDownloading}
         onDownload={handleDownload}
+        showSortButton
+        canSort={fileList.length > 1 && !disabled}
+        onSortByName={handleSortByName}
+        onSortBySize={handleSortBySize}
         showSelectAll={showSelectionTools}
         allSelected={allSelected}
         selectedCount={selectedCount}

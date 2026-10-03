@@ -2,11 +2,18 @@ import PropTypes from 'prop-types';
 import styles from './Main_FileSelector.module.css';
 import { buildPublicFileUrl } from '../../../utils/filePickerUtils';
 import { getEntryDisplayName } from './fileSelectorUtils';
-import { FolderIcon, FileIcon, ImageIcon } from './FileSelectorIcons';
+import {
+  FolderIcon,
+  FileIcon,
+  ImageIcon,
+  ExpandIcon,
+} from './FileSelectorIcons';
 
 const GridTileIcon = ({ entry }) => {
-  if (entry.type === 'folder') return <FolderIcon size={40} className={styles.gridFolderIcon} />;
-  if (entry.isImage) return <ImageIcon size={40} className={styles.gridFolderIcon} />;
+  if (entry.type === 'folder')
+    return <FolderIcon size={40} className={styles.gridFolderIcon} />;
+  if (entry.isImage)
+    return <ImageIcon size={40} className={styles.gridFolderIcon} />;
   return <FileIcon size={40} className={styles.gridFolderIcon} />;
 };
 
@@ -22,6 +29,7 @@ const Sub_FileSelectorGrid = ({
   mode,
   onOpenFolder,
   onSelect,
+  onExpandImage,
 }) => (
   <div className={styles.gridPanel}>
     <div className={styles.grid}>
@@ -34,9 +42,12 @@ const Sub_FileSelectorGrid = ({
             key={entry.path}
             type="button"
             className={`${styles.gridTile} ${isSelected ? styles.gridTileSelected : ''} ${isFolder || selectable ? '' : styles.gridTileDisabled}`}
-            onClick={() => (isFolder ? onOpenFolder(entry) : selectable && onSelect(entry))}
+            onClick={() =>
+              isFolder ? onOpenFolder(entry) : selectable && onSelect(entry)
+            }
             onDoubleClick={() => isFolder && onOpenFolder(entry)}
             title={getEntryDisplayName(entry)}
+            aria-label={getEntryDisplayName(entry)}
           >
             <span className={styles.gridTileImage}>
               {entry.isImage ? (
@@ -50,8 +61,32 @@ const Sub_FileSelectorGrid = ({
                 <GridTileIcon entry={entry} />
               )}
               {isSelected && <span className={styles.gridCheck}>✓</span>}
+              {entry.isImage && typeof onExpandImage === 'function' && (
+                <span
+                  className={styles.gridExtendBtn}
+                  role="button"
+                  tabIndex={0}
+                  title="Extend image"
+                  aria-label="Extend image"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onExpandImage(entry);
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      onExpandImage(entry);
+                    }
+                  }}
+                >
+                  <ExpandIcon size={13} />
+                </span>
+              )}
             </span>
-            <span className={styles.gridTileName}>{getEntryDisplayName(entry)}</span>
+            <span className={styles.gridTileName}>
+              {getEntryDisplayName(entry)}
+            </span>
           </button>
         );
       })}
@@ -65,6 +100,7 @@ Sub_FileSelectorGrid.propTypes = {
   mode: PropTypes.oneOf(['image', 'file']),
   onOpenFolder: PropTypes.func,
   onSelect: PropTypes.func,
+  onExpandImage: PropTypes.func,
 };
 
 export default Sub_FileSelectorGrid;

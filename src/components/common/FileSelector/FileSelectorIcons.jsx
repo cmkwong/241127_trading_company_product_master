@@ -128,3 +128,21 @@ export const SortArrowIcon = (props) => (
     <path d="M7 4v13M7 17l-3-3M7 17l3-3" />
   </Svg>
 );
+
+export const ExpandIcon = (props) => (
+  <Svg {...props}>
+    <path d="M8 3H5a2 2 0 0 0-2 2v3" />
+    <path d="M21 8V5a2 2 0 0 0-2-2h-3" />
+    <path d="M3 16v3a2 2 0 0 0 2 2h3" />
+    <path d="M16 21h3a2 2 0 0 0 2-2v-3" />
+  </Svg>
+);
+
+export const CollapseIcon = (props) => (
+  <Svg {...props}>
+    <path d="M4 14h6v6" />
+    <path d="M20 10h-6V4" />
+    <path d="m14 10 7-7" />
+    <path d="m3 21 7-7" />
+  </Svg>
+);

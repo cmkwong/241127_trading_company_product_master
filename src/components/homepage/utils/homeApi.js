@@ -19,7 +19,7 @@ const toFiniteNumber = (value) => {
 
 /**
  * Map a server product detail to the shape HomeProductCard expects.
- * Missing price/rating fields are left null so the card can render "—".
+ * Missing price fields are left null so the card can render "—".
  */
 export const mapProductDetailToCard = (detail) => {
   const price = detail?.price || {};
@@ -35,7 +35,6 @@ export const mapProductDetailToCard = (detail) => {
     priceTo: toFiniteNumber(price.max),
     priceDisplay: price.display || '',
     moq: toFiniteNumber(detail?.minOrderQty),
-    rating: null, // no rating source yet
     categoryIds,
     categoryId: categoryIds[0] ?? null,
   };

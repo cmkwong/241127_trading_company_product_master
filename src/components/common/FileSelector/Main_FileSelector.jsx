@@ -16,6 +16,7 @@ import {
 import Sub_FileSelectorBreadcrumb from './Sub_FileSelectorBreadcrumb';
 import Sub_FileSelectorList from './Sub_FileSelectorList';
 import Sub_FileSelectorGrid from './Sub_FileSelectorGrid';
+import Sub_FileSelectorImagePreview from './Sub_FileSelectorImagePreview';
 import {
   CloseIcon,
   ChevronLeftIcon,
@@ -59,6 +60,7 @@ const Main_FileSelector = ({
   const [parentPath, setParentPath] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [previewEntry, setPreviewEntry] = useState(null);
 
   const requestSeqRef = useRef(0);
 
@@ -72,6 +74,7 @@ const Main_FileSelector = ({
     setSelectedPath('');
     setSearchQuery('');
     setViewMode('grid');
+    setPreviewEntry(null);
     if (!storage) {
       fetchFileBankTree({ token })
         .then((tree) => setStorageMeta(tree.storage))
@@ -116,6 +119,7 @@ const Main_FileSelector = ({
   // (Re)load whenever the path or search changes.
   useEffect(() => {
     if (!isOpen) return;
+    setPreviewEntry(null);
     loadDirectory(path);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, path, searchQuery]);
@@ -174,11 +178,16 @@ const Main_FileSelector = ({
   useEffect(() => {
     if (!isOpen) return undefined;
     const onKey = (event) => {
-      if (event.key === 'Escape') onClose?.();
+      if (event.key !== 'Escape') return;
+      if (previewEntry) {
+        setPreviewEntry(null);
+        return;
+      }
+      onClose?.();
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, previewEntry]);
 
   const itemCount = folderCount + fileCount;
 
@@ -299,6 +308,7 @@ const Main_FileSelector = ({
                 mode={mode}
                 onOpenFolder={handleOpenFolder}
                 onSelect={handleSelect}
+                onExpandImage={setPreviewEntry}
               />
             ) : (
               <Sub_FileSelectorList
@@ -322,6 +332,13 @@ const Main_FileSelector = ({
             </span>
           )}
         </div>
+
+        {previewEntry && (
+          <Sub_FileSelectorImagePreview
+            entry={previewEntry}
+            onCollapse={() => setPreviewEntry(null)}
+          />
+        )}
       </div>
     </div>,
     document.body,

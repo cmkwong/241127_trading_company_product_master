@@ -14,10 +14,7 @@ const EditableDataFormBody = ({
 }) => {
   const getRowItemStyle = (column) => {
     const minWidth =
-      column?.rowItemMinWidth ||
-      column?.minWidth ||
-      column?.width ||
-      '220px';
+      column?.rowItemMinWidth || column?.minWidth || column?.width || '220px';
     const maxWidth = column?.rowItemMaxWidth || column?.maxWidth || undefined;
 
     return {
@@ -94,7 +91,8 @@ const EditableDataFormBody = ({
                           .join(' ')}
                         style={getRowItemStyle(column)}
                         onMouseEnter={
-                          fillField && typeof handleCellMouseEnter === 'function'
+                          fillField &&
+                          typeof handleCellMouseEnter === 'function'
                             ? () => handleCellMouseEnter(fillField, rowIndex)
                             : undefined
                         }

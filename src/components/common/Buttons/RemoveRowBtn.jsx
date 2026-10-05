@@ -1,5 +1,7 @@
 import styles from './RemoveRowBtn.module.css';
 
+const FIGMA_REMOVE_ICON = '/assets/figma/icon-cross-red.svg';
+
 const RemoveRowBtn = ({
   onClick,
   ariaLabel = 'Remove row',
@@ -16,7 +18,12 @@ const RemoveRowBtn = ({
       title={title || ariaLabel}
       disabled={disabled}
     >
-      <span className={styles.removeRowBtnIcon} aria-hidden="true" />
+      <img
+        src={FIGMA_REMOVE_ICON}
+        alt=""
+        className={styles.removeRowBtnIcon}
+        aria-hidden="true"
+      />
     </button>
   );
 };

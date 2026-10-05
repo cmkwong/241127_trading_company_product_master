@@ -22,6 +22,7 @@
   --color-blue-border-bright: #6aa8ff;
   --color-blue-border-light: #b8d7ff;
   --color-blue-border-pale: #dce8ff;
+  --color-shadow-light: #0f172a0a;
   --color-blue-pale: #eef4ff;
   --color-blue-tint: #eef6ff;
   --color-blue-bg-soft: #f8faff;
@@ -79,7 +80,12 @@
   --color-surface-blue-slate-light: #e2ecf8;
 
   /* ===== Cross (row/column) hover highlight ===== */
-  --color-cross-hover: rgba(59, 130, 246, 0.06); /* very light transparent tint */
+  --color-cross-hover: rgba(
+    59,
+    130,
+    246,
+    0.06
+  ); /* very light transparent tint */
   --color-cross-hover-solid: #eef4fb; /* opaque equivalent for sticky cells */
 
   /* ===== Success soft backgrounds ===== */
@@ -154,7 +160,7 @@
   --color-border-on-dark: #404a54;
   --color-border-hairline: #ececec;
   --color-border-hairline-2: #edf2f7;
-  --color-border-hairline-3: #f0f0f0;
+  --color-border-hairline-3: #b9b9b9;
 
   /* ===== Neutral surfaces ===== */
   --color-surface: #ffffff;

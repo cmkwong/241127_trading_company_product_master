@@ -21,7 +21,7 @@
 .tableWrap {
   overflow-x: auto;
   overflow-y: hidden;
-  border: 1px solid var(--color-border-light);
+  /* border: 1px solid var(--color-border-light); */
   border-radius: 6px;
   background: var(--color-white);
 }
@@ -80,16 +80,30 @@
 }
 
 .RowCell {
-  border-bottom: 1px solid var(--color-border-hairline-3);
+  /* border-bottom: 1px solid var(--color-border-hairline-3); */
   padding-top: 6px !important;
   padding-bottom: 10px !important;
   padding-left: 8px;
   padding-right: 8px;
-  background: var(--color-surface-soft-cool);
+  /* background: var(--color-surface-soft-cool); */
 }
 
 .RowWrap {
   position: relative;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--color-border-hairline-3);
+}
+
+.RowWrap:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+/* No divider under the final row. */
+.RowWrap:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
 }
 
 .RowCellReserveRemove {

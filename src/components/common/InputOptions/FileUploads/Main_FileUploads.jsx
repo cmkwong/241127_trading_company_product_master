@@ -38,7 +38,7 @@ const Main_FileUploads = (props) => {
     acceptedTypes = [], // Empty array means accept all file types
 
     // UI
-    label = 'Upload Files',
+    label,
     multiple = true,
     disabled = false,
     showPreview = true,
@@ -1189,6 +1189,9 @@ const Main_FileUploads = (props) => {
     fileBankDisabled: disabled,
   };
 
+  const headerLabel =
+    label !== undefined ? label : tableCell ? 'Files' : 'Upload Files';
+
   return (
     <div
       className={`${styles.fileUploadContainer} ${
@@ -1196,7 +1199,7 @@ const Main_FileUploads = (props) => {
       }`}
     >
       <Sub_FileUploadsHeader
-        label={label || (tableCell ? 'Files' : '')}
+        label={headerLabel}
         tableCell={tableCell}
         isImageMode={mode === 'image'}
         figmaStrip={isFigmaStripMode}

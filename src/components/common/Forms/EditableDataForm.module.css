@@ -154,3 +154,79 @@
   max-width: 100%;
   min-width: 0;
 }
+
+.dragOver {
+  background-color: #eff6ff;
+  border-radius: 8px;
+}
+
+.draggingRow {
+  opacity: 0.55;
+}
+
+.dragHandle {
+  position: absolute;
+  top: 6px;
+  left: 8px;
+  z-index: 2;
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #94a3b8;
+  cursor: grab;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+}
+
+.dragHandle:hover {
+  color: #475569;
+  background: #f8fafc;
+}
+
+.dragHandle:active {
+  cursor: grabbing;
+}
+
+.dragHandle svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+}
+
+.RowCellReserveDrag {
+  padding-left: 46px;
+}
+
+.rowBadge {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  border-radius: 14px;
+  background-color: #f1f5f9;
+}
+
+.rowBadgeText {
+  font-size: 13px;
+  font-weight: 700;
+  color: #475569;
+}
+
+.RowRemoveBtnWithBadge {
+  right: 46px;
+}
+

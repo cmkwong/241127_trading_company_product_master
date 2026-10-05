@@ -234,16 +234,14 @@ const Main_ProductName = () => {
                     onChange={(ov, nv) => handleTypeChange(rowId, ov, nv)}
                   />
                 </div>
-
+                <div className={styles.rowBadge}>
+                  <span className={styles.rowBadgeText}>{rowIndex + 1}</span>
+                </div>
                 <RemoveRowBtn
                   onClick={() => handleRowRemove(rowId)}
                   text=""
                   className={styles.removeBtn}
                 />
-
-                <div className={styles.rowBadge}>
-                  <span className={styles.rowBadgeText}>{rowIndex + 1}</span>
-                </div>
               </div>
             );
           })

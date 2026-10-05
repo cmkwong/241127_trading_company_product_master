@@ -4,7 +4,6 @@ import Main_SupplierMaster from '../components/panels/SupplierMaster/Main_Suppli
 import Main_CustomerMaster from '../components/panels/CustomerMaster/Main_CustomerMaster';
 import Main_SalesPanel from '../components/panels/SalesQuotation/Main_SalesPanel';
 import Main_PurchaseRequest from '../components/panels/PurchaseRequest/Main_PurchaseRequest';
-import Main_APInvoice from '../components/panels/APInvoice/Main_APInvoice';
 import Main_MasterControl from '../components/panels/MasterControl/Main_MasterControl';
 import Main_Signup from '../components/signup/Main_Signup';
 import Main_Homepage from '../components/homepage/Main_Homepage';
@@ -58,9 +57,6 @@ const AppRouter = () => {
           path="purchase_request/:purchase_request_id"
           element={<Navigate to="/panel/purchase" replace />}
         />
-
-        <Route path="ap_invoice" element={<Main_APInvoice />} />
-        <Route path="ap_invoice/:ap_invoice_id" element={<Main_APInvoice />} />
 
         <Route path="master_control" element={<Main_MasterControl />} />
       </Route>

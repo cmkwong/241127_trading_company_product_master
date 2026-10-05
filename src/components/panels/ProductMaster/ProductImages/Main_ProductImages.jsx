@@ -1,20 +1,16 @@
 import { useCallback, useEffect, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import Main_InputContainer from '../../../common/Container/Main_InputContainer';
-import EmptyState from '../../../common/State/EmptyState';
-import AddNewBtn from '../../../common/Buttons/AddNewBtn';
-import RemoveRowBtn from '../../../common/Buttons/RemoveRowBtn';
+import EditableDataForm from '../../../common/Forms/EditableDataForm';
 import {
   upsertEntityData,
   useEntityRows,
 } from '../../../../store/GeneralContext';
 import Sub_ProductImagesRow from './Sub_ProductImagesRow';
-import styles from './Main_ProductImages.module.css';
 
 const Main_ProductImages = () => {
   const productImages = useEntityRows('products', 'product_images');
 
-  const [rowIds, setRowIds] = useState([]);
   const [processedImageData, setProcessedImageData] = useState([]);
 
   useEffect(() => {
@@ -22,7 +18,6 @@ const Main_ProductImages = () => {
 
     if (!images.length) {
       setProcessedImageData([]);
-      setRowIds([]);
       return;
     }
 
@@ -39,11 +34,7 @@ const Main_ProductImages = () => {
       groupedByImageRow.get(imageRowId).images.push(img);
     });
 
-    const imageData = Array.from(groupedByImageRow.values());
-    const validRowIds = imageData.map((row) => row.id);
-
-    setProcessedImageData(imageData);
-    setRowIds(validRowIds);
+    setProcessedImageData(Array.from(groupedByImageRow.values()));
   }, [productImages]);
 
   const handleRowAdd = useCallback(() => {
@@ -52,20 +43,17 @@ const Main_ProductImages = () => {
       ...prevData,
       { id: newId, images: [] },
     ]);
-    setRowIds((prevRowIds) => [...prevRowIds, newId]);
   }, []);
 
   const handleRowRemove = useCallback(
-    (rowId) => {
+    (row) => {
+      const rowId = row?.id;
+
       setProcessedImageData((prevData) =>
         prevData.filter((d) => d.id !== rowId),
       );
-      setRowIds((prevRowIds) => prevRowIds.filter((id) => id !== rowId));
 
-      const imagesToRemove =
-        processedImageData
-          .find((d) => d.id === rowId)
-          ?.images.map((img) => img.id) || [];
+      const imagesToRemove = (row?.images || []).map((img) => img.id);
 
       for (let i = 0; i < imagesToRemove.length; i++) {
         upsertEntityData('products', {
@@ -78,33 +66,63 @@ const Main_ProductImages = () => {
         });
       }
     },
-    [upsertEntityData, processedImageData],
+    [upsertEntityData],
   );
+
+  const handleRowsReorder = useCallback(
+    (orderedRowKeys = []) => {
+      const keySet = orderedRowKeys.filter(Boolean);
+      if (keySet.length === 0) return;
+
+      const patches = [];
+
+      keySet.forEach((rowKey, index) => {
+        const row = processedImageData.find((d) => d.id === rowKey);
+        (row?.images || []).forEach((img) => {
+          patches.push({
+            id: img.id,
+            display_order: index + 1,
+          });
+        });
+      });
+
+      if (patches.length > 0) {
+        upsertEntityData('products', {
+          product_images: patches,
+        });
+      }
+    },
+    [processedImageData, upsertEntityData],
+  );
+
+  const columns = [
+    {
+      key: 'images',
+      label: '',
+      renderCell: (row, { rowIndex }) => (
+        <Sub_ProductImagesRow
+          imageData={processedImageData}
+          rowindex={rowIndex}
+          rowId={row.id}
+        />
+      ),
+    },
+  ];
 
   return (
     <Main_InputContainer label="Product Images">
-      <div className={styles.list}>
-        {rowIds.length === 0 ? (
-          <EmptyState message="No image rows added yet." />
-        ) : (
-          rowIds.map((rowId, rowIndex) => (
-            <div key={rowId} className={styles.row}>
-              <Sub_ProductImagesRow
-                imageData={processedImageData}
-                rowId={rowId}
-                rowindex={rowIndex}
-              />
-              <div className={styles.rowBadge}>
-                <span className={styles.rowBadgeText}>{rowIndex + 1}</span>
-              </div>
-              <RemoveRowBtn onClick={() => handleRowRemove(rowId)} />
-            </div>
-          ))
-        )}
-      </div>
-      <div className={styles.addRow}>
-        <AddNewBtn onClick={handleRowAdd} text="Add Image Row" />
-      </div>
+      <EditableDataForm
+        rows={processedImageData}
+        columns={columns}
+        rowKey="id"
+        emptyMessage="No image rows added yet."
+        onAddRow={handleRowAdd}
+        addRowText="Add Image Row"
+        onRemoveRow={handleRowRemove}
+        showRowBadge
+        // draggableRows
+        onRowsReorder={handleRowsReorder}
+      />
     </Main_InputContainer>
   );
 };

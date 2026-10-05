@@ -36,6 +36,9 @@ const EditableDataForm = ({
   addRowDisabled = false,
   addRowHint,
   onRemoveRow,
+  showRowBadge = false,
+  draggableRows = false,
+  onRowsReorder,
 }) => {
   const [fillDrag, setFillDrag] = useState(null);
   const [fillHoverIndex, setFillHoverIndex] = useState(null);
@@ -193,6 +196,9 @@ const EditableDataForm = ({
             handleCellMouseEnter={handleCellMouseEnter}
             wrapWithFill={wrapWithFill}
             onRemoveRow={onRemoveRow}
+            showRowBadge={showRowBadge}
+            draggableRows={draggableRows}
+            onRowsReorder={onRowsReorder}
           />
         </Frame>
       </Frame>

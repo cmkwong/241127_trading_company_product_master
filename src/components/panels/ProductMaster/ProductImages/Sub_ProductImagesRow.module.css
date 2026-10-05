@@ -26,8 +26,8 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 5px;
+  /* border-bottom: 1px solid #e2e8f0; */
 }
 
 .uploadCell:last-child {

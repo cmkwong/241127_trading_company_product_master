@@ -23,7 +23,6 @@ const VIEW_PATH_BY_KEY = {
   customer: '/customer_master',
   salesQuotation: '/sales',
   purchaseRequest: '/purchase',
-  apInvoice: '/ap_invoice',
   masterControl: '/master_control',
 };
 
@@ -33,7 +32,6 @@ const VIEW_KEY_BY_PATH_PREFIX = {
   '/panel/customer_master': 'customer',
   '/panel/sales': 'salesQuotation',
   '/panel/purchase': 'purchaseRequest',
-  '/panel/ap_invoice': 'apInvoice',
   '/panel/master_control': 'masterControl',
 };
 
@@ -43,7 +41,6 @@ const PAGE_TITLE_BY_VIEW = {
   customer: 'Customer Master',
   salesQuotation: 'Sales',
   purchaseRequest: 'Purchase',
-  apInvoice: 'AP Invoice',
   masterControl: 'Master Control',
 };
 
@@ -553,12 +550,6 @@ const TopBar = () => {
               onClick={() => handleViewSwitch('purchaseRequest')}
             >
               Purchase
-            </NavButton>
-            <NavButton
-              active={activeView === 'apInvoice'}
-              onClick={() => handleViewSwitch('apInvoice')}
-            >
-              AP Invoice
             </NavButton>
             <NavButton
               active={activeView === 'customer'}

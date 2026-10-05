@@ -17,14 +17,18 @@
     background-color 0.16s ease;
 }
 
+.textFieldLarge {
+  padding: 14px 16px;
+}
+
 .textField:hover:not(:disabled) {
   border-color: var(--color-border-strong);
 }
 
 .textField:focus {
   outline: none;
-  border-color: var(--color-text-subtle);
-  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.22);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(250, 109, 90, 0.18);
 }
 
 .textField::placeholder {

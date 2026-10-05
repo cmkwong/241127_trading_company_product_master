@@ -35,8 +35,10 @@ const Main_TextField = (props) => {
     autoComplete,
     autoFocus = false,
     className = '',
+    size = 'default',
     helperText,
     error = false,
+    inputSuffix,
   } = props;
 
   // Internal state
@@ -71,7 +73,7 @@ const Main_TextField = (props) => {
             text={label}
             size="S"
             weight="medium"
-            color={error ? '#dc2626' : '#475569'}
+            color={error ? '#dc2626' : 'var(--color-primary)'}
             required={required}
             className={
               labelPosition === 'left'
@@ -96,11 +98,13 @@ const Main_TextField = (props) => {
             autoComplete={autoComplete}
             autoFocus={autoFocus}
             className={className}
+            size={size}
             onFocus={onFocus}
             onBlur={onBlur}
             onClick={onClick}
             onKeyDown={onKeyDown}
           />
+          {inputSuffix}
         </div>
       </div>
       {helperText && (
@@ -143,8 +147,10 @@ Main_TextField.propTypes = {
   autoComplete: PropTypes.string,
   autoFocus: PropTypes.bool,
   className: PropTypes.string,
+  size: PropTypes.oneOf(['default', 'large']),
   helperText: PropTypes.string,
   error: PropTypes.bool,
+  inputSuffix: PropTypes.node,
 };
 
 export default Main_TextField;

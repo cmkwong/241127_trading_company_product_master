@@ -20,6 +20,7 @@ const Sub_TextField = forwardRef((props, externalRef) => {
     autoComplete,
     autoFocus = false,
     className = '',
+    size = 'default',
     onFocus,
     onBlur,
     onClick,
@@ -90,7 +91,9 @@ const Sub_TextField = forwardRef((props, externalRef) => {
     <input
       ref={inputRef}
       id={id}
-      className={`${styles.textField} ${className}`}
+      className={`${styles.textField} ${
+        size === 'large' ? styles.textFieldLarge : ''
+      } ${className}`}
       type={isLinkType ? 'text' : type}
       value={value}
       onChange={handleChange}
@@ -164,6 +167,7 @@ Sub_TextField.propTypes = {
   autoComplete: PropTypes.string,
   autoFocus: PropTypes.bool,
   className: PropTypes.string,
+  size: PropTypes.oneOf(['default', 'large']),
   onFocus: PropTypes.func,
   onBlur: PropTypes.func,
   onClick: PropTypes.func,

@@ -1,0 +1,203 @@
+.brandingPanel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: min(41.7vw, 600px);
+  min-width: 360px;
+  min-height: 900px;
+  padding: 48px 56px;
+  background: linear-gradient(180deg, #0c1e36 0%, #122844 100%);
+  overflow: hidden;
+  animation: panelEnterLeft 480ms ease-out;
+}
+
+.brandingPanel::before,
+.brandingPanel::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.brandingPanel::before {
+  width: 380px;
+  height: 380px;
+  top: -140px;
+  right: -160px;
+  background: radial-gradient(
+    circle,
+    rgba(250, 109, 90, 0.13),
+    transparent 70%
+  );
+}
+
+.brandingPanel::after {
+  width: 280px;
+  height: 280px;
+  bottom: -120px;
+  left: -90px;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.08),
+    transparent 72%
+  );
+}
+
+.brandTopBlock,
+.brandCopyright {
+  position: relative;
+  z-index: 1;
+}
+
+.brandTopBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 120px;
+}
+
+.logoRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  width: fit-content;
+}
+
+.logoIconWrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(250, 109, 90, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logoIcon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  display: block;
+}
+
+.logoWordmark {
+  margin: 0;
+  color: var(--color-white);
+  font-size: 35px;
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
+  letter-spacing: -0.7px;
+}
+
+.brandContent {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.brandHeading h1 {
+  font-size: 50px;
+  line-height: 1.16;
+  letter-spacing: -1.1px;
+}
+
+.brandLead {
+  margin: 0;
+  max-width: 450px;
+  color: #cbd5e1;
+  font-size: 16px;
+  line-height: 1.42;
+}
+
+.featureList {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.featureItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.featureBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 14px;
+  background: rgba(250, 109, 90, 0.15);
+  color: #fa6d5a;
+  font-size: 14px;
+}
+
+.featureText {
+  color: #f1f5f9;
+  font-size: 14px;
+  font-weight: var(--font-weight-medium);
+}
+
+.brandCopyright {
+  margin: 0;
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+@keyframes panelEnterLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (max-width: 1180px) {
+  .brandingPanel {
+    padding: 40px 36px;
+    min-width: 330px;
+  }
+
+  .brandTopBlock {
+    gap: 88px;
+  }
+
+  .brandHeading h1 {
+    font-size: 42px;
+  }
+}
+
+@media (max-width: 920px) {
+  .brandingPanel {
+    width: 100%;
+    min-width: 0;
+    min-height: auto;
+    padding: 34px 24px;
+  }
+
+  .brandTopBlock {
+    gap: 36px;
+  }
+
+  .brandHeading h1 {
+    font-size: 34px;
+  }
+
+  .brandLead {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 520px) {
+  .logoWordmark {
+    font-size: 31px;
+  }
+}

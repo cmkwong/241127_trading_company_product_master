@@ -10,6 +10,8 @@ import { apiPost } from '../utils/crud';
 
 const DEFAULT_TOKEN_ENDPOINT =
   'http://localhost:3001/api/v1/trade_business/panel/auth/getToken';
+const DEFAULT_EMAIL_TOKEN_ENDPOINT =
+  'http://localhost:3001/api/v1/trade_business/panel/auth/getTokenWithEmail';
 
 const TOKEN_STORAGE_KEY = 'trade_business_token';
 const ROLE_STORAGE_KEY = 'trade_business_role';
@@ -35,6 +37,7 @@ const AuthContext = createContext(null);
 export const AuthContext_Provider = ({
   children,
   tokenEndpoint,
+  emailTokenEndpoint,
   tokenRequestBody,
 }) => {
   const [token, setToken] = useState(readStoredToken);
@@ -44,6 +47,8 @@ export const AuthContext_Provider = ({
 
   // Use the provided endpoint or fall back to the default
   const resolvedEndpoint = tokenEndpoint || DEFAULT_TOKEN_ENDPOINT;
+  const resolvedEmailEndpoint =
+    emailTokenEndpoint || DEFAULT_EMAIL_TOKEN_ENDPOINT;
 
   // We no longer automatically construct a request body from environment variables.
   // The only way to get a token is by passing credentials manually to fetchToken.
@@ -103,6 +108,75 @@ export const AuthContext_Provider = ({
     [resolvedEndpoint, tokenRequestBody],
   );
 
+  // Exchange a Firebase email-link (passwordless) ID token for the app's own
+  // JWT. If the account is brand new the backend answers NAMES_REQUIRED, in
+  // which case we return that sentinel so the caller can prompt for names.
+  const loginWithIdToken = useCallback(
+    async (idToken, firstName = null, lastName = null) => {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const body = { idToken };
+        if (firstName != null && String(firstName).trim() !== '') {
+          body.first_name = String(firstName).trim();
+        }
+        if (lastName != null && String(lastName).trim() !== '') {
+          body.last_name = String(lastName).trim();
+        }
+
+        let response;
+        try {
+          response = await apiPost(resolvedEmailEndpoint, body);
+        } catch (err) {
+          if (/NAMES_REQUIRED/i.test(String(err?.message || ''))) {
+            return 'NAMES_REQUIRED';
+          }
+          throw err;
+        }
+
+        const resolvedToken =
+          typeof response === 'string' ? response : response?.token;
+        const resolvedRole =
+          typeof response === 'object' && response !== null
+            ? response.role
+            : null;
+
+        if (!resolvedToken) {
+          throw new Error('Token endpoint responded without a token value.');
+        }
+
+        try {
+          window.localStorage.setItem(TOKEN_STORAGE_KEY, resolvedToken);
+          if (resolvedRole) {
+            window.localStorage.setItem(ROLE_STORAGE_KEY, resolvedRole);
+          }
+        } catch {
+          // Ignore storage failures.
+        }
+
+        setToken(resolvedToken);
+        setRole(resolvedRole);
+        return resolvedToken;
+      } catch (err) {
+        try {
+          window.localStorage.removeItem(TOKEN_STORAGE_KEY);
+          window.localStorage.removeItem(ROLE_STORAGE_KEY);
+        } catch {
+          // Ignore storage failures.
+        }
+
+        setToken(null);
+        setRole(null);
+        setError(err);
+        throw err;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [resolvedEmailEndpoint],
+  );
+
   const clearToken = useCallback(() => {
     try {
       window.localStorage.removeItem(TOKEN_STORAGE_KEY);
@@ -122,9 +196,18 @@ export const AuthContext_Provider = ({
       isLoading,
       error,
       refreshToken: fetchToken,
+      loginWithIdToken,
       clearToken,
     }),
-    [token, role, isLoading, error, fetchToken, clearToken],
+    [
+      token,
+      role,
+      isLoading,
+      error,
+      fetchToken,
+      loginWithIdToken,
+      clearToken,
+    ],
   );
 
   return (
@@ -135,6 +218,7 @@ export const AuthContext_Provider = ({
 AuthContext_Provider.propTypes = {
   children: PropTypes.node.isRequired,
   tokenEndpoint: PropTypes.string,
+  emailTokenEndpoint: PropTypes.string,
   tokenRequestBody: PropTypes.shape({
     username: PropTypes.string,
     password: PropTypes.string,

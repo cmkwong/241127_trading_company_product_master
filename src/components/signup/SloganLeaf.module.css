@@ -67,16 +67,16 @@
 .logoIconWrap {
   width: 44px;
   height: 44px;
-  border-radius: 12px;
-  background: rgba(250, 109, 90, 0.12);
+  /* border-radius: 12px; */
+  /* background: rgba(250, 109, 90, 0.12); */
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .logoIcon {
-  width: 24px;
-  height: 24px;
+  width: 36px;
+  height: 36px;
   object-fit: contain;
   display: block;
 }
@@ -97,7 +97,7 @@
 }
 
 .brandHeading h1 {
-  font-size: 50px;
+  font-size: 45px;
   line-height: 1.16;
   letter-spacing: -1.1px;
 }

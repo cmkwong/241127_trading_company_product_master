@@ -6,6 +6,8 @@ import PrimaryBtn from '../common/Buttons/PrimaryBtn';
 import Main_Checkbox from '../common/InputOptions/Checkbox/Main_Checkbox';
 import { useAuthContext } from '../../store/AuthContext';
 import authStyles from './AuthPanel.module.css';
+import { sendMagicLink } from '../../utils/emailLink';
+import EMAIL_LOGO from '../../../public/assets/figma/sign-in-pages/email-icon.svg';
 
 const LoginPanel = ({ onSignupClick }) => {
   const navigate = useNavigate();
@@ -16,6 +18,32 @@ const LoginPanel = ({ onSignupClick }) => {
   const [rememberMe, setRememberMe] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState('');
+  const [isSendingLink, setIsSendingLink] = useState(false);
+  const [magicLinkMessage, setMagicLinkMessage] = useState('');
+  const [magicLinkError, setMagicLinkError] = useState('');
+
+  const handleEmailLinkLogin = async () => {
+    setMagicLinkMessage('');
+    setMagicLinkError('');
+
+    const trimmedEmail = String(email || '').trim();
+    if (!trimmedEmail) {
+      setMagicLinkError('Please enter your email address.');
+      return;
+    }
+
+    setIsSendingLink(true);
+    try {
+      await sendMagicLink(trimmedEmail);
+      setMagicLinkMessage('We emailed you a sign-in link. Check your inbox.');
+    } catch (err) {
+      setMagicLinkError(
+        String(err?.message || '') || 'Unable to send the sign-in link.',
+      );
+    } finally {
+      setIsSendingLink(false);
+    }
+  };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -112,9 +140,22 @@ const LoginPanel = ({ onSignupClick }) => {
           <span className={authStyles.dividerLine} />
         </div>
 
-        <button type="button" className={authStyles.googleButton}>
-          Google
+        <button
+          type="button"
+          className={authStyles.googleButton}
+          onClick={handleEmailLinkLogin}
+          disabled={isSendingLink}
+        >
+          <img src={EMAIL_LOGO} alt="" className={authStyles.googleIcon} />
+          <span>{isSendingLink ? 'Sending link…' : 'Log in with Email'}</span>
         </button>
+
+        {magicLinkMessage && (
+          <p className={authStyles.successMessage}>{magicLinkMessage}</p>
+        )}
+        {magicLinkError && (
+          <p className={authStyles.loginError}>{magicLinkError}</p>
+        )}
 
         <p className={authStyles.bottomText}>
           <span>Don&apos;t have an account?</span>

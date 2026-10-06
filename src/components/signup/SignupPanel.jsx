@@ -1,15 +1,21 @@
 import { useState } from 'react';
+import { apiPost } from '../../utils/crud';
+import { sendMagicLink } from '../../utils/emailLink';
 import Header from '../common/Texts/Header';
 import Main_TextField from '../common/InputOptions/TextField/Main_TextField';
 import PrimaryBtn from '../common/Buttons/PrimaryBtn';
 import Main_Checkbox from '../common/InputOptions/Checkbox/Main_Checkbox';
 import authStyles from './AuthPanel.module.css';
-
+import GOOGLE_LOGO from '../../../public/assets/figma/sign-in-pages/google-icon.svg';
+import EMAIL_LOGO from '../../../public/assets/figma/sign-in-pages/email-icon.svg';
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_PASSWORD_LENGTH = 8;
+const SIGNUP_ENDPOINT =
+  'http://localhost:3001/api/v1/trade_business/home/users/signup';
 
 const SignupPanel = ({ onLoginClick }) => {
-  const [name, setName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -18,32 +24,58 @@ const SignupPanel = ({ onLoginClick }) => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [successMessage, setSuccessMessage] = useState('');
+  const [submitError, setSubmitError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSendingLink, setIsSendingLink] = useState(false);
+  const [magicLinkMessage, setMagicLinkMessage] = useState('');
+  const [magicLinkError, setMagicLinkError] = useState('');
+  const [signupMode, setSignupMode] = useState('password');
 
-  const handleSubmit = (event) => {
+  const toggleSignupMode = () => {
+    setSignupMode((prev) => (prev === 'password' ? 'emailLink' : 'password'));
+    setErrors({});
+    setSubmitError('');
+    setSuccessMessage('');
+    setMagicLinkMessage('');
+    setMagicLinkError('');
+  };
+
+  const handleSubmit = async (event) => {
     event.preventDefault();
+    setSubmitError('');
+    setMagicLinkMessage('');
+    setMagicLinkError('');
 
-    const trimmedName = String(name || '').trim();
+    const trimmedFirstName = String(firstName || '').trim();
+    const trimmedLastName = String(lastName || '').trim();
     const trimmedEmail = String(email || '').trim();
 
     const nextErrors = {};
-    if (!trimmedName) {
-      nextErrors.name = 'Please enter your full name.';
+    if (!trimmedFirstName) {
+      nextErrors.firstName = 'Please enter your first name.';
+    }
+    if (!trimmedLastName) {
+      nextErrors.lastName = 'Please enter your last name.';
     }
     if (!trimmedEmail) {
       nextErrors.email = 'Please enter your email address.';
     } else if (!EMAIL_PATTERN.test(trimmedEmail)) {
       nextErrors.email = 'Please enter a valid email address.';
     }
-    if (!password) {
-      nextErrors.password = 'Please choose a password.';
-    } else if (password.length < MIN_PASSWORD_LENGTH) {
-      nextErrors.password = `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`;
+
+    if (signupMode === 'password') {
+      if (!password) {
+        nextErrors.password = 'Please choose a password.';
+      } else if (password.length < MIN_PASSWORD_LENGTH) {
+        nextErrors.password = `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`;
+      }
+      if (!confirmPassword) {
+        nextErrors.confirmPassword = 'Please confirm your password.';
+      } else if (password !== confirmPassword) {
+        nextErrors.confirmPassword = 'Passwords do not match.';
+      }
     }
-    if (!confirmPassword) {
-      nextErrors.confirmPassword = 'Please confirm your password.';
-    } else if (password !== confirmPassword) {
-      nextErrors.confirmPassword = 'Passwords do not match.';
-    }
+
     if (!agreedToTerms) {
       nextErrors.terms = 'Please accept the Terms & Privacy Policy.';
     }
@@ -53,15 +85,56 @@ const SignupPanel = ({ onLoginClick }) => {
 
     if (Object.keys(nextErrors).length > 0) return;
 
-    // No registration endpoint exists yet — this is a UI-only flow.
-    setSuccessMessage(
-      'Account request submitted! A confirmation will follow once registration is live.',
-    );
-    setName('');
-    setEmail('');
-    setPassword('');
-    setConfirmPassword('');
-    setAgreedToTerms(false);
+    // Email-link (passwordless) sign-up: send the Firebase magic link. The
+    // first/last name are remembered so /finishSignUp can pre-fill them.
+    if (signupMode === 'emailLink') {
+      setIsSendingLink(true);
+      try {
+        await sendMagicLink(trimmedEmail, {
+          firstName: trimmedFirstName,
+          lastName: trimmedLastName,
+        });
+        setMagicLinkMessage('We emailed you a sign-up link. Check your inbox.');
+      } catch (err) {
+        setMagicLinkError(
+          String(err?.message || '') || 'Unable to send the sign-up link.',
+        );
+      } finally {
+        setIsSendingLink(false);
+      }
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await apiPost(SIGNUP_ENDPOINT, {
+        first_name: trimmedFirstName,
+        last_name: trimmedLastName,
+        email: trimmedEmail,
+        password,
+        display_name: `${trimmedFirstName} ${trimmedLastName}`.trim(),
+      });
+
+      setSuccessMessage('Account created! You can now log in.');
+      setFirstName('');
+      setLastName('');
+      setEmail('');
+      setPassword('');
+      setConfirmPassword('');
+      setAgreedToTerms(false);
+    } catch (err) {
+      const message = String(err?.message || '');
+      if (/already exists/i.test(message)) {
+        setErrors((prev) => ({
+          ...prev,
+          email: 'An account with this email already exists.',
+        }));
+      } else {
+        setSubmitError('Unable to create your account. Please try again.');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -76,21 +149,34 @@ const SignupPanel = ({ onLoginClick }) => {
           </p>
         </div>
 
-        <Main_TextField
-          inputId="signup-name"
-          label="Full name"
-          size="large"
-          defaultValue={name}
-          onChange={(_, newValue) => setName(newValue)}
-          placeholder="Jane Doe"
-          autoComplete="name"
-          error={Boolean(errors.name)}
-          helperText={errors.name}
-        />
+        <div className={authStyles.nameSection}>
+          <Main_TextField
+            inputId="first-name"
+            label="First name"
+            size="large"
+            defaultValue={firstName}
+            onChange={(_, newValue) => setFirstName(newValue)}
+            placeholder="Jane"
+            autoComplete="name"
+            error={Boolean(errors.firstName)}
+            helperText={errors.firstName}
+          />
 
+          <Main_TextField
+            inputId="last-name"
+            label="Last name"
+            size="large"
+            defaultValue={lastName}
+            onChange={(_, newValue) => setLastName(newValue)}
+            placeholder="Doe"
+            autoComplete="family-name"
+            error={Boolean(errors.lastName)}
+            helperText={errors.lastName}
+          />
+        </div>
         <Main_TextField
           inputId="signup-email"
-          label="Work email"
+          label="Email"
           size="large"
           defaultValue={email}
           onChange={(_, newValue) => setEmail(newValue)}
@@ -100,53 +186,59 @@ const SignupPanel = ({ onLoginClick }) => {
           helperText={errors.email}
         />
 
-        <Main_TextField
-          inputId="signup-password"
-          label="Password"
-          size="large"
-          defaultValue={password}
-          onChange={(_, newValue) => setPassword(newValue)}
-          type={showPassword ? 'text' : 'password'}
-          placeholder="••••••••"
-          autoComplete="new-password"
-          className={authStyles.passwordInput}
-          error={Boolean(errors.password)}
-          helperText={errors.password}
-          inputSuffix={
-            <button
-              type="button"
-              className={authStyles.eyeButton}
-              aria-label={showPassword ? 'Hide password' : 'Show password'}
-              onClick={() => setShowPassword((prev) => !prev)}
-            >
-              {showPassword ? '🙈' : '👁'}
-            </button>
-          }
-        />
+        {signupMode === 'password' && (
+          <>
+            <Main_TextField
+              inputId="signup-password"
+              label="Password"
+              size="large"
+              defaultValue={password}
+              onChange={(_, newValue) => setPassword(newValue)}
+              type={showPassword ? 'text' : 'password'}
+              placeholder="••••••••"
+              autoComplete="new-password"
+              className={authStyles.passwordInput}
+              error={Boolean(errors.password)}
+              helperText={errors.password}
+              inputSuffix={
+                <button
+                  type="button"
+                  className={authStyles.eyeButton}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  onClick={() => setShowPassword((prev) => !prev)}
+                >
+                  {showPassword ? '🙈' : '👁'}
+                </button>
+              }
+            />
 
-        <Main_TextField
-          inputId="signup-confirm-password"
-          label="Confirm password"
-          size="large"
-          defaultValue={confirmPassword}
-          onChange={(_, newValue) => setConfirmPassword(newValue)}
-          type={showConfirmPassword ? 'text' : 'password'}
-          placeholder="••••••••"
-          autoComplete="new-password"
-          className={authStyles.passwordInput}
-          error={Boolean(errors.confirmPassword)}
-          helperText={errors.confirmPassword}
-          inputSuffix={
-            <button
-              type="button"
-              className={authStyles.eyeButton}
-              aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
-              onClick={() => setShowConfirmPassword((prev) => !prev)}
-            >
-              {showConfirmPassword ? '🙈' : '👁'}
-            </button>
-          }
-        />
+            <Main_TextField
+              inputId="signup-confirm-password"
+              label="Confirm password"
+              size="large"
+              defaultValue={confirmPassword}
+              onChange={(_, newValue) => setConfirmPassword(newValue)}
+              type={showConfirmPassword ? 'text' : 'password'}
+              placeholder="••••••••"
+              autoComplete="new-password"
+              className={authStyles.passwordInput}
+              error={Boolean(errors.confirmPassword)}
+              helperText={errors.confirmPassword}
+              inputSuffix={
+                <button
+                  type="button"
+                  className={authStyles.eyeButton}
+                  aria-label={
+                    showConfirmPassword ? 'Hide password' : 'Show password'
+                  }
+                  onClick={() => setShowConfirmPassword((prev) => !prev)}
+                >
+                  {showConfirmPassword ? '🙈' : '👁'}
+                </button>
+              }
+            />
+          </>
+        )}
 
         <div className={authStyles.termsRow}>
           <Main_Checkbox
@@ -161,25 +253,62 @@ const SignupPanel = ({ onLoginClick }) => {
             className={authStyles.rememberCheckbox}
           />
         </div>
-        {errors.terms && <p className={authStyles.fieldError}>{errors.terms}</p>}
+        {errors.terms && (
+          <p className={authStyles.fieldError}>{errors.terms}</p>
+        )}
 
         {successMessage && (
           <p className={authStyles.successMessage}>{successMessage}</p>
         )}
 
-        <PrimaryBtn type="submit" fullWidth>
-          Create account
+        {submitError && <p className={authStyles.loginError}>{submitError}</p>}
+
+        <PrimaryBtn
+          type="submit"
+          fullWidth
+          disabled={signupMode === 'emailLink' ? isSendingLink : isSubmitting}
+        >
+          {signupMode === 'emailLink'
+            ? isSendingLink
+              ? 'Sending link…'
+              : 'Create account'
+            : isSubmitting
+              ? 'Creating account...'
+              : 'Create account'}
         </PrimaryBtn>
 
         <div className={authStyles.dividerRow}>
           <span className={authStyles.dividerLine} />
-          <span className={authStyles.dividerText}>or continue with</span>
+          <span className={authStyles.dividerText}>or continue with just</span>
           <span className={authStyles.dividerLine} />
         </div>
 
-        <button type="button" className={authStyles.googleButton}>
-          Google
-        </button>
+        <div className={authStyles.alternativeAuths}>
+          <div className={authStyles.ButtonHolder}>
+            <button type="button" className={authStyles.googleButton}>
+              <img src={GOOGLE_LOGO} alt="" className={authStyles.googleIcon} />
+              <span>Google</span>
+            </button>
+          </div>
+
+          <div className={authStyles.ButtonHolder}>
+            <button
+              type="button"
+              className={authStyles.googleButton}
+              onClick={toggleSignupMode}
+            >
+              <img src={EMAIL_LOGO} alt="" className={authStyles.googleIcon} />
+              <span>{signupMode === 'password' ? 'Email' : 'Password'}</span>
+            </button>
+          </div>
+        </div>
+
+        {magicLinkMessage && (
+          <p className={authStyles.successMessage}>{magicLinkMessage}</p>
+        )}
+        {magicLinkError && (
+          <p className={authStyles.loginError}>{magicLinkError}</p>
+        )}
 
         <p className={authStyles.bottomText}>
           <span>Already have an account?</span>

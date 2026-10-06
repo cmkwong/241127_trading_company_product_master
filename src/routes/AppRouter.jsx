@@ -6,6 +6,7 @@ import Main_SalesPanel from '../components/panels/SalesQuotation/Main_SalesPanel
 import Main_PurchaseRequest from '../components/panels/PurchaseRequest/Main_PurchaseRequest';
 import Main_MasterControl from '../components/panels/MasterControl/Main_MasterControl';
 import Main_Signup from '../components/signup/Main_Signup';
+import FinishSignup from '../components/signup/FinishSignup';
 import Main_Homepage from '../components/homepage/Main_Homepage';
 
 const AppRouter = () => {
@@ -62,6 +63,7 @@ const AppRouter = () => {
       </Route>
 
       <Route path="signup" element={<Main_Signup />} />
+      <Route path="finishSignUp" element={<FinishSignup />} />
       <Route path="home" element={<Main_Homepage />} />
       <Route path="/" element={<Navigate to="/home" replace />} />
 

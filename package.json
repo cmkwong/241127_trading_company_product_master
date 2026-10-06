@@ -16,6 +16,7 @@
     "@tanstack/react-query-persist-client": "^5.102.1",
     "@xyflow/react": "^12.11.6",
     "exceljs": "^4.4.0",
+    "firebase": "^12.19.0",
     "jszip": "^3.10.1",
     "primeicons": "^7.0.0",
     "primereact": "^10.8.5",

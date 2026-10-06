@@ -1,7 +1,7 @@
 import Header from '../common/Texts/Header';
 import Label from '../common/Texts/Label';
 import styles from './SloganLeaf.module.css';
-
+import RIVOLX_LOGO from '../../../public/assets/brand_logos/watermark_pure_logo.png';
 const DEFAULT_FEATURE_ITEMS = [
   { icon: '📦', text: 'Product & supplier management' },
   { icon: '💰', text: 'Sales quotation & pricing' },
@@ -16,7 +16,7 @@ const SloganLeaf = ({ features = DEFAULT_FEATURE_ITEMS }) => {
         <div className={styles.logoRow} data-node-id="853:4">
           <div className={styles.logoIconWrap}>
             <img
-              src="/assets/brand_logos/watermark_pure_logo.png"
+              src={RIVOLX_LOGO}
               alt="Rivolx paw logo"
               className={styles.logoIcon}
             />
@@ -47,11 +47,7 @@ const SloganLeaf = ({ features = DEFAULT_FEATURE_ITEMS }) => {
                 <span className={styles.featureBadge} aria-hidden="true">
                   {item.icon}
                 </span>
-                <Label
-                  className={styles.featureText}
-                  size="S"
-                  weight="medium"
-                >
+                <Label className={styles.featureText} size="S" weight="medium">
                   {item.text}
                 </Label>
               </li>

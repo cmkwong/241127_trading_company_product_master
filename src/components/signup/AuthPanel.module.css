@@ -66,6 +66,19 @@
 .eyeButton:hover {
   color: #64748b;
 }
+  .eyeIcon {
+    display: block;
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+    opacity: 0.6;
+    transition: opacity 0.15s ease;
+  }
+
+  .eyeButton:hover .eyeIcon {
+    opacity: 1;
+  }
+
 
 .authRow {
   display: flex;
@@ -220,6 +233,28 @@
   padding: 0;
 }
 
+/* Draws attention to the "Log in" button when the email is already registered.
+   Pulses the plain text link in place (no background), replacing the previous
+   rainbow glow. */
+.loginLinkAttention {
+  display: inline-block;
+  transform-origin: center;
+  will-change: transform;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(2.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
 @keyframes panelEnterRight {
   from {
     opacity: 0;
@@ -265,5 +300,11 @@
   .authRow {
     flex-direction: column;
     align-items: flex-start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loginLinkAttention {
+    animation: none;
   }
 }

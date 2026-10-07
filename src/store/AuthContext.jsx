@@ -199,15 +199,7 @@ export const AuthContext_Provider = ({
       loginWithIdToken,
       clearToken,
     }),
-    [
-      token,
-      role,
-      isLoading,
-      error,
-      fetchToken,
-      loginWithIdToken,
-      clearToken,
-    ],
+    [token, role, isLoading, error, fetchToken, loginWithIdToken, clearToken],
   );
 
   return (
@@ -220,7 +212,7 @@ AuthContext_Provider.propTypes = {
   tokenEndpoint: PropTypes.string,
   emailTokenEndpoint: PropTypes.string,
   tokenRequestBody: PropTypes.shape({
-    username: PropTypes.string,
+    email: PropTypes.string,
     password: PropTypes.string,
     payload: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
   }),

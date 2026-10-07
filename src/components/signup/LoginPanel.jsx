@@ -8,6 +8,8 @@ import { useAuthContext } from '../../store/AuthContext';
 import authStyles from './AuthPanel.module.css';
 import { sendMagicLink } from '../../utils/emailLink';
 import EMAIL_LOGO from '../../../public/assets/figma/sign-in-pages/email-icon.svg';
+import PW_SHOW_ICON from '../../../public/assets/figma/pw-show.svg';
+import PW_HIDE_ICON from '../../../public/assets/figma/pw-hide.svg';
 
 const LoginPanel = ({ onSignupClick }) => {
   const navigate = useNavigate();
@@ -49,15 +51,15 @@ const LoginPanel = ({ onSignupClick }) => {
     event.preventDefault();
     setLoginError('');
 
-    const username = String(email || '').trim();
-    if (!username || !password) {
+    const trimmedEmail = String(email || '').trim();
+    if (!trimmedEmail || !password) {
       setLoginError('Please enter both email and password.');
       return;
     }
 
     try {
       await refreshToken({
-        username,
+        email: trimmedEmail,
         password,
         payload: { rememberMe },
       });
@@ -90,7 +92,7 @@ const LoginPanel = ({ onSignupClick }) => {
           defaultValue={email}
           onChange={(_, newValue) => setEmail(newValue)}
           placeholder="admin@rivolx.com"
-          autoComplete="username"
+          autoComplete="email"
         />
 
         <Main_TextField
@@ -110,7 +112,11 @@ const LoginPanel = ({ onSignupClick }) => {
               aria-label={showPassword ? 'Hide password' : 'Show password'}
               onClick={() => setShowPassword((prev) => !prev)}
             >
-              {showPassword ? '🙈' : '👁'}
+              <img
+                src={showPassword ? PW_HIDE_ICON : PW_SHOW_ICON}
+                alt=""
+                className={authStyles.eyeIcon}
+              />
             </button>
           }
         />

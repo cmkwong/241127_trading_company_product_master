@@ -77,7 +77,7 @@ const TopBar = () => {
     salesQuotationContext?.refreshSalesQuotationList;
   const forceRefreshAllMasterData = masterContext?.forceRefreshAllMasterData;
   const [showLogin, setShowLogin] = useState(false);
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -169,7 +169,7 @@ const TopBar = () => {
     setLoginError(null);
 
     const credentials = {
-      username,
+      email,
       password,
       payload: '',
     };
@@ -607,8 +607,8 @@ const TopBar = () => {
                     <input
                       type="text"
                       placeholder="Username"
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                       className={styles.input}
                     />
                     <input

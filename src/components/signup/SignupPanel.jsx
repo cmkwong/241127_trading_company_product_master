@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { apiPost } from '../../utils/crud';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useAuthContext } from '../../store/AuthContext';
+import { apiGet, apiPost } from '../../utils/crud';
 import { sendMagicLink } from '../../utils/emailLink';
 import Header from '../common/Texts/Header';
 import Main_TextField from '../common/InputOptions/TextField/Main_TextField';
@@ -8,10 +10,14 @@ import Main_Checkbox from '../common/InputOptions/Checkbox/Main_Checkbox';
 import authStyles from './AuthPanel.module.css';
 import GOOGLE_LOGO from '../../../public/assets/figma/sign-in-pages/google-icon.svg';
 import EMAIL_LOGO from '../../../public/assets/figma/sign-in-pages/email-icon.svg';
+import PW_SHOW_ICON from '../../../public/assets/figma/pw-show.svg';
+import PW_HIDE_ICON from '../../../public/assets/figma/pw-hide.svg';
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_PASSWORD_LENGTH = 8;
 const SIGNUP_ENDPOINT =
   'http://localhost:3001/api/v1/trade_business/home/users/signup';
+const CHECK_EMAIL_ENDPOINT =
+  'http://localhost:3001/api/v1/trade_business/home/users/signup/check-email';
 
 const SignupPanel = ({ onLoginClick }) => {
   const [firstName, setFirstName] = useState('');
@@ -30,6 +36,20 @@ const SignupPanel = ({ onLoginClick }) => {
   const [magicLinkMessage, setMagicLinkMessage] = useState('');
   const [magicLinkError, setMagicLinkError] = useState('');
   const [signupMode, setSignupMode] = useState('password');
+  const [loginLinkPulse, setLoginLinkPulse] = useState(0);
+
+  const { refreshToken } = useAuthContext();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const flagDuplicateEmail = () => {
+    setErrors((prev) => ({
+      ...prev,
+      email: 'An account with this email already exists.',
+    }));
+    // Increment to retrigger the "Log in" button blink on every duplicate attempt.
+    setLoginLinkPulse((n) => n + 1);
+  };
 
   const toggleSignupMode = () => {
     setSignupMode((prev) => (prev === 'password' ? 'emailLink' : 'password'));
@@ -85,6 +105,24 @@ const SignupPanel = ({ onLoginClick }) => {
 
     if (Object.keys(nextErrors).length > 0) return;
 
+    // Pre-flight duplicate-email check shared by both sign-up flows. Runs
+    // before the account is created (password mode) or the verify email is
+    // sent (email-link mode).
+    try {
+      const check = await apiGet(CHECK_EMAIL_ENDPOINT, {
+        params: { email: trimmedEmail },
+      });
+      if (check?.data?.exists) {
+        flagDuplicateEmail();
+        return;
+      }
+    } catch {
+      setSubmitError(
+        'Unable to verify your email right now. Please try again.',
+      );
+      return;
+    }
+
     // Email-link (passwordless) sign-up: send the Firebase magic link. The
     // first/last name are remembered so /finishSignUp can pre-fill them.
     if (signupMode === 'emailLink') {
@@ -115,20 +153,34 @@ const SignupPanel = ({ onLoginClick }) => {
         display_name: `${trimmedFirstName} ${trimmedLastName}`.trim(),
       });
 
-      setSuccessMessage('Account created! You can now log in.');
-      setFirstName('');
-      setLastName('');
-      setEmail('');
-      setPassword('');
-      setConfirmPassword('');
-      setAgreedToTerms(false);
+      // Follow the login-success flow: exchange the just-created credentials
+      // for the app JWT so the user is logged in immediately, then land on the
+      // same destination the login panel uses.
+      setSuccessMessage('Account created! Signing you in…');
+      try {
+        await refreshToken({
+          email: trimmedEmail,
+          password,
+          payload: { rememberMe: true },
+        });
+        setFirstName('');
+        setLastName('');
+        setEmail('');
+        setPassword('');
+        setConfirmPassword('');
+        setAgreedToTerms(false);
+        navigate(location.state?.from || '/panel/product_master', {
+          replace: true,
+        });
+      } catch {
+        // The account was created, but the auto-login token exchange failed.
+        // Don't strand the user — ask them to log in manually.
+        setSuccessMessage('Account created! Please log in.');
+      }
     } catch (err) {
       const message = String(err?.message || '');
       if (/already exists/i.test(message)) {
-        setErrors((prev) => ({
-          ...prev,
-          email: 'An account with this email already exists.',
-        }));
+        flagDuplicateEmail();
       } else {
         setSubmitError('Unable to create your account. Please try again.');
       }
@@ -179,7 +231,10 @@ const SignupPanel = ({ onLoginClick }) => {
           label="Email"
           size="large"
           defaultValue={email}
-          onChange={(_, newValue) => setEmail(newValue)}
+          onChange={(_, newValue) => {
+            setEmail(newValue);
+            if (loginLinkPulse) setLoginLinkPulse(0);
+          }}
           placeholder="you@company.com"
           autoComplete="email"
           error={Boolean(errors.email)}
@@ -207,7 +262,11 @@ const SignupPanel = ({ onLoginClick }) => {
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                   onClick={() => setShowPassword((prev) => !prev)}
                 >
-                  {showPassword ? '🙈' : '👁'}
+                  <img
+                    src={showPassword ? PW_HIDE_ICON : PW_SHOW_ICON}
+                    alt=""
+                    className={authStyles.eyeIcon}
+                  />
                 </button>
               }
             />
@@ -233,7 +292,11 @@ const SignupPanel = ({ onLoginClick }) => {
                   }
                   onClick={() => setShowConfirmPassword((prev) => !prev)}
                 >
-                  {showConfirmPassword ? '🙈' : '👁'}
+                  <img
+                    src={showConfirmPassword ? PW_HIDE_ICON : PW_SHOW_ICON}
+                    alt=""
+                    className={authStyles.eyeIcon}
+                  />
                 </button>
               }
             />
@@ -314,8 +377,12 @@ const SignupPanel = ({ onLoginClick }) => {
           <span>Already have an account?</span>
           <button
             type="button"
-            className={authStyles.loginLink}
-            onClick={onLoginClick}
+            key={loginLinkPulse}
+            className={`${authStyles.loginLink}${loginLinkPulse ? ` ${authStyles.loginLinkAttention}` : ''}`}
+            onClick={() => {
+              setLoginLinkPulse(0);
+              onLoginClick?.();
+            }}
           >
             Log in
           </button>

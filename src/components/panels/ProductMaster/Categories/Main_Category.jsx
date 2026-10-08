@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import Main_InputContainer from '../../../common/Container/Main_InputContainer';
+import Header from '../../../common/Texts/Header';
 import Main_TagInputField from '../../../common/InputOptions/Tagging/Main_TagInputField';
 import {
   upsertEntityData,
@@ -7,6 +7,7 @@ import {
   useEntityField,
 } from '../../../../store/GeneralContext';
 import { useMasterContext } from '../../../../store/MasterContext';
+import styles from './Main_Category.module.css';
 
 const Main_Category = () => {
   const { category } = useMasterContext();
@@ -66,7 +67,8 @@ const Main_Category = () => {
   };
 
   return (
-    <Main_InputContainer label="Product Category">
+    <>
+      <Header as="h3" size="L" text="Product Category" />
       <Main_TagInputField
         key={`category-input`}
         defaultOptions={categoryOptions}
@@ -76,7 +78,7 @@ const Main_Category = () => {
         enableHierarchyViewToggle={true}
         hierarchyToggleLabel="Show Hierarchy"
       />
-    </Main_InputContainer>
+    </>
   );
 };
 

@@ -11,6 +11,7 @@ import KeywordsTagInput from './KeywordsTagInput';
 import KeywordsActions from './KeywordsActions';
 import KeywordsTextHelper from './KeywordsTextHelper';
 import styles from './Main_Keywords.module.css';
+import Header from '../../../common/Texts/Header';
 
 const Main_Keywords = () => {
   const { productKeywords, updateMasterTableData } = useMasterContext();
@@ -182,7 +183,8 @@ const Main_Keywords = () => {
   }, []);
 
   return (
-    <Main_InputContainer label="Product Keywords">
+    <>
+      <Header as="h3" size="L" text="Product Keywords" />
       <div className={styles.keywordsContainer}>
         <KeywordsTagInput
           productKeywords={productKeywords}
@@ -214,7 +216,7 @@ const Main_Keywords = () => {
           />
         )}
       </div>
-    </Main_InputContainer>
+    </>
   );
 };
 

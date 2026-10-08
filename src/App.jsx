@@ -2,6 +2,7 @@ import AppRouter from './routes/AppRouter';
 import TopBar from './components/common/TopBar/TopBar';
 import { useLocation } from 'react-router-dom';
 import { AuthContext_Provider } from './store/AuthContext';
+import { CurrentUserContext_Provider } from './store/CurrentUserContext';
 import { GeneralContext_Provider } from './store/GeneralContext';
 import { MasterContext_Provider } from './store/MasterContext';
 import { CustomerContext_Provider } from './store/CustomerContext';
@@ -18,24 +19,26 @@ function App() {
   return (
     <div className={styles.appContainer}>
       <AuthContext_Provider>
-        <GeneralContext_Provider>
-          <MasterContext_Provider>
-            <ProductContext_Provider>
-              <SupplierContext_Provider>
-                <CustomerContext_Provider>
-                  <SalesQuotationContext_Provider>
-                    <PurchaseRequestContext_Provider>
-                      {showTopBar && <TopBar />}
-                      <div className={styles.contentArea}>
-                        <AppRouter />
-                      </div>
-                    </PurchaseRequestContext_Provider>
-                  </SalesQuotationContext_Provider>
-                </CustomerContext_Provider>
-              </SupplierContext_Provider>
-            </ProductContext_Provider>
-          </MasterContext_Provider>
-        </GeneralContext_Provider>
+        <CurrentUserContext_Provider>
+          <GeneralContext_Provider>
+            <MasterContext_Provider>
+              <ProductContext_Provider>
+                <SupplierContext_Provider>
+                  <CustomerContext_Provider>
+                    <SalesQuotationContext_Provider>
+                      <PurchaseRequestContext_Provider>
+                        {showTopBar && <TopBar />}
+                        <div className={styles.contentArea}>
+                          <AppRouter />
+                        </div>
+                      </PurchaseRequestContext_Provider>
+                    </SalesQuotationContext_Provider>
+                  </CustomerContext_Provider>
+                </SupplierContext_Provider>
+              </ProductContext_Provider>
+            </MasterContext_Provider>
+          </GeneralContext_Provider>
+        </CurrentUserContext_Provider>
       </AuthContext_Provider>
     </div>
   );

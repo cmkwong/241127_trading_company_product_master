@@ -1,6 +1,7 @@
 import { useContext, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuthContext } from '../../../store/AuthContext';
+import { useCurrentUser } from '../../../store/CurrentUserContext';
 import { CustomerContext } from '../../../store/CustomerContext';
 import { ProductContext } from '../../../store/ProductContext';
 import { SalesQuotationContext } from '../../../store/SalesQuotationContext';
@@ -65,6 +66,7 @@ const resolveActiveView = (pathname) => {
 const TopBar = () => {
   const { token, role, refreshToken, isLoading, error, clearToken } =
     useAuthContext();
+  const { displayName, email: userEmail, initials } = useCurrentUser();
   const productContext = useContext(ProductContext);
   const supplierContext = useContext(SupplierContext);
   const customerContext = useContext(CustomerContext);
@@ -229,11 +231,15 @@ const TopBar = () => {
     <div className={styles.userMenu} role="menu">
       <div className={styles.userMenuHeader}>
         <div className={styles.userAvatar} aria-hidden="true">
-          CC
+          {initials || 'CC'}
         </div>
         <div className={styles.userDetails}>
-          <span className={styles.userName}>Chris Cheung</span>
-          <span className={styles.userEmail}>chris.cheung@rivolx.com</span>
+          <span className={styles.userName}>
+            {displayName || 'Chris Cheung'}
+          </span>
+          <span className={styles.userEmail}>
+            {userEmail || 'chris.cheung@rivolx.com'}
+          </span>
         </div>
       </div>
 

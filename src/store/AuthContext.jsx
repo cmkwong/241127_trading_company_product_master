@@ -15,6 +15,7 @@ const DEFAULT_EMAIL_TOKEN_ENDPOINT =
 
 const TOKEN_STORAGE_KEY = 'trade_business_token';
 const ROLE_STORAGE_KEY = 'trade_business_role';
+const EMAIL_STORAGE_KEY = 'trade_business_email';
 
 const readStoredToken = () => {
   try {
@@ -32,6 +33,14 @@ const readStoredRole = () => {
   }
 };
 
+const readStoredEmail = () => {
+  try {
+    return window.localStorage.getItem(EMAIL_STORAGE_KEY);
+  } catch {
+    return null;
+  }
+};
+
 const AuthContext = createContext(null);
 
 export const AuthContext_Provider = ({
@@ -42,6 +51,7 @@ export const AuthContext_Provider = ({
 }) => {
   const [token, setToken] = useState(readStoredToken);
   const [role, setRole] = useState(readStoredRole);
+  const [email, setEmail] = useState(readStoredEmail);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -72,6 +82,10 @@ export const AuthContext_Provider = ({
           typeof response === 'object' && response !== null
             ? response.role
             : null;
+        const resolvedEmail =
+          typeof response === 'object' && response !== null
+            ? response.email
+            : null;
 
         if (!resolvedToken) {
           throw new Error('Token endpoint responded without a token value.');
@@ -82,23 +96,29 @@ export const AuthContext_Provider = ({
           if (resolvedRole) {
             window.localStorage.setItem(ROLE_STORAGE_KEY, resolvedRole);
           }
+          if (resolvedEmail) {
+            window.localStorage.setItem(EMAIL_STORAGE_KEY, resolvedEmail);
+          }
         } catch {
           // Ignore storage failures (e.g. private browsing / quota).
         }
 
         setToken(resolvedToken);
         setRole(resolvedRole);
+        setEmail(resolvedEmail);
         return resolvedToken;
       } catch (err) {
         try {
           window.localStorage.removeItem(TOKEN_STORAGE_KEY);
           window.localStorage.removeItem(ROLE_STORAGE_KEY);
+          window.localStorage.removeItem(EMAIL_STORAGE_KEY);
         } catch {
           // Ignore storage failures.
         }
 
         setToken(null);
         setRole(null);
+        setEmail(null);
         setError(err);
         throw err;
       } finally {
@@ -141,6 +161,10 @@ export const AuthContext_Provider = ({
           typeof response === 'object' && response !== null
             ? response.role
             : null;
+        const resolvedEmail =
+          typeof response === 'object' && response !== null
+            ? response.email
+            : null;
 
         if (!resolvedToken) {
           throw new Error('Token endpoint responded without a token value.');
@@ -151,23 +175,29 @@ export const AuthContext_Provider = ({
           if (resolvedRole) {
             window.localStorage.setItem(ROLE_STORAGE_KEY, resolvedRole);
           }
+          if (resolvedEmail) {
+            window.localStorage.setItem(EMAIL_STORAGE_KEY, resolvedEmail);
+          }
         } catch {
           // Ignore storage failures.
         }
 
         setToken(resolvedToken);
         setRole(resolvedRole);
+        setEmail(resolvedEmail);
         return resolvedToken;
       } catch (err) {
         try {
           window.localStorage.removeItem(TOKEN_STORAGE_KEY);
           window.localStorage.removeItem(ROLE_STORAGE_KEY);
+          window.localStorage.removeItem(EMAIL_STORAGE_KEY);
         } catch {
           // Ignore storage failures.
         }
 
         setToken(null);
         setRole(null);
+        setEmail(null);
         setError(err);
         throw err;
       } finally {
@@ -181,25 +211,37 @@ export const AuthContext_Provider = ({
     try {
       window.localStorage.removeItem(TOKEN_STORAGE_KEY);
       window.localStorage.removeItem(ROLE_STORAGE_KEY);
+      window.localStorage.removeItem(EMAIL_STORAGE_KEY);
     } catch {
       // Ignore storage failures.
     }
 
     setToken(null);
     setRole(null);
+    setEmail(null);
   }, []);
 
   const contextValue = useMemo(
     () => ({
       token,
       role,
+      email,
       isLoading,
       error,
       refreshToken: fetchToken,
       loginWithIdToken,
       clearToken,
     }),
-    [token, role, isLoading, error, fetchToken, loginWithIdToken, clearToken],
+    [
+      token,
+      role,
+      email,
+      isLoading,
+      error,
+      fetchToken,
+      loginWithIdToken,
+      clearToken,
+    ],
   );
 
   return (

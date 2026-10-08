@@ -5,6 +5,14 @@
   width: 100%;
 }
 
+.sectionName {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+}
+
 .addRow {
   display: flex;
   justify-content: flex-start;

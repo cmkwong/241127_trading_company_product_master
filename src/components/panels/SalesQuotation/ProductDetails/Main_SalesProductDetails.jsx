@@ -17,6 +17,7 @@ import {
   isSelectedFlag,
   normalizeDiscountPercent,
 } from '../utils/quotationTotals';
+import { buildProductImagesPath } from '../../../../utils/filePickerUtils';
 import styles from './Main_SalesProductDetails.module.css';
 
 const FILE_SERVER_BASE_URL = 'http://localhost:3001';
@@ -212,7 +213,7 @@ const Main_SalesProductDetails = ({
         id: file?.id || uuidv4(),
         sales_product_detail_id: detailId,
         image_name: file?.name || `product-${index + 1}.jpg`,
-        image_url: file?.url || '',
+        image_url: file?.storedPath || file?.url || '',
         display_order: index + 1,
       }));
 
@@ -234,7 +235,7 @@ const Main_SalesProductDetails = ({
         id: file?.id || uuidv4(),
         sales_product_detail_id: detailId,
         image_name: file?.name || `product-internal-${index + 1}.jpg`,
-        image_url: file?.url || '',
+        image_url: file?.storedPath || file?.url || '',
         display_order: index + 1,
       }));
 
@@ -256,7 +257,7 @@ const Main_SalesProductDetails = ({
         id: file?.id || uuidv4(),
         sales_product_detail_id: detailId,
         file_name: file?.name || `product-internal-${index + 1}`,
-        file_url: file?.url || '',
+        file_url: file?.storedPath || file?.url || '',
         display_order: index + 1,
       }));
 
@@ -592,6 +593,9 @@ const Main_SalesProductDetails = ({
                   console.error('Sales product image upload error:', error);
                 }}
                 fileUrlBase={FILE_SERVER_BASE_URL}
+                fileBankDirectoryPath={
+                  row?.product_id ? buildProductImagesPath(row.product_id) : ''
+                }
               />
             </div>
           );
@@ -642,6 +646,9 @@ const Main_SalesProductDetails = ({
                   );
                 }}
                 fileUrlBase={FILE_SERVER_BASE_URL}
+                fileBankDirectoryPath={
+                  row?.product_id ? buildProductImagesPath(row.product_id) : ''
+                }
               />
             </div>
           );
@@ -691,6 +698,9 @@ const Main_SalesProductDetails = ({
                   );
                 }}
                 fileUrlBase={FILE_SERVER_BASE_URL}
+                fileBankDirectoryPath={
+                  row?.product_id ? buildProductImagesPath(row.product_id) : ''
+                }
               />
             </div>
           );

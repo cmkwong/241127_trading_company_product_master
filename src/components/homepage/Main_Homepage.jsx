@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import TopBar from '../common/TopBar/TopBar';
 import { useAuthContext } from '../../store/AuthContext';
+import { useCurrentUser } from '../../store/CurrentUserContext';
 import CategoryPanel from './CategoryPanel';
 import UserStatusBar from './UserStatusBar';
 import LowPriceZone from './LowPriceZone';
@@ -16,15 +17,10 @@ import {
 } from './data/homepageData';
 import {
   HOME_PAGE_SIZE,
-  fetchHomeProducts,
+  fetchProductsByCategory,
   mapProductDetailToCard,
 } from './utils/homeApi';
 import styles from './Main_Homepage.module.css';
-
-// Cap the number of consecutive auto-loaded pages while the active category has
-// no matching products yet, so a category with no real products cannot hammer
-// the server. The "Load more" button remains as a manual escape hatch.
-const MAX_AUTO_FILL_PAGES = 5;
 
 const mergeUnique = (existing, incoming) => {
   const seen = new Set(existing.map((item) => item.id));
@@ -36,6 +32,7 @@ const mergeUnique = (existing, incoming) => {
 
 const Main_Homepage = () => {
   const { token } = useAuthContext();
+  const { displayName } = useCurrentUser();
   const [activeCategoryId, setActiveCategoryId] = useState(
     HOME_CATEGORY_ITEMS[0]?.id,
   );
@@ -48,10 +45,9 @@ const Main_Homepage = () => {
   const requestIdRef = useRef(0);
   const nextOffsetRef = useRef(0);
   const loadMoreInFlightRef = useRef(false);
-  const autoFillCountRef = useRef(0);
 
   const loadPage = useCallback(
-    async (offset, { append = false } = {}) => {
+    async (categoryId, offset, { append = false } = {}) => {
       const requestId = ++requestIdRef.current;
       if (append) {
         setIsLoadingMore(true);
@@ -61,10 +57,11 @@ const Main_Homepage = () => {
       setError(null);
 
       try {
-        const result = await fetchHomeProducts(token, {
-          offset,
-          limit: HOME_PAGE_SIZE,
-        });
+        const result = await fetchProductsByCategory(
+          token,
+          categoryId ? [categoryId] : [],
+          { offset, limit: HOME_PAGE_SIZE },
+        );
         if (requestId !== requestIdRef.current) return;
 
         const mapped = result.details.map(mapProductDetailToCard);
@@ -97,48 +94,26 @@ const Main_Homepage = () => {
     [token],
   );
 
-  // Initial load (and reset) whenever the token changes (login/logout).
+  // Initial load (and reset) whenever the token changes (login/logout) or the
+  // active category changes (category panel click).
   useEffect(() => {
     requestIdRef.current += 1; // invalidate any in-flight request
     loadMoreInFlightRef.current = false;
     nextOffsetRef.current = 0;
-    autoFillCountRef.current = 0;
     setIsLoadingMore(false);
-    loadPage(0, { append: false });
+    loadPage(activeCategoryId, 0, { append: false });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
+  }, [token, activeCategoryId]);
 
   const handleLoadMore = useCallback(() => {
     if (loadMoreInFlightRef.current || isLoading || !hasMore || error) return;
     loadMoreInFlightRef.current = true;
-    loadPage(nextOffsetRef.current, { append: true }).finally(() => {
-      loadMoreInFlightRef.current = false;
-    });
-  }, [isLoading, hasMore, error, loadPage]);
-
-  const visibleProducts = useMemo(() => {
-    return products.filter((item) =>
-      (item.categoryIds || []).includes(activeCategoryId),
+    loadPage(activeCategoryId, nextOffsetRef.current, { append: true }).finally(
+      () => {
+        loadMoreInFlightRef.current = false;
+      },
     );
-  }, [products, activeCategoryId]);
-
-  // Auto-fill: while the active category has no matching products yet and more
-  // pages exist, keep pulling the next page (capped) so a sparse category can
-  // still surface its products. Resets when the category or token changes.
-  useEffect(() => {
-    autoFillCountRef.current = 0;
-  }, [activeCategoryId, token]);
-
-  useEffect(() => {
-    if (!hasMore || isLoading || error) return;
-    if (visibleProducts.length > 0) {
-      autoFillCountRef.current = 0;
-      return;
-    }
-    if (autoFillCountRef.current >= MAX_AUTO_FILL_PAGES) return;
-    autoFillCountRef.current += 1;
-    handleLoadMore();
-  }, [hasMore, isLoading, error, visibleProducts.length, handleLoadMore]);
+  }, [isLoading, hasMore, error, loadPage, activeCategoryId]);
 
   return (
     <div className={styles.homePage} data-node-id="219:4">
@@ -158,14 +133,18 @@ const Main_Homepage = () => {
           />
 
           <div className={styles.rightColumn}>
-            <UserStatusBar shortcuts={USER_SHORTCUTS} stats={USER_STATS} />
+            <UserStatusBar
+              shortcuts={USER_SHORTCUTS}
+              stats={USER_STATS}
+              displayName={displayName}
+            />
             <LowPriceZone deals={LOW_PRICE_DEALS} />
           </div>
         </section>
 
         <section className={styles.productsSectionWrap}>
           <ProductsSection
-            products={visibleProducts}
+            products={products}
             isLoading={isLoading}
             error={error}
             hasMore={hasMore}

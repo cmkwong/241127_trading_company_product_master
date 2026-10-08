@@ -3,6 +3,8 @@ import Main_Pack from './Packing/Main_Pack';
 import styles from './Main_ProductMaster.module.css';
 import Main_ProductName from './ProductName/Main_ProductName';
 import Main_Category from './Categories/Main_Category';
+import Main_InputContainer from '../../common/Container/Main_InputContainer';
+import Divider from '../../common/Container/Divider';
 import Main_ProductAttributes from './Attributes/Main_ProductAttributes';
 import Main_Customization from './Customization/Main_Customization';
 import Main_ProductLink from './ProductLink/Main_ProductLink';
@@ -223,10 +225,15 @@ const Main_ProductMaster = () => {
           </button>
 
           <div className={`${styles.inputSide} ${styles.withIconOverlay}`}>
-            <Main_ProductName />
-            <Main_Category />
-            <Main_ProductAttributes />
-            <Main_Keywords />
+            <Main_InputContainer>
+              <Main_ProductName />
+              <Divider />
+              <Main_Category />
+              <Divider />
+              <Main_ProductAttributes />
+              <Divider />
+              <Main_Keywords />
+            </Main_InputContainer>
             <Main_ProductLink />
             <Main_AlibabaLink />
             <Main_ProductImages />

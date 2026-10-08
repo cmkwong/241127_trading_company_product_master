@@ -1,5 +1,6 @@
 import Header from '../common/Texts/Header';
 import Label from '../common/Texts/Label';
+import PropTypes from 'prop-types';
 import styles from './UserStatusBar.module.css';
 
 const renderShortcutIcon = (icon) => {
@@ -60,13 +61,13 @@ const renderShortcutIcon = (icon) => {
   );
 };
 
-const UserStatusBar = ({ shortcuts, stats }) => {
+const UserStatusBar = ({ shortcuts, stats, displayName }) => {
   return (
     <section className={styles.userStatusBar}>
       <div className={styles.profileBlock}>
         <div>
           <Header as="h3" size="S" color="#0c1e36" weight="semibold">
-            Welcome back, GlobalBuyer_420
+            Welcome back, {displayName || 'GlobalBuyer_420'}
           </Header>
           <p className={styles.accountHint}>Verified B2B Business Account</p>
         </div>
@@ -96,6 +97,24 @@ const UserStatusBar = ({ shortcuts, stats }) => {
       </div>
     </section>
   );
+};
+
+UserStatusBar.propTypes = {
+  shortcuts: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string,
+      label: PropTypes.string,
+      icon: PropTypes.string,
+    }),
+  ),
+  stats: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string,
+      value: PropTypes.node,
+      label: PropTypes.string,
+    }),
+  ),
+  displayName: PropTypes.string,
 };
 
 export default UserStatusBar;

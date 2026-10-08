@@ -13,6 +13,7 @@ import Sub_AttributeTagField from './Sub_AttributeTagField';
 import { normalize, keyOf } from './attributeUtils';
 import styles from './Main_ProductAttributes.module.css';
 import Label from '../../../common/Texts/Label';
+import Header from '../../../common/Texts/Header';
 
 const Main_ProductAttributes = () => {
   const { getMasterTableData } = useMasterContext();
@@ -195,7 +196,8 @@ const Main_ProductAttributes = () => {
   );
 
   return (
-    <Main_InputContainer label="Product Attributes">
+    <>
+      <Header as="h3" size="L" text="Product Attributes" />
       {attributeRows.length === 0 ? (
         <EmptyState message="No attributes configured for the selected category." />
       ) : (
@@ -235,7 +237,7 @@ const Main_ProductAttributes = () => {
           })}
         </div>
       )}
-    </Main_InputContainer>
+    </>
   );
 };
 

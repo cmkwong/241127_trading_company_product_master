@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../common/Texts/Header';
 import Main_TextField from '../common/InputOptions/TextField/Main_TextField';
@@ -8,38 +8,46 @@ import {
   completeMagicLinkSignIn,
   getPendingSignupNames,
   clearPendingSignupNames,
+  clearMagicLinkToken,
 } from '../../utils/emailLink';
 import authStyles from './AuthPanel.module.css';
 
 /**
- * Completes the Firebase email-link (passwordless) flow.
+ * Completes the server-issued magic-link (nodemailer/SMTP) flow.
  *
- * On mount it finishes the email-link sign-in and immediately exchanges the
- * Firebase ID token for the app's own JWT. A returning user is logged straight
- * in; a brand-new user gets a "finish your profile" name form (the backend
- * answers NAMES_REQUIRED until first_name/last_name are provided).
+ * On mount it extracts the token from the URL and exchanges it for the app's
+ * own JWT. A returning user is logged straight in; a brand-new user gets a
+ * "finish your profile" name form (the backend answers NAMES_REQUIRED until
+ * first_name/last_name are provided).
  */
 const FinishSignup = () => {
   const navigate = useNavigate();
-  const { loginWithIdToken, isLoading } = useAuthContext();
+  const { loginWithMagicLinkToken, isLoading } = useAuthContext();
 
   const [phase, setPhase] = useState('loading'); // loading | names | error
-  const [idToken, setIdToken] = useState(null);
+  const [magicToken, setMagicToken] = useState(null);
   const [pendingNames] = useState(() => getPendingSignupNames());
   const [firstName, setFirstName] = useState(pendingNames?.first_name || '');
   const [lastName, setLastName] = useState(pendingNames?.last_name || '');
   const [errors, setErrors] = useState({});
   const [error, setError] = useState('');
+  // Guards against React StrictMode running the effect twice in dev, which would
+  // otherwise fire a duplicate token exchange on the remount.
+  const ranOnce = useRef(false);
 
   useEffect(() => {
-    let cancelled = false;
+    // Run once. React StrictMode double-invokes effects in dev; a cleanup/cancel
+    // flag here would discard the first (and only) run's async work, leaving the
+    // page stuck at "loading". The idempotent token capture in emailLink.js
+    // already makes the read safe to repeat.
+    if (ranOnce.current) return;
+    ranOnce.current = true;
 
     (async () => {
       try {
-        const result = await completeMagicLinkSignIn();
-        if (cancelled) return;
+        const result = completeMagicLinkSignIn();
 
-        if (!result?.idToken) {
+        if (!result?.magicToken) {
           setError(
             'This page is used to finish signing in via the email link. Please request a new link from the sign-in page.',
           );
@@ -47,28 +55,22 @@ const FinishSignup = () => {
           return;
         }
 
-        setIdToken(result.idToken);
-        const outcome = await loginWithIdToken(result.idToken);
-        if (cancelled) return;
+        setMagicToken(result.magicToken);
+        const outcome = await loginWithMagicLinkToken(result.magicToken);
 
         if (outcome === 'NAMES_REQUIRED') {
           setPhase('names');
         } else {
+          clearMagicLinkToken();
           clearPendingSignupNames();
-          navigate('/panel/product_master', { replace: true });
+          navigate('/home', { replace: true });
         }
       } catch {
-        if (!cancelled) {
-          setError('Unable to complete sign-in. Please try again.');
-          setPhase('error');
-        }
+        setError('Unable to complete sign-in. Please try again.');
+        setPhase('error');
       }
     })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [loginWithIdToken, navigate]);
+  }, [loginWithMagicLinkToken, navigate]);
 
   const handleFinish = async (event) => {
     event.preventDefault();
@@ -85,9 +87,10 @@ const FinishSignup = () => {
     if (Object.keys(nextErrors).length > 0) return;
 
     try {
-      await loginWithIdToken(idToken, firstName, lastName);
+      await loginWithMagicLinkToken(magicToken, firstName, lastName);
+      clearMagicLinkToken();
       clearPendingSignupNames();
-      navigate('/panel/product_master', { replace: true });
+      navigate('/home', { replace: true });
     } catch {
       setError('Unable to finish sign-up. Please try again.');
     }

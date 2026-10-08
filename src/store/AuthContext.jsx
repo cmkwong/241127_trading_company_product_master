@@ -12,6 +12,8 @@ const DEFAULT_TOKEN_ENDPOINT =
   'http://localhost:3001/api/v1/trade_business/panel/auth/getToken';
 const DEFAULT_EMAIL_TOKEN_ENDPOINT =
   'http://localhost:3001/api/v1/trade_business/panel/auth/getTokenWithEmail';
+const DEFAULT_MAGIC_LINK_TOKEN_ENDPOINT =
+  'http://localhost:3001/api/v1/trade_business/panel/auth/getTokenWithMagicLink';
 
 const TOKEN_STORAGE_KEY = 'trade_business_token';
 const ROLE_STORAGE_KEY = 'trade_business_role';
@@ -47,6 +49,7 @@ export const AuthContext_Provider = ({
   children,
   tokenEndpoint,
   emailTokenEndpoint,
+  magicLinkTokenEndpoint,
   tokenRequestBody,
 }) => {
   const [token, setToken] = useState(readStoredToken);
@@ -59,6 +62,8 @@ export const AuthContext_Provider = ({
   const resolvedEndpoint = tokenEndpoint || DEFAULT_TOKEN_ENDPOINT;
   const resolvedEmailEndpoint =
     emailTokenEndpoint || DEFAULT_EMAIL_TOKEN_ENDPOINT;
+  const resolvedMagicLinkEndpoint =
+    magicLinkTokenEndpoint || DEFAULT_MAGIC_LINK_TOKEN_ENDPOINT;
 
   // We no longer automatically construct a request body from environment variables.
   // The only way to get a token is by passing credentials manually to fetchToken.
@@ -207,6 +212,85 @@ export const AuthContext_Provider = ({
     [resolvedEmailEndpoint],
   );
 
+  // Redeem a server-issued magic-link token (nodemailer/SMTP flow) for the
+  // app's own JWT. Mirrors `loginWithIdToken` so the frontend contract stays
+  // identical; a brand-new account answers NAMES_REQUIRED.
+  const loginWithMagicLinkToken = useCallback(
+    async (magicToken, firstName = null, lastName = null) => {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const body = { token: magicToken };
+        if (firstName != null && String(firstName).trim() !== '') {
+          body.first_name = String(firstName).trim();
+        }
+        if (lastName != null && String(lastName).trim() !== '') {
+          body.last_name = String(lastName).trim();
+        }
+
+        let response;
+        try {
+          response = await apiPost(resolvedMagicLinkEndpoint, body);
+        } catch (err) {
+          if (/NAMES_REQUIRED/i.test(String(err?.message || ''))) {
+            return 'NAMES_REQUIRED';
+          }
+          throw err;
+        }
+
+        const resolvedToken =
+          typeof response === 'string' ? response : response?.token;
+        const resolvedRole =
+          typeof response === 'object' && response !== null
+            ? response.role
+            : null;
+        const resolvedEmail =
+          typeof response === 'object' && response !== null
+            ? response.email
+            : null;
+
+        if (!resolvedToken) {
+          throw new Error('Token endpoint responded without a token value.');
+        }
+
+        try {
+          window.localStorage.setItem(TOKEN_STORAGE_KEY, resolvedToken);
+          if (resolvedRole) {
+            window.localStorage.setItem(ROLE_STORAGE_KEY, resolvedRole);
+          }
+          if (resolvedEmail) {
+            window.localStorage.setItem(EMAIL_STORAGE_KEY, resolvedEmail);
+          }
+        } catch {
+          // Ignore storage failures.
+        }
+
+        setToken(resolvedToken);
+        setRole(resolvedRole);
+        setEmail(resolvedEmail);
+        return resolvedToken;
+      } catch (err) {
+        try {
+          window.localStorage.removeItem(TOKEN_STORAGE_KEY);
+          window.localStorage.removeItem(ROLE_STORAGE_KEY);
+          window.localStorage.removeItem(EMAIL_STORAGE_KEY);
+        } catch {
+          // Ignore storage failures.
+        }
+
+        setToken(null);
+        setRole(null);
+        setEmail(null);
+        setError(err);
+        throw err;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [resolvedMagicLinkEndpoint],
+  );
+
   const clearToken = useCallback(() => {
     try {
       window.localStorage.removeItem(TOKEN_STORAGE_KEY);
@@ -230,6 +314,7 @@ export const AuthContext_Provider = ({
       error,
       refreshToken: fetchToken,
       loginWithIdToken,
+      loginWithMagicLinkToken,
       clearToken,
     }),
     [
@@ -240,6 +325,7 @@ export const AuthContext_Provider = ({
       error,
       fetchToken,
       loginWithIdToken,
+      loginWithMagicLinkToken,
       clearToken,
     ],
   );
@@ -253,6 +339,7 @@ AuthContext_Provider.propTypes = {
   children: PropTypes.node.isRequired,
   tokenEndpoint: PropTypes.string,
   emailTokenEndpoint: PropTypes.string,
+  magicLinkTokenEndpoint: PropTypes.string,
   tokenRequestBody: PropTypes.shape({
     email: PropTypes.string,
     password: PropTypes.string,

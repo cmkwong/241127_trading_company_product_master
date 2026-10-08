@@ -1,33 +1,49 @@
-import {
-  isSignInWithEmailLink,
-  sendSignInLinkToEmail,
-  signInWithEmailLink,
-} from 'firebase/auth';
-import { getFirebaseAuth } from './firebase';
+import { apiPost } from './crud';
 
-const EMAIL_FOR_SIGN_IN_KEY = 'emailForSignIn';
 const NAMES_FOR_SIGN_IN_KEY = 'namesForSignIn';
 
-// The URL the magic link should land on. Defaults to this app's /finishSignUp.
-export const getEmailLinkUrl = () => {
-  const configured = import.meta.env.VITE_FIREBASE_EMAIL_LINK_URL;
-  if (configured) return configured;
-  return `${window.location.origin}/finishSignUp`;
-};
+// Base URL of the trading-company product master server. Matches the literal
+// already used elsewhere in the app (SignupPanel.jsx, AuthContext.jsx).
+const API_BASE = 'http://localhost:3001/api/v1/trade_business';
 
-export const buildActionCodeSettings = () => ({
-  url: getEmailLinkUrl(),
-  handleCodeInApp: true,
-});
+const LOGIN_ENDPOINT = `${API_BASE}/panel/auth/sendLoginMagicLink`;
+const SIGNUP_ENDPOINT = `${API_BASE}/home/users/signup/send-magic-link`;
+const PASSWORD_RESET_REQUEST_ENDPOINT = `${API_BASE}/home/users/password/forgot`;
+const PASSWORD_RESET_CONFIRM_ENDPOINT = `${API_BASE}/home/users/password/forgot/confirm`;
+
+// Minimum interval (seconds) the client waits before it will send another
+// magic-link. Gives SMTP time to deliver and prevents rapid duplicate requests
+// from impatient clicks. Shared by the login/signup panels and the SentEmail
+// takeover so the cooldown stays consistent everywhere.
+export const MAGIC_LINK_COOLDOWN_SECONDS = 60;
 
 /**
- * Send a passwordless sign-in link to the given email. The email is remembered
- * locally so the /finishSignUp page can complete the sign-in flow.
+ * Send a passwordless "magic link" to the given email via the server's SMTP
+ * relay (no Firebase). The link either logs an existing user in or verifies a
+ * brand-new sign-up, depending on whether first/last names are provided.
+ *
+ * `mode` is inferred as `signup` when a name is present, otherwise `login`.
+ * Pass `mode` explicitly to disambiguate.
  */
-export const sendMagicLink = async (email, { firstName, lastName } = {}) => {
-  const auth = getFirebaseAuth();
-  await sendSignInLinkToEmail(auth, email, buildActionCodeSettings());
-  window.localStorage.setItem(EMAIL_FOR_SIGN_IN_KEY, email);
+export const sendMagicLink = async (
+  email,
+  { firstName, lastName, mode } = {},
+) => {
+  const trimmedEmail = String(email || '').trim();
+
+  const isSignup =
+    mode === 'signup' || (mode !== 'login' && Boolean(firstName || lastName));
+
+  if (isSignup) {
+    await apiPost(SIGNUP_ENDPOINT, {
+      first_name: String(firstName ?? '').trim(),
+      last_name: String(lastName ?? '').trim(),
+      email: trimmedEmail,
+    });
+  } else {
+    await apiPost(LOGIN_ENDPOINT, { email: trimmedEmail });
+  }
+
   if (firstName || lastName) {
     window.localStorage.setItem(
       NAMES_FOR_SIGN_IN_KEY,
@@ -37,6 +53,32 @@ export const sendMagicLink = async (email, { firstName, lastName } = {}) => {
       }),
     );
   }
+};
+
+/**
+ * Send a "forgot password" reset link to the given email via the server's SMTP
+ * relay. The server responds `{ sent: true }` whether or not the account
+ * exists (or uses a password) to avoid account enumeration.
+ * @param {string} email
+ */
+export const sendPasswordResetLink = async (email) => {
+  const trimmedEmail = String(email || '').trim();
+  await apiPost(PASSWORD_RESET_REQUEST_ENDPOINT, { email: trimmedEmail });
+};
+
+/**
+ * Redeem a password-reset token by applying a new password. Resolves with the
+ * account email returned by the server (used to complete the login exchange).
+ * @param {string} token
+ * @param {string} newPassword
+ * @returns {Promise<{ email: string }>}
+ */
+export const resetPasswordWithToken = async (token, newPassword) => {
+  const response = await apiPost(PASSWORD_RESET_CONFIRM_ENDPOINT, {
+    token,
+    new_password: newPassword,
+  });
+  return response?.data ?? response;
 };
 
 /**
@@ -60,34 +102,41 @@ export const clearPendingSignupNames = () => {
   window.localStorage.removeItem(NAMES_FOR_SIGN_IN_KEY);
 };
 
+// Captured once per page load. The token is memoized so that React StrictMode's
+// double-invoked effects (dev only) don't strip the URL on the first mount and
+// then find nothing on the second. A full page load re-initializes the module.
+let pendingMagicToken = null;
+
 /**
- * Complete the email-link sign-in from the current URL. Returns
- * { idToken, email } on success, or null when the current URL is not a valid
- * email sign-in link.
+ * Extract the server-issued magic-link token from the current URL and strip it
+ * from the address bar so it isn't leaked or replayed on refresh. Idempotent:
+ * subsequent calls return the same token until `clearMagicLinkToken` is called.
+ * Returns `{ magicToken }`, or null when the URL carries no token.
  */
-export const completeMagicLinkSignIn = async () => {
-  const auth = getFirebaseAuth();
+export const completeMagicLinkSignIn = () => {
+  if (pendingMagicToken) return { magicToken: pendingMagicToken };
 
-  if (!isSignInWithEmailLink(auth, window.location.href)) {
-    return null;
-  }
+  const params = new URLSearchParams(window.location.search);
+  const magicToken = params.get('token');
 
-  let email = window.localStorage.getItem(EMAIL_FOR_SIGN_IN_KEY);
-  if (!email) {
-    email = window.prompt(
-      'Please provide your email address to finish signing in.',
-    );
-  }
-  if (!email) return null;
+  if (!magicToken) return null;
 
-  try {
-    const result = await signInWithEmailLink(auth, email, window.location.href);
-    window.localStorage.removeItem(EMAIL_FOR_SIGN_IN_KEY);
-    const idToken = await result.user.getIdToken();
-    return { idToken, email: result.user.email };
-  } catch {
-    throw new Error(
-      'Unable to complete email sign-in. Please request a new link.',
-    );
-  }
+  pendingMagicToken = magicToken;
+
+  // Drop the sensitive query string while keeping the current history entry.
+  window.history.replaceState(
+    {},
+    '',
+    window.location.pathname + window.location.hash,
+  );
+
+  return { magicToken };
+};
+
+/**
+ * Forget the captured token once it has been successfully exchanged, so a later
+ * SPA visit to /finishSignUp can't replay a stale token.
+ */
+export const clearMagicLinkToken = () => {
+  pendingMagicToken = null;
 };

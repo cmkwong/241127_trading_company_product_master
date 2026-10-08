@@ -7,6 +7,7 @@ import Main_PurchaseRequest from '../components/panels/PurchaseRequest/Main_Purc
 import Main_MasterControl from '../components/panels/MasterControl/Main_MasterControl';
 import Main_Signup from '../components/signup/Main_Signup';
 import FinishSignup from '../components/signup/FinishSignup';
+import ForceChangePassword from '../components/signup/ForceChangePassword';
 import Main_Homepage from '../components/homepage/Main_Homepage';
 
 const AppRouter = () => {
@@ -64,6 +65,7 @@ const AppRouter = () => {
 
       <Route path="signup" element={<Main_Signup />} />
       <Route path="finishSignUp" element={<FinishSignup />} />
+      <Route path="resetPassword" element={<ForceChangePassword />} />
       <Route path="home" element={<Main_Homepage />} />
       <Route path="/" element={<Navigate to="/home" replace />} />
 

@@ -2,12 +2,14 @@ import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuthContext } from '../../store/AuthContext';
 import { apiGet, apiPost } from '../../utils/crud';
-import { sendMagicLink } from '../../utils/emailLink';
+import { sendMagicLink, MAGIC_LINK_COOLDOWN_SECONDS } from '../../utils/emailLink';
 import Header from '../common/Texts/Header';
 import Main_TextField from '../common/InputOptions/TextField/Main_TextField';
 import PrimaryBtn from '../common/Buttons/PrimaryBtn';
 import Main_Checkbox from '../common/InputOptions/Checkbox/Main_Checkbox';
 import authStyles from './AuthPanel.module.css';
+import useCooldown, { formatCooldown } from '../../hooks/useCooldown';
+import SentEmail from './SentEmail';
 import GOOGLE_LOGO from '../../../public/assets/figma/sign-in-pages/google-icon.svg';
 import EMAIL_LOGO from '../../../public/assets/figma/sign-in-pages/email-icon.svg';
 import PW_SHOW_ICON from '../../../public/assets/figma/pw-show.svg';
@@ -33,10 +35,14 @@ const SignupPanel = ({ onLoginClick }) => {
   const [submitError, setSubmitError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSendingLink, setIsSendingLink] = useState(false);
-  const [magicLinkMessage, setMagicLinkMessage] = useState('');
+  const [magicLinkSentTo, setMagicLinkSentTo] = useState('');
   const [magicLinkError, setMagicLinkError] = useState('');
   const [signupMode, setSignupMode] = useState('password');
   const [loginLinkPulse, setLoginLinkPulse] = useState(0);
+
+  const { secondsLeft, isCoolingDown, start } = useCooldown(
+    MAGIC_LINK_COOLDOWN_SECONDS * 1000,
+  );
 
   const { refreshToken } = useAuthContext();
   const navigate = useNavigate();
@@ -47,7 +53,7 @@ const SignupPanel = ({ onLoginClick }) => {
       ...prev,
       email: 'An account with this email already exists.',
     }));
-    // Increment to retrigger the "Log in" button blink on every duplicate attempt.
+    // Increment to retrigger the "Login" button blink on every duplicate attempt.
     setLoginLinkPulse((n) => n + 1);
   };
 
@@ -56,14 +62,13 @@ const SignupPanel = ({ onLoginClick }) => {
     setErrors({});
     setSubmitError('');
     setSuccessMessage('');
-    setMagicLinkMessage('');
+    setMagicLinkSentTo('');
     setMagicLinkError('');
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     setSubmitError('');
-    setMagicLinkMessage('');
     setMagicLinkError('');
 
     const trimmedFirstName = String(firstName || '').trim();
@@ -123,16 +128,20 @@ const SignupPanel = ({ onLoginClick }) => {
       return;
     }
 
-    // Email-link (passwordless) sign-up: send the Firebase magic link. The
-    // first/last name are remembered so /finishSignUp can pre-fill them.
+    // Email-link (passwordless) sign-up: send the server-generated magic link
+    // via SMTP. The first/last name are remembered so /finishSignUp can
+    // pre-fill them.
     if (signupMode === 'emailLink') {
+      if (isSendingLink || isCoolingDown) return;
+
       setIsSendingLink(true);
       try {
         await sendMagicLink(trimmedEmail, {
           firstName: trimmedFirstName,
           lastName: trimmedLastName,
         });
-        setMagicLinkMessage('We emailed you a sign-up link. Check your inbox.');
+        setMagicLinkSentTo(trimmedEmail);
+        start();
       } catch (err) {
         setMagicLinkError(
           String(err?.message || '') || 'Unable to send the sign-up link.',
@@ -188,6 +197,22 @@ const SignupPanel = ({ onLoginClick }) => {
       setIsSubmitting(false);
     }
   };
+
+  if (magicLinkSentTo) {
+    return (
+      <SentEmail
+        purpose="signup"
+        email={magicLinkSentTo}
+        secondsLeft={secondsLeft}
+        isResending={isSendingLink}
+        onResend={handleSubmit}
+        onBack={() => {
+          setMagicLinkSentTo('');
+          setMagicLinkError('');
+        }}
+      />
+    );
+  }
 
   return (
     <section className={authStyles.loginPanel} data-node-id="853:29">
@@ -329,12 +354,18 @@ const SignupPanel = ({ onLoginClick }) => {
         <PrimaryBtn
           type="submit"
           fullWidth
-          disabled={signupMode === 'emailLink' ? isSendingLink : isSubmitting}
+          disabled={
+            signupMode === 'emailLink'
+              ? isSendingLink || isCoolingDown
+              : isSubmitting
+          }
         >
           {signupMode === 'emailLink'
             ? isSendingLink
               ? 'Sending link…'
-              : 'Create account'
+              : isCoolingDown
+                ? `Resend in ${formatCooldown(secondsLeft)}`
+                : 'Create account'
             : isSubmitting
               ? 'Creating account...'
               : 'Create account'}
@@ -366,9 +397,6 @@ const SignupPanel = ({ onLoginClick }) => {
           </div>
         </div>
 
-        {magicLinkMessage && (
-          <p className={authStyles.successMessage}>{magicLinkMessage}</p>
-        )}
         {magicLinkError && (
           <p className={authStyles.loginError}>{magicLinkError}</p>
         )}
@@ -384,7 +412,7 @@ const SignupPanel = ({ onLoginClick }) => {
               onLoginClick?.();
             }}
           >
-            Log in
+            Login
           </button>
         </p>
       </form>

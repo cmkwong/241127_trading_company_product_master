@@ -4,8 +4,8 @@ import Main_TextField from '../../../common/InputOptions/TextField/Main_TextFiel
 import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
 import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
 import Main_Suggest from '../../../common/InputOptions/Suggest/Main_Suggest';
-import SplitLayout from '../../../common/Layouts/SplitLayout';
-import VerticalLayout from '../../../common/Layouts/VerticalLayout';
+import RowLayout from '../../../common/Layouts/RowLayout';
+import ColumnLayout from '../../../common/Layouts/ColumnLayout';
 import { formatMoney } from '../../SalesQuotation/utils/quotationTotals';
 import styles from '../Main_PurchaseRequest.module.css';
 
@@ -41,8 +41,8 @@ const PurchaseRequestBasicInfo = ({
 }) => {
   return (
     <Main_InputContainer label="Purchase Request Basic Info">
-      <SplitLayout>
-        <VerticalLayout>
+      <RowLayout>
+        <ColumnLayout>
           <Main_InputContainer label="Purchase Request ID">
             <Main_TextField
               defaultValue={toSafeString(draft?.id)}
@@ -126,9 +126,9 @@ const PurchaseRequestBasicInfo = ({
               onSelectSuggestion={onSupplierAddressSelect}
             />
           </Main_InputContainer>
-        </VerticalLayout>
+        </ColumnLayout>
 
-        <VerticalLayout>
+        <ColumnLayout>
           <Main_InputContainer label="Sales Quotation">
             <Main_Suggest
               defaultSuggestions={salesQuotationSuggestionOptions}
@@ -183,8 +183,8 @@ const PurchaseRequestBasicInfo = ({
               onChange={(ov, nv) => onRemarkChange?.(nv)}
             />
           </Main_InputContainer>
-        </VerticalLayout>
-      </SplitLayout>
+        </ColumnLayout>
+      </RowLayout>
     </Main_InputContainer>
   );
 };

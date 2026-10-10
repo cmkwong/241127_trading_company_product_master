@@ -1,9 +1,9 @@
 .wrapper {
   position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
+  /* display: inline-flex; */
+  /* align-items: center; */
+  /* justify-content: center; */
+  /* gap: 8px; */
 }
 
 .hiddenFileInput {

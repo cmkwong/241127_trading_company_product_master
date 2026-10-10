@@ -21,6 +21,7 @@ const Sub_TextField = forwardRef((props, externalRef) => {
     autoFocus = false,
     className = '',
     size = 'default',
+    height,
     onFocus,
     onBlur,
     onClick,
@@ -28,6 +29,18 @@ const Sub_TextField = forwardRef((props, externalRef) => {
   } = props;
 
   const isLinkType = type === 'link';
+
+  // Standardized fixed-height presets (mirrors Main_Dropdown's size
+  // normalization). Omitted/unknown values fall through to no class, so the
+  // field keeps its padding-derived height (backward compatible).
+  const normalizedHeight = String(height || '').trim().toUpperCase();
+  const heightClass =
+    {
+      S: styles.heightS,
+      M: styles.heightM,
+      L: styles.heightL,
+      XL: styles.heightXl,
+    }[normalizedHeight] || '';
 
   const internalRef = useRef(null);
   const cursorPositionRef = useRef(null);
@@ -93,7 +106,7 @@ const Sub_TextField = forwardRef((props, externalRef) => {
       id={id}
       className={`${styles.textField} ${
         size === 'large' ? styles.textFieldLarge : ''
-      } ${className}`}
+      } ${heightClass} ${className}`.trim()}
       type={isLinkType ? 'text' : type}
       value={value}
       onChange={handleChange}
@@ -168,6 +181,7 @@ Sub_TextField.propTypes = {
   autoFocus: PropTypes.bool,
   className: PropTypes.string,
   size: PropTypes.oneOf(['default', 'large']),
+  height: PropTypes.oneOf(['s', 'm', 'l', 'xl', 'S', 'M', 'L', 'XL']),
   onFocus: PropTypes.func,
   onBlur: PropTypes.func,
   onClick: PropTypes.func,

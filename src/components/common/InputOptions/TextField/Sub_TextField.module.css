@@ -21,6 +21,34 @@
   padding: 14px 16px;
 }
 
+/* Standardized fixed-height presets (mirrors Main_Dropdown size presets).
+   box-sizing is already border-box on .textField, so height is the total
+   control height. Vertical padding is zeroed so the native input centers
+   its text within the fixed height. */
+.heightS {
+  height: 24px;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.heightM {
+  height: 35px;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.heightL {
+  height: 44px;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.heightXL {
+  height: 52px;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
 .textField:hover:not(:disabled) {
   border-color: var(--color-border-strong);
 }

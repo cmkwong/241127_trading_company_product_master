@@ -249,7 +249,10 @@ const TopBar = () => {
         type="button"
         role="menuitem"
         className={styles.userMenuItem}
-        onClick={() => setShowUserMenu(false)}
+        onClick={() => {
+          setShowUserMenu(false);
+          navigate('/account/profile');
+        }}
       >
         <img
           src={FIGMA_ICON_MY_PROFILE}
@@ -264,7 +267,10 @@ const TopBar = () => {
         type="button"
         role="menuitem"
         className={styles.userMenuItem}
-        onClick={() => setShowUserMenu(false)}
+        onClick={() => {
+          setShowUserMenu(false);
+          navigate('/account/rfqs');
+        }}
       >
         <img
           src={FIGMA_ICON_MY_ORDERS}
@@ -272,14 +278,17 @@ const TopBar = () => {
           aria-hidden="true"
           className={styles.userMenuItemIcon}
         />
-        My Orders
+        My RFQs
       </button>
 
       <button
         type="button"
         role="menuitem"
         className={styles.userMenuItem}
-        onClick={() => setShowUserMenu(false)}
+        onClick={() => {
+          setShowUserMenu(false);
+          navigate('/account/address');
+        }}
       >
         <img
           src={FIGMA_ICON_MY_ADDRESS}
@@ -294,7 +303,10 @@ const TopBar = () => {
         type="button"
         role="menuitem"
         className={styles.userMenuItem}
-        onClick={() => setShowUserMenu(false)}
+        onClick={() => {
+          setShowUserMenu(false);
+          navigate('/account/payment');
+        }}
       >
         <img
           src={FIGMA_ICON_MY_PAYMENT_METHOD}
@@ -302,7 +314,7 @@ const TopBar = () => {
           aria-hidden="true"
           className={styles.userMenuItemIcon}
         />
-        My Payment Method
+        Payment Method
       </button>
 
       <button

@@ -24,6 +24,11 @@ const Main_TextField = (props) => {
     // UI
     label,
     labelPosition = 'top',
+    labelSize = 'S',
+    labelWeight = 'medium',
+    labelColor,
+    labelIcon,
+    labelClassName = '',
     inputId,
     placeholder = 'Enter text...',
     type = 'text',
@@ -36,6 +41,7 @@ const Main_TextField = (props) => {
     autoFocus = false,
     className = '',
     size = 'default',
+    height,
     helperText,
     error = false,
     inputSuffix,
@@ -71,15 +77,16 @@ const Main_TextField = (props) => {
           <Label
             htmlFor={inputId}
             text={label}
-            size="S"
-            weight="medium"
-            color={error ? '#dc2626' : 'var(--color-primary)'}
+            size={labelSize}
+            weight={labelWeight}
+            color={labelColor || (error ? '#dc2626' : 'var(--color-primary)')}
             required={required}
-            className={
+            icon={labelIcon}
+            className={`${
               labelPosition === 'left'
                 ? styles.fieldLabelLeft
                 : styles.fieldLabel
-            }
+            } ${labelClassName}`.trim()}
           />
         )}
         <div className={styles.inputWrapper}>
@@ -99,6 +106,7 @@ const Main_TextField = (props) => {
             autoFocus={autoFocus}
             className={className}
             size={size}
+            height={height}
             onFocus={onFocus}
             onBlur={onBlur}
             onClick={onClick}
@@ -136,6 +144,11 @@ Main_TextField.propTypes = {
   // UI
   label: PropTypes.string,
   labelPosition: PropTypes.oneOf(['top', 'left']),
+  labelSize: PropTypes.oneOf(['XL', 'L', 'M', 'S', 'XS', 'xl', 'l', 'm', 's', 'xs']),
+  labelWeight: PropTypes.oneOf(['regular', 'medium', 'semibold', 'bold']),
+  labelColor: PropTypes.string,
+  labelIcon: PropTypes.node,
+  labelClassName: PropTypes.string,
   inputId: PropTypes.string,
   placeholder: PropTypes.string,
   type: PropTypes.string,
@@ -148,6 +161,7 @@ Main_TextField.propTypes = {
   autoFocus: PropTypes.bool,
   className: PropTypes.string,
   size: PropTypes.oneOf(['default', 'large']),
+  height: PropTypes.oneOf(['s', 'm', 'l', 'xl', 'S', 'M', 'L', 'XL']),
   helperText: PropTypes.string,
   error: PropTypes.bool,
   inputSuffix: PropTypes.node,

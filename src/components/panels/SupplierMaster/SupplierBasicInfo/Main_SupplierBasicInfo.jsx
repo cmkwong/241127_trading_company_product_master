@@ -11,8 +11,8 @@ import {
 } from '../../../../store/GeneralContext';
 import { useMasterContext } from '../../../../store/MasterContext';
 import styles from '../Main_SupplierMaster.module.css';
-import SplitLayout from '../../../common/Layouts/SplitLayout';
-import VerticalLayout from '../../../common/Layouts/VerticalLayout';
+import RowLayout from '../../../common/Layouts/RowLayout';
+import ColumnLayout from '../../../common/Layouts/ColumnLayout';
 
 const Main_SupplierBasicInfo = () => {
   const { supplierType } = useMasterContext();
@@ -81,8 +81,8 @@ const Main_SupplierBasicInfo = () => {
   };
 
   return (
-    <SplitLayout>
-      <VerticalLayout>
+    <RowLayout>
+      <ColumnLayout>
         <Main_InputContainer label="Supplier Code">
           <Main_TextField
             defaultValue={supplierCode || supplierCodeCompat || ''}
@@ -119,7 +119,7 @@ const Main_SupplierBasicInfo = () => {
             }}
           />
         </Main_InputContainer>
-      </VerticalLayout>
+      </ColumnLayout>
       <Main_InputContainer
         label="Company Remark"
         className={styles.companyRemarkContainer}
@@ -158,7 +158,7 @@ const Main_SupplierBasicInfo = () => {
           }}
         />
       </Main_InputContainer>
-    </SplitLayout>
+    </RowLayout>
   );
 };
 

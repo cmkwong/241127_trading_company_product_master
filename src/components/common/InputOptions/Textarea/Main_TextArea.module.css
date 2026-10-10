@@ -5,6 +5,37 @@
   min-width: 0;
 }
 
+.fieldRow {
+  display: flex;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+}
+
+.labelTop {
+  flex-direction: column;
+}
+
+.labelLeft {
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+}
+
+.fieldLabel {
+  margin-bottom: 6px;
+}
+
+.fieldLabelLeft {
+  margin-bottom: 0;
+  min-width: 100px;
+}
+
 .fullHeight {
   height: 100%;
+}
+
+.richFallback {
+  width: 100%;
+  min-height: 120px;
 }

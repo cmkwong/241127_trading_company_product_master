@@ -2,8 +2,8 @@ import Main_InputContainer from '../../../common/Container/Main_InputContainer';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
 import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
 import Main_DateSelector from '../../../common/InputOptions/Date/Main_DateSelector';
-import SplitLayout from '../../../common/Layouts/SplitLayout';
-import VerticalLayout from '../../../common/Layouts/VerticalLayout';
+import RowLayout from '../../../common/Layouts/RowLayout';
+import ColumnLayout from '../../../common/Layouts/ColumnLayout';
 import {
   upsertEntityData,
   useEntityField,
@@ -31,8 +31,8 @@ const Main_CustomerBasicInfo = () => {
     customerNameRows?.[0]?.name || customerName || customerCode || '';
   return (
     <Main_InputContainer label="Customer Basic Info">
-      <SplitLayout>
-        <VerticalLayout>
+      <RowLayout>
+        <ColumnLayout>
           <Main_InputContainer label="Customer ID">
             <Main_TextField
               defaultValue={String(customerId || '')}
@@ -61,9 +61,9 @@ const Main_CustomerBasicInfo = () => {
               placeholder="From Customer Names section"
             />
           </Main_InputContainer>
-        </VerticalLayout>
+        </ColumnLayout>
 
-        <VerticalLayout>
+        <ColumnLayout>
           <Main_InputContainer label="Created At">
             <Main_DateSelector
               defaultValue={toDateInputValue(customerCreatedAt)}
@@ -88,8 +88,8 @@ const Main_CustomerBasicInfo = () => {
               }}
             />
           </Main_InputContainer>
-        </VerticalLayout>
-      </SplitLayout>
+        </ColumnLayout>
+      </RowLayout>
     </Main_InputContainer>
   );
 };

@@ -7,8 +7,8 @@ import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
 import Main_Suggest from '../../../common/InputOptions/Suggest/Main_Suggest';
 import Main_DateSelector from '../../../common/InputOptions/Date/Main_DateSelector';
 import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_FileUploads';
-import SplitLayout from '../../../common/Layouts/SplitLayout';
-import VerticalLayout from '../../../common/Layouts/VerticalLayout';
+import RowLayout from '../../../common/Layouts/RowLayout';
+import ColumnLayout from '../../../common/Layouts/ColumnLayout';
 import {
   useEntityField,
   useEntityRows,
@@ -330,8 +330,8 @@ const Main_SalesBasicInfo = ({
 
   return (
     <Main_InputContainer label="Sales Quotation Basic Info">
-      <SplitLayout>
-        <VerticalLayout>
+      <RowLayout>
+        <ColumnLayout>
           <Main_InputContainer label="Quotation ID">
             <Main_TextField
               defaultValue={String(quotationId || '')}
@@ -511,9 +511,9 @@ const Main_SalesBasicInfo = ({
               }}
             />
           </Main_InputContainer>
-        </VerticalLayout>
+        </ColumnLayout>
 
-        <VerticalLayout>
+        <ColumnLayout>
           <Main_InputContainer label="Document Type">
             <Main_TextField
               defaultValue={docTypeName}
@@ -629,8 +629,8 @@ const Main_SalesBasicInfo = ({
               }}
             />
           </Main_InputContainer>
-        </VerticalLayout>
-      </SplitLayout>
+        </ColumnLayout>
+      </RowLayout>
     </Main_InputContainer>
   );
 };

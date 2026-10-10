@@ -9,6 +9,7 @@ import Main_Signup from '../components/signup/Main_Signup';
 import FinishSignup from '../components/signup/FinishSignup';
 import ForceChangePassword from '../components/signup/ForceChangePassword';
 import Main_Homepage from '../components/homepage/Main_Homepage';
+import Main_LoginUsers from '../components/homepage/LoginUsers/Main_LoginUsers';
 
 const AppRouter = () => {
   return (
@@ -67,6 +68,8 @@ const AppRouter = () => {
       <Route path="finishSignUp" element={<FinishSignup />} />
       <Route path="resetPassword" element={<ForceChangePassword />} />
       <Route path="home" element={<Main_Homepage />} />
+      <Route path="account" element={<Navigate to="/account/profile" replace />} />
+      <Route path="account/:section" element={<Main_LoginUsers />} />
       <Route path="/" element={<Navigate to="/home" replace />} />
 
       <Route path="*" element={<Navigate to="/home" replace />} />

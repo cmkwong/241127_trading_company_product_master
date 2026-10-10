@@ -1,20 +1,35 @@
 import Header from '../Texts/Header';
 import styles from './Main_InputContainer.module.css';
 
-const Main_InputContainer = ({ label: title, children, layout = 'column' }) => {
+const Main_InputContainer = ({
+  label: title,
+  description,
+  children,
+  layout = 'column',
+  className = '',
+}) => {
+  const hasHeader = Boolean(title) || Boolean(description);
+
   return (
     <div
       className={
-        layout === 'row' ? styles.inputOptionBoxRow : styles.inputOptionBox
+        layout === 'row'
+          ? `${styles.inputOptionBoxRow} ${className}`
+          : `${styles.inputOptionBox} ${className}`
       }
     >
-      <div className={styles.headerRow}>
-        {typeof title === 'string' ? (
-          <Header as="h2" size="L" text={title} />
-        ) : (
-          title
-        )}
-      </div>
+      {hasHeader ? (
+        <div className={styles.headerRow}>
+          {typeof title === 'string' ? (
+            <Header as="h2" size="L" weight="bold" text={title} />
+          ) : (
+            title
+          )}
+          {description ? (
+            <p className={styles.descriptionText}>{description}</p>
+          ) : null}
+        </div>
+      ) : null}
       <div className={styles.inputContainer}>{children}</div>
     </div>
   );

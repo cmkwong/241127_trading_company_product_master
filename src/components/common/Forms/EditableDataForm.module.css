@@ -115,11 +115,28 @@
   top: 6px;
   right: 8px;
   z-index: 2;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+.RowWrap:hover .RowRemoveBtn,
+.RowWrap:focus-within .RowRemoveBtn {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Touch devices have no hover, so keep the remove button visible. */
+@media (hover: none) {
+  .RowRemoveBtn {
+    opacity: 1;
+    pointer-events: auto;
+  }
 }
 
 .RowGrid {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: flex-start;
   gap: 8px 12px;
   width: 100%;
@@ -127,10 +144,7 @@
 
 .RowItem {
   display: block;
-  flex: 1 1 var(--row-item-min-width, 220px);
-  min-width: min(var(--row-item-min-width, 220px), 100%);
-  max-width: var(--row-item-max-width, 100%);
-  width: 100%;
+  flex: 1 1 auto;
   min-width: 0;
   overflow: hidden;
 }
@@ -229,4 +243,3 @@
 .RowRemoveBtnWithBadge {
   right: 46px;
 }
-

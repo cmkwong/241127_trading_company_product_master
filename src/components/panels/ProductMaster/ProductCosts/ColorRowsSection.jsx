@@ -70,7 +70,9 @@ const ColorRowsSection = ({
                     imageRecord?.image_name || row.image_name || 'color'
                   }
                   onSelectFile={(file) => handleColorImageFileChange(row, file)}
-                  onSelectExisting={(entry) => handleColorImageReuse(row, entry)}
+                  onSelectExisting={(entry) =>
+                    handleColorImageReuse(row, entry)
+                  }
                   directoryPath={colorImagesDirectoryPath}
                   accept={ACCEPTED_IMAGE_TYPES.join(',')}
                   title="Select color image"

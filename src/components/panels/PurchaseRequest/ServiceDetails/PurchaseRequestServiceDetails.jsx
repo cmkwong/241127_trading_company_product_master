@@ -51,7 +51,7 @@ const PurchaseRequestServiceDetails = ({
       {
         key: 'service_id',
         label: 'Service',
-        size: 'XXL',
+        flex: '1 1 450px',
         getSortValue: (row) => {
           const service = serviceSuggestionOptions.find(
             (item) => item.id === toSafeString(row?.service_id),
@@ -96,7 +96,7 @@ const PurchaseRequestServiceDetails = ({
       {
         key: 'sales_service_detail_id',
         label: 'Linked SQ Row',
-        size: 'L',
+        flex: '1 1 270px',
         sortType: 'string',
         getSortValue: (row) => {
           const matched = quotationSuggestionOptions.find(
@@ -140,7 +140,7 @@ const PurchaseRequestServiceDetails = ({
       {
         key: 'qty',
         label: 'Qty',
-        size: 'M',
+        flex: '1 1 180px',
         sortType: 'number',
         renderCell: (row) => (
           <Main_TextField
@@ -157,7 +157,7 @@ const PurchaseRequestServiceDetails = ({
       {
         key: 'currency_id',
         label: 'Currency',
-        size: 'L',
+        flex: '1 1 270px',
         sortType: 'string',
         renderCell: (row) => (
           <Main_Dropdown
@@ -171,7 +171,7 @@ const PurchaseRequestServiceDetails = ({
       {
         key: 'price',
         label: 'Total Cost',
-        size: 'M',
+        flex: '1 1 180px',
         sortType: 'number',
         renderCell: (row) => (
           <Main_TextField
@@ -188,7 +188,7 @@ const PurchaseRequestServiceDetails = ({
       {
         key: 'api_selected',
         label: 'AP Invoice',
-        size: 'S',
+        flex: '1 1 90px',
         sortType: 'string',
         renderCell: (row) => (
           <div className={styles.checkboxCell}>
@@ -205,7 +205,7 @@ const PurchaseRequestServiceDetails = ({
       {
         key: 'details',
         label: 'Details',
-        size: 'XL',
+        flex: '1 1 360px',
         nextRow: true,
         renderCell: (row) => (
           <Main_TextArea
@@ -219,7 +219,7 @@ const PurchaseRequestServiceDetails = ({
       {
         key: 'remark',
         label: 'Internal Remark',
-        size: 'XL',
+        flex: '1 1 360px',
         nextRow: true,
         renderCell: (row) => (
           <Main_TextArea
@@ -233,7 +233,7 @@ const PurchaseRequestServiceDetails = ({
       {
         key: 'images',
         label: 'Service Images',
-        size: 'XL',
+        flex: '1 1 360px',
         nextRow: true,
         sortable: false,
         renderCell: (row) => (
@@ -260,7 +260,7 @@ const PurchaseRequestServiceDetails = ({
       {
         key: 'files',
         label: 'Service Files',
-        size: 'XL',
+        flex: '1 1 360px',
         nextRow: true,
         sortable: false,
         renderCell: (row) => (

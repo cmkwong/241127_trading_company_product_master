@@ -296,7 +296,7 @@ const Main_SalesServiceDetails = ({
       {
         key: 'supplier_id',
         label: 'Supplier',
-        size: 'XL',
+        flex: '1 1 360px',
         sortType: 'string',
         getSortValue: (row) =>
           supplierDropdownOptions.find((item) => item.id === row.supplier_id)
@@ -355,7 +355,7 @@ const Main_SalesServiceDetails = ({
       {
         key: 'service_id',
         label: 'Service',
-        size: 'L',
+        flex: '1 1 270px',
         sortType: 'string',
         getSortValue: (row) =>
           serviceSuggestionOptions.find((item) => item.id === row.service_id)
@@ -392,7 +392,7 @@ const Main_SalesServiceDetails = ({
       {
         key: 'override_service_name',
         label: 'Override Service Name (Print)',
-        size: 'XXL',
+        flex: '1 1 450px',
         sortType: 'string',
         nextRow: true,
         renderCell: (row) => (
@@ -409,7 +409,7 @@ const Main_SalesServiceDetails = ({
       {
         key: 'qty',
         label: 'Qty',
-        size: 'M',
+        flex: '1 1 180px',
         sortType: 'number',
         renderCell: (row) => (
           <Main_TextField
@@ -426,7 +426,7 @@ const Main_SalesServiceDetails = ({
       {
         key: 'currency_id',
         label: 'Currency',
-        size: 'L',
+        flex: '1 1 270px',
         sortType: 'string',
         renderCell: (row) => (
           <Main_Dropdown
@@ -442,7 +442,7 @@ const Main_SalesServiceDetails = ({
       {
         key: 'price',
         label: 'Sales Price',
-        size: 'M',
+        flex: '1 1 180px',
         sortType: 'number',
         renderCell: (row) => (
           <Main_TextField
@@ -459,7 +459,7 @@ const Main_SalesServiceDetails = ({
       {
         key: 'discount_percent',
         label: 'Discount %',
-        size: 'S',
+        flex: '1 1 90px',
         sortType: 'number',
         renderCell: (row) => (
           <Main_TextField
@@ -480,7 +480,7 @@ const Main_SalesServiceDetails = ({
       {
         key: 'discount_sales_price',
         label: 'Discount Sales Price',
-        size: 'M',
+        flex: '1 1 180px',
         sortType: 'number',
         getSortValue: (row) =>
           getDiscountedRate(row?.price, row?.discount_percent),
@@ -503,7 +503,7 @@ const Main_SalesServiceDetails = ({
       {
         key: 'selected',
         label: 'Selected',
-        size: 'S',
+        flex: '1 1 90px',
         sortType: 'string',
         renderCell: (row) => (
           <div className={styles.checkboxCell}>
@@ -522,7 +522,7 @@ const Main_SalesServiceDetails = ({
       {
         key: 'cost_currency_id',
         label: 'Cost Currency',
-        size: 'L',
+        flex: '1 1 180px',
         sortType: 'string',
         nextRow: true,
         renderCell: (row) => (
@@ -539,7 +539,7 @@ const Main_SalesServiceDetails = ({
       {
         key: 'cost_price',
         label: 'Cost Price',
-        size: 'M',
+        flex: '1 1 180px',
         sortType: 'number',
         renderCell: (row) => (
           <Main_TextField
@@ -556,7 +556,7 @@ const Main_SalesServiceDetails = ({
       {
         key: 'details',
         label: 'Details',
-        size: 'XL',
+        flex: '1 1 360px',
         sortType: 'string',
         nextRow: true,
         renderCell: (row) => (
@@ -573,7 +573,7 @@ const Main_SalesServiceDetails = ({
       {
         key: 'remark',
         label: 'Internal Remark',
-        size: 'XL',
+        flex: '1 1 360px',
         sortType: 'string',
         renderCell: (row) => (
           <Main_TextArea
@@ -589,7 +589,7 @@ const Main_SalesServiceDetails = ({
       {
         key: 'images',
         label: 'Print Images',
-        size: 'XL',
+        flex: '1 1 360px',
         sortable: false,
         nextRow: true,
         renderCell: (row) => {
@@ -634,7 +634,7 @@ const Main_SalesServiceDetails = ({
       {
         key: 'internal_images',
         label: 'Internal Images',
-        size: 'XL',
+        flex: '1 1 360px',
         sortable: false,
         nextRow: true,
         renderCell: (row) => {
@@ -684,7 +684,7 @@ const Main_SalesServiceDetails = ({
       {
         key: 'internal_files',
         label: 'Internal Files',
-        size: 'XL',
+        flex: '1 1 360px',
         sortable: false,
         renderCell: (row) => {
           const defaultFiles = serviceInternalFiles

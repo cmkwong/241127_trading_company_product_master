@@ -207,8 +207,7 @@ const Main_Pack = () => {
         key: 'packing_type_id',
         label: 'Package Type',
         sortType: 'string',
-        minWidth: '200px',
-        maxWidth: '320px',
+        flex: '1 1 200px',
         cellClassName: styles.tableCell,
         renderCell: (row) => (
           <Main_Dropdown
@@ -223,8 +222,7 @@ const Main_Pack = () => {
         key: 'packing_reliability_type_id',
         label: 'Pack Reliability',
         sortType: 'string',
-        minWidth: '180px',
-        maxWidth: '280px',
+        flex: '1 1 180px',
         cellClassName: styles.tableCell,
         renderCell: (row) => (
           <Main_Dropdown
@@ -243,8 +241,7 @@ const Main_Pack = () => {
         key: 'length',
         label: 'L',
         sortType: 'number',
-        minWidth: '80px',
-        maxWidth: '120px',
+        flex: '1 1 80px',
         cellClassName: styles.tableCell,
         renderCell: (row) => (
           <Main_TextField
@@ -262,8 +259,7 @@ const Main_Pack = () => {
         key: 'width',
         label: 'W',
         sortType: 'number',
-        minWidth: '80px',
-        maxWidth: '120px',
+        flex: '1 1 80px',
         cellClassName: styles.tableCell,
         renderCell: (row) => (
           <Main_TextField
@@ -281,8 +277,7 @@ const Main_Pack = () => {
         key: 'height',
         label: 'H',
         sortType: 'number',
-        minWidth: '80px',
-        maxWidth: '120px',
+        flex: '1 1 80px',
         cellClassName: styles.tableCell,
         renderCell: (row) => (
           <Main_TextField
@@ -300,8 +295,7 @@ const Main_Pack = () => {
         key: 'quantity',
         label: 'Qty / Pack',
         sortType: 'number',
-        minWidth: '90px',
-        maxWidth: '140px',
+        flex: '1 1 90px',
         cellClassName: styles.tableCell,
         renderCell: (row) => (
           <Main_TextField
@@ -321,8 +315,7 @@ const Main_Pack = () => {
         key: 'weight',
         label: 'Weight kg',
         sortType: 'number',
-        minWidth: '90px',
-        maxWidth: '140px',
+        flex: '1 1 90px',
         cellClassName: styles.tableCell,
         renderCell: (row) => (
           <Main_TextField
@@ -341,8 +334,7 @@ const Main_Pack = () => {
         label: 'Remark',
         sortable: false,
         nextRow: true,
-        minWidth: '260px',
-        maxWidth: '100%',
+        flex: '1 1 260px',
         cellClassName: styles.tableCell,
         renderCell: (row) => (
           <Main_TextArea
@@ -359,8 +351,7 @@ const Main_Pack = () => {
         label: 'Files',
         sortable: false,
         nextRow: true,
-        minWidth: '300px',
-        maxWidth: '100%',
+        flex: '1 1 300px',
         cellClassName: styles.tableCell,
         renderCell: (row) => {
           const defaultFiles = sortByDisplayOrder(

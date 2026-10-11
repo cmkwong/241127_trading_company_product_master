@@ -2,6 +2,7 @@ import React, { useMemo, useRef, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import styles from './Main_DateSelector.module.css';
 import Sub_DateField from './Sub_DateField';
+import Label from '../../Texts/Label';
 
 const DATE_DASH_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
 const DATE_PLAIN_RE = /^(\d{4})(\d{2})(\d{2})$/;
@@ -184,9 +185,19 @@ const Main_DateSelector = ({
     ],
   );
 
-  // Note: We do NOT wrap this in another label; you already provide label in the container.
+  // Render the label above the field (mirrors Main_TextField) and still pass
+  // `label` through to the calendar popover for its accessible aria-label.
   return (
     <div className={styles.container} data-testid="date-selector">
+      {label ? (
+        <Label
+          htmlFor={resolvedId}
+          text={label}
+          size="S"
+          weight="medium"
+          color="var(--color-primary)"
+        />
+      ) : null}
       <Sub_DateField {...fieldProps} />
     </div>
   );

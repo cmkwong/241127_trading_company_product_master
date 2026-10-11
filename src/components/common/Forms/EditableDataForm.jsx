@@ -5,26 +5,21 @@ import AddNewBtn from '../Buttons/AddNewBtn';
 import styles from './EditableDataForm.module.css';
 
 const getDefaultRowKey = (row, index) => row?.id || index;
-const COLUMN_SIZE_MAP = {
-  S: 90,
-  M: 130,
-  L: 350,
-  XL: 600,
-  XXL: 800,
-};
 
-const toCssWidth = (value) => {
-  if (value === null || value === undefined || value === '') {
-    return undefined;
-  }
-
-  if (typeof value === 'number') {
-    return `${value}px`;
-  }
-
-  return String(value);
-};
-
+/**
+ * Column definition for a single editable cell.
+ *
+ * Each row segment (split by `nextRow`) is rendered as a flex container and
+ * every column becomes a flex item. Size is controlled with flexbox props
+ * instead of fixed widths:
+ *   - `flex`        : shorthand e.g. "1 1 220px"
+ *   - `flexGrow`    : number
+ *   - `flexShrink`  : number
+ *   - `flexBasis`   : CSS value (e.g. "220px", "30%", "auto")
+ *   - `alignSelf`   : CSS align-self value
+ *   - `order`       : number
+ *   - `nextRow`     : true to start a new row for this column
+ */
 const EditableDataForm = ({
   rows = [],
   columns = [],
@@ -45,41 +40,15 @@ const EditableDataForm = ({
 
   const showAddRow = typeof onAddRow === 'function';
 
-  const normalizedColumns = useMemo(() => {
-    return columns.map((column) => {
-      const normalizedSizeKey = String(column?.size || '')
-        .trim()
-        .toUpperCase();
-      const mappedSize = COLUMN_SIZE_MAP[normalizedSizeKey];
-
-      const resolvedWidth =
-        toCssWidth(column?.width) ||
-        (mappedSize ? `${mappedSize}px` : undefined);
-      const resolvedMinWidth =
-        toCssWidth(column?.minWidth) ||
-        (mappedSize ? `${mappedSize}px` : undefined);
-      const resolvedMaxWidth =
-        toCssWidth(column?.maxWidth) ||
-        (mappedSize ? `${mappedSize}px` : undefined);
-
-      return {
-        ...column,
-        width: resolvedWidth,
-        minWidth: resolvedMinWidth,
-        maxWidth: resolvedMaxWidth,
-      };
-    });
-  }, [columns]);
-
   const rowSegments = useMemo(() => {
-    if (!Array.isArray(normalizedColumns) || normalizedColumns.length === 0) {
+    if (!Array.isArray(columns) || columns.length === 0) {
       return [];
     }
 
     const segments = [];
     let currentSegment = [];
 
-    normalizedColumns.forEach((column) => {
+    columns.forEach((column) => {
       if (column?.nextRow && currentSegment.length > 0) {
         segments.push(currentSegment);
         currentSegment = [column];
@@ -94,7 +63,7 @@ const EditableDataForm = ({
     }
 
     return segments;
-  }, [normalizedColumns]);
+  }, [columns]);
 
   const applyFill = useCallback(() => {
     if (

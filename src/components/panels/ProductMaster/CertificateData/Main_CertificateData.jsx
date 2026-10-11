@@ -129,7 +129,7 @@ const Main_CertificateData = () => {
       {
         key: 'certificate_type_id',
         label: 'Certificate Type',
-        size: 'L',
+        flex: '1 1 270px',
         sortType: 'string',
         getSortValue: (row) => {
           const option = certTypeOptions.find(
@@ -151,7 +151,7 @@ const Main_CertificateData = () => {
       {
         key: 'files',
         label: 'Files',
-        size: 'XL',
+        flex: '1 1 360px',
         sortable: false,
         nextRow: true,
         renderCell: (row) => {
@@ -204,7 +204,7 @@ const Main_CertificateData = () => {
       {
         key: 'remark',
         label: 'Remark',
-        size: 'XL',
+        flex: '1 1 360px',
         sortType: 'string',
         nextRow: true,
         getSortValue: (row) => row.remark || '',

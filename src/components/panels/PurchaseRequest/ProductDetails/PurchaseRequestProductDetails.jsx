@@ -52,7 +52,7 @@ const PurchaseRequestProductDetails = ({
       {
         key: 'product_id',
         label: 'Product',
-        size: 'XXL',
+        flex: '1 1 450px',
         getSortValue: (row) => {
           const product = productSuggestionOptions.find(
             (item) => item.id === toSafeString(row?.product_id),
@@ -131,7 +131,7 @@ const PurchaseRequestProductDetails = ({
       {
         key: 'sales_product_detail_id',
         label: 'Linked SQ Row',
-        size: 'L',
+        flex: '1 1 270px',
         sortType: 'string',
         getSortValue: (row) => {
           const matched = quotationSuggestionOptions.find(
@@ -175,7 +175,7 @@ const PurchaseRequestProductDetails = ({
       {
         key: 'qty',
         label: 'Qty',
-        size: 'M',
+        flex: '1 1 180px',
         sortType: 'number',
         renderCell: (row) => (
           <Main_TextField
@@ -192,7 +192,7 @@ const PurchaseRequestProductDetails = ({
       {
         key: 'api_selected',
         label: 'AP Invoice',
-        size: 'S',
+        flex: '1 1 90px',
         sortType: 'string',
         renderCell: (row) => (
           <div className={styles.checkboxCell}>
@@ -209,7 +209,7 @@ const PurchaseRequestProductDetails = ({
       {
         key: 'currency_id',
         label: 'Currency',
-        size: 'L',
+        flex: '1 1 270px',
         sortType: 'string',
         nextRow: true,
         renderCell: (row) => (
@@ -224,7 +224,7 @@ const PurchaseRequestProductDetails = ({
       {
         key: 'price',
         label: 'Total Cost',
-        size: 'M',
+        flex: '1 1 180px',
         sortType: 'number',
         renderCell: (row) => (
           <Main_TextField
@@ -241,7 +241,7 @@ const PurchaseRequestProductDetails = ({
       {
         key: 'details',
         label: 'Details',
-        size: 'XL',
+        flex: '1 1 360px',
         nextRow: true,
         renderCell: (row) => (
           <Main_TextArea
@@ -255,7 +255,7 @@ const PurchaseRequestProductDetails = ({
       {
         key: 'remark',
         label: 'Internal Remark',
-        size: 'XL',
+        flex: '1 1 360px',
         renderCell: (row) => (
           <Main_TextArea
             defaultValue={toSafeString(row?.remark)}
@@ -268,7 +268,7 @@ const PurchaseRequestProductDetails = ({
       {
         key: 'images',
         label: 'Product Images',
-        size: 'XL',
+        flex: '1 1 360px',
         nextRow: true,
         sortable: false,
         renderCell: (row) => (
@@ -295,7 +295,7 @@ const PurchaseRequestProductDetails = ({
       {
         key: 'files',
         label: 'Product Files',
-        size: 'XL',
+        flex: '1 1 360px',
         sortable: false,
         renderCell: (row) => (
           <div className={styles.uploadsCell}>

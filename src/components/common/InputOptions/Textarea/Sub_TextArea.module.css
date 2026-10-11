@@ -30,7 +30,7 @@
 }
 
 .textarea:hover:not(:disabled):not(:read-only) {
-  border-color: var(--color-border-strong);
+  border-color: var(--color-accent-hover);
 }
 
 .textareaFullHeight {
@@ -42,7 +42,7 @@
 .textarea:focus {
   outline: none;
   border-color: var(--color-text-subtle);
-  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.22);
+  box-shadow: var(--color-box-shadow);
 }
 
 .textarea::placeholder {

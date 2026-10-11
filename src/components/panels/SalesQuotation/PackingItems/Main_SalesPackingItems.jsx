@@ -291,7 +291,7 @@ const Main_SalesPackingItems = ({ productOptions = [], onPatchQuotation }) => {
       {
         key: 'product_id',
         label: 'Product',
-        size: 'XL',
+        flex: '1 1 360px',
         sortType: 'string',
         getSortValue: (row) =>
           productDropdownOptions.find((item) => item.id === row.product_id)
@@ -355,7 +355,7 @@ const Main_SalesPackingItems = ({ productOptions = [], onPatchQuotation }) => {
       {
         key: 'length',
         label: 'Length',
-        size: 'S',
+        flex: '1 1 90px',
         sortType: 'number',
         nextRow: true,
         renderCell: renderNumberCell('length'),
@@ -363,21 +363,21 @@ const Main_SalesPackingItems = ({ productOptions = [], onPatchQuotation }) => {
       {
         key: 'width',
         label: 'Width',
-        size: 'S',
+        flex: '1 1 90px',
         sortType: 'number',
         renderCell: renderNumberCell('width'),
       },
       {
         key: 'height',
         label: 'Height',
-        size: 'S',
+        flex: '1 1 90px',
         sortType: 'number',
         renderCell: renderNumberCell('height'),
       },
       {
         key: 'qty',
         label: 'Qty',
-        size: 'S',
+        flex: '1 1 90px',
         sortType: 'number',
         renderCell: (row) => (
           <Main_TextField
@@ -396,14 +396,14 @@ const Main_SalesPackingItems = ({ productOptions = [], onPatchQuotation }) => {
       {
         key: 'weight',
         label: 'Weight (kg)',
-        size: 'S',
+        flex: '1 1 90px',
         sortType: 'number',
         renderCell: renderNumberCell('weight'),
       },
       {
         key: 'details',
         label: 'Details',
-        size: 'L',
+        flex: '1 1 270px',
         sortType: 'string',
         nextRow: true,
         renderCell: (row) => (
@@ -418,7 +418,7 @@ const Main_SalesPackingItems = ({ productOptions = [], onPatchQuotation }) => {
       {
         key: 'remark',
         label: 'Remark',
-        size: 'L',
+        flex: '1 1 270px',
         sortType: 'string',
         renderCell: (row) => (
           <Main_TextArea
@@ -432,7 +432,7 @@ const Main_SalesPackingItems = ({ productOptions = [], onPatchQuotation }) => {
       {
         key: 'images',
         label: 'Print Images',
-        size: 'XL',
+        flex: '1 1 360px',
         sortable: false,
         renderCell: (row) => {
           const defaultImages = packingItemImages
@@ -481,7 +481,7 @@ const Main_SalesPackingItems = ({ productOptions = [], onPatchQuotation }) => {
       {
         key: 'internal_images',
         label: 'Internal Images',
-        size: 'XL',
+        flex: '1 1 360px',
         sortable: false,
         renderCell: (row) => {
           const defaultImages = packingItemInternalImages
@@ -530,7 +530,7 @@ const Main_SalesPackingItems = ({ productOptions = [], onPatchQuotation }) => {
       {
         key: 'internal_files',
         label: 'Internal Files',
-        size: 'XL',
+        flex: '1 1 360px',
         sortable: false,
         renderCell: (row) => {
           const defaultFiles = packingItemInternalFiles

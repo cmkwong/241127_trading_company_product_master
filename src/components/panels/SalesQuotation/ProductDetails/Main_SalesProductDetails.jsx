@@ -293,7 +293,7 @@ const Main_SalesProductDetails = ({
       {
         key: 'product_id',
         label: 'Product',
-        size: 'XXL',
+        flex: '1 1 540px',
         sortType: 'string',
         getSortValue: (row) =>
           productDropdownOptions.find((item) => item.id === row.product_id)
@@ -357,7 +357,7 @@ const Main_SalesProductDetails = ({
       {
         key: 'selected',
         label: 'Selected',
-        size: 'S',
+        flex: '1 1 90px',
         sortType: 'string',
         renderCell: (row) => (
           <div className={styles.checkboxCell}>
@@ -376,7 +376,7 @@ const Main_SalesProductDetails = ({
       {
         key: 'override_product_name',
         label: 'Override Product Name (Print)',
-        size: 'XXL',
+        flex: '1 1 450px',
         sortType: 'string',
         nextRow: true,
         renderCell: (row) => (
@@ -393,7 +393,7 @@ const Main_SalesProductDetails = ({
       {
         key: 'qty',
         label: 'Qty',
-        size: 'M',
+        flex: '1 1 180px',
         sortType: 'number',
         nextRow: true,
         renderCell: (row) => (
@@ -411,7 +411,7 @@ const Main_SalesProductDetails = ({
       {
         key: 'currency_id',
         label: 'Currency',
-        size: 'L',
+        flex: '1 1 180px',
         sortType: 'string',
         nextRow: true,
         renderCell: (row) => (
@@ -428,7 +428,7 @@ const Main_SalesProductDetails = ({
       {
         key: 'price',
         label: 'Sales Price',
-        size: 'M',
+        flex: '1 1 180px',
         sortType: 'number',
         renderCell: (row) => (
           <Main_TextField
@@ -445,7 +445,7 @@ const Main_SalesProductDetails = ({
       {
         key: 'discount_percent',
         label: 'Discount %',
-        size: 'S',
+        flex: '1 1 180px',
         sortType: 'number',
         renderCell: (row) => (
           <Main_TextField
@@ -466,7 +466,7 @@ const Main_SalesProductDetails = ({
       {
         key: 'discount_sales_price',
         label: 'Discount Sales Price',
-        size: 'M',
+        flex: '1 1 180px',
         sortType: 'number',
         getSortValue: (row) =>
           getDiscountedRate(row?.price, row?.discount_percent),
@@ -489,7 +489,7 @@ const Main_SalesProductDetails = ({
       {
         key: 'cost_currency_id',
         label: 'Cost Currency',
-        size: 'L',
+        flex: '1 1 180px',
         nextRow: true,
         sortType: 'string',
         renderCell: (row) => (
@@ -506,7 +506,7 @@ const Main_SalesProductDetails = ({
       {
         key: 'cost_price',
         label: 'Cost Price',
-        size: 'M',
+        flex: '1 1 180px',
         sortType: 'number',
         renderCell: (row) => (
           <Main_TextField
@@ -523,7 +523,7 @@ const Main_SalesProductDetails = ({
       {
         key: 'details',
         label: 'Details',
-        size: 'XL',
+        flex: '1 1 360px',
         sortType: 'string',
         nextRow: true,
         renderCell: (row) => (
@@ -540,7 +540,7 @@ const Main_SalesProductDetails = ({
       {
         key: 'remark',
         label: 'Internal Remark',
-        size: 'XL',
+        flex: '1 1 360px',
         sortType: 'string',
         renderCell: (row) => (
           <Main_TextArea
@@ -556,7 +556,7 @@ const Main_SalesProductDetails = ({
       {
         key: 'images',
         label: 'Print Images',
-        size: 'XL',
+        flex: '1 1 360px',
         sortable: false,
         nextRow: true,
         renderCell: (row) => {
@@ -604,7 +604,7 @@ const Main_SalesProductDetails = ({
       {
         key: 'internal_images',
         label: 'Internal Images',
-        size: 'XL',
+        flex: '1 1 360px',
         sortable: false,
         nextRow: true,
         renderCell: (row) => {
@@ -657,7 +657,7 @@ const Main_SalesProductDetails = ({
       {
         key: 'internal_files',
         label: 'Internal Files',
-        size: 'XL',
+        flex: '1 1 360px',
         sortable: false,
         renderCell: (row) => {
           const defaultFiles = productInternalFiles

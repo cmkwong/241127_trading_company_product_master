@@ -236,7 +236,7 @@ const Main_SupplierServices = () => {
         key: 'remark',
         label: 'Remark',
         sortType: 'string',
-        size: 'XL',
+        flex: '1 1 360px',
         nextRow: true,
         renderCell: (row) => (
           <Main_TextArea

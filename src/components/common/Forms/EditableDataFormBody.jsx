@@ -3,6 +3,15 @@ import Frame from '../Layouts/Frame';
 import RemoveRowBtn from '../Buttons/RemoveRowBtn';
 import styles from './EditableDataForm.module.css';
 
+const FLEX_ITEM_STYLE_PROPS = [
+  'flex',
+  'flexGrow',
+  'flexShrink',
+  'flexBasis',
+  'alignSelf',
+  'order',
+];
+
 const EditableDataFormBody = ({
   rows,
   rowGroups = [],
@@ -17,14 +26,16 @@ const EditableDataFormBody = ({
   onRowsReorder,
 }) => {
   const getRowItemStyle = (column) => {
-    const minWidth =
-      column?.rowItemMinWidth || column?.minWidth || column?.width || '220px';
-    const maxWidth = column?.rowItemMaxWidth || column?.maxWidth || undefined;
+    const style = {};
 
-    return {
-      '--row-item-min-width': minWidth,
-      ...(maxWidth ? { '--row-item-max-width': maxWidth } : {}),
-    };
+    FLEX_ITEM_STYLE_PROPS.forEach((prop) => {
+      const value = column?.[prop];
+      if (value !== undefined && value !== null && value !== '') {
+        style[prop] = value;
+      }
+    });
+
+    return style;
   };
 
   const resolveRowKey = (row, index) =>

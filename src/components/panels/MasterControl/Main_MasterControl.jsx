@@ -1112,7 +1112,7 @@ const MasterControlContent = () => {
                 defaultOptions={selfReferenceOptions}
                 defaultSelectedOption={String(row?.[column] || '')}
                 onChange={(ov, nv) => handleCellChange(rowKey, column, nv)}
-                size="S"
+                // size="S"
                 disabled={!canEdit || isSaving}
               />
             );
@@ -1183,11 +1183,7 @@ const MasterControlContent = () => {
           ]
         : [];
 
-    return [
-      ...hierarchyColumn,
-      ...dataColumns,
-      ...serviceImageColumn,
-    ];
+    return [...hierarchyColumn, ...dataColumns, ...serviceImageColumn];
   }, [
     columns,
     handleCellChange,

@@ -329,309 +329,283 @@ const Main_SalesBasicInfo = ({
   );
 
   return (
-    <Main_InputContainer label="Sales Quotation Basic Info">
-      <RowLayout>
-        <ColumnLayout>
-          <Main_InputContainer label="Quotation ID">
-            <Main_TextField
-              defaultValue={String(quotationId || '')}
-              disabled
-              placeholder="Auto-generated"
-            />
-          </Main_InputContainer>
+    <RowLayout>
+      <ColumnLayout>
+        <Main_InputContainer label="Customer Info">
+          <Main_TextField
+            label="Quotation ID"
+            defaultValue={String(quotationId || '')}
+            disabled
+            placeholder="Auto-generated"
+          />
+          <Main_Dropdown
+            label="Order Status"
+            defaultOptions={STATUS_OPTIONS}
+            defaultSelectedOption={status || 'open'}
+            onChange={(ov, nv) => {
+              onPatchQuotation({ status: nv });
+            }}
+          />
+          <Main_Suggest
+            label={'Customer'}
+            defaultSuggestions={customerSuggestionOptions}
+            defaultValue={selectedCustomerOption?.name || ''}
+            placeholder="Type customer name or customer ID"
+            getSuggestionLabel={(suggestion) =>
+              String(suggestion?.name || suggestion?.id || '').trim()
+            }
+            getSuggestionSearchText={(suggestion) =>
+              String(
+                suggestion?.searchText ||
+                  suggestion?.name ||
+                  suggestion?.customer_display_name ||
+                  suggestion?.id ||
+                  '',
+              ).trim()
+            }
+            onSelectSuggestion={(suggestion) => {
+              const normalizedNextCustomerId = String(
+                suggestion?.id || '',
+              ).trim();
 
-          <Main_InputContainer label="Order Status">
-            <Main_Dropdown
-              defaultOptions={STATUS_OPTIONS}
-              defaultSelectedOption={status || 'open'}
-              onChange={(ov, nv) => {
-                onPatchQuotation({ status: nv });
-              }}
-            />
-          </Main_InputContainer>
+              const nextCustomerNameOptions = Array.isArray(
+                suggestion?.customer_names,
+              )
+                ? suggestion.customer_names
+                : [];
 
-          <Main_InputContainer label="Customer">
-            <Main_Suggest
-              defaultSuggestions={customerSuggestionOptions}
-              defaultValue={selectedCustomerOption?.name || ''}
-              placeholder="Type customer name or customer ID"
-              getSuggestionLabel={(suggestion) =>
-                String(suggestion?.name || suggestion?.id || '').trim()
+              const currentNameId = String(customerNameId || '').trim();
+              const hasMatchingName = nextCustomerNameOptions.some(
+                (item) => String(item?.id || '').trim() === currentNameId,
+              );
+              const fallbackNameId = String(
+                nextCustomerNameOptions[0]?.id || '',
+              ).trim();
+
+              const nextCustomerAddressOptions =
+                normalizedNextCustomerId.length === 0
+                  ? customerAddressOptions || []
+                  : (customerAddressOptions || []).filter(
+                      (item) =>
+                        String(item?.customer_id || '').trim() ===
+                        normalizedNextCustomerId,
+                    );
+
+              const currentAddressId = String(customerAddressId || '').trim();
+
+              const hasMatchingAddress = nextCustomerAddressOptions.some(
+                (item) => String(item?.id || '').trim() === currentAddressId,
+              );
+
+              onPatchQuotation({
+                customer_id: normalizedNextCustomerId,
+                customer_name_id: hasMatchingName
+                  ? currentNameId
+                  : fallbackNameId,
+                customer_address_id: hasMatchingAddress ? currentAddressId : '',
+              });
+            }}
+            onFetchSuggestions={onRefreshReferenceOptions}
+          />
+          <Main_Suggest
+            label="Header Name"
+            defaultSuggestions={headerNameSuggestionOptions}
+            defaultValue={
+              headerNameSuggestionOptions.find(
+                (item) => item.id === String(customerNameId || '').trim(),
+              )?.name || ''
+            }
+            placeholder="Search header name"
+            autoComplete="new-password"
+            getSuggestionLabel={(suggestion) => suggestion?.name || ''}
+            getSuggestionSearchText={(suggestion) =>
+              String(
+                suggestion?.searchText ||
+                  [suggestion?.name, suggestion?.customer_id, suggestion?.id]
+                    .filter(Boolean)
+                    .join(' '),
+              )
+            }
+            onChange={(ov, nv) => {
+              if (!String(nv || '').trim()) {
+                onPatchQuotation({ customer_name_id: '' });
               }
-              getSuggestionSearchText={(suggestion) =>
-                String(
-                  suggestion?.searchText ||
-                    suggestion?.name ||
-                    suggestion?.customer_display_name ||
-                    suggestion?.id ||
-                    '',
-                ).trim()
-              }
-              onSelectSuggestion={(suggestion) => {
-                const normalizedNextCustomerId = String(
-                  suggestion?.id || '',
-                ).trim();
-
-                const nextCustomerNameOptions = Array.isArray(
-                  suggestion?.customer_names,
-                )
-                  ? suggestion.customer_names
-                  : [];
-
-                const currentNameId = String(customerNameId || '').trim();
-                const hasMatchingName = nextCustomerNameOptions.some(
-                  (item) => String(item?.id || '').trim() === currentNameId,
-                );
-                const fallbackNameId = String(
-                  nextCustomerNameOptions[0]?.id || '',
-                ).trim();
-
-                const nextCustomerAddressOptions =
-                  normalizedNextCustomerId.length === 0
-                    ? customerAddressOptions || []
-                    : (customerAddressOptions || []).filter(
-                        (item) =>
-                          String(item?.customer_id || '').trim() ===
-                          normalizedNextCustomerId,
-                      );
-
-                const currentAddressId = String(customerAddressId || '').trim();
-
-                const hasMatchingAddress = nextCustomerAddressOptions.some(
-                  (item) => String(item?.id || '').trim() === currentAddressId,
-                );
-
-                onPatchQuotation({
-                  customer_id: normalizedNextCustomerId,
-                  customer_name_id: hasMatchingName
-                    ? currentNameId
-                    : fallbackNameId,
-                  customer_address_id: hasMatchingAddress
-                    ? currentAddressId
-                    : '',
-                });
-              }}
-              onFetchSuggestions={onRefreshReferenceOptions}
-            />
-          </Main_InputContainer>
-          <Main_InputContainer label="Header Name">
-            <Main_Suggest
-              defaultSuggestions={headerNameSuggestionOptions}
-              defaultValue={
-                headerNameSuggestionOptions.find(
-                  (item) => item.id === String(customerNameId || '').trim(),
-                )?.name || ''
-              }
-              placeholder="Search header name"
-              autoComplete="new-password"
-              getSuggestionLabel={(suggestion) => suggestion?.name || ''}
-              getSuggestionSearchText={(suggestion) =>
-                String(
-                  suggestion?.searchText ||
-                    [suggestion?.name, suggestion?.customer_id, suggestion?.id]
-                      .filter(Boolean)
-                      .join(' '),
-                )
-              }
-              onChange={(ov, nv) => {
-                if (!String(nv || '').trim()) {
-                  onPatchQuotation({ customer_name_id: '' });
-                }
-              }}
-              onSelectSuggestion={(suggestion) => {
-                onPatchQuotation({
-                  customer_name_id: String(suggestion?.id || '').trim(),
-                });
-              }}
-              onFetchSuggestions={onRefreshReferenceOptions}
-            />
-          </Main_InputContainer>
-
-          <Main_InputContainer label="Header Address">
-            <Main_Suggest
-              defaultSuggestions={addressSuggestionOptions}
-              defaultValue={
-                addressSuggestionOptions.find(
-                  (item) => item.id === String(customerAddressId || ''),
-                )?.name || ''
-              }
-              placeholder="Search customer address"
-              autoComplete="new-password"
-              getSuggestionLabel={(suggestion) => suggestion?.name || ''}
-              getSuggestionSearchText={(suggestion) =>
-                String(
-                  suggestion?.searchText ||
-                    [
-                      suggestion?.name,
-                      suggestion?.address_detail,
-                      suggestion?.customer_id,
-                      suggestion?.id,
-                    ]
-                      .filter(Boolean)
-                      .join(' '),
-                )
-              }
-              renderSuggestion={(suggestion) => (
-                <div className={styles.suggestionContent}>
-                  <div className={styles.suggestionTitle}>
-                    {suggestion?.name || suggestion?.id || ''}
-                  </div>
-                  <div className={styles.suggestionMeta}>
-                    <span>Customer ID: {suggestion?.customer_id || '-'}</span>
-                    <span>
-                      Address Detail: {suggestion?.address_detail || '-'}
-                    </span>
-                  </div>
+            }}
+            onSelectSuggestion={(suggestion) => {
+              onPatchQuotation({
+                customer_name_id: String(suggestion?.id || '').trim(),
+              });
+            }}
+            onFetchSuggestions={onRefreshReferenceOptions}
+          />
+          <Main_Suggest
+            label="Header Address"
+            defaultSuggestions={addressSuggestionOptions}
+            defaultValue={
+              addressSuggestionOptions.find(
+                (item) => item.id === String(customerAddressId || ''),
+              )?.name || ''
+            }
+            placeholder="Search customer address"
+            autoComplete="new-password"
+            getSuggestionLabel={(suggestion) => suggestion?.name || ''}
+            getSuggestionSearchText={(suggestion) =>
+              String(
+                suggestion?.searchText ||
+                  [
+                    suggestion?.name,
+                    suggestion?.address_detail,
+                    suggestion?.customer_id,
+                    suggestion?.id,
+                  ]
+                    .filter(Boolean)
+                    .join(' '),
+              )
+            }
+            renderSuggestion={(suggestion) => (
+              <div className={styles.suggestionContent}>
+                <div className={styles.suggestionTitle}>
+                  {suggestion?.name || suggestion?.id || ''}
                 </div>
-              )}
-              onChange={(ov, nv) => {
-                if (!String(nv || '').trim()) {
-                  onPatchQuotation({ customer_address_id: '' });
-                }
-              }}
-              onSelectSuggestion={(suggestion) => {
-                onPatchQuotation({
-                  customer_address_id: String(suggestion?.id || '').trim(),
-                });
-              }}
-              onFetchSuggestions={onRefreshReferenceOptions}
-            />
-          </Main_InputContainer>
-          <Main_InputContainer label="Sales Docs">
-            <Main_FileUploads
-              mode="file"
-              label=""
-              compactButtonText="Upload"
-              showDownloadButton={false}
-              fileUrlBase={FILE_SERVER_BASE_URL}
-              defaultFiles={defaultSalesDocFiles}
-              onChange={(ov, nv) => handleSalesDocsChange(nv)}
-              onError={(error) => {
-                console.error('Sales doc upload error:', error);
-              }}
-            />
-          </Main_InputContainer>
-        </ColumnLayout>
+                <div className={styles.suggestionMeta}>
+                  <span>Customer ID: {suggestion?.customer_id || '-'}</span>
+                  <span>
+                    Address Detail: {suggestion?.address_detail || '-'}
+                  </span>
+                </div>
+              </div>
+            )}
+            onChange={(ov, nv) => {
+              if (!String(nv || '').trim()) {
+                onPatchQuotation({ customer_address_id: '' });
+              }
+            }}
+            onSelectSuggestion={(suggestion) => {
+              onPatchQuotation({
+                customer_address_id: String(suggestion?.id || '').trim(),
+              });
+            }}
+            onFetchSuggestions={onRefreshReferenceOptions}
+          />
+          <Main_FileUploads
+            label="Sales Docs"
+            mode="file"
+            compactButtonText="Upload"
+            showDownloadButton={false}
+            fileUrlBase={FILE_SERVER_BASE_URL}
+            defaultFiles={defaultSalesDocFiles}
+            onChange={(ov, nv) => handleSalesDocsChange(nv)}
+            onError={(error) => {
+              console.error('Sales doc upload error:', error);
+            }}
+          />
+        </Main_InputContainer>
+      </ColumnLayout>
 
-        <ColumnLayout>
-          <Main_InputContainer label="Document Type">
-            <Main_TextField
-              defaultValue={docTypeName}
-              disabled
-              placeholder=""
-            />
-          </Main_InputContainer>
-
-          <Main_InputContainer label="Posting Date">
-            <Main_DateSelector
-              defaultValue={postingAt || ''}
-              placeholder="Select posting date"
-              onChange={(ov, nv) => {
-                onPatchQuotation({ posting_at: toLocalDateInputValue(nv) });
-              }}
-            />
-          </Main_InputContainer>
+      <ColumnLayout>
+        <Main_InputContainer label="Document Info">
+          <Main_TextField
+            label="Document Type"
+            defaultValue={docTypeName}
+            disabled
+            placeholder=""
+          />
+          <Main_TextField
+            label="Customer Type"
+            defaultValue={selectedCustomerOption?.customer_type_name || ''}
+            disabled
+            placeholder="Customer type"
+          />
 
           {isPackingList ? (
             <>
-              <Main_InputContainer label="Assigned Picker">
-                <Main_TextField
-                  defaultValue={assignedPicker || ''}
-                  placeholder="e.g. Alex Wong (ID: #4092)"
-                  onChange={(ov, nv) => {
-                    onPatchQuotation({ assigned_picker: nv });
-                  }}
-                />
-              </Main_InputContainer>
-
-              <Main_InputContainer label="Assigned Picker Address">
-                <Main_TextArea
-                  defaultValue={assignedPickerAddress || ''}
-                  placeholder="Picker address"
-                  rows={4}
-                  onChange={(ov, nv) => {
-                    onPatchQuotation({ assigned_picker_address: nv });
-                  }}
-                />
-              </Main_InputContainer>
+              <Main_TextField
+                label="Assigned Picker"
+                defaultValue={assignedPicker || ''}
+                placeholder="e.g. Alex Wong (ID: #4092)"
+                onChange={(ov, nv) => {
+                  onPatchQuotation({ assigned_picker: nv });
+                }}
+              />
+              <Main_TextArea
+                label="Assigned Picker Address"
+                defaultValue={assignedPickerAddress || ''}
+                placeholder="Picker address"
+                rows={4}
+                onChange={(ov, nv) => {
+                  onPatchQuotation({ assigned_picker_address: nv });
+                }}
+              />
             </>
           ) : null}
-
           {isDownpayment ? (
             <>
-              <Main_InputContainer label="% Amount">
-                <Main_TextField
-                  type="number"
-                  step="0.001"
-                  min="0"
-                  max="100"
-                  defaultValue={
-                    headerProformaPercent != null
-                      ? String(headerProformaPercent)
-                      : ''
-                  }
-                  placeholder="0.000"
-                  onChange={(ov, nv) => {
-                    const trimmed = String(nv ?? '').trim();
-                    const parsed = Number(trimmed);
-                    onPatchQuotation({
-                      header_proforma_percent:
-                        trimmed === '' || Number.isNaN(parsed) ? null : parsed,
-                    });
-                  }}
-                />
-              </Main_InputContainer>
-
-              <Main_InputContainer label="Downpayment Amount">
-                <Main_TextField
-                  defaultValue={
-                    downpaymentAmount !== null &&
-                    Number.isFinite(downpaymentAmount)
-                      ? `${
-                          totalsSummary?.baseCurrencyCode || baseCurrencyCode
-                        } ${formatMoney(downpaymentAmount)}`
-                      : '-'
-                  }
-                  disabled
-                  placeholder=""
-                />
-              </Main_InputContainer>
+              <Main_TextField
+                label="% Amount"
+                type="number"
+                step="0.001"
+                min="0"
+                max="100"
+                defaultValue={
+                  headerProformaPercent != null
+                    ? String(headerProformaPercent)
+                    : ''
+                }
+                placeholder="0.000"
+                onChange={(ov, nv) => {
+                  const trimmed = String(nv ?? '').trim();
+                  const parsed = Number(trimmed);
+                  onPatchQuotation({
+                    header_proforma_percent:
+                      trimmed === '' || Number.isNaN(parsed) ? null : parsed,
+                  });
+                }}
+              />
+              <Main_TextField
+                label="Downpayment Amount"
+                defaultValue={
+                  downpaymentAmount !== null &&
+                  Number.isFinite(downpaymentAmount)
+                    ? `${
+                        totalsSummary?.baseCurrencyCode || baseCurrencyCode
+                      } ${formatMoney(downpaymentAmount)}`
+                    : '-'
+                }
+                disabled
+                placeholder=""
+              />
             </>
           ) : null}
-          <Main_InputContainer label="Customer Type">
-            <Main_TextField
-              defaultValue={selectedCustomerOption?.customer_type_name || ''}
-              disabled
-              placeholder="Customer type"
-            />
-          </Main_InputContainer>
-          <Main_InputContainer label="Created At">
-            <Main_DateSelector
-              defaultValue={toDateInputValue(createdAt)}
-              disabled
-            />
-          </Main_InputContainer>
-
-          <Main_InputContainer label="Updated At">
-            <Main_DateSelector
-              defaultValue={toDateInputValue(updatedAt)}
-              disabled
-            />
-          </Main_InputContainer>
-
-          <Main_InputContainer label="Remark">
-            <Main_TextArea
-              defaultValue={remark || ''}
-              placeholder="Sales quotation remark"
-              rows={6}
-              onChange={(ov, nv) => {
-                onPatchQuotation({ remark: nv });
-              }}
-            />
-          </Main_InputContainer>
-        </ColumnLayout>
-      </RowLayout>
-    </Main_InputContainer>
+          <Main_DateSelector
+            label={'Posting Date'}
+            defaultValue={postingAt || ''}
+            placeholder="Select posting date"
+            onChange={(ov, nv) => {
+              onPatchQuotation({ posting_at: toLocalDateInputValue(nv) });
+            }}
+          />
+          <Main_DateSelector
+            label="Created At"
+            defaultValue={toDateInputValue(createdAt)}
+            disabled
+          />
+          <Main_DateSelector
+            label="Updated At"
+            defaultValue={toDateInputValue(updatedAt)}
+            disabled
+          />
+          <Main_TextArea
+            label="Remark"
+            defaultValue={remark || ''}
+            placeholder="Sales quotation remark"
+            rows={6}
+            onChange={(ov, nv) => {
+              onPatchQuotation({ remark: nv });
+            }}
+          />
+        </Main_InputContainer>
+      </ColumnLayout>
+    </RowLayout>
   );
 };
 

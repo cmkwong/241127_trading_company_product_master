@@ -1,6 +1,6 @@
 import { useMemo, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import EditableDataForm from '../../../common/Forms/EditableDataForm';
+import Main_EditableTables from '../../../common/Tables/Main_EditableTables';
 import {
   upsertEntityData,
   useEntityRows,
@@ -112,56 +112,60 @@ const Main_DeliveryDates = () => {
     });
   }, [rows.length, upsertEntityData, productId]);
 
+  const rowByKey = useMemo(() => {
+    const map = new Map();
+    (rows || []).forEach((row) => map.set(String(row.id), row));
+    return map;
+  }, [rows]);
+
+  const handleCellChange = useCallback(
+    (rowKey, columnKey, value) => {
+      const row = rowByKey.get(String(rowKey));
+      if (row) handleFieldChange(row, columnKey, value);
+    },
+    [rowByKey, handleFieldChange],
+  );
+
   const columns = useMemo(
     () => [
       {
         key: 'min_order_qty',
         label: '* Quantity (Pcs)',
-        sortType: 'number',
+        width: '160px',
         fillField: 'min_order_qty',
-        minWidth: '160px',
-        maxWidth: '320px',
-        renderCell: (row, { rowIndex, wrapWithFill }) =>
-          wrapWithFill(
-            <div className={styles.qtyCell}>
-              <span className={styles.qtyPrefix}>≤</span>
-              <input
-                className={styles.cellInput}
-                type="number"
-                value={row.min_order_qty ?? ''}
-                onChange={(e) =>
-                  handleFieldChange(row, 'min_order_qty', e.target.value)
-                }
-                placeholder="0"
-              />
-            </div>,
-            'min_order_qty',
-            rowIndex,
-            row.min_order_qty,
-          ),
+        getSortValue: (row) => Number(row?.min_order_qty) || 0,
+        renderCell: (row) => (
+          <div className={styles.qtyCell}>
+            <span className={styles.qtyPrefix}>≤</span>
+            <input
+              className={styles.cellInput}
+              type="number"
+              value={row.min_order_qty ?? ''}
+              onChange={(e) =>
+                handleFieldChange(row, 'min_order_qty', e.target.value)
+              }
+              placeholder="0"
+            />
+          </div>
+        ),
       },
       {
         key: 'delivery_day',
         label: '* Est. Lead Time (Days)',
-        sortType: 'number',
+        width: '160px',
         fillField: 'delivery_day',
-        minWidth: '160px',
-        maxWidth: '320px',
-        renderCell: (row, { rowIndex, wrapWithFill }) =>
-          wrapWithFill(
-            <input
-              className={styles.cellInput}
-              type="number"
-              value={row.delivery_day ?? ''}
-              onChange={(e) =>
-                handleFieldChange(row, 'delivery_day', e.target.value)
-              }
-              placeholder="0"
-            />,
-            'delivery_day',
-            rowIndex,
-            row.delivery_day,
-          ),
+        getSortValue: (row) => Number(row?.delivery_day) || 0,
+        renderCell: (row) => (
+          <input
+            className={styles.cellInput}
+            type="number"
+            value={row.delivery_day ?? ''}
+            onChange={(e) =>
+              handleFieldChange(row, 'delivery_day', e.target.value)
+            }
+            placeholder="0"
+          />
+        ),
       },
     ],
     [handleFieldChange],
@@ -171,19 +175,17 @@ const Main_DeliveryDates = () => {
     <Main_InputContainer label="Delivery Dates">
       <div className={styles.layout}>
         <div className={styles.left}>
-          <EditableDataForm
+          <Main_EditableTables
             rows={rows}
             columns={columns}
             rowKey="id"
             emptyMessage="No delivery ranges yet."
-            onFillCellChange={(row, field, value) =>
-              handleFieldChange(row, field, value)
-            }
+            onCellChange={handleCellChange}
+            onDeleteRow={handleDelete}
             onAddRow={handleAddRange}
             addRowText="Add Quantity Range"
             addRowDisabled={rows.length >= MAX_RANGES}
             addRowHint={`Max ${MAX_RANGES} ranges allowed`}
-            onRemoveRow={handleDelete}
           />
         </div>
 

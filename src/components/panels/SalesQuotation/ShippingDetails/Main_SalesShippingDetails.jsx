@@ -865,7 +865,7 @@ const Main_SalesShippingDetails = ({
       {
         key: 'customer_address_id',
         label: 'Customer Address',
-        size: 'XL',
+        flex: '1 1 360px',
         sortType: 'string',
         getSortValue: (row) =>
           addressSuggestionOptions.find(
@@ -927,7 +927,7 @@ const Main_SalesShippingDetails = ({
       {
         key: 'length',
         label: 'Length',
-        size: 'M',
+        flex: '1 1 180px',
         sortType: 'number',
         nextRow: true,
         renderCell: (row) => (
@@ -945,7 +945,7 @@ const Main_SalesShippingDetails = ({
       {
         key: 'width',
         label: 'Width',
-        size: 'M',
+        flex: '1 1 180px',
         sortType: 'number',
         renderCell: (row) => (
           <Main_TextField
@@ -962,7 +962,7 @@ const Main_SalesShippingDetails = ({
       {
         key: 'height',
         label: 'Height',
-        size: 'M',
+        flex: '1 1 180px',
         sortType: 'number',
         renderCell: (row) => (
           <Main_TextField
@@ -979,7 +979,7 @@ const Main_SalesShippingDetails = ({
       {
         key: 'qty',
         label: 'Cartons',
-        size: 'M',
+        flex: '1 1 180px',
         sortType: 'number',
         renderCell: (row) => (
           <Main_TextField
@@ -996,7 +996,7 @@ const Main_SalesShippingDetails = ({
       {
         key: 'weight',
         label: 'Weight / Carton',
-        size: 'M',
+        flex: '1 1 180px',
         sortType: 'number',
         renderCell: (row) => (
           <Main_TextField
@@ -1013,7 +1013,7 @@ const Main_SalesShippingDetails = ({
       {
         key: 'details',
         label: 'Details',
-        size: 'XL',
+        flex: '1 1 360px',
         nextRow: true,
         sortType: 'string',
         renderCell: (row) => (
@@ -1030,7 +1030,7 @@ const Main_SalesShippingDetails = ({
       {
         key: 'remark',
         label: 'Internal Remark',
-        size: 'XL',
+        flex: '1 1 360px',
         // nextRow: true,
         sortType: 'string',
         renderCell: (row) => (
@@ -1047,7 +1047,7 @@ const Main_SalesShippingDetails = ({
       {
         key: 'images',
         label: 'Print Images',
-        size: 'XL',
+        flex: '1 1 360px',
         nextRow: true,
         sortable: false,
         renderCell: (row) => {
@@ -1092,7 +1092,7 @@ const Main_SalesShippingDetails = ({
       {
         key: 'internal_images',
         label: 'Internal Images',
-        size: 'XL',
+        flex: '1 1 360px',
         nextRow: true,
         sortable: false,
         renderCell: (row) => {
@@ -1139,7 +1139,7 @@ const Main_SalesShippingDetails = ({
       {
         key: 'internal_files',
         label: 'Internal Files',
-        size: 'XL',
+        flex: '1 1 360px',
         // nextRow: true,
         sortable: false,
         renderCell: (row) => {
@@ -1186,7 +1186,7 @@ const Main_SalesShippingDetails = ({
       {
         key: 'chargeable_weight_panel',
         label: 'Chargeable Weight',
-        size: 'XXL',
+        flex: '1 1 450px',
         nextRow: true,
         sortable: false,
         renderCell: (row) => {
@@ -1358,7 +1358,7 @@ const Main_SalesShippingDetails = ({
       {
         key: 'supplier_id',
         label: 'Supplier',
-        size: 'L',
+        flex: '1 1 270px',
         sortType: 'string',
         getSortValue: (row) =>
           supplierDropdownOptions.find((item) => item.id === row.supplier_id)
@@ -1417,7 +1417,7 @@ const Main_SalesShippingDetails = ({
       {
         key: 'shipping_method_id',
         label: 'Shipping Method',
-        size: 'L',
+        flex: '1 1 270px',
         sortType: 'string',
         getSortValue: (row) =>
           shippingMethodSuggestionOptions.find(
@@ -1452,7 +1452,7 @@ const Main_SalesShippingDetails = ({
       {
         key: 'override_shipping_method_name',
         label: 'Override Shipping Method Name (Print)',
-        size: 'XXL',
+        flex: '1 1 450px',
         sortType: 'string',
         nextRow: true,
         renderCell: (row) => (
@@ -1471,7 +1471,7 @@ const Main_SalesShippingDetails = ({
       {
         key: 'incoterms',
         label: 'Incoterms',
-        size: 'M',
+        flex: '1 1 180px',
         sortType: 'string',
         renderCell: (row) => (
           <Main_Dropdown
@@ -1487,7 +1487,7 @@ const Main_SalesShippingDetails = ({
       {
         key: 'currency_id',
         label: 'Currency',
-        size: 'L',
+        flex: '1 1 270px',
         sortType: 'string',
         renderCell: (row) => (
           <Main_Dropdown
@@ -1503,7 +1503,7 @@ const Main_SalesShippingDetails = ({
       {
         key: 'price',
         label: 'Sales Price',
-        size: 'M',
+        flex: '1 1 180px',
         sortType: 'number',
         renderCell: (row) => (
           <Main_TextField
@@ -1520,7 +1520,7 @@ const Main_SalesShippingDetails = ({
       {
         key: 'discount_percent',
         label: 'Discount %',
-        size: 'S',
+        flex: '1 1 90px',
         sortType: 'number',
         renderCell: (row) => (
           <Main_TextField
@@ -1541,7 +1541,7 @@ const Main_SalesShippingDetails = ({
       {
         key: 'discount_sales_price',
         label: 'Discount Sales Price',
-        size: 'M',
+        flex: '1 1 180px',
         sortType: 'number',
         getSortValue: (row) =>
           getDiscountedRate(row?.price, row?.discount_percent),
@@ -1564,7 +1564,7 @@ const Main_SalesShippingDetails = ({
       {
         key: 'selected',
         label: 'Selected',
-        size: 'S',
+        flex: '1 1 90px',
         sortType: 'string',
         renderCell: (row) => (
           <div className={styles.checkboxCell}>
@@ -1581,7 +1581,7 @@ const Main_SalesShippingDetails = ({
       {
         key: 'cost_currency_id',
         label: 'Cost Currency',
-        size: 'L',
+        flex: '1 1 180px',
         sortType: 'string',
         nextRow: true,
         renderCell: (row) => (
@@ -1598,7 +1598,7 @@ const Main_SalesShippingDetails = ({
       {
         key: 'cost_price',
         label: 'Cost Price',
-        size: 'M',
+        flex: '1 1 180px',
         sortType: 'number',
         renderCell: (row) => (
           <Main_TextField
@@ -1615,7 +1615,7 @@ const Main_SalesShippingDetails = ({
       {
         key: 'delivery_lead_time_from',
         label: 'Lead Days From',
-        size: 'M',
+        flex: '1 1 180px',
         sortType: 'number',
         renderCell: (row) => (
           <Main_TextField
@@ -1634,7 +1634,7 @@ const Main_SalesShippingDetails = ({
       {
         key: 'delivery_lead_time_to',
         label: 'Lead Days To',
-        size: 'M',
+        flex: '1 1 180px',
         sortType: 'number',
         renderCell: (row) => (
           <Main_TextField
@@ -1653,7 +1653,7 @@ const Main_SalesShippingDetails = ({
       {
         key: 'details',
         label: 'Details',
-        size: 'XL',
+        flex: '1 1 360px',
         nextRow: true,
         sortType: 'string',
         renderCell: (row) => (
@@ -1670,7 +1670,7 @@ const Main_SalesShippingDetails = ({
       {
         key: 'remark',
         label: 'Internal Remark',
-        size: 'XL',
+        flex: '1 1 360px',
         sortType: 'string',
         renderCell: (row) => (
           <Main_TextArea
@@ -1686,7 +1686,7 @@ const Main_SalesShippingDetails = ({
       {
         key: 'images',
         label: 'Print Images',
-        size: 'XL',
+        flex: '1 1 360px',
         nextRow: true,
         sortable: false,
         renderCell: (row) => {
@@ -1733,7 +1733,7 @@ const Main_SalesShippingDetails = ({
       {
         key: 'internal_images',
         label: 'Internal Images',
-        size: 'XL',
+        flex: '1 1 360px',
         nextRow: true,
         sortable: false,
         renderCell: (row) => {
@@ -1783,7 +1783,7 @@ const Main_SalesShippingDetails = ({
       {
         key: 'internal_files',
         label: 'Internal Files',
-        size: 'XL',
+        flex: '1 1 360px',
         sortable: false,
         renderCell: (row) => {
           const defaultFiles = shippingPriceInternalFiles

@@ -67,7 +67,7 @@
 
 .fieldContainer :global(.ql-container.ql-snow:focus-within) {
   border-color: var(--color-text-subtle);
-  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.22);
+  box-shadow: var(--color-box-shadow);
 }
 
 .isDisabled :global(.ql-toolbar.ql-snow),

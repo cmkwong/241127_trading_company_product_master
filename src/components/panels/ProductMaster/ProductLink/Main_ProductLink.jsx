@@ -122,8 +122,7 @@ const Main_ProductLink = () => {
         key: 'name',
         label: 'Name',
         sortType: 'string',
-        minWidth: '150px',
-        maxWidth: '400px',
+        flex: '1 1 180px',
         cellClassName: styles.middleCell,
         renderCell: (row) => (
           <Main_TextField
@@ -138,8 +137,7 @@ const Main_ProductLink = () => {
         key: 'link',
         label: 'Link',
         sortType: 'string',
-        minWidth: '150px',
-        maxWidth: '800px',
+        flex: '1 1 180px',
         cellClassName: styles.middleCell,
         renderCell: (row) => (
           <Main_TextField
@@ -155,8 +153,7 @@ const Main_ProductLink = () => {
         key: 'score',
         label: 'Scores',
         sortType: 'number',
-        minWidth: '50px',
-        maxWidth: '280px',
+        flex: '1 1 90px',
         cellClassName: styles.middleCell,
         renderCell: (row) => (
           <Main_TextField
@@ -179,8 +176,7 @@ const Main_ProductLink = () => {
         label: 'Remark',
         sortable: false,
         nextRow: true,
-        minWidth: '260px',
-        maxWidth: '800px',
+        flex: '0 1 270px',
         cellClassName: styles.middleCell,
         renderCell: (row) => (
           <div className={styles.remarkCell}>
@@ -198,10 +194,9 @@ const Main_ProductLink = () => {
         key: 'updated_at',
         label: 'Updated Date',
         sortable: false,
-        width: '160px',
-        minWidth: '160px',
-        maxWidth: '260px',
-        nextRow: true,
+        flex: '1 1 160px',
+        // nextRow: true,
+        alignSelf: 'flex-end',
         cellClassName: styles.middleCell,
         renderCell: (row) => (
           <div className={styles.dateCell}>
@@ -218,10 +213,8 @@ const Main_ProductLink = () => {
         key: 'product_link_images',
         label: 'Images',
         sortable: false,
-        width: '560px',
+        flex: '1 1 560px',
         nextRow: true,
-        minWidth: '240px',
-        maxWidth: '100%',
         cellClassName: styles.middleCell,
         renderCell: (row) => {
           const defaultImages = sortByDisplayOrder(
@@ -248,7 +241,9 @@ const Main_ProductLink = () => {
                 downloadNameImageType="link"
                 defaultImages={defaultImages}
                 fileBankDirectoryPath={
-                  productId ? `${buildProductImagesPath(productId)}/product_links` : ''
+                  productId
+                    ? `${buildProductImagesPath(productId)}/product_links`
+                    : ''
                 }
                 onError={(error) => {
                   console.error('Link image upload error:', error);

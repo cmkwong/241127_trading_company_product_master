@@ -162,6 +162,7 @@
   --color-border-hairline-2: #edf2f7;
   --color-border-hairline-3: #b9b9b9;
 
+  --color-box-shadow: 0 0 0 3px #fa6d5a2e;
   /* ===== Neutral surfaces ===== */
   --color-surface: #ffffff;
   --color-surface-subtle: #f8fafc;

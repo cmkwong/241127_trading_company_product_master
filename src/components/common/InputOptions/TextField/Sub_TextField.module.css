@@ -55,8 +55,14 @@
 
 .textField:focus {
   outline: none;
-  border-color: var(--color-accent);
-  box-shadow: 0 0 0 3px rgba(250, 109, 90, 0.18);
+  border-color: var(--color-accent-hover);
+  box-shadow: var(--color-box-shadow);
+}
+
+.textField:hover:not(:disabled) {
+  outline: none;
+  border-color: var(--color-accent-hover-soft);
+  box-shadow: var(--color-box-shadow);
 }
 
 .textField::placeholder {
@@ -82,10 +88,10 @@
 .openLinkButton {
   position: absolute;
   top: 50%;
-  right: 0px;
+  right: 5px;
   transform: translateY(-50%);
-  width: 28px;
-  height: 28px;
+  width: 20px;
+  height: 20px;
   border: 1px solid var(--color-blue-border-soft);
   border-radius: 8px;
   background: var(--color-blue-bg-soft);

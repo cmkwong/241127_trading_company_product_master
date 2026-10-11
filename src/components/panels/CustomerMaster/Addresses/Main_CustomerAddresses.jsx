@@ -206,7 +206,7 @@ const Main_CustomerAddresses = () => {
         label: 'Detailed Address Paste',
         sortable: false,
         nextRow: true,
-        maxWidth: '1200px',
+        flex: '1 1 1200px',
         renderCell: (row) => {
           const standardPreview = buildStandardAddressPreview(row);
 
@@ -257,7 +257,7 @@ const Main_CustomerAddresses = () => {
         label: 'Address Line 1',
         sortType: 'string',
         nextRow: true,
-        maxWidth: '350px',
+        flex: '1 1 350px',
         getSortValue: (row) =>
           row.address_line1 || row.address || row.line1 || '',
         renderCell: (row) => (
@@ -275,7 +275,7 @@ const Main_CustomerAddresses = () => {
         key: 'address_line2',
         label: 'Address Line 2',
         sortType: 'string',
-        maxWidth: '350px',
+        flex: '1 1 350px',
         renderCell: (row) => (
           <Main_TextField
             className={styles.cellInput}
@@ -289,7 +289,7 @@ const Main_CustomerAddresses = () => {
         key: 'address_line3',
         label: 'Address Line 3',
         sortType: 'string',
-        maxWidth: '350px',
+        flex: '1 1 350px',
         renderCell: (row) => (
           <Main_TextField
             className={styles.cellInput}
@@ -304,7 +304,7 @@ const Main_CustomerAddresses = () => {
         label: 'City',
         sortType: 'string',
         nextRow: true,
-        maxWidth: '350px',
+        flex: '1 1 350px',
         renderCell: (row) => (
           <Main_TextField
             className={styles.cellInput}
@@ -318,7 +318,7 @@ const Main_CustomerAddresses = () => {
         key: 'state',
         label: 'State',
         sortType: 'string',
-        maxWidth: '350px',
+        flex: '1 1 350px',
         renderCell: (row) => (
           <Main_TextField
             className={styles.cellInput}
@@ -332,7 +332,7 @@ const Main_CustomerAddresses = () => {
         key: 'zip_code',
         label: 'ZIP',
         sortType: 'string',
-        maxWidth: '350px',
+        flex: '1 1 350px',
         renderCell: (row) => (
           <Main_TextField
             className={styles.cellInput}
@@ -346,7 +346,7 @@ const Main_CustomerAddresses = () => {
         key: 'country',
         label: 'Country',
         sortType: 'string',
-        maxWidth: '350px',
+        flex: '1 1 350px',
         renderCell: (row) => (
           <Main_TextField
             className={styles.cellInput}

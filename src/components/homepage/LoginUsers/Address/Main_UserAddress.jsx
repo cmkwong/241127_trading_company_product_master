@@ -61,7 +61,7 @@ const Main_UserAddress = () => {
         key: 'recipient_name',
         label: 'Recipient',
         sortType: 'string',
-        maxWidth: '200px',
+        flex: '1 1 200px',
         renderCell: (row) => (
           <Main_TextField
             defaultValue={row.recipient_name || ''}
@@ -74,7 +74,7 @@ const Main_UserAddress = () => {
         key: 'phone_number',
         label: 'Phone',
         sortType: 'string',
-        maxWidth: '180px',
+        flex: '1 1 180px',
         renderCell: (row) => (
           <Main_TextField
             defaultValue={row.phone_number || ''}
@@ -88,7 +88,7 @@ const Main_UserAddress = () => {
         label: 'Address Line 1',
         sortType: 'string',
         nextRow: true,
-        maxWidth: '300px',
+        flex: '1 1 300px',
         renderCell: (row) => (
           <Main_TextField
             defaultValue={row.address_line_1 || ''}
@@ -101,7 +101,7 @@ const Main_UserAddress = () => {
         key: 'address_line_2',
         label: 'Address Line 2',
         sortType: 'string',
-        maxWidth: '300px',
+        flex: '1 1 300px',
         renderCell: (row) => (
           <Main_TextField
             defaultValue={row.address_line_2 || ''}
@@ -115,7 +115,7 @@ const Main_UserAddress = () => {
         label: 'City',
         sortType: 'string',
         nextRow: true,
-        maxWidth: '160px',
+        flex: '1 1 160px',
         renderCell: (row) => (
           <Main_TextField
             defaultValue={row.city || ''}
@@ -128,7 +128,7 @@ const Main_UserAddress = () => {
         key: 'state',
         label: 'State',
         sortType: 'string',
-        maxWidth: '160px',
+        flex: '1 1 160px',
         renderCell: (row) => (
           <Main_TextField
             defaultValue={row.state || ''}
@@ -141,7 +141,7 @@ const Main_UserAddress = () => {
         key: 'postal_code',
         label: 'Postal Code',
         sortType: 'string',
-        maxWidth: '140px',
+        flex: '1 1 140px',
         renderCell: (row) => (
           <Main_TextField
             defaultValue={row.postal_code || ''}
@@ -155,7 +155,7 @@ const Main_UserAddress = () => {
         label: 'Country',
         sortType: 'string',
         nextRow: true,
-        maxWidth: '180px',
+        flex: '1 1 180px',
         renderCell: (row) => (
           <Main_Dropdown
             defaultOptions={countryOptions}
@@ -168,7 +168,7 @@ const Main_UserAddress = () => {
         key: 'address_type_id',
         label: 'Type',
         sortType: 'string',
-        maxWidth: '180px',
+        flex: '1 1 180px',
         renderCell: (row) => (
           <Main_Dropdown
             defaultOptions={addressTypeOptions}
@@ -181,7 +181,7 @@ const Main_UserAddress = () => {
         key: 'is_default',
         label: 'Default',
         sortType: 'string',
-        maxWidth: '120px',
+        flex: '1 1 120px',
         renderCell: (row) => (
           <Main_Dropdown
             defaultOptions={[

@@ -182,7 +182,7 @@ const Main_UserRfqs = () => {
         key: 'product_name',
         label: 'Product',
         sortType: 'string',
-        maxWidth: '220px',
+        flex: '1 1 220px',
         renderCell: (row) => (
           <Main_TextField
             defaultValue={row.product_name || ''}
@@ -195,7 +195,7 @@ const Main_UserRfqs = () => {
         key: 'product_id',
         label: 'Product ID',
         sortType: 'string',
-        maxWidth: '200px',
+        flex: '1 1 200px',
         renderCell: (row) => (
           <Main_TextField
             defaultValue={row.product_id || ''}
@@ -208,8 +208,7 @@ const Main_UserRfqs = () => {
         key: 'target_qty',
         label: 'Qty',
         sortType: 'string',
-        nextRow: true,
-        maxWidth: '100px',
+        flex: '1 1 100px',
         renderCell: (row) => (
           <Main_TextField
             defaultValue={row.target_qty != null ? String(row.target_qty) : ''}
@@ -221,10 +220,24 @@ const Main_UserRfqs = () => {
         ),
       },
       {
+        key: 'currency_id',
+        label: 'Currency',
+        sortType: 'string',
+        nextRow: true,
+        flex: '1 1 140px',
+        renderCell: (row) => (
+          <Main_Dropdown
+            defaultOptions={currencyOptions}
+            defaultSelectedOption={row.currency_id || ''}
+            onChange={(ov, nv) => upsertItem(row, { currency_id: nv })}
+          />
+        ),
+      },
+      {
         key: 'target_price',
         label: 'Target Price',
         sortType: 'string',
-        maxWidth: '140px',
+        flex: '1 1 140px',
         renderCell: (row) => (
           <Main_TextField
             defaultValue={
@@ -238,25 +251,13 @@ const Main_UserRfqs = () => {
         ),
       },
       {
-        key: 'currency_id',
-        label: 'Currency',
-        sortType: 'string',
-        maxWidth: '140px',
-        renderCell: (row) => (
-          <Main_Dropdown
-            defaultOptions={currencyOptions}
-            defaultSelectedOption={row.currency_id || ''}
-            onChange={(ov, nv) => upsertItem(row, { currency_id: nv })}
-          />
-        ),
-      },
-      {
         key: 'customization_notes',
         label: 'Notes',
         sortType: 'string',
-        maxWidth: '260px',
+        flex: '1 1 260px',
+        nextRow: true,
         renderCell: (row) => (
-          <Main_TextField
+          <Main_TextArea
             defaultValue={row.customization_notes || ''}
             placeholder="Customization notes"
             onChange={(ov, nv) => upsertItem(row, { customization_notes: nv })}
@@ -273,7 +274,7 @@ const Main_UserRfqs = () => {
         key: 'file_name',
         label: 'File Name',
         sortType: 'string',
-        maxWidth: '240px',
+        flex: '1 1 240px',
         renderCell: (row) => (
           <Main_TextField
             defaultValue={row.file_name || ''}
@@ -286,7 +287,7 @@ const Main_UserRfqs = () => {
         key: 'file_url',
         label: 'File URL',
         sortType: 'string',
-        maxWidth: '360px',
+        flex: '1 1 360px',
         renderCell: (row) => (
           <Main_TextField
             defaultValue={row.file_url || ''}

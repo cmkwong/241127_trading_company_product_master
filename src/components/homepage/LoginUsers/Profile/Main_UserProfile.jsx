@@ -147,7 +147,7 @@ const Main_UserProfile = () => {
             <div className={styles.row}>
               <div className={styles.ratio20}>
                 <Main_TextField
-                  label="Country Calling Code"
+                  label="Country Code"
                   defaultValue={String(countryCallingCode || '')}
                   placeholder="+852"
                   onChange={(ov, nv) =>

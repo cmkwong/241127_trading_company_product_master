@@ -49,7 +49,7 @@ const Main_UserPaymentMethod = () => {
         key: 'method_type',
         label: 'Type',
         sortType: 'string',
-        maxWidth: '150px',
+        flex: '1 1 150px',
         renderCell: (row) => (
           <Main_Dropdown
             defaultOptions={METHOD_TYPE_OPTIONS}
@@ -62,7 +62,7 @@ const Main_UserPaymentMethod = () => {
         key: 'card_brand',
         label: 'Brand',
         sortType: 'string',
-        maxWidth: '150px',
+        flex: '1 1 150px',
         renderCell: (row) => (
           <Main_TextField
             defaultValue={row.card_brand || ''}
@@ -75,7 +75,7 @@ const Main_UserPaymentMethod = () => {
         key: 'last_four',
         label: 'Last 4',
         sortType: 'string',
-        maxWidth: '110px',
+        flex: '1 1 110px',
         renderCell: (row) => (
           <Main_TextField
             defaultValue={row.last_four || ''}
@@ -89,7 +89,7 @@ const Main_UserPaymentMethod = () => {
         label: 'Exp. Month',
         sortType: 'string',
         nextRow: true,
-        maxWidth: '120px',
+        flex: '1 1 120px',
         renderCell: (row) => (
           <Main_TextField
             defaultValue={row.expiry_month != null ? String(row.expiry_month) : ''}
@@ -104,7 +104,7 @@ const Main_UserPaymentMethod = () => {
         key: 'expiry_year',
         label: 'Exp. Year',
         sortType: 'string',
-        maxWidth: '120px',
+        flex: '1 1 120px',
         renderCell: (row) => (
           <Main_TextField
             defaultValue={row.expiry_year != null ? String(row.expiry_year) : ''}
@@ -119,7 +119,7 @@ const Main_UserPaymentMethod = () => {
         key: 'provider',
         label: 'Provider',
         sortType: 'string',
-        maxWidth: '150px',
+        flex: '1 1 150px',
         renderCell: (row) => (
           <Main_TextField
             defaultValue={row.provider || ''}
@@ -133,7 +133,7 @@ const Main_UserPaymentMethod = () => {
         label: 'Default',
         sortType: 'string',
         nextRow: true,
-        maxWidth: '120px',
+        flex: '1 1 120px',
         renderCell: (row) => (
           <Main_Dropdown
             defaultOptions={[
@@ -149,7 +149,7 @@ const Main_UserPaymentMethod = () => {
         key: 'status',
         label: 'Status',
         sortType: 'string',
-        maxWidth: '120px',
+        flex: '1 1 120px',
         renderCell: (row) => (
           <Main_Dropdown
             defaultOptions={[

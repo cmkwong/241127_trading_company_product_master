@@ -50,7 +50,7 @@ const PurchaseRequestShippingDetails = ({
       {
         key: 'address_text',
         label: 'Shipping Address',
-        size: 'XXL',
+        flex: '1 1 450px',
         sortType: 'string',
         getSortValue: (row) => toSafeString(row?.address_text),
         renderCell: (row) => (
@@ -65,7 +65,7 @@ const PurchaseRequestShippingDetails = ({
       {
         key: 'sales_shipping_detail_id',
         label: 'Linked SQ Row',
-        size: 'L',
+        flex: '1 1 270px',
         sortType: 'string',
         getSortValue: (row) => {
           const matched = quotationSuggestionOptions.find(
@@ -109,7 +109,7 @@ const PurchaseRequestShippingDetails = ({
       {
         key: 'length',
         label: 'Length',
-        size: 'M',
+        flex: '1 1 180px',
         sortType: 'number',
         renderCell: (row) => (
           <Main_TextField
@@ -126,7 +126,7 @@ const PurchaseRequestShippingDetails = ({
       {
         key: 'width',
         label: 'Width',
-        size: 'M',
+        flex: '1 1 180px',
         sortType: 'number',
         renderCell: (row) => (
           <Main_TextField
@@ -143,7 +143,7 @@ const PurchaseRequestShippingDetails = ({
       {
         key: 'height',
         label: 'Height',
-        size: 'M',
+        flex: '1 1 180px',
         sortType: 'number',
         renderCell: (row) => (
           <Main_TextField
@@ -160,7 +160,7 @@ const PurchaseRequestShippingDetails = ({
       {
         key: 'quantity',
         label: 'Qty',
-        size: 'M',
+        flex: '1 1 180px',
         sortType: 'number',
         renderCell: (row) => (
           <Main_TextField
@@ -177,7 +177,7 @@ const PurchaseRequestShippingDetails = ({
       {
         key: 'weight',
         label: 'Weight',
-        size: 'M',
+        flex: '1 1 180px',
         sortType: 'number',
         renderCell: (row) => (
           <Main_TextField
@@ -194,7 +194,7 @@ const PurchaseRequestShippingDetails = ({
       {
         key: 'api_selected',
         label: 'AP Invoice',
-        size: 'S',
+        flex: '1 1 90px',
         sortType: 'string',
         renderCell: (row) => (
           <div className={styles.checkboxCell}>
@@ -211,7 +211,7 @@ const PurchaseRequestShippingDetails = ({
       {
         key: 'currency_id',
         label: 'Currency',
-        size: 'L',
+        flex: '1 1 270px',
         sortType: 'string',
         nextRow: true,
         renderCell: (row) => (
@@ -226,7 +226,7 @@ const PurchaseRequestShippingDetails = ({
       {
         key: 'price',
         label: 'Total Cost',
-        size: 'M',
+        flex: '1 1 180px',
         sortType: 'number',
         renderCell: (row) => (
           <Main_TextField
@@ -243,7 +243,7 @@ const PurchaseRequestShippingDetails = ({
       {
         key: 'details',
         label: 'Details',
-        size: 'XL',
+        flex: '1 1 360px',
         nextRow: true,
         sortType: 'string',
         renderCell: (row) => (
@@ -258,7 +258,7 @@ const PurchaseRequestShippingDetails = ({
       {
         key: 'remark',
         label: 'Internal Remark',
-        size: 'XL',
+        flex: '1 1 360px',
         sortType: 'string',
         renderCell: (row) => (
           <Main_TextArea
@@ -272,7 +272,7 @@ const PurchaseRequestShippingDetails = ({
       {
         key: 'images',
         label: 'Shipping Images',
-        size: 'XL',
+        flex: '1 1 360px',
         nextRow: true,
         sortable: false,
         renderCell: (row) => (
@@ -299,7 +299,7 @@ const PurchaseRequestShippingDetails = ({
       {
         key: 'files',
         label: 'Shipping Files',
-        size: 'XL',
+        flex: '1 1 360px',
         sortable: false,
         renderCell: (row) => (
           <div className={styles.uploadsCell}>

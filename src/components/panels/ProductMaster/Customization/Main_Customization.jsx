@@ -156,8 +156,7 @@ const Main_Customization = () => {
         key: 'name',
         label: 'Customization Header',
         sortType: 'string',
-        minWidth: '220px',
-        maxWidth: '400px',
+        flex: '1 1 220px',
         cellClassName: styles.tableCell,
         renderCell: (row) => (
           <Main_Suggest
@@ -182,8 +181,7 @@ const Main_Customization = () => {
         key: 'value',
         label: 'Value',
         sortType: 'string',
-        minWidth: '180px',
-        maxWidth: '300px',
+        flex: '1 1 180px',
         cellClassName: styles.tableCell,
         renderCell: (row) => (
           <Main_TextField
@@ -197,8 +195,7 @@ const Main_Customization = () => {
         key: 'MOQ',
         label: 'MOQ',
         sortType: 'number',
-        minWidth: '120px',
-        maxWidth: '180px',
+        flex: '1 1 120px',
         cellClassName: styles.tableCell,
         renderCell: (row) => (
           <Main_TextField
@@ -213,8 +210,7 @@ const Main_Customization = () => {
         key: 'price_arise_currency',
         label: 'Currency',
         sortType: 'string',
-        minWidth: '150px',
-        maxWidth: '220px',
+        flex: '1 1 150px',
         cellClassName: styles.tableCell,
         getSortValue: (row) => currencyLabelMap[row.price_arise_currency] || '',
         renderCell: (row) => (
@@ -232,8 +228,7 @@ const Main_Customization = () => {
         key: 'price_arise_per_pcs',
         label: 'Price Arise / Pcs',
         sortType: 'number',
-        minWidth: '160px',
-        maxWidth: '220px',
+        flex: '1 1 160px',
         cellClassName: styles.tableCell,
         renderCell: (row) => (
           <Main_TextField
@@ -251,8 +246,7 @@ const Main_Customization = () => {
         label: 'Remark',
         sortable: false,
         nextRow: true,
-        minWidth: '260px',
-        maxWidth: '100%',
+        flex: '1 1 260px',
         cellClassName: styles.tableCell,
         renderCell: (row) => (
           <Main_TextArea
@@ -269,8 +263,7 @@ const Main_Customization = () => {
         label: 'Images',
         sortable: false,
         nextRow: true,
-        minWidth: '300px',
-        maxWidth: '100%',
+        flex: '1 1 300px',
         cellClassName: styles.tableCell,
         renderCell: (row) => {
           const defaultImages = sortByDisplayOrder(

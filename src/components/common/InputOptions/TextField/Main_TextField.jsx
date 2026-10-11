@@ -44,6 +44,7 @@ const Main_TextField = (props) => {
     height,
     helperText,
     error = false,
+    inputPrefix,
     inputSuffix,
   } = props;
 
@@ -90,6 +91,7 @@ const Main_TextField = (props) => {
           />
         )}
         <div className={styles.inputWrapper}>
+          {inputPrefix}
           <Sub_TextField
             ref={inputRef}
             id={inputId}
@@ -164,6 +166,7 @@ Main_TextField.propTypes = {
   height: PropTypes.oneOf(['s', 'm', 'l', 'xl', 'S', 'M', 'L', 'XL']),
   helperText: PropTypes.string,
   error: PropTypes.bool,
+  inputPrefix: PropTypes.node,
   inputSuffix: PropTypes.node,
 };
 

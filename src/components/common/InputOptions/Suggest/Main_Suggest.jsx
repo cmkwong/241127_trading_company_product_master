@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import { createPortal } from 'react-dom';
 import styles from './Main_Suggest.module.css';
 import Main_TextField from '../TextField/Main_TextField';
-import Label from '../../Texts/Label';
 import { v4 as uuidv4 } from 'uuid';
 
 const getDefaultSuggestionLabel = (suggestion) => {
@@ -180,20 +179,10 @@ const Main_Suggest = (props) => {
 
   return (
     <div className={styles.suggestContainer} data-testid="suggest-container">
-      {label && <Label>{label}</Label>}
       <div className={styles.inputWrapper}>
         <div className={styles.inputContainer} ref={inputContainerRef}>
-          <span className={styles.searchIcon} aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none">
-              <ellipse cx="10" cy="5.5" rx="5.5" ry="2.5" />
-              <path d="M4.5 5.5v8c0 1.38 2.46 2.5 5.5 2.5.73 0 1.43-.06 2.06-.18" />
-              <path d="M15.5 5.5v4" />
-              <path d="M4.5 9.5c0 1.38 2.46 2.5 5.5 2.5.73 0 1.43-.06 2.06-.18" />
-              <circle cx="17.5" cy="16.5" r="3" />
-              <path d="m19.8 18.8 2.2 2.2" />
-            </svg>
-          </span>
           <Main_TextField
+            label={label}
             inputId={resolvedInputIdRef.current}
             inputRef={inputRef}
             defaultValue={inputValue}
@@ -205,6 +194,18 @@ const Main_Suggest = (props) => {
             onClick={onClick}
             onKeyDown={onKeyDown}
             className={styles.suggestInput}
+            inputPrefix={
+              <span className={styles.searchIcon} aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <ellipse cx="10" cy="5.5" rx="5.5" ry="2.5" />
+                  <path d="M4.5 5.5v8c0 1.38 2.46 2.5 5.5 2.5.73 0 1.43-.06 2.06-.18" />
+                  <path d="M15.5 5.5v4" />
+                  <path d="M4.5 9.5c0 1.38 2.46 2.5 5.5 2.5.73 0 1.43-.06 2.06-.18" />
+                  <circle cx="17.5" cy="16.5" r="3" />
+                  <path d="m19.8 18.8 2.2 2.2" />
+                </svg>
+              </span>
+            }
           />
           {showSuggestionList &&
             isFocused &&

@@ -86,7 +86,7 @@ const Sub_FileUploadsHeader = ({
       <div
         className={`${styles.headerActions} ${useFigmaImageHeader ? styles.figmaImageHeaderActions : ''}`}
       >
-        <div className={useFigmaImageHeader ? styles.figmaImageToolbar : ''}>
+        <div className={styles.figmaImageToolbar}>
           {showSortButton && (
             <div className={styles.sortActionWrap} ref={sortMenuRef}>
               <button

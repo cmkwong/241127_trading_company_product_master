@@ -20,6 +20,7 @@ const Main_TagInputField = (props) => {
     canAddNewOptions = true,
     enableHierarchyViewToggle = false,
     hierarchyToggleLabel = 'Show hierarchy',
+    label,
     placeholder = 'Search options...',
   } = props;
 
@@ -415,6 +416,7 @@ const Main_TagInputField = (props) => {
         )}
 
         <Main_Suggest
+          label={label}
           inputRef={inputReference}
           defaultValue={inputValue}
           placeholder={placeholder}

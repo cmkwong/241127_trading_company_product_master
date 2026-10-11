@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import EditableDataFormBody from './EditableDataFormBody';
 import Frame from '../Layouts/Frame';
 import AddNewBtn from '../Buttons/AddNewBtn';
+import Label from '../Texts/Label';
 import styles from './EditableDataForm.module.css';
 
 const getDefaultRowKey = (row, index) => row?.id || index;
@@ -24,6 +25,7 @@ const EditableDataForm = ({
   rows = [],
   columns = [],
   rowKey = getDefaultRowKey,
+  label,
   emptyMessage = 'No data',
   onFillCellChange,
   onAddRow,
@@ -147,6 +149,14 @@ const EditableDataForm = ({
 
   return (
     <div className={styles.formRoot}>
+      {label ? (
+        <Label
+          text={label}
+          size="S"
+          weight="medium"
+          color="var(--color-primary)"
+        />
+      ) : null}
       <Frame
         direction="vertical"
         gap={0}

@@ -398,6 +398,7 @@ const Main_Pack = () => {
   return (
     <Main_InputContainer label="Packing Information">
       <Main_TagInputField
+        label="Logistics Attributes"
         defaultOptions={productLogisticsAttributes}
         defaultSelectedOptions={selectedLogisticsIds}
         onChange={handleLogisticsChange}
@@ -407,17 +408,16 @@ const Main_Pack = () => {
         placeholder="Search logistics attributes..."
       />
 
-      <Main_InputContainer label="Packing Details" layout="column">
-        <EditableDataForm
-          rows={packRows}
-          columns={columns}
-          rowKey="id"
-          emptyMessage="No packing rows yet. Click + Add Packing."
-          onAddRow={handleAddPackRow}
-          addRowText="Add Packing"
-          onRemoveRow={handleDeletePackRow}
-        />
-      </Main_InputContainer>
+      <EditableDataForm
+        label="Packing Details"
+        rows={packRows}
+        columns={columns}
+        rowKey="id"
+        emptyMessage="No packing rows yet. Click + Add Packing."
+        onAddRow={handleAddPackRow}
+        addRowText="Add Packing"
+        onRemoveRow={handleDeletePackRow}
+      />
     </Main_InputContainer>
   );
 };

@@ -49,6 +49,7 @@ const Main_SalesDocument = ({
   const [isPreparingPreview, setIsPreparingPreview] = useState(false);
   const [previewType, setPreviewType] = useState('quotation');
   const [previewShowTotalPrice, setPreviewShowTotalPrice] = useState(true);
+  const [previewShowPercentAmount, setPreviewShowPercentAmount] = useState(true);
   const [previewPrintArInvoice, setPreviewPrintArInvoice] = useState(false);
   const [baseCurrencyCode, setBaseCurrencyCode] = useState('USD');
   const previewIframeRef = useRef(null);
@@ -535,6 +536,7 @@ const Main_SalesDocument = ({
         baseCurrencyCode,
         exchangeRateMap,
         showTotalPrice: previewShowTotalPrice,
+        showPercentAmount: previewShowPercentAmount,
       };
       const html = isPackingListDoc
         ? buildPackingListDocumentA4Html(previewOptions)
@@ -584,6 +586,7 @@ const Main_SalesDocument = ({
     isPreparingPreview,
     isSalesOrderDoc,
     previewShowTotalPrice,
+    previewShowPercentAmount,
     productOptions,
     quotations,
     serviceOptions,
@@ -631,6 +634,7 @@ const Main_SalesDocument = ({
               ? buildArDownpaymentInvoiceDocumentA4Html({
                   ...previewOptions,
                   showTotalPrice: previewShowTotalPrice,
+                  showPercentAmount: previewShowPercentAmount,
                 })
               : isDeliveryNoteDoc
                 ? buildDeliveryNoteDocumentA4Html(previewOptions)
@@ -661,6 +665,7 @@ const Main_SalesDocument = ({
     isPreviewOpen,
     previewPrintArInvoice,
     previewShowTotalPrice,
+    previewShowPercentAmount,
     productOptions,
     quotations,
     serviceOptions,
@@ -936,6 +941,18 @@ const Main_SalesDocument = ({
                       }
                     />
                     <span>Show Total Price</span>
+                  </Label>
+                ) : null}
+                {previewType === 'ar-downpayment-invoice' ? (
+                  <Label className={styles.previewOptionToggle}>
+                    <input
+                      type="checkbox"
+                      checked={previewShowPercentAmount}
+                      onChange={(event) =>
+                        setPreviewShowPercentAmount(event.target.checked)
+                      }
+                    />
+                    <span>Show % AMT.</span>
                   </Label>
                 ) : null}
                 {isSalesQuotationDoc ? (

@@ -252,6 +252,7 @@ export const buildDocumentFlowGraph = ({
         kind: 'sales',
         label: docTypeNameById.get(toSafe(doc?.doc_type)) || 'Sales Document',
         status: toSafe(doc?.status),
+        disabled: toSafe(doc?.status).toLowerCase() === 'disabled',
         date: toSafe(doc?.created_at),
         lines,
       },

@@ -322,7 +322,7 @@
 }
 
 .footerNoTotal {
-  justify-content: flex-start;
+  /* justify-content: flex-start; */
 }
 
 .footerWideTerms .terms {

@@ -11,12 +11,21 @@ const formatDate = (value) => {
 
 const Sub_DocumentNode = ({ data }) => {
   const isSales = data?.kind === 'sales';
+  const isDisabled = data?.disabled === true;
   const lines = Array.isArray(data?.lines) ? data.lines : [];
 
   return (
     <div
-      className={`${styles.node} ${isSales ? styles.salesNode : styles.purchaseNode}`}
-      title={isSales ? 'Open document' : 'Open purchase request'}
+      className={`${styles.node} ${
+        isSales ? styles.salesNode : styles.purchaseNode
+      } ${isDisabled ? styles.nodeDisabled : ''}`}
+      title={
+        isDisabled
+          ? 'Document unavailable'
+          : isSales
+            ? 'Open document'
+            : 'Open purchase request'
+      }
     >
       <div className={styles.header}>
         <Handle

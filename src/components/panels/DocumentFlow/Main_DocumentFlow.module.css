@@ -122,3 +122,33 @@
   border: 2px solid #9ca3af;
   border-radius: 50%;
 }
+
+/* Disabled (unavailable) document — dark grey element box */
+.nodeDisabled,
+.nodeDisabled:hover {
+  background: #374151;
+  border-color: #1f2937;
+}
+
+.nodeDisabled .header {
+  border-bottom-color: rgba(255, 255, 255, 0.12);
+}
+
+.nodeDisabled .headerTitle,
+.nodeDisabled .referenceId,
+.nodeDisabled .lineLabel,
+.nodeDisabled .lineQty {
+  color: #e5e7eb;
+}
+
+.nodeDisabled .linePrice {
+  color: #ffffff;
+}
+
+.nodeDisabled .lineRow {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+.nodeDisabled .statusBadge {
+  background: #111827;
+}

@@ -1160,6 +1160,7 @@ const QuotationHeader = ({
 
 const QuotationFooter = ({
   showTotalPrice,
+  showPercentAmount,
   totalLabel,
   totalAmount,
   labels,
@@ -1170,15 +1171,31 @@ const QuotationFooter = ({
       ? labels.termsLines
       : QUOTATION_LABELS.termsLines;
 
-  const showPaymentSummary = Boolean(paymentSummary?.enabled && showTotalPrice);
+  const hasIndependentRows = paymentSummary?.independentRows === true;
+  // AR Downpayment: the summary block is always shown; "Show Total Price" only
+  // toggles the ORIGINAL row and "Show % AMT." only toggles the "% AMT." label.
+  const showPaymentSummary = Boolean(
+    paymentSummary?.enabled && (hasIndependentRows || showTotalPrice),
+  );
   const shouldShowOriginalRow =
-    showPaymentSummary && toSafeString(paymentSummary?.originalLabel);
+    showPaymentSummary &&
+    showTotalPrice &&
+    Boolean(toSafeString(paymentSummary?.originalLabel));
   const shouldShowAdjustmentRow =
-    showPaymentSummary && toSafeString(paymentSummary?.adjustmentLabel);
+    showPaymentSummary &&
+    showTotalPrice &&
+    Boolean(toSafeString(paymentSummary?.adjustmentLabel));
+  // The downpayment amount box is always shown (it is the point of a
+  // downpayment invoice); only its "% AMT." label is toggled.
+  const shouldShowPrimaryRow = showPaymentSummary;
+  const shouldShowPrimaryLabel = !hasIndependentRows || showPercentAmount;
+
+  const hasVisibleSummary =
+    shouldShowPrimaryRow || shouldShowOriginalRow || shouldShowAdjustmentRow;
 
   return (
     <div
-      className={`${styles.footer} ${showTotalPrice ? '' : styles.footerNoTotal} ${
+      className={`${styles.footer} ${hasVisibleSummary ? '' : styles.footerNoTotal} ${
         labels?.termsFullWidth === true ? styles.footerWideTerms : ''
       }`}
     >
@@ -1214,14 +1231,20 @@ const QuotationFooter = ({
               </span>
             </div>
           ) : null}
-          <div className={styles.totalBox}>
-            <span className={styles.totalLabel}>
-              {paymentSummary.primaryLabel}
-            </span>
-            <span className={styles.totalValue}>
-              {paymentSummary.primaryAmount}
-            </span>
-          </div>
+          {shouldShowPrimaryRow ? (
+            <div className={styles.totalBox}>
+              {shouldShowPrimaryLabel ? (
+                <span className={styles.totalLabel}>
+                  {paymentSummary.primaryLabel}
+                </span>
+              ) : (
+                <span className={styles.totalLabel}>DP AMT.</span>
+              )}
+              <span className={styles.totalValue}>
+                {paymentSummary.primaryAmount}
+              </span>
+            </div>
+          ) : null}
         </div>
       ) : showTotalPrice ? (
         <div className={styles.totalBox}>
@@ -1248,6 +1271,7 @@ const QuotationPreviewPage = ({
   lineItems,
   baseCurrencyCode,
   showTotalPrice,
+  showPercentAmount,
   totalLabel,
   totalAmount,
   paymentSummary,
@@ -1277,6 +1301,7 @@ const QuotationPreviewPage = ({
     <div className={styles.spacer} />
     <QuotationFooter
       showTotalPrice={showTotalPrice}
+      showPercentAmount={showPercentAmount}
       totalLabel={totalLabel}
       totalAmount={totalAmount}
       labels={labels}
@@ -1309,6 +1334,7 @@ export const buildQuotationViewData = ({
     baseCurrencyCode = 'USD',
     exchangeRateMap = { HKD: 1 },
     showTotalPrice = true,
+    showPercentAmount = true,
     showProductIcon = false,
   } = options;
 
@@ -1473,6 +1499,7 @@ export const buildQuotationViewData = ({
     variant === 'ar-downpayment-invoice'
       ? {
           enabled: true,
+          independentRows: true,
           originalLabel: toSafeString(labels?.originalTotalLabel) || 'ORIGINAL',
           originalAmount: totalAmountWithCurrency,
           adjustmentLabel: '',
@@ -1522,6 +1549,7 @@ export const buildQuotationViewData = ({
     totalAmount,
     paymentSummary,
     showTotalPrice: effectiveShowTotalPrice,
+    showPercentAmount,
     documentTitle,
   };
 };

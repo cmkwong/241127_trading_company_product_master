@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import Main_InputContainer from '../../../common/Container/Main_InputContainer';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
@@ -14,12 +14,13 @@ import {
   useEntityRows,
 } from '../../../../store/GeneralContext';
 import { useMasterContext } from '../../../../store/MasterContext';
-import { computeQuotationTotals, formatMoney } from '../utils/quotationTotals';
+import { computeQuotationTotals } from '../utils/quotationTotals';
 import styles from './Main_SalesBasicInfo.module.css';
 
 export const STATUS_OPTIONS = [
   { id: 'open', name: 'Open', color: '#16a34a' },
   { id: 'close', name: 'Close', color: '#6b7280' },
+  { id: 'disabled', name: 'Disabled', color: '#374151' },
 ];
 
 const FILE_SERVER_BASE_URL = 'http://localhost:3001';
@@ -160,6 +161,29 @@ const Main_SalesBasicInfo = ({
     }
     return (percent / 100) * grandTotal;
   }, [headerProformaPercent, totalsSummary]);
+
+  // Plain-number representation of the downpayment amount for the editable field.
+  // Kept free of currency prefixes / thousand separators so users can type into it.
+  const formatDownpaymentAmountInput = (value) => {
+    if (value == null || !Number.isFinite(value)) {
+      return '';
+    }
+    return String(Number(value.toFixed(3)));
+  };
+
+  // Tracks which field triggered the last change so the amount field is not
+  // reformatted mid-typing while the percent is being back-computed from it.
+  const downpaymentEditSourceRef = useRef('percent');
+  const [downpaymentAmountInput, setDownpaymentAmountInput] = useState('');
+
+  useEffect(() => {
+    if (downpaymentEditSourceRef.current === 'amount') {
+      // The amount field just caused this recompute; keep the user's text.
+      downpaymentEditSourceRef.current = 'percent';
+      return;
+    }
+    setDownpaymentAmountInput(formatDownpaymentAmountInput(downpaymentAmount));
+  }, [downpaymentAmount]);
 
   const filteredAddressOptions = useMemo(() => {
     const normalized = (customerAddressOptions || []).map((address) => ({
@@ -563,16 +587,30 @@ const Main_SalesBasicInfo = ({
               />
               <Main_TextField
                 label="Downpayment Amount"
-                defaultValue={
-                  downpaymentAmount !== null &&
-                  Number.isFinite(downpaymentAmount)
-                    ? `${
-                        totalsSummary?.baseCurrencyCode || baseCurrencyCode
-                      } ${formatMoney(downpaymentAmount)}`
-                    : '-'
-                }
-                disabled
-                placeholder=""
+                type="number"
+                step="0.001"
+                min="0"
+                defaultValue={downpaymentAmountInput}
+                placeholder="0.000"
+                onChange={(ov, nv) => {
+                  const trimmed = String(nv ?? '').trim();
+                  const parsed = Number(trimmed);
+                  const grandTotal = Number(totalsSummary?.grandTotal);
+
+                  downpaymentEditSourceRef.current = 'amount';
+                  setDownpaymentAmountInput(trimmed);
+
+                  let percent = null;
+                  if (
+                    trimmed !== '' &&
+                    Number.isFinite(parsed) &&
+                    Number.isFinite(grandTotal) &&
+                    grandTotal > 0
+                  ) {
+                    percent = (parsed / grandTotal) * 100;
+                  }
+                  onPatchQuotation({ header_proforma_percent: percent });
+                }}
               />
             </>
           ) : null}

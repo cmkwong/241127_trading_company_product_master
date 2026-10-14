@@ -741,22 +741,20 @@ const renestSalesQuotationRowForApi = (row = {}, fallbackRows = []) => {
     );
 
     if (rootRows.length === 0) {
-      // When the child array is empty (all rows were deleted), we still
-      // need to propagate empty arrays into the nested detail structure
-      // so that _sync_children flags on parent rows can instruct the
-      // server to remove orphaned children.
-      const parentIds = new Set(childParentLookup.values());
+      // Empty child array (all rows deleted): propagate empty arrays into the
+      // nested detail structure so _sync_children lets the server remove
+      // orphaned children.
+      // IMPORTANT: only details that are part of THIS payload may be touched.
+      // Parents that exist only in the fallback rows were either deleted by the
+      // user (full-sync payload) or belong to unrelated tables of a partial diff
+      // payload (changes/deletions). Emitting stubs for them resurrects deleted
+      // parents and surfaces untouched child tables in the dry run.
       let hasEmptyNested = false;
 
-      parentIds.forEach((parentId) => {
-        let detailIndex = detailIndexById.get(parentId);
-        if (detailIndex === undefined) {
-          details.push({ id: parentId });
-          detailIndex = details.length - 1;
-          detailIndexById.set(parentId, detailIndex);
-        }
+      detailIndexById.forEach((detailIndex) => {
+        const detailRow = details[detailIndex];
+        if (!detailRow) return;
 
-        const detailRow = details[detailIndex] || { id: parentId };
         details[detailIndex] = {
           ...detailRow,
           [config.nestedChildKey]: [],

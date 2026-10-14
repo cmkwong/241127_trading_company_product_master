@@ -1,25 +1,21 @@
+import PropTypes from 'prop-types';
+import Main_ColorImagePicker from '../../../common/InputOptions/ColorImagePicker/Main_ColorImagePicker';
 import Main_Suggest from '../../../common/InputOptions/Suggest/Main_Suggest';
-import IconUpload from '../../../common/InputOptions/IconUpload/IconUpload';
+import Sub_ColorSuggestionItem from '../../../common/InputOptions/ColorImagePicker/Sub_ColorSuggestionItem';
 import AddNewBtn from '../../../common/Buttons/AddNewBtn';
+import { getVariantTypeId } from './productCostsUtils';
 import styles from './ColorRowsSection.module.css';
-
-const ACCEPTED_IMAGE_TYPES = [
-  'image/jpeg',
-  'image/png',
-  'image/gif',
-  'image/webp',
-];
 
 const ColorRowsSection = ({
   variantColors,
   getColorImageRecord,
-  colorSuggestionNames,
+  colorOptions,
   colorDraftByVariantId,
   getColorDisplayName,
   setColorDraftByVariantId,
   commitColorDraft,
-  handleColorImageFileChange,
-  handleColorImageReuse,
+  handleColorSelect,
+  handleColorImageChange,
   colorImagesDirectoryPath,
   handleRemoveColorRow,
   handleAddColorRow,
@@ -42,65 +38,80 @@ const ColorRowsSection = ({
       <div className={styles.colorRowsWrap}>
         {variantColors.map((row) => {
           const imageRecord = getColorImageRecord?.(row);
+          const colorTypeId = getVariantTypeId(row, 'color');
+          const colorName =
+            colorDraftByVariantId[row.id] ?? getColorDisplayName(row);
+          const hexColorCode =
+            colorOptions.find((item) => item?.id === colorTypeId)
+              ?.color_code_hex || '';
 
           return (
             <div key={row.id} className={styles.colorRow}>
               <div className={styles.colorSuggestWrap}>
                 <Main_Suggest
-                  defaultSuggestions={colorSuggestionNames}
-                  defaultValue={
-                    colorDraftByVariantId[row.id] ?? getColorDisplayName(row)
-                  }
-                  onChange={(ov, nv) => {
+                  defaultSuggestions={colorOptions}
+                  defaultValue={colorName}
+                  getSuggestionLabel={(item) => item?.name || ''}
+                  getSuggestionSearchText={(item) => item?.name || ''}
+                  renderSuggestion={(item) => (
+                    <Sub_ColorSuggestionItem color={item} />
+                  )}
+                  onSelectSuggestion={(item) => {
+                    if (item) handleColorSelect(row.id, item);
+                  }}
+                  onChange={(ov, nv) =>
                     setColorDraftByVariantId((prev) => ({
                       ...prev,
                       [row.id]: nv,
-                    }));
-                  }}
-                  placeholder="Type or select"
+                    }))
+                  }
                   onBlur={() => commitColorDraft(row.id)}
+                  placeholder="Pick or type a color"
                 />
               </div>
 
               <div className={styles.colorUploaderWrap}>
-                <IconUpload
-                  inputId={`color-image-${row.id}`}
-                  imageUrl={imageRecord?.image_url || row.image_url}
-                  imageName={
-                    imageRecord?.image_name || row.image_name || 'color'
-                  }
-                  onSelectFile={(file) => handleColorImageFileChange(row, file)}
-                  onSelectExisting={(entry) =>
-                    handleColorImageReuse(row, entry)
-                  }
+                <Main_ColorImagePicker
+                  imageRecord={imageRecord}
+                  hex_color_code={hexColorCode}
                   directoryPath={colorImagesDirectoryPath}
-                  accept={ACCEPTED_IMAGE_TYPES.join(',')}
-                  title="Select color image"
-                  sizePx={42}
-                  placeholder="+"
+                  onImageChange={(nextRecord) =>
+                    handleColorImageChange(row, nextRecord)
+                  }
                 />
-                <button
-                  type="button"
-                  className={styles.deleteIconBtn}
-                  onClick={() => handleRemoveColorRow(row.id)}
-                  title="Delete color"
-                  aria-label="Delete color"
-                >
-                  <svg
-                    className={styles.deleteIcon}
-                    viewBox="0 0 20 20"
-                    fill="none"
-                    aria-hidden="true"
-                  >
-                    <path
-                      d="M6 6L14 14M14 6L6 14"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                </button>
               </div>
+
+              {!!imageRecord && !colorTypeId && (
+                <span
+                  className={styles.warningChip}
+                  role="alert"
+                  title="A colour is required before this product can be saved."
+                >
+                  Color required
+                </span>
+              )}
+
+              <button
+                type="button"
+                className={styles.deleteIconBtn}
+                onClick={() => handleRemoveColorRow(row.id)}
+                title="Delete color"
+                aria-label="Delete color"
+              >
+                <svg
+                  className={styles.deleteIcon}
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M6 6L14 14M14 6L6 14"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </button>
             </div>
           );
         })}
@@ -113,6 +124,21 @@ const ColorRowsSection = ({
       </div>
     </div>
   );
+};
+
+ColorRowsSection.propTypes = {
+  variantColors: PropTypes.array,
+  getColorImageRecord: PropTypes.func,
+  colorOptions: PropTypes.array,
+  colorDraftByVariantId: PropTypes.object,
+  getColorDisplayName: PropTypes.func,
+  setColorDraftByVariantId: PropTypes.func,
+  commitColorDraft: PropTypes.func,
+  handleColorSelect: PropTypes.func,
+  handleColorImageChange: PropTypes.func,
+  colorImagesDirectoryPath: PropTypes.string,
+  handleRemoveColorRow: PropTypes.func,
+  handleAddColorRow: PropTypes.func,
 };
 
 export default ColorRowsSection;

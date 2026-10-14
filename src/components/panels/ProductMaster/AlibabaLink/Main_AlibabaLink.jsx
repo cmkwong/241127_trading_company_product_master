@@ -10,6 +10,7 @@ import {
   useEntityRows,
 } from '../../../../store/GeneralContext';
 import styles from './Main_AlibabaLink.module.css';
+import Header from '../../../common/Texts/Header';
 
 const Main_AlibabaLink = () => {
   const alibabaRows = useEntityRows('products', 'product_alibaba_ids');
@@ -144,7 +145,8 @@ const Main_AlibabaLink = () => {
   }, [handleRowAdd]);
 
   return (
-    <Main_InputContainer label="Alibaba IDs">
+    <>
+      <Header as="h3" size="L" text="Alibaba IDs" />
       <div className={styles.list}>
         {rowIds.length === 0 ? (
           <EmptyState message="No Alibaba IDs yet." />
@@ -195,7 +197,7 @@ const Main_AlibabaLink = () => {
       <div className={styles.addRow}>
         <AddNewBtn onClick={handleAdd} text="Add Alibaba ID" />
       </div>
-    </Main_InputContainer>
+    </>
   );
 };
 

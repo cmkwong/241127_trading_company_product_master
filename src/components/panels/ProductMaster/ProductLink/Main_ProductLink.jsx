@@ -14,6 +14,7 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import { sortByDisplayOrder } from '../../../../utils/arr';
 import { buildProductImagesPath } from '../../../../utils/filePickerUtils';
+import Header from '../../../common/Texts/Header';
 
 const Main_ProductLink = () => {
   const productId = useEntityField('products', 'id');
@@ -259,7 +260,8 @@ const Main_ProductLink = () => {
   );
 
   return (
-    <Main_InputContainer label="Product Links">
+    <>
+      <Header as="h3" size="L" text="Product Links" />
       <div className={styles.tableSection}>
         <EditableDataForm
           rows={productLinks}
@@ -271,7 +273,7 @@ const Main_ProductLink = () => {
           onRemoveRow={handleDeleteLinkRow}
         />
       </div>
-    </Main_InputContainer>
+    </>
   );
 };
 

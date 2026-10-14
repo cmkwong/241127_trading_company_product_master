@@ -19,6 +19,17 @@ const normalizeSize = (value) => {
   return SIZE_OPTIONS.includes(normalized) ? normalized : 'M';
 };
 
+// Validate and normalise a hex colour (e.g. "f00" / "#f00" / "ff0000").
+// Returns a leading-`#` value, or '' when the input is not a valid hex.
+const normalizeHexColor = (value) => {
+  const normalized = String(value || '').trim();
+  return /^#?[0-9a-fA-F]{3,8}$/.test(normalized)
+    ? normalized.startsWith('#')
+      ? normalized
+      : `#${normalized}`
+    : '';
+};
+
 /**
  * Thumbnail upload control with an optional "file bank" browse button.
  *
@@ -39,6 +50,7 @@ const IconUpload = ({
   size = 'M',
   sizePx,
   directoryPath = '',
+  fallbackColor = '',
 }) => {
   const selectedSize = normalizeSize(size);
   const fileInputRef = useRef(null);
@@ -55,6 +67,7 @@ const IconUpload = ({
   // Stored `/public/...` paths are served only by the backend origin, so resolve
   // them (and leave blob:/data:/absolute URLs untouched) before rendering.
   const previewUrl = useMemo(() => resolveDisplayFileUrl(imageUrl), [imageUrl]);
+  const fallbackHex = normalizeHexColor(fallbackColor);
 
   const handleBrowseClick = (event) => {
     event.preventDefault();
@@ -94,6 +107,12 @@ const IconUpload = ({
               src={previewUrl}
               alt={imageName || 'preview'}
               className={styles.thumb}
+            />
+          ) : fallbackHex ? (
+            <span
+              className={styles.colorFallback}
+              style={{ backgroundColor: fallbackHex }}
+              aria-hidden="true"
             />
           ) : (
             <span className={styles.placeholder} aria-hidden="true">
@@ -162,6 +181,7 @@ IconUpload.propTypes = {
   size: PropTypes.string,
   sizePx: PropTypes.number,
   directoryPath: PropTypes.string,
+  fallbackColor: PropTypes.string,
 };
 
 export default IconUpload;

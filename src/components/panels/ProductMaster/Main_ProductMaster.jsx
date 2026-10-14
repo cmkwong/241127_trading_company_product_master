@@ -233,9 +233,11 @@ const Main_ProductMaster = () => {
               <Main_ProductAttributes />
               <Divider />
               <Main_Keywords />
+              <Divider />
+              <Main_ProductLink />
+              <Divider />
+              <Main_AlibabaLink />
             </Main_InputContainer>
-            <Main_ProductLink />
-            <Main_AlibabaLink />
             <Main_ProductImages />
             <Main_Customization />
             <Main_Pack />

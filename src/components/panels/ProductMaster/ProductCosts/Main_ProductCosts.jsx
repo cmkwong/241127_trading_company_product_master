@@ -19,7 +19,6 @@ import {
 } from './productCostsUtils';
 import { sortByDisplayOrder } from '../../../../utils/arr';
 import { buildProductImagesPath } from '../../../../utils/filePickerUtils';
-import { getEntryDisplayName } from '../../../../components/common/FileSelector/fileSelectorUtils';
 import styles from './Main_ProductCosts.module.css';
 
 const Main_ProductCosts = () => {
@@ -103,11 +102,6 @@ const Main_ProductCosts = () => {
   }, [masterCapacities, selectedCapacityTypeIds]);
 
   const [colorDraftByVariantId, setColorDraftByVariantId] = useState({});
-
-  const colorSuggestionNames = useMemo(
-    () => masterColors.map((c) => c.name).filter(Boolean),
-    [masterColors],
-  );
 
   const colorTypeMap = useMemo(
     () =>
@@ -270,56 +264,76 @@ const Main_ProductCosts = () => {
     ],
   );
 
-  const handleColorImageFileChange = useCallback(
-    (variantRow, file) => {
-      if (!variantRow?.id || !file) return;
+  // Pick a colour from `master_color_types` (matched by id) and populate the
+  // variant's colour fields from that row. Unlike `commitColorDraft`, no new
+  // master row is created here — the row already exists in the master list.
+  const handleColorSelect = useCallback(
+    (variantId, masterColorRow) => {
+      if (!variantId || !masterColorRow?.id) return;
 
-      const objectUrl = URL.createObjectURL(file);
-      const existingImage = getColorImageRecord(variantRow);
+      const name = masterColorRow.name || '';
 
       upsertEntityData('products', {
         product_varient_colors: [
           {
-            id: variantRow.id,
-            product_varient_color_images: [
-              {
-                id: existingImage?.id || uuidv4(),
-                product_varient_color_id: variantRow.id,
-                image_url: objectUrl,
-                image_name: file.name,
-                display_order: existingImage?.display_order ?? 1,
-              },
-            ],
+            id: variantId,
+            product_id: productId,
+            color_type_id: masterColorRow.id,
+            color_name: name,
           },
         ],
       });
+
+      setColorDraftByVariantId((prev) => ({ ...prev, [variantId]: name }));
     },
-    [upsertEntityData, getColorImageRecord],
+    [upsertEntityData, productId],
   );
 
-  // Zero-copy selection from the file bank: store the existing `/public/...`
-  // colour image path verbatim instead of uploading a new copy.
-  const handleColorImageReuse = useCallback(
-    (variantRow, entry) => {
-      if (!variantRow?.id || !entry?.path) return;
+  // Single handler for the colour image child row. `nextRecord` is either a
+  // shaped `{ image_url, image_name, ... }` (new upload or zero-copy file-bank
+  // reuse) or `null` to remove the current image.
+  const handleColorImageChange = useCallback(
+    (variantRow, nextRecord) => {
+      if (!variantRow?.id) return;
 
       const existingImage = getColorImageRecord(variantRow);
+
+      if (!nextRecord) {
+        if (existingImage?.id) {
+          upsertEntityData('products', {
+            product_varient_colors: [
+              {
+                id: variantRow.id,
+                product_varient_color_images: [
+                  { id: existingImage.id, _delete: true },
+                ],
+              },
+            ],
+          });
+        }
+        return;
+      }
+
+      const imageRecord = {
+        id: existingImage?.id || uuidv4(),
+        product_varient_color_id: variantRow.id,
+        image_url: nextRecord.image_url ?? '',
+        image_name: nextRecord.image_name ?? '',
+        display_order: existingImage?.display_order ?? 1,
+      };
+
+      if (nextRecord.reuse_existing_file) {
+        imageRecord.reuse_existing_file = true;
+        imageRecord._base64_changed = false;
+      } else {
+        imageRecord._base64_changed = true;
+      }
 
       upsertEntityData('products', {
         product_varient_colors: [
           {
             id: variantRow.id,
-            product_varient_color_images: [
-              {
-                id: existingImage?.id || uuidv4(),
-                product_varient_color_id: variantRow.id,
-                image_url: entry.path,
-                image_name: getEntryDisplayName(entry),
-                display_order: existingImage?.display_order ?? 1,
-                reuse_existing_file: true,
-                _base64_changed: false,
-              },
-            ],
+            product_varient_color_images: [imageRecord],
           },
         ],
       });
@@ -795,13 +809,13 @@ const Main_ProductCosts = () => {
         <ColorRowsSection
           variantColors={variantColors}
           getColorImageRecord={getColorImageRecord}
-          colorSuggestionNames={colorSuggestionNames}
+          colorOptions={masterColors}
           colorDraftByVariantId={colorDraftByVariantId}
           getColorDisplayName={getColorDisplayName}
           setColorDraftByVariantId={setColorDraftByVariantId}
           commitColorDraft={commitColorDraft}
-          handleColorImageFileChange={handleColorImageFileChange}
-          handleColorImageReuse={handleColorImageReuse}
+          handleColorSelect={handleColorSelect}
+          handleColorImageChange={handleColorImageChange}
           colorImagesDirectoryPath={colorImagesDirectoryPath}
           handleRemoveColorRow={handleRemoveColorRow}
           handleAddColorRow={handleAddColorRow}

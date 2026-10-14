@@ -1,0 +1,43 @@
+.wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.disabled {
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.removeBtn {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  /* flex: 0 0 auto; */
+  border: none;
+  background: #fff1f2;
+  color: #dc2626;
+  border-radius: 8px;
+  width: 12px;
+  height: 12px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.16s ease;
+}
+
+.removeBtn:hover {
+  background: #ffe4e6;
+}
+
+.removeBtn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.3);
+}
+
+.removeIcon {
+  width: 13px;
+  height: 13px;
+}

@@ -74,7 +74,7 @@ const SentEmail = ({
                 </>
               ) : isReset ? (
                 <>
-                  We sent a password reset link to <strong>{email}</strong>.
+                  We sent a password reset link to <strong>{email}</strong>
                 </>
               ) : (
                 <>
@@ -131,4 +131,3 @@ SentEmail.propTypes = {
 };
 
 export default SentEmail;
-

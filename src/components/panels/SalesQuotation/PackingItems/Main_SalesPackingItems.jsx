@@ -434,6 +434,7 @@ const Main_SalesPackingItems = ({ productOptions = [], onPatchQuotation }) => {
         label: 'Print Images',
         flex: '1 1 360px',
         sortable: false,
+        nextRow: true,
         renderCell: (row) => {
           const defaultImages = packingItemImages
             .filter(

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { usePurchaseRequestContext } from '../../../store/PurchaseRequestContext';
+import { useMasterContext } from '../../../store/MasterContext';
 import {
   getEntityRecord,
   useEntityField,
@@ -195,6 +196,11 @@ const isTruthyFlag = (value, defaultWhenMissing = true) => {
 const Main_PurchaseRequest = () => {
   const navigate = useNavigate();
   const { purchase_request_id } = useParams();
+  const { getDocTypeIdByName } = useMasterContext();
+  const salesOrderDocTypeId = useMemo(
+    () => getDocTypeIdByName('Sales Order'),
+    [getDocTypeIdByName],
+  );
   const {
     rows,
     selectedId,
@@ -643,31 +649,46 @@ const Main_PurchaseRequest = () => {
 
   const salesQuotationSuggestionOptions = useMemo(
     () =>
-      toArray(salesQuotations).map((quotation) => {
-        const id = toSafeString(quotation?.id);
-        const customerName =
-          customerNameById.get(toSafeString(quotation?.customer_id)) ||
-          'Unknown customer';
-        const totalUsd = salesQuotationTotalUsdById.get(id) || 0;
+      toArray(salesQuotations)
+        .filter(
+          (quotation) =>
+            !salesOrderDocTypeId ||
+            toSafeString(quotation?.doc_type) === salesOrderDocTypeId,
+        )
+        .map((quotation) => {
+          const id = toSafeString(quotation?.id);
+          const customerName =
+            customerNameById.get(toSafeString(quotation?.customer_id)) ||
+            'Unknown customer';
+          const totalUsd = salesQuotationTotalUsdById.get(id) || 0;
 
-        return {
-          id,
-          name: `${id} | ${customerName} | USD ${formatMoney(totalUsd)}`,
-          customer_name: customerName,
-          total_usd: totalUsd,
-          searchText: [
-            quotation?.id,
-            customerName,
-            quotation?.customer_id,
-            quotation?.remark,
-            formatMoney(totalUsd),
-          ]
-            .map((value) => toSafeString(value))
-            .filter(Boolean)
-            .join(' '),
-        };
-      }),
-    [customerNameById, salesQuotationTotalUsdById, salesQuotations],
+          return {
+            id,
+            name: `${id} | ${customerName} | USD ${formatMoney(totalUsd)}`,
+            customer_name: customerName,
+            total_usd: totalUsd,
+            created_at: toSafeString(quotation?.created_at),
+            updated_at: toSafeString(quotation?.updated_at),
+            searchText: [
+              quotation?.id,
+              customerName,
+              quotation?.customer_id,
+              quotation?.remark,
+              formatMoney(totalUsd),
+              quotation?.created_at,
+              quotation?.updated_at,
+            ]
+              .map((value) => toSafeString(value))
+              .filter(Boolean)
+              .join(' '),
+          };
+        }),
+    [
+      customerNameById,
+      salesQuotationTotalUsdById,
+      salesQuotations,
+      salesOrderDocTypeId,
+    ],
   );
 
   const selectedSupplierOption = useMemo(

@@ -19,6 +19,13 @@ export const STATUS_OPTIONS = [
 
 const toSafeString = (value) => String(value || '').trim();
 
+const formatDateTime = (value) => {
+  if (!value) return '';
+  return String(value)
+    .replace('T', ' ')
+    .replace(/\.\d{3}Z?$/, '');
+};
+
 const PurchaseRequestBasicInfo = ({
   draft,
   supplierSuggestionOptions,
@@ -129,11 +136,11 @@ const PurchaseRequestBasicInfo = ({
         </ColumnLayout>
 
         <ColumnLayout>
-          <Main_InputContainer label="Sales Quotation">
+          <Main_InputContainer label="Sales Order">
             <Main_Suggest
               defaultSuggestions={salesQuotationSuggestionOptions}
               defaultValue={selectedSalesQuotationOption?.name || ''}
-              placeholder="Search sales quotation"
+              placeholder="Search sales order"
               getSuggestionLabel={(suggestion) => suggestion?.name || ''}
               getSuggestionSearchText={(suggestion) =>
                 toSafeString(
@@ -157,6 +164,14 @@ const PurchaseRequestBasicInfo = ({
                     <span>
                       Total (USD): USD{' '}
                       {formatMoney(Number(suggestion?.total_usd || 0))}
+                    </span>
+                    <span>
+                      Created At:{' '}
+                      {formatDateTime(suggestion?.created_at) || '-'}
+                    </span>
+                    <span>
+                      Updated At:{' '}
+                      {formatDateTime(suggestion?.updated_at) || '-'}
                     </span>
                   </div>
                 </div>

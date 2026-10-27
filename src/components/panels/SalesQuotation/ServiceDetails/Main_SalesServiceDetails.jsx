@@ -17,6 +17,11 @@ import {
   isSelectedFlag,
   normalizeDiscountPercent,
 } from '../utils/quotationTotals';
+import {
+  resolveCurrencyId,
+  SALES_CURRENCY_CODE,
+  COST_CURRENCY_CODE,
+} from '../../../../utils/currency';
 import styles from './Main_SalesServiceDetails.module.css';
 
 const FILE_SERVER_BASE_URL = 'http://localhost:3001';
@@ -52,6 +57,16 @@ const Main_SalesServiceDetails = ({
   const serviceInternalFiles = useEntityRows(
     'sales_quotations',
     'sales_service_detail_internal_files',
+  );
+
+  const defaultSalesCurrencyId = useMemo(
+    () => resolveCurrencyId(currencyOptions, SALES_CURRENCY_CODE),
+    [currencyOptions],
+  );
+
+  const defaultCostCurrencyId = useMemo(
+    () => resolveCurrencyId(currencyOptions, COST_CURRENCY_CODE),
+    [currencyOptions],
   );
 
   const setServiceDetails = useCallback(
@@ -99,8 +114,8 @@ const Main_SalesServiceDetails = ({
         supplier_id: '',
         service_id: '',
         qty: 1,
-        currency_id: '',
-        cost_currency_id: '',
+        currency_id: defaultSalesCurrencyId,
+        cost_currency_id: defaultCostCurrencyId,
         price: '',
         discount_percent: 0,
         cost_price: '',
@@ -126,7 +141,7 @@ const Main_SalesServiceDetails = ({
         return [...previousRows, nextRow];
       });
     },
-    [quotationId, setServiceDetails],
+    [quotationId, defaultSalesCurrencyId, defaultCostCurrencyId, setServiceDetails],
   );
 
   const handleDeleteServiceDetail = useCallback(
@@ -172,8 +187,8 @@ const Main_SalesServiceDetails = ({
         supplier_id: supplierOptions[0]?.id || '',
         service_id: serviceOptions[0]?.id || '',
         qty: 1,
-        currency_id: currencyOptions[0]?.id || '',
-        cost_currency_id: currencyOptions[0]?.id || '',
+        currency_id: defaultSalesCurrencyId,
+        cost_currency_id: defaultCostCurrencyId,
         price: '',
         discount_percent: 0,
         cost_price: '',
@@ -187,7 +202,8 @@ const Main_SalesServiceDetails = ({
     quotationId,
     supplierOptions,
     serviceOptions,
-    currencyOptions,
+    defaultSalesCurrencyId,
+    defaultCostCurrencyId,
     setServiceDetails,
   ]);
 
@@ -432,7 +448,7 @@ const Main_SalesServiceDetails = ({
           <Main_Dropdown
             matchParentWidth
             defaultOptions={currencyDropdownOptions}
-            defaultSelectedOption={row.currency_id || ''}
+            defaultSelectedOption={row.currency_id || defaultSalesCurrencyId}
             onChange={(ov, nv) =>
               handleUpsertServiceDetail(row, { currency_id: nv })
             }
@@ -529,7 +545,7 @@ const Main_SalesServiceDetails = ({
           <Main_Dropdown
             matchParentWidth
             defaultOptions={currencyDropdownOptions}
-            defaultSelectedOption={row.cost_currency_id || ''}
+            defaultSelectedOption={row.cost_currency_id || defaultCostCurrencyId}
             onChange={(ov, nv) =>
               handleUpsertServiceDetail(row, { cost_currency_id: nv })
             }
@@ -735,6 +751,8 @@ const Main_SalesServiceDetails = ({
       supplierDropdownOptions,
       serviceSuggestionOptions,
       currencyDropdownOptions,
+      defaultSalesCurrencyId,
+      defaultCostCurrencyId,
       serviceImages,
       serviceInternalImages,
       serviceInternalFiles,

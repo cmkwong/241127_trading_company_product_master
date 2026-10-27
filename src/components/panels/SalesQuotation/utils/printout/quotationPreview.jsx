@@ -787,6 +787,12 @@ const buildShippingLineItems = ({
               : hasLeadTimeTo
                 ? `Delivery lead time to: ${String(leadTimeTo)} days`
                 : '',
+          toSafeString(deliveryAddress?.recipient_name)
+            ? `Recipient: ${toSafeString(deliveryAddress.recipient_name)}`
+            : '',
+          toSafeString(deliveryAddress?.phone_number)
+            ? `Phone: ${toSafeString(deliveryAddress.phone_number)}`
+            : '',
           pickAddressLine(deliveryAddress)
             ? `Delivery address: ${pickAddressLine(deliveryAddress)}`
             : '',

@@ -18,6 +18,11 @@ import {
   normalizeDiscountPercent,
 } from '../utils/quotationTotals';
 import { buildProductImagesPath } from '../../../../utils/filePickerUtils';
+import {
+  resolveCurrencyId,
+  SALES_CURRENCY_CODE,
+  COST_CURRENCY_CODE,
+} from '../../../../utils/currency';
 import styles from './Main_SalesProductDetails.module.css';
 
 const FILE_SERVER_BASE_URL = 'http://localhost:3001';
@@ -71,6 +76,16 @@ const Main_SalesProductDetails = ({
     'sales_product_detail_internal_files',
   );
 
+  const defaultSalesCurrencyId = useMemo(
+    () => resolveCurrencyId(currencyOptions, SALES_CURRENCY_CODE),
+    [currencyOptions],
+  );
+
+  const defaultCostCurrencyId = useMemo(
+    () => resolveCurrencyId(currencyOptions, COST_CURRENCY_CODE),
+    [currencyOptions],
+  );
+
   const setProductDetails = useCallback(
     (nextRowsOrUpdater) => {
       onPatchQuotation((currentQuotation) => {
@@ -115,8 +130,8 @@ const Main_SalesProductDetails = ({
         sales_quotation_id: quotationId,
         product_id: '',
         qty: 1,
-        currency_id: '',
-        cost_currency_id: '',
+        currency_id: defaultSalesCurrencyId,
+        cost_currency_id: defaultCostCurrencyId,
         price: '',
         discount_percent: 0,
         cost_price: '',
@@ -142,7 +157,7 @@ const Main_SalesProductDetails = ({
         return [...previousRows, nextRow];
       });
     },
-    [quotationId, setProductDetails],
+    [quotationId, defaultSalesCurrencyId, defaultCostCurrencyId, setProductDetails],
   );
 
   const handleDeleteProductDetail = useCallback(
@@ -187,8 +202,8 @@ const Main_SalesProductDetails = ({
         sales_quotation_id: quotationId,
         product_id: productOptions[0]?.id || '',
         qty: 1,
-        currency_id: currencyOptions[0]?.id || '',
-        cost_currency_id: currencyOptions[0]?.id || '',
+        currency_id: defaultSalesCurrencyId,
+        cost_currency_id: defaultCostCurrencyId,
         price: '',
         discount_percent: 0,
         cost_price: '',
@@ -198,7 +213,13 @@ const Main_SalesProductDetails = ({
         selected: true,
       },
     ]);
-  }, [quotationId, productOptions, currencyOptions, setProductDetails]);
+  }, [
+    quotationId,
+    productOptions,
+    defaultSalesCurrencyId,
+    defaultCostCurrencyId,
+    setProductDetails,
+  ]);
 
   const handleProductImagesChange = useCallback(
     (salesProductDetailId, newFiles = []) => {
@@ -418,7 +439,7 @@ const Main_SalesProductDetails = ({
           <Main_Dropdown
             matchParentWidth
             defaultOptions={currencyDropdownOptions}
-            defaultSelectedOption={row.currency_id || ''}
+            defaultSelectedOption={row.currency_id || defaultSalesCurrencyId}
             onChange={(ov, nv) =>
               handleUpsertProductDetail(row, { currency_id: nv })
             }
@@ -496,7 +517,7 @@ const Main_SalesProductDetails = ({
           <Main_Dropdown
             matchParentWidth
             defaultOptions={currencyDropdownOptions}
-            defaultSelectedOption={row.cost_currency_id || ''}
+            defaultSelectedOption={row.cost_currency_id || defaultCostCurrencyId}
             onChange={(ov, nv) =>
               handleUpsertProductDetail(row, { cost_currency_id: nv })
             }
@@ -710,6 +731,8 @@ const Main_SalesProductDetails = ({
     [
       productDropdownOptions,
       currencyDropdownOptions,
+      defaultSalesCurrencyId,
+      defaultCostCurrencyId,
       productImages,
       productInternalImages,
       productInternalFiles,

@@ -359,6 +359,11 @@ const Main_Pack = () => {
           ).map((file) => ({
             id: file.id,
             url: file.file_url ?? file.image_url,
+            // Preserve the persisted server path so downloads fetch the original
+            // binary instead of the compressed preview blob (see handleDownload
+            // in Main_FileUploads, which prefers _original_file_url).
+            _original_file_url:
+              file._original_file_url ?? file._original_image_url ?? '',
             name: file.file_name ?? file.image_name,
             display_order: file.display_order,
           }));

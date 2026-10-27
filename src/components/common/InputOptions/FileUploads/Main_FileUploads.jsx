@@ -353,9 +353,11 @@ const Main_FileUploads = (props) => {
 
       if (downloadEndpoint && downloadRequestBody) {
         sourceMode = 'api';
-        const response = await apiPost(downloadEndpoint, downloadRequestBody, {
-          token,
-        });
+        const response = await apiPost(
+          downloadEndpoint,
+          { ...(downloadRequestBody || {}), compress: false },
+          { token },
+        );
 
         const records = response?.structuredData?.data?.product_images || [];
         if (!Array.isArray(records) || records.length === 0) {
@@ -429,7 +431,7 @@ const Main_FileUploads = (props) => {
           const isImageBlob =
             blobType.startsWith('image/') || Boolean(mimeFromExt);
 
-          if (applyWatermarkOnDownload && isImageBlob) {
+          if (mode === 'image' && applyWatermarkOnDownload && isImageBlob) {
             blob = await addWatermarkToImageBlob(
               blob,
               mimeFromExt || blob.type,
@@ -490,6 +492,7 @@ const Main_FileUploads = (props) => {
     addWatermarkToImageBlob,
     getExtensionFromName,
     getMimeFromExtension,
+    mode,
   ]);
 
   // Update state when defaultImages changes (for image mode)
@@ -582,7 +585,9 @@ const Main_FileUploads = (props) => {
         // `/public/...` file with no `File` blob). A native pick carries real
         // `File` objects.
         const isFileBankEntry =
-          item && !(item instanceof File) && (item.storedPath || item.fromFileBank);
+          item &&
+          !(item instanceof File) &&
+          (item.storedPath || item.fromFileBank);
 
         const name = item?.name || '';
         const size = Number(item?.size) || 0;
@@ -1097,7 +1102,9 @@ const Main_FileUploads = (props) => {
 
   const selectedImages = useMemo(() => {
     const selectedSet = new Set(
-      (selectedFileIds || []).map((id) => String(id || '').trim()).filter(Boolean),
+      (selectedFileIds || [])
+        .map((id) => String(id || '').trim())
+        .filter(Boolean),
     );
     return (fileList || [])
       .filter((file) => selectedSet.has(String(file?.id || '').trim()))

@@ -19,7 +19,7 @@ const Sub_ColorSuggestionItem = ({ color }) => {
       />
       <span className={styles.suggestionName}>{name}</span>
       {description ? (
-        <span className={styles.suggestionDescription}>{description}</span>
+        <span className={styles.suggestionDescription}> [{description}]</span>
       ) : null}
     </div>
   );

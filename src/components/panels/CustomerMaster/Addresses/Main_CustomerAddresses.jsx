@@ -253,6 +253,36 @@ const Main_CustomerAddresses = () => {
         },
       },
       {
+        key: 'recipient_name',
+        label: 'Recipient Name',
+        sortType: 'string',
+        nextRow: true,
+        flex: '0 1 350px',
+        renderCell: (row) => (
+          <Main_TextField
+            className={styles.cellInput}
+            defaultValue={row.recipient_name || ''}
+            placeholder="Recipient Name"
+            onChange={(ov, nv) => upsertAddressRow(row, { recipient_name: nv })}
+          />
+        ),
+      },
+      {
+        key: 'phone_number',
+        label: 'Phone Number',
+        sortType: 'string',
+        nextRow: true,
+        flex: '0 1 350px',
+        renderCell: (row) => (
+          <Main_TextField
+            className={styles.cellInput}
+            defaultValue={row.phone_number || ''}
+            placeholder="Phone Number"
+            onChange={(ov, nv) => upsertAddressRow(row, { phone_number: nv })}
+          />
+        ),
+      },
+      {
         key: 'address_line1',
         label: 'Address Line 1',
         sortType: 'string',

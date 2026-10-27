@@ -1394,6 +1394,8 @@ export const SalesQuotationContext_Provider = ({ children }) => {
           customer_id: customerId,
           name: label || id,
           address_detail: uniqueAddressParts.join(', '),
+          recipient_name: toSafeString(address?.recipient_name),
+          phone_number: toSafeString(address?.phone_number),
         };
       })
       .filter(Boolean);

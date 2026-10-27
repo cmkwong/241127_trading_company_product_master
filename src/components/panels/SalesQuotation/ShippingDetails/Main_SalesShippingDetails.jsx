@@ -17,6 +17,11 @@ import {
   isSelectedFlag,
   normalizeDiscountPercent,
 } from '../utils/quotationTotals';
+import {
+  resolveCurrencyId,
+  SALES_CURRENCY_CODE,
+  COST_CURRENCY_CODE,
+} from '../../../../utils/currency';
 import styles from './Main_SalesShippingDetails.module.css';
 
 const FILE_SERVER_BASE_URL = 'http://localhost:3001';
@@ -329,6 +334,16 @@ const Main_SalesShippingDetails = ({
     'sales_shipping_price_internal_files',
   );
 
+  const defaultSalesCurrencyId = useMemo(
+    () => resolveCurrencyId(currencyOptions, SALES_CURRENCY_CODE),
+    [currencyOptions],
+  );
+
+  const defaultCostCurrencyId = useMemo(
+    () => resolveCurrencyId(currencyOptions, COST_CURRENCY_CODE),
+    [currencyOptions],
+  );
+
   const setShippingDetails = useCallback(
     (nextRows) => {
       onPatchQuotation({ sales_shipping_details: nextRows });
@@ -592,8 +607,8 @@ const Main_SalesShippingDetails = ({
         supplier_id: '',
         shipping_method_id: '',
         incoterms: '',
-        currency_id: '',
-        cost_currency_id: '',
+        currency_id: defaultSalesCurrencyId,
+        cost_currency_id: defaultCostCurrencyId,
         price: '',
         discount_percent: 0,
         cost_price: '',
@@ -621,7 +636,7 @@ const Main_SalesShippingDetails = ({
         return [...previousRows, nextRow];
       });
     },
-    [setShippingPrices],
+    [defaultSalesCurrencyId, defaultCostCurrencyId, setShippingPrices],
   );
 
   const handleDeleteShippingPrice = useCallback(
@@ -738,8 +753,8 @@ const Main_SalesShippingDetails = ({
           supplier_id: '',
           shipping_method_id: shippingMethodOptions[0]?.id || '',
           incoterms: incotermOptions[0]?.id || '',
-          currency_id: currencyOptions[0]?.id || '',
-          cost_currency_id: currencyOptions[0]?.id || '',
+          currency_id: defaultSalesCurrencyId,
+          cost_currency_id: defaultCostCurrencyId,
           price: '',
           discount_percent: 0,
           cost_price: '',
@@ -755,7 +770,8 @@ const Main_SalesShippingDetails = ({
     [
       shippingMethodOptions,
       incotermOptions,
-      currencyOptions,
+      defaultSalesCurrencyId,
+      defaultCostCurrencyId,
       setShippingPrices,
     ],
   );
@@ -1414,11 +1430,32 @@ const Main_SalesShippingDetails = ({
           />
         ),
       },
+
+      {
+        key: 'override_shipping_method_name',
+        label: 'Override Shipping Method Name (Print)',
+        flex: '1 1 auto',
+        sortType: 'string',
+        nextRow: true,
+        renderCell: (row) => (
+          <Main_TextField
+            className={styles.cellInput}
+            defaultValue={row.override_shipping_method_name || ''}
+            placeholder="Override print shipping method name"
+            onChange={(ov, nv) =>
+              handleUpsertShippingPrice(row, {
+                override_shipping_method_name: nv,
+              })
+            }
+          />
+        ),
+      },
       {
         key: 'shipping_method_id',
         label: 'Shipping Method',
         flex: '1 1 270px',
         sortType: 'string',
+        nextRow: true,
         getSortValue: (row) =>
           shippingMethodSuggestionOptions.find(
             (item) => item.id === row.shipping_method_id,
@@ -1450,28 +1487,9 @@ const Main_SalesShippingDetails = ({
         ),
       },
       {
-        key: 'override_shipping_method_name',
-        label: 'Override Shipping Method Name (Print)',
-        flex: '1 1 450px',
-        sortType: 'string',
-        nextRow: true,
-        renderCell: (row) => (
-          <Main_TextField
-            className={styles.cellInput}
-            defaultValue={row.override_shipping_method_name || ''}
-            placeholder="Override print shipping method name"
-            onChange={(ov, nv) =>
-              handleUpsertShippingPrice(row, {
-                override_shipping_method_name: nv,
-              })
-            }
-          />
-        ),
-      },
-      {
         key: 'incoterms',
         label: 'Incoterms',
-        flex: '1 1 180px',
+        flex: '1 1 auto',
         sortType: 'string',
         renderCell: (row) => (
           <Main_Dropdown
@@ -1489,11 +1507,12 @@ const Main_SalesShippingDetails = ({
         label: 'Currency',
         flex: '1 1 270px',
         sortType: 'string',
+        nextRow: true,
         renderCell: (row) => (
           <Main_Dropdown
             matchParentWidth
             defaultOptions={currencyDropdownOptions}
-            defaultSelectedOption={row.currency_id || ''}
+            defaultSelectedOption={row.currency_id || defaultSalesCurrencyId}
             onChange={(ov, nv) =>
               handleUpsertShippingPrice(row, { currency_id: nv })
             }
@@ -1588,7 +1607,7 @@ const Main_SalesShippingDetails = ({
           <Main_Dropdown
             matchParentWidth
             defaultOptions={currencyDropdownOptions}
-            defaultSelectedOption={row.cost_currency_id || ''}
+            defaultSelectedOption={row.cost_currency_id || defaultCostCurrencyId}
             onChange={(ov, nv) =>
               handleUpsertShippingPrice(row, { cost_currency_id: nv })
             }
@@ -1835,6 +1854,8 @@ const Main_SalesShippingDetails = ({
       shippingMethodSuggestionOptions,
       incotermDropdownOptions,
       currencyDropdownOptions,
+      defaultSalesCurrencyId,
+      defaultCostCurrencyId,
       shippingPriceImages,
       shippingPriceInternalImages,
       shippingPriceInternalFiles,

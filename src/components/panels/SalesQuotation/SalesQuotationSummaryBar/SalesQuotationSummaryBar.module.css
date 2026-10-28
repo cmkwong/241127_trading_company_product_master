@@ -26,8 +26,14 @@
   gap: 12px;
   padding-bottom: 12px;
   border-bottom: 1px solid #e2e8f0;
-  white-space: nowrap;
+  flex-wrap: wrap;
   overflow: clip;
+}
+
+/* Keep the base-currency dropdown at its requested width instead of letting
+   flexbox shrink it (it is the only shrinkable item in the row). */
+.currencyRow > [data-testid='input-list-container'] {
+  flex: 0 0 auto;
 }
 
 .baseCurrencyLabel {

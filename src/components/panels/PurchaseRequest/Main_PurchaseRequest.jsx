@@ -8,7 +8,14 @@ import {
   useEntityRows,
 } from '../../../store/GeneralContext';
 import DeleteBtn from '../../common/Buttons/DeleteBtn';
+import Main_InputContainer from '../../common/Container/Main_InputContainer';
+import Divider from '../../common/Container/Divider';
 import Main_Dropdown from '../../common/InputOptions/Dropdown/Main_Dropdown';
+import RowLayout from '../../common/Layouts/RowLayout';
+import ColumnLayout from '../../common/Layouts/ColumnLayout';
+import Notice from '../../common/Texts/Notice';
+import Label from '../../common/Texts/Label';
+import EmptyState from '../../common/State/EmptyState';
 import PurchaseRequestSavePageContainer from './Container/PurchaseRequestSavePageContainer';
 import PurchaseRequestSidebar from './AllPurchaseRequestList/PurchaseRequestSidebar';
 import PurchaseRequestBasicInfo, {
@@ -273,6 +280,7 @@ const Main_PurchaseRequest = () => {
     refreshAll(routeId);
   }, [purchase_request_id, selectedId, rows, handleSelectRow, refreshAll]);
 
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [sidebarSearch, setSidebarSearch] = useState('');
   const [baseCurrencyCode, setBaseCurrencyCode] = useState('HKD');
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -1644,7 +1652,7 @@ const Main_PurchaseRequest = () => {
         />
       }
     >
-      <div className={styles.page}>
+      <div className={styles.masterContainer}>
         <PurchaseRequestSidebar
           rows={filteredRows}
           selectedId={selectedId}
@@ -1652,264 +1660,323 @@ const Main_PurchaseRequest = () => {
           onSearchChange={setSidebarSearch}
           onSelectRow={(row) => {
             handleSelectRow(row);
-            navigate(
-              `/panel/purchase/${toSafeString(row?.id || row)}`,
-              {
-                replace: true,
-              },
-            );
+            navigate(`/panel/purchase/${toSafeString(row?.id || row)}`, {
+              replace: true,
+            });
           }}
           getItemTitle={getSidebarItemTitle}
           getItemRows={getSidebarItemRows}
+          isCollapsed={sidebarCollapsed}
+          onToggleCollapse={setSidebarCollapsed}
         />
 
-        <section className={styles.editor}>
-          <div className={styles.editorHeader}>
-            <h2 className={styles.editorTitle}>Purchase Request Editor</h2>
-          </div>
+        <div
+          className={`${styles.container} ${
+            sidebarCollapsed ? styles.fullWidth : ''
+          }`}
+        >
+          <div className={styles.inputSide}>
+            {error ? <Notice variant="error" text={error} /> : null}
+            {notice ? <Notice variant="success" text={notice} /> : null}
 
-          {error ? <div className={styles.error}>{error}</div> : null}
-          {notice ? <div className={styles.notice}>{notice}</div> : null}
+            {!hasActivePurchaseRequest ? (
+              <EmptyState
+                message={
+                  isLoading
+                    ? 'Loading purchase requests...'
+                    : 'Select a purchase request or create a new one.'
+                }
+              />
+            ) : (
+              <>
+                <Main_InputContainer label="Cost Summary">
+                  <RowLayout ratio={[1, 3]}>
+                    <ColumnLayout className={styles.costControls}>
+                      <div>
+                        <Label
+                          text="Base Currency"
+                          size="S"
+                          weight="semibold"
+                        />
+                        <Main_Dropdown
+                          defaultOptions={baseCurrencyOptions}
+                          defaultSelectedOption={baseCurrencyCode}
+                          onChange={(ov, nv) =>
+                            setBaseCurrencyCode(
+                              toSafeString(nv).toUpperCase() || 'HKD',
+                            )
+                          }
+                          size="S"
+                        />
+                        <Label
+                          text={`Rate Date: ${
+                            toSafeString(latestExchangeRateRow?.Date) || '-'
+                          }`}
+                          size="XS"
+                          color="muted"
+                        />
+                      </div>
 
-          {!hasActivePurchaseRequest ? (
-            <div className={styles.emptyEditor}>
-              {isLoading
-                ? 'Loading purchase requests...'
-                : 'Select a purchase request or create a new one.'}
-            </div>
-          ) : (
-            <>
-              <div className={styles.currencySummaryBar}>
-                <div className={styles.baseCurrencyPicker}>
-                  <span className={styles.baseCurrencyLabel}>
-                    Base Currency
-                  </span>
-                  <Main_Dropdown
-                    defaultOptions={baseCurrencyOptions}
-                    defaultSelectedOption={baseCurrencyCode}
-                    onChange={(ov, nv) =>
-                      setBaseCurrencyCode(
-                        toSafeString(nv).toUpperCase() || 'HKD',
+                      <RowLayout ratio={[1, 1, 1, 1]}>
+                        <ColumnLayout className={styles.totalCard}>
+                          <Label
+                            text="Shipping Row Total"
+                            size="XS"
+                            color="muted"
+                          />
+                          <Label
+                            text={`${purchaseTotalsSummary.baseCurrencyCode} ${formatMoney(
+                              purchaseTotalsSummary.shippingTotal,
+                            )}`}
+                            size="M"
+                            weight="semibold"
+                          />
+                        </ColumnLayout>
+                        <ColumnLayout className={styles.totalCard}>
+                          <Label
+                            text="Product Row Total"
+                            size="XS"
+                            color="muted"
+                          />
+                          <Label
+                            text={`${purchaseTotalsSummary.baseCurrencyCode} ${formatMoney(
+                              purchaseTotalsSummary.productTotal,
+                            )}`}
+                            size="M"
+                            weight="semibold"
+                          />
+                        </ColumnLayout>
+                        <ColumnLayout className={styles.totalCard}>
+                          <Label
+                            text="Service Row Total"
+                            size="XS"
+                            color="muted"
+                          />
+                          <Label
+                            text={`${purchaseTotalsSummary.baseCurrencyCode} ${formatMoney(
+                              purchaseTotalsSummary.serviceTotal,
+                            )}`}
+                            size="M"
+                            weight="semibold"
+                          />
+                        </ColumnLayout>
+                        <ColumnLayout
+                          className={`${styles.totalCard} ${styles.totalCardHighlight}`}
+                        >
+                          <Label
+                            text="Total Cost Price"
+                            size="XS"
+                            color="muted"
+                          />
+                          <Label
+                            text={`${purchaseTotalsSummary.baseCurrencyCode} ${formatMoney(
+                              purchaseTotalsSummary.totalCostPrice,
+                            )}`}
+                            size="M"
+                            weight="bold"
+                            color="blue"
+                          />
+                        </ColumnLayout>
+                      </RowLayout>
+                    </ColumnLayout>
+                  </RowLayout>
+
+                  {purchaseTotalsSummary.missingCount > 0 ? (
+                    <Notice
+                      variant="warning"
+                      text={`Total skipped ${purchaseTotalsSummary.missingCount} row(s) due to missing price, currency, or exchange rate.`}
+                    />
+                  ) : null}
+                </Main_InputContainer>
+
+                <PurchaseRequestBasicInfo
+                  draft={{
+                    id: currentPurchaseRequestId,
+                    status: purchaseStatus,
+                    remark: purchaseRemark,
+                  }}
+                  supplierSuggestionOptions={supplierSuggestionOptions}
+                  selectedSupplierOption={selectedSupplierOption}
+                  supplierAddressSuggestionOptions={
+                    supplierAddressSuggestionOptions
+                  }
+                  selectedSupplierAddressOption={selectedSupplierAddressOption}
+                  salesQuotationSuggestionOptions={
+                    salesQuotationSuggestionOptions
+                  }
+                  selectedSalesQuotationOption={selectedSalesQuotationOption}
+                  onFetchSupplierSuggestions={refreshSuppliers}
+                  onFetchSalesQuotationSuggestions={refreshSalesQuotations}
+                  onIdChange={(value) => setHeaderField('id', value)}
+                  onSupplierInputChange={handleSupplierInputChange}
+                  onSupplierSelect={handleSupplierSelect}
+                  onSupplierAddressInputChange={
+                    handleSupplierAddressInputChange
+                  }
+                  onSupplierAddressSelect={(suggestion) =>
+                    setHeaderField(
+                      'supplier_address_id',
+                      toSafeString(suggestion?.id),
+                    )
+                  }
+                  onSalesQuotationInputChange={handleSalesQuotationInputChange}
+                  onSalesQuotationSelect={(suggestion) =>
+                    setHeaderField(
+                      'sales_quotation_id',
+                      toSafeString(suggestion?.id),
+                    )
+                  }
+                  onStatusChange={(value) => setHeaderField('status', value)}
+                  onRemarkChange={(value) => setHeaderField('remark', value)}
+                />
+
+                <Main_InputContainer label="Details">
+                  <PurchaseRequestShippingDetails
+                    rows={shippingDetailRows}
+                    currencyDropdownOptions={currencyDropdownOptions}
+                    fileUrlBase={FILE_SERVER_BASE_URL}
+                    quotationSuggestionOptions={
+                      shippingQuotationSuggestionOptions
+                    }
+                    onQuotationSuggestionSelect={
+                      handleSelectShippingFromQuotation
+                    }
+                    onAdd={handleAddShippingDetail}
+                    onSetField={(rowId, field, value) =>
+                      setDetailFieldById(
+                        'purchase_shipping_details',
+                        rowId,
+                        field,
+                        value,
                       )
                     }
-                    size="S"
+                    onRemove={(rowId) =>
+                      removeDetailRow('purchase_shipping_details', rowId)
+                    }
+                    buildDefaultUploadFiles={buildDefaultUploadFiles}
+                    onImageFilesChange={(rowId, oldFiles, newFiles) =>
+                      handleNestedFilesChange(
+                        'purchase_shipping_details',
+                        rowId,
+                        'purchase_shipping_images',
+                        oldFiles,
+                        newFiles,
+                        { nameField: 'image_name', urlField: 'image_url' },
+                      )
+                    }
+                    onFilesChange={(rowId, oldFiles, newFiles) =>
+                      handleNestedFilesChange(
+                        'purchase_shipping_details',
+                        rowId,
+                        'purchase_shipping_files',
+                        oldFiles,
+                        newFiles,
+                        { nameField: 'file_name', urlField: 'file_url' },
+                      )
+                    }
                   />
-                  <span className={styles.rateMetaText}>
-                    Rate Date:{' '}
-                    {toSafeString(latestExchangeRateRow?.Date) || '-'}
-                  </span>
-                </div>
 
-                <div className={styles.totalsSummaryGrid}>
-                  <div className={styles.totalCard}>
-                    <span className={styles.totalLabel}>
-                      Shipping Row Total
-                    </span>
-                    <span className={styles.totalValue}>
-                      {purchaseTotalsSummary.baseCurrencyCode}{' '}
-                      {formatMoney(purchaseTotalsSummary.shippingTotal)}
-                    </span>
-                  </div>
-                  <div className={styles.totalCard}>
-                    <span className={styles.totalLabel}>Product Row Total</span>
-                    <span className={styles.totalValue}>
-                      {purchaseTotalsSummary.baseCurrencyCode}{' '}
-                      {formatMoney(purchaseTotalsSummary.productTotal)}
-                    </span>
-                  </div>
-                  <div className={styles.totalCard}>
-                    <span className={styles.totalLabel}>Service Row Total</span>
-                    <span className={styles.totalValue}>
-                      {purchaseTotalsSummary.baseCurrencyCode}{' '}
-                      {formatMoney(purchaseTotalsSummary.serviceTotal)}
-                    </span>
-                  </div>
-                  <div
-                    className={`${styles.totalCard} ${styles.totalCardHighlight}`}
-                  >
-                    <span className={styles.totalLabel}>Total Cost Price</span>
-                    <span className={styles.totalValueStrong}>
-                      {purchaseTotalsSummary.baseCurrencyCode}{' '}
-                      {formatMoney(purchaseTotalsSummary.totalCostPrice)}
-                    </span>
-                  </div>
-                </div>
+                  <Divider />
 
-                {purchaseTotalsSummary.missingCount > 0 ? (
-                  <div className={styles.totalWarningText}>
-                    Total skipped {purchaseTotalsSummary.missingCount} row(s)
-                    due to missing price, currency, or exchange rate.
-                  </div>
-                ) : null}
-              </div>
+                  <PurchaseRequestProductDetails
+                    rows={productDetailRows}
+                    productSuggestionOptions={productSuggestionOptions}
+                    currencyDropdownOptions={currencyDropdownOptions}
+                    fileUrlBase={FILE_SERVER_BASE_URL}
+                    quotationSuggestionOptions={
+                      productQuotationSuggestionOptions
+                    }
+                    onQuotationSuggestionSelect={
+                      handleSelectProductFromQuotation
+                    }
+                    onAdd={handleAddProductDetail}
+                    onSetField={(rowId, field, value) =>
+                      setDetailFieldById(
+                        'purchase_product_details',
+                        rowId,
+                        field,
+                        value,
+                      )
+                    }
+                    onRemove={(rowId) =>
+                      removeDetailRow('purchase_product_details', rowId)
+                    }
+                    buildDefaultUploadFiles={buildDefaultUploadFiles}
+                    onImageFilesChange={(rowId, oldFiles, newFiles) =>
+                      handleNestedFilesChange(
+                        'purchase_product_details',
+                        rowId,
+                        'purchase_product_images',
+                        oldFiles,
+                        newFiles,
+                        { nameField: 'image_name', urlField: 'image_url' },
+                      )
+                    }
+                    onFilesChange={(rowId, oldFiles, newFiles) =>
+                      handleNestedFilesChange(
+                        'purchase_product_details',
+                        rowId,
+                        'purchase_product_files',
+                        oldFiles,
+                        newFiles,
+                        { nameField: 'file_name', urlField: 'file_url' },
+                      )
+                    }
+                    resolveFileUrl={resolveFileUrl}
+                  />
 
-              <PurchaseRequestBasicInfo
-                draft={{
-                  id: currentPurchaseRequestId,
-                  status: purchaseStatus,
-                  remark: purchaseRemark,
-                }}
-                supplierSuggestionOptions={supplierSuggestionOptions}
-                selectedSupplierOption={selectedSupplierOption}
-                supplierAddressSuggestionOptions={
-                  supplierAddressSuggestionOptions
-                }
-                selectedSupplierAddressOption={selectedSupplierAddressOption}
-                salesQuotationSuggestionOptions={
-                  salesQuotationSuggestionOptions
-                }
-                selectedSalesQuotationOption={selectedSalesQuotationOption}
-                onFetchSupplierSuggestions={refreshSuppliers}
-                onFetchSalesQuotationSuggestions={refreshSalesQuotations}
-                onIdChange={(value) => setHeaderField('id', value)}
-                onSupplierInputChange={handleSupplierInputChange}
-                onSupplierSelect={handleSupplierSelect}
-                onSupplierAddressInputChange={handleSupplierAddressInputChange}
-                onSupplierAddressSelect={(suggestion) =>
-                  setHeaderField(
-                    'supplier_address_id',
-                    toSafeString(suggestion?.id),
-                  )
-                }
-                onSalesQuotationInputChange={handleSalesQuotationInputChange}
-                onSalesQuotationSelect={(suggestion) =>
-                  setHeaderField(
-                    'sales_quotation_id',
-                    toSafeString(suggestion?.id),
-                  )
-                }
-                onStatusChange={(value) => setHeaderField('status', value)}
-                onRemarkChange={(value) => setHeaderField('remark', value)}
-              />
+                  <Divider />
 
-              <PurchaseRequestShippingDetails
-                rows={shippingDetailRows}
-                currencyDropdownOptions={currencyDropdownOptions}
-                fileUrlBase={FILE_SERVER_BASE_URL}
-                quotationSuggestionOptions={shippingQuotationSuggestionOptions}
-                onQuotationSuggestionSelect={handleSelectShippingFromQuotation}
-                onAdd={handleAddShippingDetail}
-                onSetField={(rowId, field, value) =>
-                  setDetailFieldById(
-                    'purchase_shipping_details',
-                    rowId,
-                    field,
-                    value,
-                  )
-                }
-                onRemove={(rowId) =>
-                  removeDetailRow('purchase_shipping_details', rowId)
-                }
-                buildDefaultUploadFiles={buildDefaultUploadFiles}
-                onImageFilesChange={(rowId, oldFiles, newFiles) =>
-                  handleNestedFilesChange(
-                    'purchase_shipping_details',
-                    rowId,
-                    'purchase_shipping_images',
-                    oldFiles,
-                    newFiles,
-                    { nameField: 'image_name', urlField: 'image_url' },
-                  )
-                }
-                onFilesChange={(rowId, oldFiles, newFiles) =>
-                  handleNestedFilesChange(
-                    'purchase_shipping_details',
-                    rowId,
-                    'purchase_shipping_files',
-                    oldFiles,
-                    newFiles,
-                    { nameField: 'file_name', urlField: 'file_url' },
-                  )
-                }
-              />
-
-              <PurchaseRequestProductDetails
-                rows={productDetailRows}
-                productSuggestionOptions={productSuggestionOptions}
-                currencyDropdownOptions={currencyDropdownOptions}
-                fileUrlBase={FILE_SERVER_BASE_URL}
-                quotationSuggestionOptions={productQuotationSuggestionOptions}
-                onQuotationSuggestionSelect={handleSelectProductFromQuotation}
-                onAdd={handleAddProductDetail}
-                onSetField={(rowId, field, value) =>
-                  setDetailFieldById(
-                    'purchase_product_details',
-                    rowId,
-                    field,
-                    value,
-                  )
-                }
-                onRemove={(rowId) =>
-                  removeDetailRow('purchase_product_details', rowId)
-                }
-                buildDefaultUploadFiles={buildDefaultUploadFiles}
-                onImageFilesChange={(rowId, oldFiles, newFiles) =>
-                  handleNestedFilesChange(
-                    'purchase_product_details',
-                    rowId,
-                    'purchase_product_images',
-                    oldFiles,
-                    newFiles,
-                    { nameField: 'image_name', urlField: 'image_url' },
-                  )
-                }
-                onFilesChange={(rowId, oldFiles, newFiles) =>
-                  handleNestedFilesChange(
-                    'purchase_product_details',
-                    rowId,
-                    'purchase_product_files',
-                    oldFiles,
-                    newFiles,
-                    { nameField: 'file_name', urlField: 'file_url' },
-                  )
-                }
-                resolveFileUrl={resolveFileUrl}
-              />
-
-              <PurchaseRequestServiceDetails
-                rows={serviceDetailRows}
-                serviceSuggestionOptions={serviceSuggestionOptions}
-                currencyDropdownOptions={currencyDropdownOptions}
-                fileUrlBase={FILE_SERVER_BASE_URL}
-                quotationSuggestionOptions={serviceQuotationSuggestionOptions}
-                onQuotationSuggestionSelect={handleSelectServiceFromQuotation}
-                onAdd={handleAddServiceDetail}
-                onSetField={(rowId, field, value) =>
-                  setDetailFieldById(
-                    'purchase_service_details',
-                    rowId,
-                    field,
-                    value,
-                  )
-                }
-                onRemove={(rowId) =>
-                  removeDetailRow('purchase_service_details', rowId)
-                }
-                buildDefaultUploadFiles={buildDefaultUploadFiles}
-                onImageFilesChange={(rowId, oldFiles, newFiles) =>
-                  handleNestedFilesChange(
-                    'purchase_service_details',
-                    rowId,
-                    'purchase_service_images',
-                    oldFiles,
-                    newFiles,
-                    { nameField: 'image_name', urlField: 'image_url' },
-                  )
-                }
-                onFilesChange={(rowId, oldFiles, newFiles) =>
-                  handleNestedFilesChange(
-                    'purchase_service_details',
-                    rowId,
-                    'purchase_service_files',
-                    oldFiles,
-                    newFiles,
-                    { nameField: 'file_name', urlField: 'file_url' },
-                  )
-                }
-              />
-            </>
-          )}
-        </section>
+                  <PurchaseRequestServiceDetails
+                    rows={serviceDetailRows}
+                    serviceSuggestionOptions={serviceSuggestionOptions}
+                    currencyDropdownOptions={currencyDropdownOptions}
+                    fileUrlBase={FILE_SERVER_BASE_URL}
+                    quotationSuggestionOptions={
+                      serviceQuotationSuggestionOptions
+                    }
+                    onQuotationSuggestionSelect={
+                      handleSelectServiceFromQuotation
+                    }
+                    onAdd={handleAddServiceDetail}
+                    onSetField={(rowId, field, value) =>
+                      setDetailFieldById(
+                        'purchase_service_details',
+                        rowId,
+                        field,
+                        value,
+                      )
+                    }
+                    onRemove={(rowId) =>
+                      removeDetailRow('purchase_service_details', rowId)
+                    }
+                    buildDefaultUploadFiles={buildDefaultUploadFiles}
+                    onImageFilesChange={(rowId, oldFiles, newFiles) =>
+                      handleNestedFilesChange(
+                        'purchase_service_details',
+                        rowId,
+                        'purchase_service_images',
+                        oldFiles,
+                        newFiles,
+                        { nameField: 'image_name', urlField: 'image_url' },
+                      )
+                    }
+                    onFilesChange={(rowId, oldFiles, newFiles) =>
+                      handleNestedFilesChange(
+                        'purchase_service_details',
+                        rowId,
+                        'purchase_service_files',
+                        oldFiles,
+                        newFiles,
+                        { nameField: 'file_name', urlField: 'file_url' },
+                      )
+                    }
+                  />
+                </Main_InputContainer>
+              </>
+            )}
+          </div>
+        </div>
       </div>
 
       {isPreviewOpen ? (

@@ -22,11 +22,16 @@ import {
   SALES_CURRENCY_CODE,
   COST_CURRENCY_CODE,
 } from '../../../../utils/currency';
+import {
+  buildChargeableWeightSummary,
+  DEFAULT_VOLUMETRIC_DIVISOR,
+  formatWeight,
+  MIN_CHARGEABLE_WEIGHT_PER_CARTON,
+} from '../utils/chargeableWeight';
+import Sub_ChargeableWeightPanel from '../ChargeableWeight/Sub_ChargeableWeightPanel';
 import styles from './Main_SalesShippingDetails.module.css';
 
 const FILE_SERVER_BASE_URL = 'http://localhost:3001';
-const MIN_CHARGEABLE_WEIGHT_PER_CARTON = 12;
-const DEFAULT_VOLUMETRIC_DIVISOR = 6000;
 
 const toNumber = (value, fallback = '') => {
   if (value === '' || value === null || value === undefined) {
@@ -48,137 +53,6 @@ const toInteger = (value, fallback = '') => {
 
 const isCheckedBoolean = (value, defaultWhenMissing = true) => {
   return isSelectedFlag(value, defaultWhenMissing);
-};
-
-const toFiniteNumber = (value) => {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : NaN;
-};
-
-const formatWeight = (value, fallback = '-') => {
-  if (!Number.isFinite(value)) {
-    return fallback;
-  }
-
-  return value.toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-};
-
-const computeMinimizedLengthPlusGirth = (lengthCm, widthCm, heightCm) => {
-  const dimensions = [
-    toFiniteNumber(lengthCm),
-    toFiniteNumber(widthCm),
-    toFiniteNumber(heightCm),
-  ];
-
-  const hasValidDimensions = dimensions.every(
-    (value) => Number.isFinite(value) && value > 0,
-  );
-
-  if (!hasValidDimensions) {
-    return NaN;
-  }
-
-  const [smallest, middle, largest] = [...dimensions].sort((a, b) => a - b);
-  const girth = 2 * (smallest + middle);
-
-  return largest + girth;
-};
-
-const buildChargeableWeightSummary = ({
-  qty,
-  weightPerCarton,
-  lengthCm,
-  widthCm,
-  heightCm,
-  volumetricDivisor,
-  minChargeableWeightPerCarton,
-}) => {
-  const safeDivisor =
-    Number.isFinite(toFiniteNumber(volumetricDivisor)) &&
-    toFiniteNumber(volumetricDivisor) > 0
-      ? toFiniteNumber(volumetricDivisor)
-      : DEFAULT_VOLUMETRIC_DIVISOR;
-  const safeMinChargeableWeight =
-    Number.isFinite(toFiniteNumber(minChargeableWeightPerCarton)) &&
-    toFiniteNumber(minChargeableWeightPerCarton) > 0
-      ? toFiniteNumber(minChargeableWeightPerCarton)
-      : MIN_CHARGEABLE_WEIGHT_PER_CARTON;
-  const qtyValue = toFiniteNumber(qty);
-  const weightValue = toFiniteNumber(weightPerCarton);
-  const lengthValue = toFiniteNumber(lengthCm);
-  const widthValue = toFiniteNumber(widthCm);
-  const heightValue = toFiniteNumber(heightCm);
-
-  const hasQty = Number.isFinite(qtyValue) && qtyValue > 0;
-  const hasWeightPerCarton = Number.isFinite(weightValue) && weightValue >= 0;
-  const hasVolumeInputs =
-    Number.isFinite(lengthValue) &&
-    Number.isFinite(widthValue) &&
-    Number.isFinite(heightValue) &&
-    lengthValue > 0 &&
-    widthValue > 0 &&
-    heightValue > 0;
-
-  const grossTotalWeight =
-    hasQty && hasWeightPerCarton ? qtyValue * weightValue : NaN;
-  const volumeCubicMeter =
-    hasQty && hasVolumeInputs
-      ? (lengthValue * widthValue * heightValue * qtyValue) / 1000000
-      : NaN;
-  const volumetricWeightPerCarton = hasVolumeInputs
-    ? (lengthValue * widthValue * heightValue) / safeDivisor
-    : NaN;
-  const volumetricWeightTotal =
-    hasQty && Number.isFinite(volumetricWeightPerCarton)
-      ? volumetricWeightPerCarton * qtyValue
-      : NaN;
-  const lengthPlusGirth = computeMinimizedLengthPlusGirth(
-    lengthValue,
-    widthValue,
-    heightValue,
-  );
-
-  const comparedWeightPerCarton =
-    hasWeightPerCarton || Number.isFinite(volumetricWeightPerCarton)
-      ? Math.max(
-          hasWeightPerCarton ? weightValue : 0,
-          Number.isFinite(volumetricWeightPerCarton)
-            ? volumetricWeightPerCarton
-            : 0,
-        )
-      : NaN;
-
-  const chargeablePerCarton =
-    hasQty && Number.isFinite(comparedWeightPerCarton)
-      ? Math.max(comparedWeightPerCarton, safeMinChargeableWeight)
-      : NaN;
-
-  const finalChargeableWeightSea =
-    hasQty && Number.isFinite(chargeablePerCarton)
-      ? chargeablePerCarton * qtyValue
-      : NaN;
-
-  const finalChargeableWeightAir =
-    hasQty && Number.isFinite(comparedWeightPerCarton)
-      ? comparedWeightPerCarton * qtyValue
-      : NaN;
-
-  return {
-    grossTotalWeight,
-    volumeCubicMeter,
-    volumetricWeightPerCarton,
-    volumetricWeightTotal,
-    chargeablePerCarton,
-    finalChargeableWeight: finalChargeableWeightSea,
-    finalChargeableWeightSea,
-    finalChargeableWeightAir,
-    lengthPlusGirth,
-    divisor: safeDivisor,
-    minChargeableWeightPerCarton: safeMinChargeableWeight,
-  };
 };
 
 const buildAddressPreview = (address) => {
@@ -1222,109 +1096,27 @@ const Main_SalesShippingDetails = ({
           });
 
           return (
-            <div className={styles.chargeablePanel}>
-              <div className={styles.chargeableTitle}>Chargeable Weight</div>
-              <div className={styles.chargeableControls}>
-                <div className={styles.chargeableControlItem}>
-                  <span className={styles.chargeableControlLabel}>Divisor</span>
-                  <Main_TextField
-                    className={styles.chargeableControlInput}
-                    type="number"
-                    defaultValue={String(summary.divisor)}
-                    onChange={(ov, nv) =>
-                      handleUpsertShippingDetail(row, {
-                        chargeable_divisor:
-                          toNumber(nv) || DEFAULT_VOLUMETRIC_DIVISOR,
-                      })
-                    }
-                  />
-                </div>
-
-                <div className={styles.chargeableControlItem}>
-                  <span className={styles.chargeableControlLabel}>
-                    Min Weight / Carton (kg)
-                  </span>
-                  <Main_TextField
-                    className={styles.chargeableControlInput}
-                    type="number"
-                    defaultValue={String(summary.minChargeableWeightPerCarton)}
-                    onChange={(ov, nv) =>
-                      handleUpsertShippingDetail(row, {
-                        min_chargeable_weight:
-                          toNumber(nv) || MIN_CHARGEABLE_WEIGHT_PER_CARTON,
-                      })
-                    }
-                  />
-                </div>
-              </div>
-
-              <div className={styles.chargeableMeta}>
-                Formula: max(Gross per carton, Volumetric per carton, Min per
-                carton) x Qty
-              </div>
-
-              <div className={styles.chargeableGrid}>
-                <div className={styles.chargeableItem}>
-                  <span className={styles.chargeableLabel}>Gross Total</span>
-                  <span className={styles.chargeableValue}>
-                    {formatWeight(summary.grossTotalWeight)} kg
-                  </span>
-                </div>
-
-                <div className={styles.chargeableItem}>
-                  <span className={styles.chargeableLabel}>Volume</span>
-                  <span className={styles.chargeableValue}>
-                    {formatWeight(summary.volumeCubicMeter)} m3
-                  </span>
-                </div>
-
-                <div className={styles.chargeableItem}>
-                  <span className={styles.chargeableLabel}>
-                    Volumetric Total
-                  </span>
-                  <span className={styles.chargeableValue}>
-                    {formatWeight(summary.volumetricWeightTotal)} kg
-                  </span>
-                </div>
-
-                <div className={styles.chargeableItem}>
-                  <span className={styles.chargeableLabel}>
-                    Per Carton (with Min)
-                  </span>
-                  <span className={styles.chargeableValue}>
-                    {formatWeight(summary.chargeablePerCarton)} kg
-                  </span>
-                </div>
-
-                <div className={styles.chargeableItem}>
-                  <span className={styles.chargeableLabel}>Length + Girth</span>
-                  <span className={styles.chargeableValue}>
-                    {formatWeight(summary.lengthPlusGirth)} cm
-                  </span>
-                </div>
-
-                <div
-                  className={`${styles.chargeableItemStrong} ${styles.chargeableItemStrongHalf}`}
-                >
-                  <span className={styles.chargeableLabel}>
-                    Final Chargeable (Sea)
-                  </span>
-                  <span className={styles.chargeableValueStrong}>
-                    {formatWeight(summary.finalChargeableWeightSea)} kg
-                  </span>
-                </div>
-
-                <div
-                  className={`${styles.chargeableItemStrong} ${styles.chargeableItemStrongHalf}`}
-                >
-                  <span className={styles.chargeableLabel}>
-                    Final Chargeable (Air / Delivery Express)
-                  </span>
-                  <span className={styles.chargeableValueStrong}>
-                    {formatWeight(summary.finalChargeableWeightAir)} kg
-                  </span>
-                </div>
-              </div>
+            <Sub_ChargeableWeightPanel
+              qty={row?.qty}
+              weightPerCarton={row?.weight}
+              lengthCm={row?.length}
+              widthCm={row?.width}
+              heightCm={row?.height}
+              divisor={divisor}
+              minChargeableWeightPerCarton={minChargeableWeight}
+              onDivisorChange={(nv) =>
+                handleUpsertShippingDetail(row, {
+                  chargeable_divisor:
+                    toNumber(nv) || DEFAULT_VOLUMETRIC_DIVISOR,
+                })
+              }
+              onMinChargeableWeightChange={(nv) =>
+                handleUpsertShippingDetail(row, {
+                  min_chargeable_weight:
+                    toNumber(nv) || MIN_CHARGEABLE_WEIGHT_PER_CARTON,
+                })
+              }
+            >
 
               <button
                 className={styles.copyQuoteButton}
@@ -1351,7 +1143,7 @@ const Main_SalesShippingDetails = ({
               >
                 📋 Copy Quote Details
               </button>
-            </div>
+            </Sub_ChargeableWeightPanel>
           );
         },
       },

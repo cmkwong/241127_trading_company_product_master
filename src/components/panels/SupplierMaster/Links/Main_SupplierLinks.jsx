@@ -113,19 +113,18 @@ const Main_SupplierLinks = () => {
   );
 
   return (
-    <Main_InputContainer label="Supplier Links">
-      <div className={styles.tableSection}>
-        <EditableDataForm
-          rows={linkRows}
-          columns={columns}
-          rowKey="id"
-          emptyMessage="No links yet. Click + Add Link."
-          onAddRow={handleAddLinkRow}
-          addRowText="Add New Link"
-          onRemoveRow={handleDeleteLinkRow}
-        />
-      </div>
-    </Main_InputContainer>
+    <div className={styles.tableSection}>
+      <EditableDataForm
+        label="Supplier Links"
+        rows={linkRows}
+        columns={columns}
+        rowKey="id"
+        emptyMessage="No links yet. Click + Add Link."
+        onAddRow={handleAddLinkRow}
+        addRowText="Add New Link"
+        onRemoveRow={handleDeleteLinkRow}
+      />
+    </div>
   );
 };
 

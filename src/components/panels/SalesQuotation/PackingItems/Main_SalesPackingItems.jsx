@@ -11,9 +11,23 @@ import {
   useEntityField,
   useEntityRows,
 } from '../../../../store/GeneralContext';
+import {
+  DEFAULT_VOLUMETRIC_DIVISOR,
+  MIN_CHARGEABLE_WEIGHT_PER_CARTON,
+} from '../utils/chargeableWeight';
+import Sub_ChargeableWeightPanel from '../ChargeableWeight/Sub_ChargeableWeightPanel';
 import styles from './Main_SalesPackingItems.module.css';
 
 const FILE_SERVER_BASE_URL = 'http://localhost:3001';
+
+const toNumber = (value, fallback = '') => {
+  if (value === '' || value === null || value === undefined) {
+    return fallback;
+  }
+
+  const parsed = Number(value);
+  return Number.isNaN(parsed) ? fallback : parsed;
+};
 
 const resolveIconUrl = (iconUrl) => {
   const normalized = String(iconUrl || '').trim();
@@ -183,6 +197,8 @@ const Main_SalesPackingItems = ({ productOptions = [], onPatchQuotation }) => {
         height: '',
         qty: 0,
         weight: '',
+        chargeable_divisor: DEFAULT_VOLUMETRIC_DIVISOR,
+        min_chargeable_weight: MIN_CHARGEABLE_WEIGHT_PER_CARTON,
         details: '',
         remark: '',
         ...row,
@@ -254,6 +270,8 @@ const Main_SalesPackingItems = ({ productOptions = [], onPatchQuotation }) => {
         height: '',
         qty: 0,
         weight: '',
+        chargeable_divisor: DEFAULT_VOLUMETRIC_DIVISOR,
+        min_chargeable_weight: MIN_CHARGEABLE_WEIGHT_PER_CARTON,
         details: '',
         remark: '',
       },
@@ -399,6 +417,44 @@ const Main_SalesPackingItems = ({ productOptions = [], onPatchQuotation }) => {
         flex: '1 1 90px',
         sortType: 'number',
         renderCell: renderNumberCell('weight'),
+      },
+      {
+        key: 'chargeable_weight_panel',
+        label: 'Chargeable Weight',
+        flex: '1 1 450px',
+        sortable: false,
+        nextRow: true,
+        renderCell: (row) => {
+          const divisor =
+            toNumber(row?.chargeable_divisor) || DEFAULT_VOLUMETRIC_DIVISOR;
+          const minChargeableWeight =
+            toNumber(row?.min_chargeable_weight) ||
+            MIN_CHARGEABLE_WEIGHT_PER_CARTON;
+
+          return (
+            <Sub_ChargeableWeightPanel
+              qty={row?.qty}
+              weightPerCarton={row?.weight}
+              lengthCm={row?.length}
+              widthCm={row?.width}
+              heightCm={row?.height}
+              divisor={divisor}
+              minChargeableWeightPerCarton={minChargeableWeight}
+              onDivisorChange={(nv) =>
+                handleUpsertPackingItem(row, {
+                  chargeable_divisor:
+                    toNumber(nv) || DEFAULT_VOLUMETRIC_DIVISOR,
+                })
+              }
+              onMinChargeableWeightChange={(nv) =>
+                handleUpsertPackingItem(row, {
+                  min_chargeable_weight:
+                    toNumber(nv) || MIN_CHARGEABLE_WEIGHT_PER_CARTON,
+                })
+              }
+            />
+          );
+        },
       },
       {
         key: 'details',

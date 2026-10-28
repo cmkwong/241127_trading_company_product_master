@@ -12,6 +12,8 @@ import DeleteBtn from '../../common/Buttons/DeleteBtn';
 import { useCustomerContext } from '../../../store/CustomerContext';
 import { useEntityField } from '../../../store/GeneralContext';
 import styles from './Main_CustomerMaster.module.css';
+import Main_InputContainer from '../../common/Container/Main_InputContainer';
+import Divider from '../../common/Container/Divider';
 
 const Main_CustomerMaster = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -138,11 +140,15 @@ const Main_CustomerMaster = () => {
         >
           <div className={styles.inputSide}>
             <Main_CustomerBasicInfo />
-            <Main_CustomerTypes />
-            <Main_CustomerNames />
-            <Main_CustomerAddresses />
-            <Main_CustomerContacts />
-            <Main_CustomerImages />
+            <Main_InputContainer label="Details">
+              <Main_CustomerNames />
+              <Divider />
+              <Main_CustomerAddresses />
+              <Divider />
+              <Main_CustomerContacts />
+              <Divider />
+              <Main_CustomerImages />
+            </Main_InputContainer>
           </div>
         </div>
       </div>

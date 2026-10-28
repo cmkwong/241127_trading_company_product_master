@@ -1,6 +1,5 @@
 import { useCallback, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import Main_InputContainer from '../../../common/Container/Main_InputContainer';
 import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
 import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
@@ -100,6 +99,7 @@ const Main_CustomerNames = () => {
         key: 'name',
         label: 'Name',
         sortType: 'string',
+        nextRow: true,
         getSortValue: (row) => row.name || '',
         renderCell: (row) => (
           <Main_TextField
@@ -116,6 +116,7 @@ const Main_CustomerNames = () => {
         key: 'remark',
         label: 'Remark',
         sortType: 'string',
+        nextRow: true,
         renderCell: (row) => (
           <Main_TextArea
             defaultValue={row.remark || ''}
@@ -128,27 +129,22 @@ const Main_CustomerNames = () => {
         ),
       },
     ],
-    [
-      customerNameTypeOptions,
-      getRowNameTypeId,
-      upsertNameRow,
-    ],
+    [customerNameTypeOptions, getRowNameTypeId, upsertNameRow],
   );
 
   return (
-    <Main_InputContainer label="Customer Names">
-      <div className={styles.tableSection}>
-        <EditableDataForm
-          rows={nameRows}
-          columns={columns}
-          rowKey="id"
-          emptyMessage="No names yet. Click + Add Name."
-          onAddRow={handleAddNameRow}
-          addRowText="Add Name"
-          onRemoveRow={handleDeleteNameRow}
-        />
-      </div>
-    </Main_InputContainer>
+    <div className={styles.tableSection}>
+      <EditableDataForm
+        label="Customer Names"
+        rows={nameRows}
+        columns={columns}
+        rowKey="id"
+        emptyMessage="No names yet. Click + Add Name."
+        onAddRow={handleAddNameRow}
+        addRowText="Add Name"
+        onRemoveRow={handleDeleteNameRow}
+      />
+    </div>
   );
 };
 

@@ -73,15 +73,14 @@ const Main_CustomerTypes = () => {
   };
 
   return (
-    <Main_InputContainer label="Customer Types">
-      <Main_TagInputField
-        key="customer-type-input"
-        defaultOptions={customerTypeOptions}
-        defaultSelectedOptions={selectedTypeIds}
-        onChange={handleTypeChange}
-        canAddNewOptions={false}
-      />
-    </Main_InputContainer>
+    <Main_TagInputField
+      label="Customer Types"
+      key="customer-type-input"
+      defaultOptions={customerTypeOptions}
+      defaultSelectedOptions={selectedTypeIds}
+      onChange={handleTypeChange}
+      canAddNewOptions={false}
+    />
   );
 };
 

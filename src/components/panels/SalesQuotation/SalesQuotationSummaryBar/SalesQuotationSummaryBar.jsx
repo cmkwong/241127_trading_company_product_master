@@ -10,6 +10,9 @@ import {
 import { useEntityRows } from '../../../../store/GeneralContext';
 import Main_DocumentFlow from '../../DocumentFlow/Main_DocumentFlow';
 
+// Width used by the base-currency dropdown across all summary variants.
+const CURRENCY_DROPDOWN_SIZE = 'XL';
+
 const formatPercent = (value) => {
   if (!Number.isFinite(value)) {
     return '-';
@@ -228,10 +231,10 @@ const SalesQuotationSummaryBar = ({
           <Main_Dropdown
             defaultOptions={baseCurrencyOptions}
             defaultSelectedOption={baseCurrencyCode}
+            size={CURRENCY_DROPDOWN_SIZE}
             onChange={(ov, nv) =>
               onBaseCurrencyChange(toSafeString(nv).toUpperCase() || 'USD')
             }
-            size="S"
           />
           <span className={styles.rateMetaText}>
             Rate Date: {toSafeString(latestExchangeRateRow?.Date) || '-'}
@@ -330,7 +333,7 @@ const SalesQuotationSummaryBar = ({
           onChange={(ov, nv) =>
             onBaseCurrencyChange(toSafeString(nv).toUpperCase() || 'USD')
           }
-          size="S"
+          size={CURRENCY_DROPDOWN_SIZE}
         />
         <span className={styles.rateMetaText}>
           Rate Date: {toSafeString(latestExchangeRateRow?.Date) || '-'}

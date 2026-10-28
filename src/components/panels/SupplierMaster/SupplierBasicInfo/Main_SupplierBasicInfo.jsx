@@ -81,19 +81,23 @@ const Main_SupplierBasicInfo = () => {
   };
 
   return (
-    <RowLayout>
-      <ColumnLayout>
-        <Main_InputContainer label="Supplier Code">
+    <Main_InputContainer
+      label="Basic Info"
+      className={styles.companyRemarkContainer}
+    >
+      <RowLayout>
+        <ColumnLayout>
           <Main_TextField
+            label="Supplier Code"
             defaultValue={supplierCode || supplierCodeCompat || ''}
             placeholder="Supplier Code"
             onChange={(ov, nv) => {
               upsertEntityData('supplier', { supplier_code: nv, code: nv });
             }}
           />
-        </Main_InputContainer>
-        <Main_InputContainer label="Supplier Name">
+
           <Main_TextField
+            label="Supplier Name"
             defaultValue={supplierName || ''}
             placeholder="Supplier Name"
             onChange={(ov, nv) => {
@@ -102,9 +106,9 @@ const Main_SupplierBasicInfo = () => {
               });
             }}
           />
-        </Main_InputContainer>
-        <Main_InputContainer label="Supplier Status">
+
           <Main_Dropdown
+            label="Supplier Status"
             defaultOptions={[
               { id: 'active', name: 'Active' },
               { id: 'inactive', name: 'Inactive' },
@@ -118,14 +122,10 @@ const Main_SupplierBasicInfo = () => {
               });
             }}
           />
-        </Main_InputContainer>
-      </ColumnLayout>
-      <Main_InputContainer
-        label="Company Remark"
-        className={styles.companyRemarkContainer}
-      >
-        <Main_InputContainer label="Supplier Score">
+        </ColumnLayout>
+        <ColumnLayout>
           <Main_TextField
+            label="Supplier Score"
             defaultValue={String(supplierScore ?? 1)}
             placeholder="1 - 10"
             type="number"
@@ -137,9 +137,8 @@ const Main_SupplierBasicInfo = () => {
               upsertEntityData('supplier', { score: safeValue });
             }}
           />
-        </Main_InputContainer>
-        <Main_InputContainer label="Supplier Type">
           <Main_TagInputField
+            label="Supplier Type"
             key="supplier-type-input"
             defaultOptions={supplierType}
             defaultSelectedOptions={selectedSupplierTypeIds}
@@ -148,17 +147,18 @@ const Main_SupplierBasicInfo = () => {
             enableHierarchyViewToggle={true}
             hierarchyToggleLabel="Show Hierarchy"
           />
-        </Main_InputContainer>
-        <Main_TextArea
-          label="Remark"
-          defaultValue={supplierRemark || ''}
-          placeholder="Supplier Remark"
-          onChange={(ov, nv) => {
-            upsertEntityData('supplier', { remark: nv });
-          }}
-        />
-      </Main_InputContainer>
-    </RowLayout>
+
+          <Main_TextArea
+            label="Remark"
+            defaultValue={supplierRemark || ''}
+            placeholder="Supplier Remark"
+            onChange={(ov, nv) => {
+              upsertEntityData('supplier', { remark: nv });
+            }}
+          />
+        </ColumnLayout>
+      </RowLayout>
+    </Main_InputContainer>
   );
 };
 

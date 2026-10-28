@@ -1,6 +1,5 @@
 import { useCallback, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import Main_InputContainer from '../../../common/Container/Main_InputContainer';
 import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
 import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_FileUploads';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
@@ -190,27 +189,22 @@ const Main_CustomerImages = () => {
         ),
       },
     ],
-    [
-      imageTypeOptions,
-      upsertImageRow,
-      handleImageUploadChange,
-    ],
+    [imageTypeOptions, upsertImageRow, handleImageUploadChange],
   );
 
   return (
-    <Main_InputContainer label="Customer Images">
-      <div className={styles.tableSection}>
-        <EditableDataForm
-          rows={sortedRows}
-          columns={columns}
-          rowKey="id"
-          emptyMessage="No images yet. Click + Add Image."
-          onAddRow={handleAddImageRow}
-          addRowText="Add Image"
-          onRemoveRow={handleDeleteImageRow}
-        />
-      </div>
-    </Main_InputContainer>
+    <div className={styles.tableSection}>
+      <EditableDataForm
+        label="Customer Images"
+        rows={sortedRows}
+        columns={columns}
+        rowKey="id"
+        emptyMessage="No images yet. Click + Add Image."
+        onAddRow={handleAddImageRow}
+        addRowText="Add Image"
+        onRemoveRow={handleDeleteImageRow}
+      />
+    </div>
   );
 };
 

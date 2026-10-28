@@ -9,6 +9,7 @@ import {
   useEntityField,
   useEntityRows,
 } from '../../../../store/GeneralContext';
+import Main_CustomerTypes from '../Types/Main_CustomerTypes';
 
 const toDateInputValue = (value) => {
   if (!value) return '';
@@ -33,61 +34,56 @@ const Main_CustomerBasicInfo = () => {
     <Main_InputContainer label="Customer Basic Info">
       <RowLayout>
         <ColumnLayout>
-          <Main_InputContainer label="Customer ID">
-            <Main_TextField
-              defaultValue={String(customerId || '')}
-              disabled
-              placeholder="Auto-generated"
-            />
-          </Main_InputContainer>
+          <Main_TextField
+            label="Customer ID"
+            defaultValue={String(customerId || '')}
+            disabled
+            placeholder="Auto-generated"
+          />
 
-          <Main_InputContainer label="Customer Code">
-            <Main_TextField
-              defaultValue={customerCode || customerCodeCompat || ''}
-              placeholder="C0000-0001"
-              onChange={(ov, nv) => {
-                upsertEntityData('customer', {
-                  customer_code: nv,
-                  code: nv,
-                });
-              }}
-            />
-          </Main_InputContainer>
+          <Main_TextField
+            label="Customer Code"
+            defaultValue={customerCode || customerCodeCompat || ''}
+            placeholder="C0000-0001"
+            onChange={(ov, nv) => {
+              upsertEntityData('customer', {
+                customer_code: nv,
+                code: nv,
+              });
+            }}
+          />
 
-          <Main_InputContainer label="Primary Name (Preview)">
-            <Main_TextField
-              defaultValue={String(primaryName || '')}
-              disabled
-              placeholder="From Customer Names section"
-            />
-          </Main_InputContainer>
+          <Main_TextField
+            label="Primary Name (Preview)"
+            defaultValue={String(primaryName || '')}
+            disabled
+            placeholder="From Customer Names section"
+          />
+          <Main_CustomerTypes />
         </ColumnLayout>
 
         <ColumnLayout>
-          <Main_InputContainer label="Created At">
-            <Main_DateSelector
-              defaultValue={toDateInputValue(customerCreatedAt)}
-              disabled
-            />
-          </Main_InputContainer>
+          <Main_DateSelector
+            label="Created At"
+            defaultValue={toDateInputValue(customerCreatedAt)}
+            disabled
+          />
 
-          <Main_InputContainer label="Updated At">
-            <Main_DateSelector
-              defaultValue={toDateInputValue(customerUpdatedAt)}
-              disabled
-            />
-          </Main_InputContainer>
+          <Main_DateSelector
+            label="Updated At"
+            defaultValue={toDateInputValue(customerUpdatedAt)}
+            disabled
+          />
 
-          <Main_InputContainer label="Remark">
-            <Main_TextArea
-              defaultValue={customerRemark || ''}
-              placeholder="Customer remark"
-              rows={5}
-              onChange={(ov, nv) => {
-                upsertEntityData('customer', { remark: nv });
-              }}
-            />
-          </Main_InputContainer>
+          <Main_TextArea
+            label="Remark"
+            defaultValue={customerRemark || ''}
+            placeholder="Customer remark"
+            rows={5}
+            onChange={(ov, nv) => {
+              upsertEntityData('customer', { remark: nv });
+            }}
+          />
         </ColumnLayout>
       </RowLayout>
     </Main_InputContainer>

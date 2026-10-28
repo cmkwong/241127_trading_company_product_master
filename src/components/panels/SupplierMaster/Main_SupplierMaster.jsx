@@ -12,6 +12,8 @@ import Main_SupplierBasicInfo from './SupplierBasicInfo/Main_SupplierBasicInfo';
 import DeleteBtn from '../../common/Buttons/DeleteBtn';
 import { useSupplierContext } from '../../../store/SupplierContext';
 import { useEntityField } from '../../../store/GeneralContext';
+import Main_InputContainer from '../../common/Container/Main_InputContainer';
+import Divider from '../../common/Container/Divider';
 
 const SupplierMasterContent = ({ onSelectSupplier }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -31,11 +33,15 @@ const SupplierMasterContent = ({ onSelectSupplier }) => {
       >
         <div className={styles.inputSide}>
           <Main_SupplierBasicInfo />
-
-          <Main_SupplierAddresses />
-          <Main_SupplierContacts />
-          <Main_SupplierLinks />
-          <Main_SupplierServices />
+          <Main_InputContainer label="Details">
+            <Main_SupplierAddresses />
+            <Divider />
+            <Main_SupplierContacts />
+            <Divider />
+            <Main_SupplierLinks />
+            <Divider />
+            <Main_SupplierServices />
+          </Main_InputContainer>
         </div>
       </div>
     </div>

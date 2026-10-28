@@ -1,5 +1,4 @@
 import { memo, useMemo } from 'react';
-import Main_InputContainer from '../../../common/Container/Main_InputContainer';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
 import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
 import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
@@ -299,19 +298,18 @@ const PurchaseRequestServiceDetails = ({
   );
 
   return (
-    <Main_InputContainer label="Service Details">
-      <div className={styles.tableSection}>
-        <EditableDataForm
-          rows={rows}
-          columns={columns}
-          rowKey="id"
-          emptyMessage="No service details yet. Click + Add Service Detail."
-          onAddRow={onAdd}
-          addRowText="Add Service Detail"
-          onRemoveRow={(row) => onRemove?.(row?.id)}
-        />
-      </div>
-    </Main_InputContainer>
+    <div className={styles.tableSection}>
+      <EditableDataForm
+        label="Service Details"
+        rows={rows}
+        columns={columns}
+        rowKey="id"
+        emptyMessage="No service details yet. Click + Add Service Detail."
+        onAddRow={onAdd}
+        addRowText="Add Service Detail"
+        onRemoveRow={(row) => onRemove?.(row?.id)}
+      />
+    </div>
   );
 };
 

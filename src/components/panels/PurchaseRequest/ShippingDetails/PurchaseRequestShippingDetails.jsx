@@ -1,5 +1,4 @@
 import { memo, useMemo } from 'react';
-import Main_InputContainer from '../../../common/Container/Main_InputContainer';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
 import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
 import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
@@ -336,19 +335,18 @@ const PurchaseRequestShippingDetails = ({
   );
 
   return (
-    <Main_InputContainer label="Shipping Details">
-      <div className={styles.tableSection}>
-        <EditableDataForm
-          rows={rows}
-          columns={columns}
-          rowKey="id"
-          emptyMessage="No shipping details yet. Click + Add Shipping Detail."
-          onAddRow={onAdd}
-          addRowText="Add Shipping Detail"
-          onRemoveRow={(row) => onRemove?.(row?.id)}
-        />
-      </div>
-    </Main_InputContainer>
+    <div className={styles.tableSection}>
+      <EditableDataForm
+        label="Shipping Details"
+        rows={rows}
+        columns={columns}
+        rowKey="id"
+        emptyMessage="No shipping details yet. Click + Add Shipping Detail."
+        onAddRow={onAdd}
+        addRowText="Add Shipping Detail"
+        onRemoveRow={(row) => onRemove?.(row?.id)}
+      />
+    </div>
   );
 };
 

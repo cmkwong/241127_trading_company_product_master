@@ -2417,7 +2417,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
       customer_id: toSafeString(sourceQuotation?.customer_id),
       customer_name_id: toSafeString(sourceQuotation?.customer_name_id),
       customer_address_id: toSafeString(sourceQuotation?.customer_address_id),
-      posting_at: toDateOnlyString(sourceQuotation?.posting_at),
+      posting_at: toDateOnlyString(new Date()),
       doc_type: toSafeString(sourceQuotation?.doc_type),
       header_proforma_percent: toPercentValue(
         sourceQuotation?.header_proforma_percent,
@@ -2740,7 +2740,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
         customer_id: toSafeString(sourceQuotation?.customer_id),
         customer_name_id: toSafeString(sourceQuotation?.customer_name_id),
         customer_address_id: toSafeString(sourceQuotation?.customer_address_id),
-        posting_at: toDateOnlyString(sourceQuotation?.posting_at),
+        posting_at: toDateOnlyString(new Date()),
         header_proforma_percent: toPercentValue(
           sourceQuotation?.header_proforma_percent,
         ),

@@ -203,19 +203,18 @@ const Main_SupplierAddresses = () => {
   );
 
   return (
-    <Main_InputContainer label="Supplier Addresses">
-      <div className={styles.tableSection}>
-        <EditableDataForm
-          rows={addressRows}
-          columns={columns}
-          rowKey="id"
-          emptyMessage="No addresses yet. Click + Add Address."
-          onAddRow={handleAddAddressRow}
-          addRowText="Add Address"
-          onRemoveRow={handleDeleteAddressRow}
-        />
-      </div>
-    </Main_InputContainer>
+    <div className={styles.tableSection}>
+      <EditableDataForm
+        label="Supplier Addresses"
+        rows={addressRows}
+        columns={columns}
+        rowKey="id"
+        emptyMessage="No addresses yet. Click + Add Address."
+        onAddRow={handleAddAddressRow}
+        addRowText="Add Address"
+        onRemoveRow={handleDeleteAddressRow}
+      />
+    </div>
   );
 };
 

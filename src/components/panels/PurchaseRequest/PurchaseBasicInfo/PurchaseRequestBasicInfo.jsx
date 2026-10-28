@@ -47,157 +47,146 @@ const PurchaseRequestBasicInfo = ({
   onRemarkChange,
 }) => {
   return (
-    <Main_InputContainer label="Purchase Request Basic Info">
+    <Main_InputContainer label="Basic Info">
       <RowLayout>
         <ColumnLayout>
-          <Main_InputContainer label="Purchase Request ID">
-            <Main_TextField
-              defaultValue={toSafeString(draft?.id)}
-              placeholder="Purchase request ID"
-              onChange={(ov, nv) => onIdChange?.(nv)}
-            />
-          </Main_InputContainer>
+          <Main_TextField
+            label="Purchase Request ID"
+            defaultValue={toSafeString(draft?.id)}
+            placeholder="Purchase request ID"
+            onChange={(ov, nv) => onIdChange?.(nv)}
+          />
 
-          <Main_InputContainer label="Supplier">
-            <Main_Suggest
-              defaultSuggestions={supplierSuggestionOptions}
-              defaultValue={selectedSupplierOption?.name || ''}
-              placeholder="Search supplier"
-              getSuggestionLabel={(suggestion) => suggestion?.name || ''}
-              getSuggestionSearchText={(suggestion) =>
-                toSafeString(
-                  suggestion?.searchText ||
-                    [
-                      suggestion?.name,
-                      suggestion?.supplier_type_name,
-                      suggestion?.supplier_code,
-                      suggestion?.id,
-                    ]
-                      .filter(Boolean)
-                      .join(' '),
-                )
-              }
-              renderSuggestion={(suggestion) => (
-                <div className={styles.suggestionContent}>
-                  <div className={styles.suggestionTitle}>
-                    {suggestion?.name || ''}
-                  </div>
-                  <div className={styles.suggestionMeta}>
-                    <span>
-                      Supplier Type:{' '}
-                      {suggestion?.supplier_type_name || 'Unknown'}
-                    </span>
-                    <span>
-                      Supplier Code: {suggestion?.supplier_code || '-'}
-                    </span>
-                  </div>
+          <Main_Suggest
+            label="Supplier"
+            defaultSuggestions={supplierSuggestionOptions}
+            defaultValue={selectedSupplierOption?.name || ''}
+            placeholder="Search supplier"
+            getSuggestionLabel={(suggestion) => suggestion?.name || ''}
+            getSuggestionSearchText={(suggestion) =>
+              toSafeString(
+                suggestion?.searchText ||
+                  [
+                    suggestion?.name,
+                    suggestion?.supplier_type_name,
+                    suggestion?.supplier_code,
+                    suggestion?.id,
+                  ]
+                    .filter(Boolean)
+                    .join(' '),
+              )
+            }
+            renderSuggestion={(suggestion) => (
+              <div className={styles.suggestionContent}>
+                <div className={styles.suggestionTitle}>
+                  {suggestion?.name || ''}
                 </div>
-              )}
-              onChange={(ov, nv) => onSupplierInputChange?.(nv)}
-              onSelectSuggestion={onSupplierSelect}
-              onFetchSuggestions={onFetchSupplierSuggestions}
-            />
-          </Main_InputContainer>
+                <div className={styles.suggestionMeta}>
+                  <span>
+                    Supplier Type: {suggestion?.supplier_type_name || 'Unknown'}
+                  </span>
+                  <span>Supplier Code: {suggestion?.supplier_code || '-'}</span>
+                </div>
+              </div>
+            )}
+            onChange={(ov, nv) => onSupplierInputChange?.(nv)}
+            onSelectSuggestion={onSupplierSelect}
+            onFetchSuggestions={onFetchSupplierSuggestions}
+          />
 
-          <Main_InputContainer label="Supplier Address">
-            <Main_Suggest
-              defaultSuggestions={supplierAddressSuggestionOptions}
-              defaultValue={selectedSupplierAddressOption?.name || ''}
-              placeholder="Search supplier address"
-              autoComplete="new-password"
-              getSuggestionLabel={(suggestion) => suggestion?.name || ''}
-              getSuggestionSearchText={(suggestion) =>
-                toSafeString(
-                  suggestion?.searchText ||
-                    [
-                      suggestion?.name,
-                      suggestion?.address_detail,
-                      suggestion?.supplier_id,
-                      suggestion?.id,
-                    ]
-                      .filter(Boolean)
-                      .join(' '),
-                )
-              }
-              renderSuggestion={(suggestion) => (
-                <div className={styles.suggestionContent}>
-                  <div className={styles.suggestionTitle}>
-                    {suggestion?.name || suggestion?.id || ''}
-                  </div>
-                  <div className={styles.suggestionMeta}>
-                    <span>Address ID: {suggestion?.id || '-'}</span>
-                  </div>
+          <Main_Suggest
+            label="Supplier Address"
+            defaultSuggestions={supplierAddressSuggestionOptions}
+            defaultValue={selectedSupplierAddressOption?.name || ''}
+            placeholder="Search supplier address"
+            autoComplete="new-password"
+            getSuggestionLabel={(suggestion) => suggestion?.name || ''}
+            getSuggestionSearchText={(suggestion) =>
+              toSafeString(
+                suggestion?.searchText ||
+                  [
+                    suggestion?.name,
+                    suggestion?.address_detail,
+                    suggestion?.supplier_id,
+                    suggestion?.id,
+                  ]
+                    .filter(Boolean)
+                    .join(' '),
+              )
+            }
+            renderSuggestion={(suggestion) => (
+              <div className={styles.suggestionContent}>
+                <div className={styles.suggestionTitle}>
+                  {suggestion?.name || suggestion?.id || ''}
                 </div>
-              )}
-              onChange={(ov, nv) => onSupplierAddressInputChange?.(nv)}
-              onSelectSuggestion={onSupplierAddressSelect}
-            />
-          </Main_InputContainer>
+                <div className={styles.suggestionMeta}>
+                  <span>Address ID: {suggestion?.id || '-'}</span>
+                </div>
+              </div>
+            )}
+            onChange={(ov, nv) => onSupplierAddressInputChange?.(nv)}
+            onSelectSuggestion={onSupplierAddressSelect}
+          />
         </ColumnLayout>
 
         <ColumnLayout>
-          <Main_InputContainer label="Sales Order">
-            <Main_Suggest
-              defaultSuggestions={salesQuotationSuggestionOptions}
-              defaultValue={selectedSalesQuotationOption?.name || ''}
-              placeholder="Search sales order"
-              getSuggestionLabel={(suggestion) => suggestion?.name || ''}
-              getSuggestionSearchText={(suggestion) =>
-                toSafeString(
-                  suggestion?.searchText ||
-                    [
-                      suggestion?.id,
-                      suggestion?.customer_name,
-                      formatMoney(suggestion?.total_usd),
-                    ]
-                      .filter(Boolean)
-                      .join(' '),
-                )
-              }
-              renderSuggestion={(suggestion) => (
-                <div className={styles.suggestionContent}>
-                  <div className={styles.suggestionTitle}>
-                    {suggestion?.id || ''}
-                  </div>
-                  <div className={styles.suggestionMeta}>
-                    <span>Customer: {suggestion?.customer_name || '-'}</span>
-                    <span>
-                      Total (USD): USD{' '}
-                      {formatMoney(Number(suggestion?.total_usd || 0))}
-                    </span>
-                    <span>
-                      Created At:{' '}
-                      {formatDateTime(suggestion?.created_at) || '-'}
-                    </span>
-                    <span>
-                      Updated At:{' '}
-                      {formatDateTime(suggestion?.updated_at) || '-'}
-                    </span>
-                  </div>
+          <Main_Suggest
+            label="Sales Order"
+            defaultSuggestions={salesQuotationSuggestionOptions}
+            defaultValue={selectedSalesQuotationOption?.name || ''}
+            placeholder="Search sales order"
+            getSuggestionLabel={(suggestion) => suggestion?.name || ''}
+            getSuggestionSearchText={(suggestion) =>
+              toSafeString(
+                suggestion?.searchText ||
+                  [
+                    suggestion?.id,
+                    suggestion?.customer_name,
+                    formatMoney(suggestion?.total_usd),
+                  ]
+                    .filter(Boolean)
+                    .join(' '),
+              )
+            }
+            renderSuggestion={(suggestion) => (
+              <div className={styles.suggestionContent}>
+                <div className={styles.suggestionTitle}>
+                  {suggestion?.id || ''}
                 </div>
-              )}
-              onChange={(ov, nv) => onSalesQuotationInputChange?.(nv)}
-              onSelectSuggestion={onSalesQuotationSelect}
-              onFetchSuggestions={onFetchSalesQuotationSuggestions}
-            />
-          </Main_InputContainer>
+                <div className={styles.suggestionMeta}>
+                  <span>Customer: {suggestion?.customer_name || '-'}</span>
+                  <span>
+                    Total (USD): USD{' '}
+                    {formatMoney(Number(suggestion?.total_usd || 0))}
+                  </span>
+                  <span>
+                    Created At: {formatDateTime(suggestion?.created_at) || '-'}
+                  </span>
+                  <span>
+                    Updated At: {formatDateTime(suggestion?.updated_at) || '-'}
+                  </span>
+                </div>
+              </div>
+            )}
+            onChange={(ov, nv) => onSalesQuotationInputChange?.(nv)}
+            onSelectSuggestion={onSalesQuotationSelect}
+            onFetchSuggestions={onFetchSalesQuotationSuggestions}
+          />
 
-          <Main_InputContainer label="Order Status">
-            <Main_Dropdown
-              defaultOptions={STATUS_OPTIONS}
-              defaultSelectedOption={draft?.status || 'draft'}
-              onChange={(ov, nv) => onStatusChange?.(nv)}
-            />
-          </Main_InputContainer>
+          <Main_Dropdown
+            label="Order Status"
+            defaultOptions={STATUS_OPTIONS}
+            defaultSelectedOption={draft?.status || 'draft'}
+            onChange={(ov, nv) => onStatusChange?.(nv)}
+          />
 
-          <Main_InputContainer label="Remark">
-            <Main_TextArea
-              defaultValue={toSafeString(draft?.remark)}
-              rows={4}
-              placeholder="Purchase request remark"
-              onChange={(ov, nv) => onRemarkChange?.(nv)}
-            />
-          </Main_InputContainer>
+          <Main_TextArea
+            label="Remark"
+            defaultValue={toSafeString(draft?.remark)}
+            rows={4}
+            placeholder="Purchase request remark"
+            onChange={(ov, nv) => onRemarkChange?.(nv)}
+          />
         </ColumnLayout>
       </RowLayout>
     </Main_InputContainer>

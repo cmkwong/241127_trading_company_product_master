@@ -1,6 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import Main_InputContainer from '../../../common/Container/Main_InputContainer';
 import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
 import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
@@ -399,19 +398,18 @@ const Main_CustomerAddresses = () => {
   );
 
   return (
-    <Main_InputContainer label="Customer Addresses">
-      <div className={styles.tableSection}>
-        <EditableDataForm
-          rows={addressRows}
-          columns={columns}
-          rowKey="id"
-          emptyMessage="No addresses yet. Click + Add Address."
-          onAddRow={handleAddAddressRow}
-          addRowText="Add Address"
-          onRemoveRow={handleDeleteAddressRow}
-        />
-      </div>
-    </Main_InputContainer>
+    <div className={styles.tableSection}>
+      <EditableDataForm
+        label="Customer Addresses"
+        rows={addressRows}
+        columns={columns}
+        rowKey="id"
+        emptyMessage="No addresses yet. Click + Add Address."
+        onAddRow={handleAddAddressRow}
+        addRowText="Add Address"
+        onRemoveRow={handleDeleteAddressRow}
+      />
+    </div>
   );
 };
 

@@ -161,19 +161,18 @@ const Main_SupplierContacts = () => {
   );
 
   return (
-    <Main_InputContainer label="Supplier Contacts">
-      <div className={styles.tableSection}>
-        <EditableDataForm
-          rows={contactRows}
-          columns={columns}
-          rowKey="id"
-          emptyMessage="No contacts yet. Click + Add Contact."
-          onAddRow={handleAddContactRow}
-          addRowText="Add Contact"
-          onRemoveRow={handleDeleteContactRow}
-        />
-      </div>
-    </Main_InputContainer>
+    <div className={styles.tableSection}>
+      <EditableDataForm
+        label="Supplier Contacts"
+        rows={contactRows}
+        columns={columns}
+        rowKey="id"
+        emptyMessage="No contacts yet. Click + Add Contact."
+        onAddRow={handleAddContactRow}
+        addRowText="Add Contact"
+        onRemoveRow={handleDeleteContactRow}
+      />
+    </div>
   );
 };
 

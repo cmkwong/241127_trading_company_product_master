@@ -343,19 +343,18 @@ const Main_SupplierServices = () => {
   );
 
   return (
-    <Main_InputContainer label="Supplier Services">
-      <div className={styles.tableSection}>
-        <EditableDataForm
-          rows={serviceRows}
-          columns={columns}
-          rowKey="id"
-          emptyMessage="No services yet. Click + Add Service."
-          onAddRow={handleAddServiceRow}
-          addRowText="Add Service"
-          onRemoveRow={handleDeleteServiceRow}
-        />
-      </div>
-    </Main_InputContainer>
+    <div className={styles.tableSection}>
+      <EditableDataForm
+        label="Supplier Services"
+        rows={serviceRows}
+        columns={columns}
+        rowKey="id"
+        emptyMessage="No services yet. Click + Add Service."
+        onAddRow={handleAddServiceRow}
+        addRowText="Add Service"
+        onRemoveRow={handleDeleteServiceRow}
+      />
+    </div>
   );
 };
 

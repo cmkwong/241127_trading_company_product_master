@@ -1,6 +1,5 @@
 import { useCallback, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import Main_InputContainer from '../../../common/Container/Main_InputContainer';
 import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
 import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
@@ -152,19 +151,18 @@ const Main_CustomerContacts = () => {
   );
 
   return (
-    <Main_InputContainer label="Customer Contacts">
-      <div className={styles.tableSection}>
-        <EditableDataForm
-          rows={contactRows}
-          columns={columns}
-          rowKey="id"
-          emptyMessage="No contacts yet. Click + Add Contact."
-          onAddRow={handleAddContactRow}
-          addRowText="Add Contact"
-          onRemoveRow={handleDeleteContactRow}
-        />
-      </div>
-    </Main_InputContainer>
+    <div className={styles.tableSection}>
+      <EditableDataForm
+        label="Customer Contacts"
+        rows={contactRows}
+        columns={columns}
+        rowKey="id"
+        emptyMessage="No contacts yet. Click + Add Contact."
+        onAddRow={handleAddContactRow}
+        addRowText="Add Contact"
+        onRemoveRow={handleDeleteContactRow}
+      />
+    </div>
   );
 };
 

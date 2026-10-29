@@ -1,13 +1,9 @@
-import {
-  Fragment,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import ExcelJS from 'exceljs';
 import SearchSideBarListSearchBar from './SearchSideBarListSearchBar';
-import styles from './SearchSideBarList.module.css';
+import Sub_ExpandedWindow from './Sub_ExpandedWindow';
+import Main_ViewTables from '../Tables/Main_ViewTables';
+import expandedStyles from './Sub_ExpandedWindow.module.css';
 
 const normalizeLabel = (value) => String(value || '').replace(/:\s*$/, '');
 const toRowKey = (value) =>
@@ -62,110 +58,30 @@ const getSortableText = (value) => {
   return lines.map(getLineText).join(' | ');
 };
 
-const IMAGE_MIME_TO_EXTENSION = {
-  'image/png': 'png',
-  'image/jpeg': 'jpeg',
-  'image/jpg': 'jpeg',
-  'image/gif': 'gif',
-  'image/webp': 'webp',
-  'image/bmp': 'bmp',
-};
+const fetchImageAsBase64 = async (src) => {
+  const normalizedSrc = String(src || '').trim();
+  if (!normalizedSrc) return '';
 
-const blobToDataUrl = (blob) =>
-  new Promise((resolve, reject) => {
+  if (normalizedSrc.startsWith('data:image/')) {
+    const base64Segment = normalizedSrc.split(',')[1] || '';
+    return base64Segment;
+  }
+
+  const response = await fetch(normalizedSrc);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch image: ${response.status}`);
+  }
+
+  const blob = await response.blob();
+
+  const dataUrl = await new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result || ''));
-    reader.onerror = () => reject(new Error('Failed to read image blob.'));
+    reader.onloadend = () => resolve(String(reader.result || ''));
+    reader.onerror = reject;
     reader.readAsDataURL(blob);
   });
 
-const getImageExtensionFromDataUrl = (dataUrl) => {
-  const match = String(dataUrl || '').match(/^data:(image\/[a-zA-Z0-9+.-]+);/i);
-  const mimeType = String(match?.[1] || '').toLowerCase();
-  return IMAGE_MIME_TO_EXTENSION[mimeType] || 'png';
-};
-
-const getImageExtensionFromUrl = (url) => {
-  const normalized = String(url || '')
-    .trim()
-    .toLowerCase();
-  if (!normalized) {
-    return 'png';
-  }
-
-  if (normalized.includes('.jpeg') || normalized.includes('.jpg')) {
-    return 'jpeg';
-  }
-  if (normalized.includes('.webp')) {
-    return 'webp';
-  }
-  if (normalized.includes('.gif')) {
-    return 'gif';
-  }
-  if (normalized.includes('.bmp')) {
-    return 'bmp';
-  }
-
-  return 'png';
-};
-
-const sanitizeExportName = (value, fallback) => {
-  const cleaned = String(value || '')
-    .trim()
-    .replace(/[<>:"/\\|?*]+/g, '_')
-    .replace(/\s+/g, '_');
-
-  return cleaned || fallback;
-};
-
-const sanitizeSheetName = (value, fallback = 'Sheet1') => {
-  const cleaned = String(value || '')
-    .replace(/[\\/?*\]:]+/g, ' ')
-    .replace(/\[/g, ' ')
-    .trim();
-
-  if (!cleaned) {
-    return fallback;
-  }
-
-  return cleaned.slice(0, 31);
-};
-
-const getExportCellText = (value) => {
-  const lines = toArray(value);
-  if (lines.length === 0) {
-    return '';
-  }
-
-  return lines
-    .map((line) => {
-      if (line && typeof line === 'object' && line.type === 'image') {
-        return String(line.text || line.alt || '').trim();
-      }
-      return getLineText(line);
-    })
-    .filter((line) => String(line || '').trim().length > 0)
-    .join('\n');
-};
-
-const getFirstImageLine = (value) => {
-  const lines = toArray(value);
-  return lines.find(
-    (line) => line && typeof line === 'object' && line.type === 'image',
-  );
-};
-
-const EXPORT_IMAGE_BATCH_LIMIT = 10;
-
-const chunkArray = (list, size) => {
-  const chunkSize = Math.max(1, Number(size) || 1);
-  const chunks = [];
-
-  for (let index = 0; index < list.length; index += chunkSize) {
-    chunks.push(list.slice(index, index + chunkSize));
-  }
-
-  return chunks;
+  return String(dataUrl).split(',')[1] || '';
 };
 
 const SearchSideBarListExpandedModal = ({
@@ -190,8 +106,6 @@ const SearchSideBarListExpandedModal = ({
   getItemSubRows = () => [],
   exportFileName = 'search_results',
   exportSheetName = 'Search Results',
-  onResolveExportImage,
-  onResolveExportImagesBatch,
   onVisibleItemIdsChange,
 }) => {
   const [sortKey, setSortKey] = useState('Header');
@@ -199,11 +113,10 @@ const SearchSideBarListExpandedModal = ({
   const [columnFilters, setColumnFilters] = useState({});
   const [previewImage, setPreviewImage] = useState(null);
   const [hoverPreview, setHoverPreview] = useState(null);
-  const [isExporting, setIsExporting] = useState(false);
+  const [isDownloadingExcel, setIsDownloadingExcel] = useState(false);
+  const [selectedRowKeys, setSelectedRowKeys] = useState({});
   // Track which subrows are expanded (by itemId)
   const [expandedSubRows, setExpandedSubRows] = useState({});
-  // Track global expand/collapse state
-  const [allExpanded, setAllExpanded] = useState(true);
   const rowRefs = useRef(new Map());
   const tableWrapRef = useRef(null);
   const pendingHistoryScrollRef = useRef(false);
@@ -220,19 +133,12 @@ const SearchSideBarListExpandedModal = ({
       });
     });
 
-    return ['Icon', 'Header', ...Array.from(labels)];
+    return ['Icon', 'Header', ...Array.from(labels), 'Select'];
   }, [items, getItemRows]);
 
   const filterableColumns = useMemo(() => {
     return new Set(tableColumns.filter((column) => column !== 'Icon'));
   }, [tableColumns]);
-
-  const hasAnySubRows = useMemo(() => {
-    return items.some((item) => {
-      const subRows = getItemSubRows(item) || [];
-      return Array.isArray(subRows) && subRows.length > 0;
-    });
-  }, [items, getItemSubRows]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -253,6 +159,10 @@ const SearchSideBarListExpandedModal = ({
 
   const getCellValue = useCallback(
     (item, column) => {
+      if (column === 'Select') {
+        return '';
+      }
+
       if (column === 'Icon') {
         return String(getItemIconUrl(item) || '').trim();
       }
@@ -309,6 +219,16 @@ const SearchSideBarListExpandedModal = ({
     return sorted;
   }, [filteredItems, sortKey, sortDirection, getCellValue]);
 
+  const visibleSortedKeys = useMemo(
+    () => sortedItems.map((item, index) => toRowKey(getItemId(item) ?? index)),
+    [sortedItems, getItemId],
+  );
+
+  const allVisibleSelected = useMemo(() => {
+    if (visibleSortedKeys.length === 0) return false;
+    return visibleSortedKeys.every((key) => selectedRowKeys[key]);
+  }, [visibleSortedKeys, selectedRowKeys]);
+
   const handleFilterChange = useCallback((column, value) => {
     setColumnFilters((prev) => ({
       ...prev,
@@ -321,367 +241,8 @@ const SearchSideBarListExpandedModal = ({
     setColumnFilters({});
   }, [onClearSearch]);
 
-  const fetchImageAsDataUrl = useCallback(async (source) => {
-    const normalized = String(source || '').trim();
-    if (!normalized) {
-      return null;
-    }
-
-    if (normalized.startsWith('data:image/')) {
-      return {
-        dataUrl: normalized,
-        extension: getImageExtensionFromDataUrl(normalized),
-      };
-    }
-
-    const response = await fetch(normalized);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch image: ${response.status}`);
-    }
-
-    const blob = await response.blob();
-    const dataUrl = await blobToDataUrl(blob);
-
-    return {
-      dataUrl,
-      extension:
-        IMAGE_MIME_TO_EXTENSION[String(blob.type || '').toLowerCase()] ||
-        getImageExtensionFromDataUrl(dataUrl) ||
-        getImageExtensionFromUrl(normalized),
-    };
-  }, []);
-
-  const resolveImageForExport = useCallback(
-    async ({ item, column, value, currentSource, skipResolverCallback }) => {
-      const normalizeResolverValue = async (resolved) => {
-        if (!resolved) {
-          return null;
-        }
-
-        if (typeof resolved === 'string') {
-          return fetchImageAsDataUrl(resolved);
-        }
-
-        if (resolved instanceof Blob) {
-          const dataUrl = await blobToDataUrl(resolved);
-          return {
-            dataUrl,
-            extension:
-              IMAGE_MIME_TO_EXTENSION[
-                String(resolved.type || '').toLowerCase()
-              ] || getImageExtensionFromDataUrl(dataUrl),
-          };
-        }
-
-        if (resolved instanceof ArrayBuffer) {
-          const blob = new Blob([resolved], {
-            type: 'image/png',
-          });
-          const dataUrl = await blobToDataUrl(blob);
-          return {
-            dataUrl,
-            extension: 'png',
-          };
-        }
-
-        if (ArrayBuffer.isView(resolved)) {
-          const blob = new Blob([resolved.buffer], {
-            type: 'image/png',
-          });
-          const dataUrl = await blobToDataUrl(blob);
-          return {
-            dataUrl,
-            extension: 'png',
-          };
-        }
-
-        if (typeof resolved === 'object') {
-          const fromDataUrl = String(
-            resolved.dataUrl || resolved.base64 || '',
-          ).trim();
-          if (fromDataUrl) {
-            const normalizedDataUrl = fromDataUrl.startsWith('data:image/')
-              ? fromDataUrl
-              : `data:image/${String(
-                  resolved.extension || 'png',
-                ).toLowerCase()};base64,${fromDataUrl}`;
-
-            return {
-              dataUrl: normalizedDataUrl,
-              extension:
-                String(resolved.extension || '').toLowerCase() ||
-                getImageExtensionFromDataUrl(normalizedDataUrl),
-            };
-          }
-
-          const src = String(resolved.src || resolved.url || '').trim();
-          if (src) {
-            return fetchImageAsDataUrl(src);
-          }
-        }
-
-        return null;
-      };
-
-      try {
-        const fromCurrent = await normalizeResolverValue(currentSource);
-        if (fromCurrent) {
-          return fromCurrent;
-        }
-      } catch (error) {
-        console.warn('Export image fetch failed for current source:', error);
-      }
-
-      if (skipResolverCallback || typeof onResolveExportImage !== 'function') {
-        return null;
-      }
-
-      try {
-        const resolvedFromCallback = await onResolveExportImage({
-          item,
-          itemId: getItemId(item),
-          itemTitle: getItemTitle(item),
-          column,
-          value,
-          currentSource,
-        });
-
-        return normalizeResolverValue(resolvedFromCallback);
-      } catch (error) {
-        console.warn('Export image resolver callback failed:', error);
-      }
-
-      return null;
-    },
-    [fetchImageAsDataUrl, onResolveExportImage, getItemId, getItemTitle],
-  );
-
-  const handleExportXlsx = useCallback(async () => {
-    if (isExporting) {
-      return;
-    }
-
-    if (sortedItems.length === 0) {
-      alert('No filtered rows to export.');
-      return;
-    }
-
-    setIsExporting(true);
-
-    try {
-      const excelModule = await import('exceljs');
-      const ExcelJS = excelModule?.default || excelModule;
-      const workbook = new ExcelJS.Workbook();
-      const worksheet = workbook.addWorksheet(
-        sanitizeSheetName(exportSheetName, 'Search Results'),
-      );
-
-      worksheet.columns = tableColumns.map((column) => ({
-        header: column,
-        key: column,
-        width: column === 'Icon' ? 14 : 20,
-      }));
-
-      const headerRow = worksheet.getRow(1);
-      headerRow.font = { bold: true };
-      headerRow.alignment = { vertical: 'middle' };
-      headerRow.height = 22;
-
-      worksheet.views = [{ state: 'frozen', ySplit: 1 }];
-      worksheet.autoFilter = {
-        from: { row: 1, column: 1 },
-        to: { row: 1, column: tableColumns.length },
-      };
-
-      const prefetchedIconByItemId = new Map();
-
-      if (typeof onResolveExportImagesBatch === 'function') {
-        const missingIconRequests = sortedItems
-          .map((item) => {
-            const itemId = toRowKey(getItemId(item));
-            const currentSource = String(
-              getCellValue(item, 'Icon') || '',
-            ).trim();
-
-            if (!itemId || currentSource) {
-              return null;
-            }
-
-            return {
-              item,
-              itemId,
-              itemTitle: getItemTitle(item),
-              column: 'Icon',
-              value: '',
-              currentSource: '',
-            };
-          })
-          .filter(Boolean);
-
-        const iconRequestBatches = chunkArray(
-          missingIconRequests,
-          EXPORT_IMAGE_BATCH_LIMIT,
-        );
-
-        for (const requests of iconRequestBatches) {
-          try {
-            const resolved = await onResolveExportImagesBatch({
-              requests,
-              maxBatchSize: EXPORT_IMAGE_BATCH_LIMIT,
-            });
-
-            if (!resolved || typeof resolved !== 'object') {
-              continue;
-            }
-
-            requests.forEach((request) => {
-              const source = String(resolved[request.itemId] || '').trim();
-              if (!source) {
-                return;
-              }
-
-              prefetchedIconByItemId.set(request.itemId, source);
-            });
-          } catch (error) {
-            console.warn('Export image batch resolver callback failed:', error);
-          }
-        }
-      }
-
-      for (const item of sortedItems) {
-        const itemId = toRowKey(getItemId(item));
-        const rowData = {};
-
-        tableColumns.forEach((column) => {
-          const value = getCellValue(item, column);
-          rowData[column] = column === 'Icon' ? '' : getExportCellText(value);
-        });
-
-        const row = worksheet.addRow(rowData);
-        row.alignment = { vertical: 'top', wrapText: true };
-
-        let rowHasImage = false;
-
-        for (let index = 0; index < tableColumns.length; index += 1) {
-          const column = tableColumns[index];
-          const cellValue = getCellValue(item, column);
-          const imageLine =
-            column === 'Icon' ? null : getFirstImageLine(cellValue);
-
-          if (column !== 'Icon' && !imageLine) {
-            continue;
-          }
-
-          const sourceCandidate =
-            column === 'Icon'
-              ? String(
-                  cellValue || prefetchedIconByItemId.get(itemId) || '',
-                ).trim()
-              : getImageSource(imageLine);
-
-          const skipResolverCallback =
-            column === 'Icon' &&
-            typeof onResolveExportImagesBatch === 'function';
-
-          const imagePayload = await resolveImageForExport({
-            item,
-            column,
-            value: cellValue,
-            currentSource: sourceCandidate,
-            skipResolverCallback,
-          });
-
-          if (!imagePayload?.dataUrl) {
-            continue;
-          }
-
-          const imageId = workbook.addImage({
-            base64: imagePayload.dataUrl,
-            extension: String(imagePayload.extension || 'png').toLowerCase(),
-          });
-
-          worksheet.addImage(imageId, {
-            tl: { col: index + 0.1, row: row.number - 1 + 0.1 },
-            ext: { width: 64, height: 64 },
-          });
-
-          rowHasImage = true;
-
-          if (column !== 'Icon') {
-            const currentText = String(
-              row.getCell(index + 1).value || '',
-            ).trim();
-            if (!currentText) {
-              row.getCell(index + 1).value = String(
-                imageLine?.text || imageLine?.alt || 'image',
-              );
-            }
-          }
-        }
-
-        if (rowHasImage) {
-          row.height = 52;
-        }
-      }
-
-      tableColumns.forEach((column, index) => {
-        if (column === 'Icon') {
-          worksheet.getColumn(index + 1).width = 14;
-          return;
-        }
-
-        let longest = String(column).length;
-
-        worksheet
-          .getColumn(index + 1)
-          .eachCell({ includeEmpty: true }, (cell) => {
-            const text = String(cell.value || '');
-            const localLongest = text
-              .split('\n')
-              .reduce((max, part) => Math.max(max, part.length), 0);
-            longest = Math.max(longest, localLongest);
-          });
-
-        worksheet.getColumn(index + 1).width = Math.max(
-          14,
-          Math.min(52, longest + 2),
-        );
-      });
-
-      const buffer = await workbook.xlsx.writeBuffer();
-      const fileBlob = new Blob([buffer], {
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      });
-
-      const downloadUrl = URL.createObjectURL(fileBlob);
-      const anchor = document.createElement('a');
-      anchor.href = downloadUrl;
-      anchor.download = `${sanitizeExportName(exportFileName, 'search_results')}.xlsx`;
-      document.body.appendChild(anchor);
-      anchor.click();
-      document.body.removeChild(anchor);
-      window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
-    } catch (error) {
-      console.error('Failed to export filtered table as xlsx:', error);
-      alert('Failed to export xlsx. Please try again.');
-    } finally {
-      setIsExporting(false);
-    }
-  }, [
-    isExporting,
-    sortedItems,
-    exportFileName,
-    exportSheetName,
-    tableColumns,
-    getCellValue,
-    getItemId,
-    getItemTitle,
-    onResolveExportImagesBatch,
-    resolveImageForExport,
-  ]);
-
   const handleSort = (column) => {
-    if (column === 'Icon') {
+    if (column === 'Icon' || column === 'Select') {
       return;
     }
 
@@ -695,7 +256,7 @@ const SearchSideBarListExpandedModal = ({
   };
 
   const getSortIndicator = (column) => {
-    if (column === 'Icon') {
+    if (column === 'Icon' || column === 'Select') {
       return '';
     }
 
@@ -710,6 +271,32 @@ const SearchSideBarListExpandedModal = ({
     onSelectItem?.(item);
     onClose?.();
   };
+
+  const toggleRowSelection = useCallback((rowKey) => {
+    const normalizedKey = toRowKey(rowKey);
+    if (!normalizedKey) return;
+
+    setSelectedRowKeys((prev) => ({
+      ...prev,
+      [normalizedKey]: !prev[normalizedKey],
+    }));
+  }, []);
+
+  const toggleSelectAll = useCallback(() => {
+    setSelectedRowKeys((prev) => {
+      const allSelected =
+        visibleSortedKeys.length > 0 &&
+        visibleSortedKeys.every((key) => prev[key]);
+
+      const next = { ...prev };
+
+      visibleSortedKeys.forEach((key) => {
+        next[key] = !allSelected;
+      });
+
+      return next;
+    });
+  }, [visibleSortedKeys]);
 
   const handleIconMouseEnter = useCallback((event, src, alt) => {
     setHoverPreview({
@@ -855,6 +442,164 @@ const SearchSideBarListExpandedModal = ({
     return () => observer.disconnect();
   }, [isOpen, sortedItems, getItemId, onVisibleItemIdsChange]);
 
+  const getExcelCellText = useCallback((value) => {
+    if (isNil(value) || value === '') {
+      return '';
+    }
+
+    if (typeof value === 'string' || typeof value === 'number') {
+      return String(value);
+    }
+
+    if (typeof value === 'object') {
+      if (value.type === 'link') {
+        return String(value.text || value.href || value.url || '');
+      }
+
+      if (value.type === 'image') {
+        return String(value.text || value.alt || value.url || value.src || '');
+      }
+
+      if (!isNil(value.label) || !isNil(value.value)) {
+        return `${value.label ? `${value.label}: ` : ''}${String(value.value || '')}`;
+      }
+
+      return JSON.stringify(value);
+    }
+
+    return String(value);
+  }, []);
+
+  const getExcelRowData = useCallback(
+    (item) => {
+      const rowData = {};
+
+      tableColumns.forEach((column) => {
+        const cellValue = getCellValue(item, column);
+
+        if (column === 'Select') {
+          const itemKey = toRowKey(getItemId(item));
+          rowData[column] = selectedRowKeys[itemKey] ? 'Selected' : '';
+          return;
+        }
+
+        if (column === 'Icon') {
+          rowData[column] = String(cellValue || '');
+          return;
+        }
+
+        const lines = toArray(cellValue);
+        rowData[column] = lines
+          .map(getExcelCellText)
+          .filter(Boolean)
+          .join('\n');
+      });
+
+      return rowData;
+    },
+    [tableColumns, getCellValue, getExcelCellText, getItemId, selectedRowKeys],
+  );
+
+  const downloadExcel = useCallback(async () => {
+    if (isDownloadingExcel) {
+      return;
+    }
+
+    setIsDownloadingExcel(true);
+    try {
+      const workbook = new ExcelJS.Workbook();
+      const safeSheetName =
+        String(exportSheetName || 'Search Results')
+          .replace(/[[\\/:*?\]]/g, ' ')
+          .slice(0, 31)
+          .trim() || 'Search Results';
+
+      const worksheet = workbook.addWorksheet(safeSheetName);
+
+      worksheet.columns = tableColumns.map((column) => ({
+        header: column,
+        key: column,
+      }));
+
+      worksheet.getColumn('Select').width = 12;
+      worksheet.getColumn('Icon').width = 12;
+
+      sortedItems.forEach((item) => {
+        worksheet.addRow(getExcelRowData(item));
+      });
+
+      for (let rowIndex = 0; rowIndex < sortedItems.length; rowIndex += 1) {
+        const item = sortedItems[rowIndex];
+        const iconUrl = String(getItemIconUrl(item) || '').trim();
+        if (!iconUrl) {
+          continue;
+        }
+
+        try {
+          const base64 = await fetchImageAsBase64(iconUrl);
+          if (!base64) continue;
+
+          const imageId = workbook.addImage({
+            base64,
+            extension: 'png',
+          });
+
+          const excelRowNumber = rowIndex + 2;
+          worksheet.getRow(excelRowNumber).height = 42;
+
+          worksheet.addImage(imageId, {
+            tl: { col: 1 + 0.15, row: excelRowNumber - 1 + 0.12 },
+            ext: { width: 34, height: 34 },
+          });
+        } catch {
+          // Ignore icon embedding failure and continue exporting text data.
+        }
+      }
+
+      const headerRow = worksheet.getRow(1);
+      headerRow.font = { bold: true };
+
+      worksheet.columns.forEach((column) => {
+        let maxLength = String(column.header || '').length;
+        column.eachCell({ includeEmpty: true }, (cell) => {
+          const content = String(cell.value || '');
+          maxLength = Math.max(maxLength, content.length);
+        });
+        column.width = Math.min(Math.max(maxLength + 2, 12), 60);
+      });
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+
+      const fileSafeName =
+        String(exportFileName || 'search_results').trim() || 'search_results';
+      const anchor = document.createElement('a');
+      const objectUrl = URL.createObjectURL(blob);
+      anchor.href = objectUrl;
+      anchor.download = `${fileSafeName}.xlsx`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 500);
+    } finally {
+      setIsDownloadingExcel(false);
+    }
+  }, [
+    isDownloadingExcel,
+    exportSheetName,
+    tableColumns,
+    sortedItems,
+    getExcelRowData,
+    exportFileName,
+    getItemIconUrl,
+  ]);
+
+  const handleExportCatalog = useCallback(() => {
+    // Placeholder until catalog export flow is finalized.
+  }, []);
+
   // Helper for horizontal image row, double size, no caption
   const renderImageRow = (images) => {
     if (!Array.isArray(images) || images.length === 0) return null;
@@ -924,7 +669,7 @@ const SearchSideBarListExpandedModal = ({
         }
         return (
           <a
-            className={styles.expandedCellLink}
+            className={expandedStyles.expandedCellLink}
             href={href}
             target="_blank"
             rel="noopener noreferrer"
@@ -960,13 +705,13 @@ const SearchSideBarListExpandedModal = ({
     if (column === 'Icon') {
       const iconUrl = String(value || '').trim();
       if (!iconUrl) {
-        return <span className={styles.expandedCellEmpty}>-</span>;
+        return <span className={expandedStyles.expandedCellEmpty}>-</span>;
       }
 
       return (
         <button
           type="button"
-          className={styles.overlayIconButton}
+          className={expandedStyles.overlayIconButton}
           onClick={(event) => {
             event.stopPropagation();
             setPreviewImage({
@@ -988,15 +733,36 @@ const SearchSideBarListExpandedModal = ({
           <img
             src={iconUrl}
             alt={getItemIconAlt(itemOrId) || 'icon'}
-            className={styles.overlayIconImage}
+            className={expandedStyles.overlayIconImage}
           />
         </button>
       );
     }
 
+    if (column === 'Select') {
+      const itemKey =
+        typeof itemOrId === 'object'
+          ? toRowKey(getItemId(itemOrId))
+          : toRowKey(itemOrId);
+
+      return (
+        <input
+          type="checkbox"
+          checked={Boolean(selectedRowKeys[itemKey])}
+          onChange={(event) => {
+            event.stopPropagation();
+            toggleRowSelection(itemKey);
+          }}
+          onClick={(event) => event.stopPropagation()}
+          className={expandedStyles.selectCheckbox}
+          aria-label={`Select row ${itemKey}`}
+        />
+      );
+    }
+
     const lines = toArray(value);
     if (lines.length === 0) {
-      return <span className={styles.expandedCellEmpty}>-</span>;
+      return <span className={expandedStyles.expandedCellEmpty}>-</span>;
     }
     // Special: horizontal image row for Images field
     if (column === 'Images') {
@@ -1006,14 +772,14 @@ const SearchSideBarListExpandedModal = ({
       return renderLineContent(lines[0]);
     }
     return (
-      <div className={styles.expandedCellMultiLine}>
+      <div className={expandedStyles.expandedCellMultiLine}>
         {lines.map((line, index) => {
           const content = renderLineContent(line);
           if (!content) return null;
           return (
             <div
               key={`${keyBase}-${column}-line-${index}`}
-              className={styles.expandedCellLine}
+              className={expandedStyles.expandedCellLine}
             >
               {content}
             </div>
@@ -1031,30 +797,37 @@ const SearchSideBarListExpandedModal = ({
     const expanded = expandedSubRows[itemId] !== false;
     if (!expanded) return null;
     return (
-      <tr key={`${itemId}-details`} className={styles.overlayDetailRow}>
-        <td className={styles.overlayDetailCell} colSpan={tableColumns.length}>
-          <div className={styles.overlayDetailGrid}>
+      <tr key={`${itemId}-details`} className={expandedStyles.overlayDetailRow}>
+        <td
+          className={expandedStyles.overlayDetailCell}
+          colSpan={tableColumns.length}
+        >
+          <div className={expandedStyles.overlayDetailGrid}>
             {subRows.map((subRow, subIndex) => {
               const fields = Array.isArray(subRow?.fields) ? subRow.fields : [];
               return (
                 <div
                   key={`${itemId}-sub-${subIndex}`}
-                  className={styles.overlayDetailCard}
+                  className={expandedStyles.overlayDetailCard}
                 >
-                  <div className={styles.overlayDetailTitle}>
+                  <div className={expandedStyles.overlayDetailTitle}>
                     {subRow?.title || `Detail ${subIndex + 1}`}
                   </div>
                   {fields.length > 0 ? (
-                    <div className={styles.overlayDetailFields}>
+                    <div className={expandedStyles.overlayDetailFields}>
                       {fields.map((field, fieldIndex) => (
                         <div
                           key={`${itemId}-sub-${subIndex}-field-${fieldIndex}`}
-                          className={styles.overlayDetailField}
+                          className={expandedStyles.overlayDetailField}
                         >
-                          <div className={styles.overlayDetailFieldLabel}>
+                          <div
+                            className={expandedStyles.overlayDetailFieldLabel}
+                          >
                             {field?.label || '-'}
                           </div>
-                          <div className={styles.overlayDetailFieldValue}>
+                          <div
+                            className={expandedStyles.overlayDetailFieldValue}
+                          >
                             {renderCellContent(
                               field?.value,
                               `${itemId}-sub-${subIndex}`,
@@ -1065,7 +838,9 @@ const SearchSideBarListExpandedModal = ({
                       ))}
                     </div>
                   ) : (
-                    <div className={styles.expandedCellEmpty}>No details</div>
+                    <div className={expandedStyles.expandedCellEmpty}>
+                      No details
+                    </div>
                   )}
                 </div>
               );
@@ -1082,322 +857,140 @@ const SearchSideBarListExpandedModal = ({
 
   const getColumnClassName = (column) => {
     const map = {
-      Icon: styles.overlayColIcon,
-      Header: styles.overlayColTitle,
-      'Product Keywords': styles.overlayColProductKeywords,
-      ID: styles.overlayColId,
-      Status: styles.overlayColStatus,
-      Categories: styles.overlayColCategories,
-      Alibaba: styles.overlayColAlibaba,
-      'Created At': styles.overlayColCreatedAt,
-      'Updated At': styles.overlayColUpdatedAt,
+      Select: expandedStyles.overlayColSelect,
+      Icon: expandedStyles.overlayColIcon,
+      Header: expandedStyles.overlayColTitle,
+      'Product Keywords': expandedStyles.overlayColProductKeywords,
+      ID: expandedStyles.overlayColId,
+      Status: expandedStyles.overlayColStatus,
+      Categories: expandedStyles.overlayColCategories,
+      Alibaba: expandedStyles.overlayColAlibaba,
+      'Created At': expandedStyles.overlayColCreatedAt,
+      'Updated At': expandedStyles.overlayColUpdatedAt,
     };
 
     return map[column] || '';
   };
 
   return (
-    <div
-      className={styles.modalBackdrop}
-      role="dialog"
-      aria-modal="true"
-      onClick={onClose}
+    <Sub_ExpandedWindow
+      title="Expanded Search Table"
+      onClose={onClose}
+      onReset={handleClearSearchAndFilters}
+      onExportExcel={downloadExcel}
+      onExportCatalog={handleExportCatalog}
+      isExportingExcel={isDownloadingExcel}
+      isSelectAllActive={allVisibleSelected}
+      onToggleSelectAll={toggleSelectAll}
+      searchBar={
+        <SearchSideBarListSearchBar
+          value={searchValue}
+          onChange={onSearchChange}
+          searchHistory={searchHistory}
+          onSelectHistory={handleSelectHistoryInModal}
+          onClear={handleClearSearchAndFilters}
+          onCommitSearch={onCommitSearch}
+          placeholder={searchPlaceholder}
+          hideToolbarActions
+          containerClassName={expandedStyles.expandedSearchContainer}
+          fieldWrapperClassName={expandedStyles.expandedSearchFieldWrapper}
+          inputClassName={expandedStyles.expandedSearchInput}
+          inlineButtonClassName={expandedStyles.expandedSearchInlineButton}
+        />
+      }
+      tableWrapRef={tableWrapRef}
+      previewImage={previewImage}
+      onClosePreviewImage={() => setPreviewImage(null)}
+      hoverPreview={hoverPreview}
     >
-      <div className={styles.modalWindow} onClick={(e) => e.stopPropagation()}>
-        <div className={styles.modalHeader}>
-          <div className={styles.modalTitle}>Expanded Search Table</div>
-          <div className={styles.modalHeaderActions}>
-            <button
-              type="button"
-              className={styles.modalActionIconButton}
-              onClick={handleExportXlsx}
-              title="Export filtered table to XLSX"
-              aria-label="Export filtered table to XLSX"
-              disabled={isExporting || sortedItems.length === 0}
-            >
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="7 10 12 15 17 10" />
-                <line x1="12" y1="15" x2="12" y2="3" />
-              </svg>
-            </button>
-            <button
-              type="button"
-              className={styles.modalActionIconButton}
-              onClick={scrollToSelectedRow}
-              title="Scroll to selected item"
-              aria-label="Scroll to selected item"
-              disabled={selectedItemId === undefined || selectedItemId === null}
-            >
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <circle cx="12" cy="12" r="3" />
-                <line x1="12" y1="2" x2="12" y2="5" />
-                <line x1="12" y1="19" x2="12" y2="22" />
-                <line x1="2" y1="12" x2="5" y2="12" />
-                <line x1="19" y1="12" x2="22" y2="12" />
-              </svg>
-            </button>
-            {hasAnySubRows ? (
-              <button
-                type="button"
-                className={`${styles.modalActionIconButton} ${
-                  allExpanded ? styles.modalActionIconButtonActive : ''
-                }`}
-                onClick={() => {
-                  setAllExpanded((prev) => {
-                    const next = !prev;
-                    setExpandedSubRows(() => {
-                      const newState = {};
-                      sortedItems.forEach((item, idx) => {
-                        const itemId = getItemId(item) || idx;
-                        newState[itemId] = next;
-                      });
-                      return newState;
-                    });
-                    return next;
-                  });
-                }}
-                title={
-                  allExpanded ? 'Collapse all details' : 'Expand all details'
-                }
-                aria-label={
-                  allExpanded ? 'Collapse all details' : 'Expand all details'
-                }
-              >
-                {allExpanded ? (
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <polyline points="18 15 12 9 6 15" />
-                  </svg>
-                ) : (
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <polyline points="6 9 12 15 18 9" />
-                  </svg>
-                )}
-              </button>
-            ) : null}
-            <button
-              type="button"
-              className={styles.modalCloseButton}
-              onClick={onClose}
-              aria-label="Close expanded table"
-              title="Close"
-            >
-              ✕
-            </button>
-          </div>
-        </div>
+      <Main_ViewTables
+        rows={sortedItems}
+        columns={tableColumns.map((column) => ({
+          key: column,
+          label: column,
+          sortable: column !== 'Icon' && column !== 'Select',
+        }))}
+        rowKey={(item, index) => toRowKey(getItemId(item) ?? index)}
+        emptyMessage={noResultsMessage}
+        sortState={{
+          columnKey: sortKey,
+          direction: sortDirection,
+        }}
+        onSort={(column) => handleSort(column.key)}
+        sortIndicator={Object.fromEntries(
+          tableColumns.map((column) => [column, getSortIndicator(column)]),
+        )}
+        filterRow={tableColumns.map((column) => {
+          const isFilterable = filterableColumns.has(column);
 
-        <div className={styles.overlaySearchBar}>
-          <SearchSideBarListSearchBar
-            value={searchValue}
-            onChange={onSearchChange}
-            searchHistory={searchHistory}
-            onSelectHistory={handleSelectHistoryInModal}
-            onClear={handleClearSearchAndFilters}
-            onCommitSearch={onCommitSearch}
-            placeholder={searchPlaceholder}
-          />
-          <button
-            type="button"
-            className={styles.overlayResetFiltersBtn}
-            onClick={handleClearSearchAndFilters}
-            title="Reset all search fields"
-            aria-label="Reset all search fields"
-          >
-            Reset All
-          </button>
-        </div>
-
-        <div ref={tableWrapRef} className={styles.overlayTableWrap}>
-          <table className={styles.overlayTable}>
-            <thead>
-              <tr className={styles.overlayHeaderRow}>
-                {tableColumns.map((column) => (
-                  <th key={column} className={getColumnClassName(column)}>
-                    <button
-                      type="button"
-                      className={styles.sortButton}
-                      onClick={() => handleSort(column)}
-                      disabled={column === 'Icon'}
-                    >
-                      <span className={styles.sortLabel}>{column}</span>
-                      <span
-                        className={`${styles.sortIndicator} ${
-                          sortKey === column ? styles.sortIndicatorActive : ''
-                        }`}
-                      >
-                        {getSortIndicator(column)}
-                      </span>
-                    </button>
-                  </th>
-                ))}
-              </tr>
-              <tr className={styles.overlayFilterRow}>
-                {tableColumns.map((column) => {
-                  const isFilterable = filterableColumns.has(column);
-
-                  return (
-                    <th
-                      key={`${column}-filter`}
-                      className={getColumnClassName(column)}
-                    >
-                      {isFilterable ? (
-                        <input
-                          type="text"
-                          value={columnFilters[column] || ''}
-                          onChange={(event) =>
-                            handleFilterChange(column, event.target.value)
-                          }
-                          className={styles.overlayColumnFilterInput}
-                          placeholder={`Filter ${column}...`}
-                          aria-label={`Filter ${column}`}
-                        />
-                      ) : (
-                        <div
-                          className={styles.overlayColumnFilterPlaceholder}
-                        />
-                      )}
-                    </th>
-                  );
-                })}
-              </tr>
-            </thead>
-            <tbody>
-              {sortedItems.length > 0 ? (
-                sortedItems.map((item, index) => {
-                  const itemId = getItemId(item) ?? index;
-                  const rowKey = toRowKey(itemId);
-                  const isSelected = toRowKey(selectedItemId) === rowKey;
-
-                  return (
-                    <Fragment key={`row-${rowKey}`}>
-                      <tr
-                        ref={(element) => setRowRef(rowKey, element)}
-                        data-item-id={rowKey}
-                        tabIndex={-1}
-                        className={`${styles.overlayDataRow} ${
-                          index % 2 === 1 ? styles.overlayDataRowAlt : ''
-                        } ${isSelected ? styles.overlaySelectedRow : ''}`}
-                        onClick={() => handleRowClick(item)}
-                        onDoubleClick={(e) => {
-                          e.stopPropagation();
-                          setExpandedSubRows((old) => ({
-                            ...old,
-                            [rowKey]: !old[rowKey],
-                          }));
-                        }}
-                      >
-                        {tableColumns.map((column) => (
-                          <td
-                            key={`${rowKey}-${column}`}
-                            className={`${
-                              column === 'Icon' ? styles.overlayIconCell : ''
-                            } ${getColumnClassName(column)}`.trim()}
-                          >
-                            {renderCellContent(
-                              getCellValue(item, column),
-                              item,
-                              column,
-                            )}
-                          </td>
-                        ))}
-                      </tr>
-                      {renderSubRows(item, rowKey)}
-                    </Fragment>
-                  );
-                })
+          return (
+            <th key={`${column}-filter`} className={getColumnClassName(column)}>
+              {isFilterable ? (
+                <input
+                  type="text"
+                  value={columnFilters[column] || ''}
+                  onChange={(event) =>
+                    handleFilterChange(column, event.target.value)
+                  }
+                  className={expandedStyles.overlayColumnFilterInput}
+                  placeholder={`Filter ${column}...`}
+                  aria-label={`Filter ${column}`}
+                />
               ) : (
-                <tr>
-                  <td
-                    className={styles.overlayNoRows}
-                    colSpan={tableColumns.length}
-                  >
-                    {noResultsMessage}
-                  </td>
-                </tr>
+                <div
+                  className={expandedStyles.overlayColumnFilterPlaceholder}
+                />
               )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+            </th>
+          );
+        })}
+        rowClassName={(item, rowIndex) =>
+          `${expandedStyles.overlayDataRow} ${
+            rowIndex % 2 === 1 ? expandedStyles.overlayDataRowAlt : ''
+          }`.trim()
+        }
+        selectedRowClassName={expandedStyles.overlaySelectedRow}
+        getIsRowSelected={(_, __, key) => toRowKey(selectedItemId) === key}
+        onRowClick={(item, _rowIndex, rowKey, event) => {
+          const isCheckboxTarget =
+            event?.target instanceof HTMLInputElement &&
+            event.target.type === 'checkbox';
 
-      {previewImage?.src && (
-        <div
-          className={styles.imagePreviewOverlay}
-          onClick={() => setPreviewImage(null)}
-        >
-          <div
-            className={styles.imagePreviewModal}
-            onClick={(event) => event.stopPropagation()}
-          >
-            <button
-              type="button"
-              className={styles.imagePreviewClose}
-              onClick={() => setPreviewImage(null)}
-              aria-label="Close image preview"
-            >
-              ✕
-            </button>
-            <img
-              src={previewImage.src}
-              alt={previewImage.alt || 'preview-image'}
-              className={styles.imagePreviewLarge}
-            />
-          </div>
-        </div>
-      )}
+          if (isCheckboxTarget) {
+            return;
+          }
 
-      {hoverPreview?.src && (
-        <div
-          className={styles.hoverImagePreview}
-          style={{ left: hoverPreview.x, top: hoverPreview.y }}
-        >
-          <img
-            src={hoverPreview.src}
-            alt={hoverPreview.alt || 'hover-preview'}
-            className={styles.hoverImagePreviewLarge}
-          />
-        </div>
-      )}
-    </div>
+          handleRowClick(item, rowKey);
+        }}
+        onRowDoubleClick={(event, _item, _rowIndex, key) => {
+          event.stopPropagation();
+          setExpandedSubRows((old) => ({
+            ...old,
+            [key]: !old[key],
+          }));
+        }}
+        setRowRef={setRowRef}
+        colClassNameMap={Object.fromEntries(
+          tableColumns.map((column) => {
+            const className = `${
+              column === 'Icon'
+                ? expandedStyles.overlayIconCell
+                : column === 'Select'
+                  ? expandedStyles.overlaySelectCell
+                  : ''
+            } ${getColumnClassName(column)}`.trim();
+            return [column, className];
+          }),
+        )}
+        renderAfterRow={(item, _rowIndex, key) => renderSubRows(item, key)}
+        renderCell={({ row, column }) =>
+          renderCellContent(getCellValue(row, column.key), row, column.key)
+        }
+        minWidth="1130px"
+        wrapClassName={expandedStyles.overlayTableScrollInner}
+        emptyCellClassName={expandedStyles.overlayNoRows}
+      />
+    </Sub_ExpandedWindow>
   );
 };
 

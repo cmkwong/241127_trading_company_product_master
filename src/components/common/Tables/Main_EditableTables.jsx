@@ -2,61 +2,17 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import AddNewBtn from '../Buttons/AddNewBtn';
 import Sub_ExcelCell from './Sub_ExcelCell';
+import Sub_Header from './Sub_Header';
+import Sub_TableEmptyRow from './Sub_TableEmptyRow';
+import {
+  compareCellValues,
+  getDefaultRowKey,
+  MIN_COLUMN_WIDTH,
+  normalizeColumns,
+  resolveColumnWidth as resolveSharedColumnWidth,
+} from './tableShared';
 import styles from './Main_EditableTables.module.css';
-
-const COLUMN_SIZE_MAP = {
-  S: 90,
-  M: 130,
-  L: 220,
-  XL: 360,
-  XXL: 560,
-};
-
 const INDEX_COLUMN_WIDTH = 48;
-const DEFAULT_COLUMN_WIDTH = '180px';
-const MIN_COLUMN_WIDTH = 60;
-
-const toCssWidth = (value) => {
-  if (value === null || value === undefined || value === '') {
-    return undefined;
-  }
-
-  if (typeof value === 'number') {
-    return `${value}px`;
-  }
-
-  return String(value);
-};
-
-const toNumericWidth = (value) => {
-  const parsed = parseFloat(String(value || '').replace(/px/gi, ''));
-  return Number.isFinite(parsed) ? parsed : null;
-};
-
-const isNumericValue = (value) => {
-  if (typeof value === 'number') return true;
-  if (typeof value === 'string' && value.trim() !== '') {
-    return Number.isFinite(Number(value));
-  }
-  return false;
-};
-
-const compareCellValues = (a, b) => {
-  const aBlank = a === null || a === undefined || a === '';
-  const bBlank = b === null || b === undefined || b === '';
-  if (aBlank && bBlank) return 0;
-  if (aBlank) return 1;
-  if (bBlank) return -1;
-
-  if (isNumericValue(a) && isNumericValue(b)) {
-    return Number(a) - Number(b);
-  }
-
-  return String(a).localeCompare(String(b), undefined, {
-    numeric: true,
-    sensitivity: 'base',
-  });
-};
 
 const CELL_FOCUSABLE_SELECTOR = [
   'input:not([type="hidden"]):not([disabled])',
@@ -65,8 +21,6 @@ const CELL_FOCUSABLE_SELECTOR = [
   'button:not([disabled])',
   '[tabindex]:not([tabindex="-1"])',
 ].join(', ');
-
-const getDefaultRowKey = (row, index) => row?.id ?? index;
 
 /**
  * Excel-like editable grid.
@@ -92,6 +46,10 @@ const Main_EditableTables = ({
   addRowDisabled = false,
   addRowHint,
   minColumnWidth = MIN_COLUMN_WIDTH,
+  showHeaderSearch = false,
+  headerSearchValue,
+  onHeaderSearchChange,
+  headerSearchPlaceholder = 'Search in table...',
 }) => {
   const [activeCell, setActiveCell] = useState(null); // { rowIndex, columnKey }
   const [fillDrag, setFillDrag] = useState(null); // { columnKey, sourceRowIndex, value }
@@ -100,6 +58,7 @@ const Main_EditableTables = ({
   const [sortState, setSortState] = useState(null); // { columnKey, direction }
   const [colWidths, setColWidths] = useState({}); // { [columnKey]: number }
   const [hoverCell, setHoverCell] = useState(null); // { rowIndex, columnKey }
+  const [internalHeaderSearch, setInternalHeaderSearch] = useState('');
   const menuRef = useRef(null);
   const resizeStartRef = useRef(null);
 
@@ -115,19 +74,7 @@ const Main_EditableTables = ({
     [rowKey],
   );
 
-  const normalizedColumns = useMemo(
-    () =>
-      columns.map((column) => {
-        const sizeKey = String(column?.size || '').trim().toUpperCase();
-        const mappedSize = COLUMN_SIZE_MAP[sizeKey];
-        const width =
-          toCssWidth(column?.width) ||
-          (mappedSize ? `${mappedSize}px` : DEFAULT_COLUMN_WIDTH);
-
-        return { ...column, width };
-      }),
-    [columns],
-  );
+  const normalizedColumns = useMemo(() => normalizeColumns(columns), [columns]);
 
   const isFillableColumn = useCallback(
     (column) => column?.fillable !== false,
@@ -171,24 +118,48 @@ const Main_EditableTables = ({
   }, []);
 
   const resolveColumnWidth = useCallback(
-    (column) => {
-      if (colWidths[column.key] != null) return colWidths[column.key];
-      return toNumericWidth(column.width) ?? 180;
-    },
+    (column) => resolveSharedColumnWidth(column, colWidths),
     [colWidths],
   );
 
+  const activeHeaderSearch =
+    headerSearchValue !== undefined ? headerSearchValue : internalHeaderSearch;
+
+  const handleHeaderSearchChange = useCallback(
+    (nextValue) => {
+      if (typeof onHeaderSearchChange === 'function') {
+        onHeaderSearchChange(nextValue);
+        return;
+      }
+      setInternalHeaderSearch(nextValue);
+    },
+    [onHeaderSearchChange],
+  );
+
   const displayRows = useMemo(() => {
-    if (!sortState) return rows;
+    const baseRows =
+      showHeaderSearch && String(activeHeaderSearch || '').trim()
+        ? rows.filter((row) => {
+            const query = String(activeHeaderSearch).trim().toLowerCase();
+            return normalizedColumns.some((column) => {
+              const value = getCellValue(column, row);
+              return String(value ?? '')
+                .toLowerCase()
+                .includes(query);
+            });
+          })
+        : rows;
+
+    if (!sortState) return baseRows;
 
     const column = normalizedColumns.find(
       (candidate) => candidate.key === sortState.columnKey,
     );
-    if (!column) return rows;
+    if (!column) return baseRows;
 
     const direction = sortState.direction === 'desc' ? -1 : 1;
 
-    return rows
+    return baseRows
       .map((row, index) => ({ row, index }))
       .sort((x, y) => {
         const cmp = compareCellValues(
@@ -199,7 +170,15 @@ const Main_EditableTables = ({
         return x.index - y.index;
       })
       .map(({ row }) => row);
-  }, [rows, normalizedColumns, sortState, getSortValue]);
+  }, [
+    rows,
+    normalizedColumns,
+    sortState,
+    getSortValue,
+    showHeaderSearch,
+    activeHeaderSearch,
+    getCellValue,
+  ]);
 
   const handleSortClick = useCallback((column) => {
     if (column?.sortable === false) return;
@@ -325,7 +304,11 @@ const Main_EditableTables = ({
       const value = getFillValue(column, row);
 
       for (let index = rowIndex + 1; index <= lastIndex; index += 1) {
-        onCellChange(resolveRowKey(displayRows[index], index), column.key, value);
+        onCellChange(
+          resolveRowKey(displayRows[index], index),
+          column.key,
+          value,
+        );
       }
     },
     [
@@ -432,9 +415,7 @@ const Main_EditableTables = ({
     activeCell?.rowIndex === rowIndex && activeCell?.columnKey === columnKey;
 
   const canShowFillHandle = (column) =>
-    canEdit &&
-    isFillableColumn(column) &&
-    typeof onCellChange === 'function';
+    canEdit && isFillableColumn(column) && typeof onCellChange === 'function';
 
   const getCellControl = (cell) => cell?.querySelector(CELL_FOCUSABLE_SELECTOR);
 
@@ -526,158 +507,134 @@ const Main_EditableTables = ({
           </colgroup>
 
           <thead>
-            <tr>
-              <th className={styles.indexHeader} aria-label="Row index">
-                #
-              </th>
-              {normalizedColumns.map((column) => {
-                const sortable = column.sortable !== false;
-                const activeDir =
-                  sortState?.columnKey === column.key
-                    ? sortState.direction
-                    : null;
-                const colHovered = hoverCell?.columnKey === column.key;
-
-                return (
-                  <th
-                    key={column.key}
-                    className={[
-                      styles.headerCell,
-                      sortable ? styles.sortableHeader : '',
-                      colHovered ? styles.crossHoverCol : '',
-                    ]
-                      .filter(Boolean)
-                      .join(' ')}
-                    aria-sort={
-                      activeDir === 'asc'
-                        ? 'ascending'
-                        : activeDir === 'desc'
-                          ? 'descending'
-                          : undefined
-                    }
-                    onMouseDown={() => handleSortClick(column)}
-                  >
-                    <span className={styles.headerLabel}>
-                      {column.label ?? column.key}
-                    </span>
-                    {activeDir && (
-                      <span className={styles.sortIndicator}>
-                        {activeDir === 'asc' ? '▲' : '▼'}
-                      </span>
-                    )}
-                    <span
-                      className={styles.colResizeHandle}
-                      onMouseDown={(event) => startResize(column, event)}
-                    />
-                  </th>
-                );
-              })}
-            </tr>
+            <Sub_Header
+              columns={normalizedColumns}
+              showIndexColumn
+              indexHeaderLabel="#"
+              indexHeaderClassName={styles.indexHeader}
+              headerCellClassName={styles.headerCell}
+              sortableHeaderClassName={styles.sortableHeader}
+              headerLabelClassName={styles.headerLabel}
+              sortIndicatorClassName={styles.sortIndicator}
+              colResizeHandleClassName={styles.colResizeHandle}
+              crossHoverColClassName={styles.crossHoverCol}
+              hoverColumnKey={hoverCell?.columnKey}
+              sortState={sortState}
+              onSort={handleSortClick}
+              onResizeStart={startResize}
+              showSearchBar={showHeaderSearch}
+              searchValue={activeHeaderSearch}
+              onSearchChange={handleHeaderSearchChange}
+              searchPlaceholder={headerSearchPlaceholder}
+              searchRowClassName={styles.searchHeaderRow}
+              searchCellClassName={styles.searchHeaderCell}
+              searchInputClassName={styles.searchInput}
+            />
           </thead>
 
           <tbody>
             {rows.length === 0 ? (
-              <tr>
-                <td
-                  className={styles.emptyCell}
-                  colSpan={normalizedColumns.length + 1}
-                >
-                  {emptyMessage}
-                </td>
-              </tr>
+              <Sub_TableEmptyRow
+                className={styles.emptyCell}
+                colSpan={normalizedColumns.length + 1}
+                message={emptyMessage}
+              />
             ) : (
               displayRows.map((row, rowIndex) => {
                 const rowHovered = hoverCell?.rowIndex === rowIndex;
                 return (
-                <tr key={resolveRowKey(row, rowIndex)} className={styles.row}>
-                  <td
-                    className={[
-                      styles.indexCell,
-                      rowHovered ? styles.crossHoverRow : '',
-                    ]
-                      .filter(Boolean)
-                      .join(' ')}
-                  >
-                    {rowIndex + 1}
-                  </td>
-                  {normalizedColumns.map((column, columnIndex) => {
-                    const isActive = isCellActive(rowIndex, column.key);
-                    const fillClass = getFillCellClassName(column.key, rowIndex);
-                    const cellEditable =
-                      canEdit && isColumnEditable(column, row);
-                    const colHovered = hoverCell?.columnKey === column.key;
-
-                    let content;
-                    if (column.renderCell) {
-                      content = column.renderCell(row, { rowIndex });
-                    } else if (
-                      cellEditable &&
-                      typeof onCellChange === 'function'
-                    ) {
-                      content = (
-                        <Sub_ExcelCell
-                          type={column.type}
-                          value={getCellValue(column, row)}
-                          onCommit={(nextValue) =>
-                            onCellChange(
-                              resolveRowKey(row, rowIndex),
-                              column.key,
-                              nextValue,
-                            )
-                          }
-                        />
+                  <tr key={resolveRowKey(row, rowIndex)} className={styles.row}>
+                    <td
+                      className={[
+                        styles.indexCell,
+                        rowHovered ? styles.crossHoverRow : '',
+                      ]
+                        .filter(Boolean)
+                        .join(' ')}
+                    >
+                      {rowIndex + 1}
+                    </td>
+                    {normalizedColumns.map((column, columnIndex) => {
+                      const isActive = isCellActive(rowIndex, column.key);
+                      const fillClass = getFillCellClassName(
+                        column.key,
+                        rowIndex,
                       );
-                    } else {
-                      content = getCellValue(column, row);
-                    }
+                      const cellEditable =
+                        canEdit && isColumnEditable(column, row);
+                      const colHovered = hoverCell?.columnKey === column.key;
 
-                    const showHandle = isActive && canShowFillHandle(column);
-
-                    return (
-                      <td
-                        key={column.key}
-                        data-row-index={rowIndex}
-                        data-col-index={columnIndex}
-                        className={[
-                          styles.cell,
-                          isActive ? styles.cellActive : '',
-                          fillClass,
-                          rowHovered || colHovered ? styles.crossHover : '',
-                        ]
-                          .filter(Boolean)
-                          .join(' ')}
-                        onMouseDown={() =>
-                          setActiveCell({ rowIndex, columnKey: column.key })
-                        }
-                        onMouseEnter={() => {
-                          handleCellMouseEnter(column.key, rowIndex);
-                          handleCellHover(column.key, rowIndex);
-                        }}
-                        onContextMenu={(event) =>
-                          openContextMenu(event, rowIndex)
-                        }
-                      >
-                        <div className={styles.cellInner}>{content}</div>
-                        {showHandle && (
-                          <span
-                            className={styles.fillHandle}
-                            role="button"
-                            aria-label="Drag to copy value, double-click to fill down"
-                            title="Drag to copy value, double-click to fill down"
-                            onMouseDown={(event) =>
-                              startFillDrag(column, rowIndex, row, event)
+                      let content;
+                      if (column.renderCell) {
+                        content = column.renderCell(row, { rowIndex });
+                      } else if (
+                        cellEditable &&
+                        typeof onCellChange === 'function'
+                      ) {
+                        content = (
+                          <Sub_ExcelCell
+                            type={column.type}
+                            value={getCellValue(column, row)}
+                            onCommit={(nextValue) =>
+                              onCellChange(
+                                resolveRowKey(row, rowIndex),
+                                column.key,
+                                nextValue,
+                              )
                             }
-                            onDoubleClick={(event) => {
-                              event.preventDefault();
-                              event.stopPropagation();
-                              fillDownToEnd(column, rowIndex, row);
-                            }}
                           />
-                        )}
-                      </td>
-                    );
-                  })}
-                </tr>
+                        );
+                      } else {
+                        content = getCellValue(column, row);
+                      }
+
+                      const showHandle = isActive && canShowFillHandle(column);
+
+                      return (
+                        <td
+                          key={column.key}
+                          data-row-index={rowIndex}
+                          data-col-index={columnIndex}
+                          className={[
+                            styles.cell,
+                            isActive ? styles.cellActive : '',
+                            fillClass,
+                            rowHovered || colHovered ? styles.crossHover : '',
+                          ]
+                            .filter(Boolean)
+                            .join(' ')}
+                          onMouseDown={() =>
+                            setActiveCell({ rowIndex, columnKey: column.key })
+                          }
+                          onMouseEnter={() => {
+                            handleCellMouseEnter(column.key, rowIndex);
+                            handleCellHover(column.key, rowIndex);
+                          }}
+                          onContextMenu={(event) =>
+                            openContextMenu(event, rowIndex)
+                          }
+                        >
+                          <div className={styles.cellInner}>{content}</div>
+                          {showHandle && (
+                            <span
+                              className={styles.fillHandle}
+                              role="button"
+                              aria-label="Drag to copy value, double-click to fill down"
+                              title="Drag to copy value, double-click to fill down"
+                              onMouseDown={(event) =>
+                                startFillDrag(column, rowIndex, row, event)
+                              }
+                              onDoubleClick={(event) => {
+                                event.preventDefault();
+                                event.stopPropagation();
+                                fillDownToEnd(column, rowIndex, row);
+                              }}
+                            />
+                          )}
+                        </td>
+                      );
+                    })}
+                  </tr>
                 );
               })
             )}
@@ -744,4 +701,3 @@ const Main_EditableTables = ({
 };
 
 export default Main_EditableTables;
-

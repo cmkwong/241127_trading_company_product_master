@@ -1,0 +1,152 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.tableScroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  border: 1px solid var(--color-border-light);
+  border-radius: 6px;
+  background: var(--color-white);
+}
+
+.table {
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+  width: max-content;
+  font-size: var(--font-size-md);
+  color: var(--color-text-heavy);
+}
+
+.headerCell,
+.indexHeader {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--color-surface-subtle);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-heavy);
+  text-align: left;
+  white-space: nowrap;
+  padding: 4px 14px 4px 6px;
+  height: 26px;
+  border-bottom: 1px solid var(--color-border-strong);
+  border-right: 1px solid var(--color-border-hairline-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.indexHeader {
+  left: 0;
+  z-index: 3;
+  text-align: center;
+  color: var(--color-text-fainter);
+  font-weight: var(--font-weight-medium);
+  padding: 4px 6px;
+}
+
+.sortableHeader {
+  cursor: pointer;
+  user-select: none;
+}
+
+.sortableHeader:hover {
+  background: var(--color-surface-muted);
+}
+
+.headerLabel {
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+
+.sortIndicator {
+  display: inline-block;
+  margin-left: 4px;
+  font-size: 9px;
+  color: var(--color-blue-hover);
+  vertical-align: middle;
+}
+
+.searchHeaderRow th {
+  position: sticky;
+  top: 26px;
+  z-index: 2;
+  background: var(--color-white);
+  border-bottom: 1px solid var(--color-border-hairline-3);
+  border-right: 1px solid var(--color-border-hairline-3);
+  padding: 4px 6px;
+}
+
+.searchHeaderCell {
+  padding: 4px 6px;
+}
+
+.searchInput {
+  width: 100%;
+  height: 24px;
+  border: 1px solid var(--color-border-light);
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-heavy);
+  background: var(--color-white);
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: var(--color-blue-hover);
+  box-shadow: 0 0 0 2px var(--color-blue-soft);
+}
+
+.cell {
+  position: relative;
+  padding: 2px 6px;
+  height: 30px;
+  vertical-align: middle;
+  border-right: 1px solid var(--color-border-hairline-3);
+  border-bottom: 1px solid var(--color-border-hairline-3);
+  background: var(--color-white);
+  overflow: visible;
+}
+
+.indexCell {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--color-surface-subtle);
+  color: var(--color-text-fainter);
+  text-align: center;
+  font-size: var(--font-size-md);
+  padding: 2px 4px;
+  height: 30px;
+  border-right: 1px solid var(--color-border-strong);
+  border-bottom: 1px solid var(--color-border-hairline-3);
+  white-space: nowrap;
+}
+
+.sortIndicatorActive {
+  color: var(--color-blue-hover);
+}
+
+.filterRow th {
+  position: sticky;
+  top: 26px;
+  z-index: 2;
+  background: var(--color-white);
+}
+
+.emptyCell {
+  padding: 20px 10px;
+  text-align: center;
+  color: var(--color-text-fainter);
+  font-style: italic;
+}

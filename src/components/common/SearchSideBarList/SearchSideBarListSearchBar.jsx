@@ -47,6 +47,11 @@ const SearchSideBarListSearchBar = ({
   createButtonAriaLabel = 'Create New',
   expandButtonTitle = 'Expand list',
   expandButtonAriaLabel = 'Expand list',
+  hideToolbarActions = false,
+  containerClassName = '',
+  fieldWrapperClassName = '',
+  inputClassName = '',
+  inlineButtonClassName = '',
 }) => {
   const [showHistory, setShowHistory] = useState(false);
   const [hoverPreview, setHoverPreview] = useState(null);
@@ -106,18 +111,21 @@ const SearchSideBarListSearchBar = ({
   const hasSearchValue = String(value || '').trim().length > 0;
 
   return (
-    <div className={styles.searchContainer}>
-      <div className={styles.searchFieldWrapper}>
+    <div className={`${styles.searchContainer} ${containerClassName}`.trim()}>
+      <div
+        className={`${styles.searchFieldWrapper} ${fieldWrapperClassName}`.trim()}
+      >
         <Main_TextField
           placeholder={placeholder}
           onChange={handleInputChange}
           defaultValue={value}
           onBlur={() => onCommitSearch?.(value)}
+          className={inputClassName}
         />
 
         <button
           type="button"
-          className={`${styles.searchInlineButton} ${styles.searchHistoryButton}`}
+          className={`${styles.searchInlineButton} ${styles.searchHistoryButton} ${inlineButtonClassName}`.trim()}
           title="Search history"
           aria-label="Search history"
           onClick={() => setShowHistory((prev) => !prev)}
@@ -142,7 +150,7 @@ const SearchSideBarListSearchBar = ({
         {hasSearchValue ? (
           <button
             type="button"
-            className={`${styles.searchInlineButton} ${styles.searchClearButton}`}
+            className={`${styles.searchInlineButton} ${styles.searchClearButton} ${inlineButtonClassName}`.trim()}
             title="Clear search"
             aria-label="Clear search"
             onClick={() => {
@@ -218,44 +226,19 @@ const SearchSideBarListSearchBar = ({
           )}
       </div>
 
-      <div className={styles.toolbarActions}>
-        <button
-          type="button"
-          className={styles.focusButton}
-          onClick={onScrollToSelectedItem}
-          title="Scroll to selected item"
-          aria-label="Scroll to selected item"
-          disabled={selectedItemId === undefined || selectedItemId === null}
-        >
-          <svg
-            width="19"
-            height="19"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <circle cx="12" cy="12" r="3" />
-            <line x1="12" y1="2" x2="12" y2="5" />
-            <line x1="12" y1="19" x2="12" y2="22" />
-            <line x1="2" y1="12" x2="5" y2="12" />
-            <line x1="19" y1="12" x2="22" y2="12" />
-          </svg>
-        </button>
-
-        {showExpandButton && (
+      {!hideToolbarActions ? (
+        <div className={styles.toolbarActions}>
           <button
             type="button"
-            className={styles.expandButton}
-            onClick={onExpand}
-            title={expandButtonTitle}
-            aria-label={expandButtonAriaLabel}
+            className={styles.focusButton}
+            onClick={onScrollToSelectedItem}
+            title="Scroll to selected item"
+            aria-label="Scroll to selected item"
+            disabled={selectedItemId === undefined || selectedItemId === null}
           >
             <svg
-              width="18"
-              height="18"
+              width="19"
+              height="19"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -263,38 +246,65 @@ const SearchSideBarListSearchBar = ({
               strokeLinecap="round"
               strokeLinejoin="round"
             >
-              <polyline points="15 3 21 3 21 9" />
-              <polyline points="9 21 3 21 3 15" />
-              <line x1="21" y1="3" x2="14" y2="10" />
-              <line x1="3" y1="21" x2="10" y2="14" />
+              <circle cx="12" cy="12" r="3" />
+              <line x1="12" y1="2" x2="12" y2="5" />
+              <line x1="12" y1="19" x2="12" y2="22" />
+              <line x1="2" y1="12" x2="5" y2="12" />
+              <line x1="19" y1="12" x2="22" y2="12" />
             </svg>
           </button>
-        )}
 
-        {showCreateButton && (
-          <button
-            type="button"
-            className={styles.createButton}
-            onClick={onCreate}
-            title={createButtonTitle}
-            aria-label={createButtonAriaLabel}
-          >
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+          {showExpandButton && (
+            <button
+              type="button"
+              className={styles.expandButton}
+              onClick={onExpand}
+              title={expandButtonTitle}
+              aria-label={expandButtonAriaLabel}
             >
-              <line x1="12" y1="5" x2="12" y2="19"></line>
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
-          </button>
-        )}
-      </div>
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="15 3 21 3 21 9" />
+                <polyline points="9 21 3 21 3 15" />
+                <line x1="21" y1="3" x2="14" y2="10" />
+                <line x1="3" y1="21" x2="10" y2="14" />
+              </svg>
+            </button>
+          )}
+
+          {showCreateButton && (
+            <button
+              type="button"
+              className={styles.createButton}
+              onClick={onCreate}
+              title={createButtonTitle}
+              aria-label={createButtonAriaLabel}
+            >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+            </button>
+          )}
+        </div>
+      ) : null}
 
       {hoverPreview?.src && (
         <div

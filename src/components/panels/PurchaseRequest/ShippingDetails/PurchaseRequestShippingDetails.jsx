@@ -5,6 +5,7 @@ import Main_Dropdown from '../../../common/InputOptions/Dropdown/Main_Dropdown';
 import Main_Suggest from '../../../common/InputOptions/Suggest/Main_Suggest';
 import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_FileUploads';
 import EditableDataForm from '../../../common/Forms/EditableDataForm';
+import { sortByCreatedAt } from '../../../../utils/arr';
 import styles from '../Main_PurchaseRequest.module.css';
 
 const toSafeString = (value) => String(value || '').trim();
@@ -39,11 +40,100 @@ const PurchaseRequestShippingDetails = ({
   onAdd,
   onSetField,
   onRemove,
+  onAddDimension,
+  onRemoveDimension,
+  onSetDimensionField,
   buildDefaultUploadFiles,
   onImageFilesChange,
   onFilesChange,
   fileUrlBase = '',
 }) => {
+  const dimensionColumns = useMemo(
+    () => [
+      {
+        key: 'length',
+        label: 'Length',
+        flex: '1 1 100px',
+        renderCell: (row) => (
+          <Main_TextField
+            className={styles.cellInput}
+            type="number"
+            defaultValue={toSafeString(row?.length)}
+            placeholder="Length"
+            onChange={(ov, nv) =>
+              onSetDimensionField?.(row?.id, 'length', toNumberOrEmpty(nv))
+            }
+          />
+        ),
+      },
+      {
+        key: 'width',
+        label: 'Width',
+        flex: '1 1 100px',
+        renderCell: (row) => (
+          <Main_TextField
+            className={styles.cellInput}
+            type="number"
+            defaultValue={toSafeString(row?.width)}
+            placeholder="Width"
+            onChange={(ov, nv) =>
+              onSetDimensionField?.(row?.id, 'width', toNumberOrEmpty(nv))
+            }
+          />
+        ),
+      },
+      {
+        key: 'height',
+        label: 'Height',
+        flex: '1 1 100px',
+        renderCell: (row) => (
+          <Main_TextField
+            className={styles.cellInput}
+            type="number"
+            defaultValue={toSafeString(row?.height)}
+            placeholder="Height"
+            onChange={(ov, nv) =>
+              onSetDimensionField?.(row?.id, 'height', toNumberOrEmpty(nv))
+            }
+          />
+        ),
+      },
+      {
+        key: 'qty',
+        label: 'Cartons',
+        flex: '1 1 100px',
+        renderCell: (row) => (
+          <Main_TextField
+            className={styles.cellInput}
+            type="number"
+            defaultValue={toSafeString(row?.qty)}
+            placeholder="Qty"
+            onChange={(ov, nv) =>
+              onSetDimensionField?.(row?.id, 'qty', toNumberOrEmpty(nv))
+            }
+          />
+        ),
+      },
+      {
+        key: 'weight',
+        label: 'Weight / Carton',
+        flex: '1 1 130px',
+        renderCell: (row) => (
+          <Main_TextField
+            className={styles.cellInput}
+            type="number"
+            defaultValue={toSafeString(row?.weight)}
+            placeholder="kg"
+            onChange={(ov, nv) =>
+              onSetDimensionField?.(row?.id, 'weight', toNumberOrEmpty(nv))
+            }
+          />
+        ),
+      },
+    ],
+    [onSetDimensionField],
+  );
+
   const columns = useMemo(
     () => [
       {
@@ -53,9 +143,8 @@ const PurchaseRequestShippingDetails = ({
         sortType: 'string',
         getSortValue: (row) => toSafeString(row?.address_text),
         renderCell: (row) => (
-          <Main_TextArea
+          <Main_TextField
             defaultValue={toSafeString(row?.address_text)}
-            rows={2}
             placeholder="Shipping address"
             onChange={(ov, nv) => onSetField?.(row?.id, 'address_text', nv)}
           />
@@ -106,91 +195,6 @@ const PurchaseRequestShippingDetails = ({
         ),
       },
       {
-        key: 'length',
-        label: 'Length',
-        flex: '1 1 180px',
-        sortType: 'number',
-        renderCell: (row) => (
-          <Main_TextField
-            className={styles.cellInput}
-            type="number"
-            defaultValue={toSafeString(row?.length)}
-            placeholder="Length"
-            onChange={(ov, nv) =>
-              onSetField?.(row?.id, 'length', toNumberOrEmpty(nv))
-            }
-          />
-        ),
-      },
-      {
-        key: 'width',
-        label: 'Width',
-        flex: '1 1 180px',
-        sortType: 'number',
-        renderCell: (row) => (
-          <Main_TextField
-            className={styles.cellInput}
-            type="number"
-            defaultValue={toSafeString(row?.width)}
-            placeholder="Width"
-            onChange={(ov, nv) =>
-              onSetField?.(row?.id, 'width', toNumberOrEmpty(nv))
-            }
-          />
-        ),
-      },
-      {
-        key: 'height',
-        label: 'Height',
-        flex: '1 1 180px',
-        sortType: 'number',
-        renderCell: (row) => (
-          <Main_TextField
-            className={styles.cellInput}
-            type="number"
-            defaultValue={toSafeString(row?.height)}
-            placeholder="Height"
-            onChange={(ov, nv) =>
-              onSetField?.(row?.id, 'height', toNumberOrEmpty(nv))
-            }
-          />
-        ),
-      },
-      {
-        key: 'quantity',
-        label: 'Qty',
-        flex: '1 1 180px',
-        sortType: 'number',
-        renderCell: (row) => (
-          <Main_TextField
-            className={styles.cellInput}
-            type="number"
-            defaultValue={toSafeString(row?.quantity)}
-            placeholder="Quantity"
-            onChange={(ov, nv) =>
-              onSetField?.(row?.id, 'quantity', toNumberOrEmpty(nv))
-            }
-          />
-        ),
-      },
-      {
-        key: 'weight',
-        label: 'Weight',
-        flex: '1 1 180px',
-        sortType: 'number',
-        renderCell: (row) => (
-          <Main_TextField
-            className={styles.cellInput}
-            type="number"
-            defaultValue={toSafeString(row?.weight)}
-            placeholder="Weight"
-            onChange={(ov, nv) =>
-              onSetField?.(row?.id, 'weight', toNumberOrEmpty(nv))
-            }
-          />
-        ),
-      },
-      {
         key: 'api_selected',
         label: 'AP Invoice',
         flex: '1 1 90px',
@@ -206,6 +210,27 @@ const PurchaseRequestShippingDetails = ({
             />
           </div>
         ),
+      },
+      {
+        key: 'purchase_shipping_dimensions',
+        label: 'Dimensions',
+        flex: '1 1 100%',
+        nextRow: true,
+        sortable: false,
+        nestedForm: (row) => ({
+          rows: sortByCreatedAt(
+            (row?.purchase_shipping_dimensions || []).filter(
+              (dimension) => !dimension?._delete,
+            ),
+          ),
+          columns: dimensionColumns,
+          rowKey: 'id',
+          emptyMessage: 'No dimensions for this shipping detail yet.',
+          onAddRow: () => onAddDimension?.(toSafeString(row?.id)),
+          addRowText: 'Add Dimension',
+          addRowDisabled: !toSafeString(row?.id),
+          onRemoveRow: (dimension) => onRemoveDimension?.(dimension?.id),
+        }),
       },
       {
         key: 'currency_id',
@@ -331,6 +356,9 @@ const PurchaseRequestShippingDetails = ({
       onFilesChange,
       onQuotationSuggestionSelect,
       onSetField,
+      dimensionColumns,
+      onAddDimension,
+      onRemoveDimension,
     ],
   );
 

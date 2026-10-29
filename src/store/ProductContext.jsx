@@ -146,6 +146,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
   const [comparisonKeys, setComparisonKeys] = useState([]);
   const objectUrlRegistryRef = useRef([]);
   const pageDataUrlRegistryRef = useRef([]);
+  const catalogUrlRegistryRef = useRef([]);
   const hasInitialFetchRef = useRef(false);
   const hasFetchedWithMappingsRef = useRef(false);
   const productsFetchSequenceRef = useRef(0);
@@ -648,10 +649,55 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
     ],
   );
 
+  /**
+   * Fetch full product records (including base64 images) by id, in one batch,
+   * without touching the editor's pageData. Used by the Product Catalog print.
+   * Returns the processed products array (images converted to object URLs).
+   */
+  const getProductsByIds = useCallback(
+    async (ids = []) => {
+      const requestedIds = [...new Set((ids || []).map((id) => String(id || '').trim()).filter(Boolean))];
+      if (requestedIds.length === 0) {
+        return [];
+      }
+
+      try {
+        const response = await apiPost(
+          'http://localhost:3001/api/v1/trade_business/panel/products/data/get/ids',
+          {
+            includeBase64: true,
+            compress: true,
+            data: {
+              products: requestedIds.map((id) => ({ id })),
+            },
+          },
+          { token },
+        );
+
+        const rawData = normalizeStructuredTableResponse(response, 'products');
+
+        releaseObjectUrls(catalogUrlRegistryRef.current);
+        const urlRegistry = [];
+        const processed = recursiveProcess_base64_to_objectUrl(
+          rawData,
+          'root',
+          productBase64Config,
+          urlRegistry,
+        );
+        catalogUrlRegistryRef.current = urlRegistry;
+
+        return processed?.products || [];
+      } catch (err) {
+        console.error('getProductsByIds: failed to fetch products', err);
+        return [];
+      }
+    },
+    [token, productBase64Config],
+  );
+
   useEffect(() => {
     getProductDataRef.current = getProductData;
   }, [getProductData]);
-
   // When file mappings arrive after the product was already loaded, re-fetch.
   useEffect(() => {
     const hasMappings = Object.keys(productBase64Config || {}).length > 0;
@@ -868,6 +914,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
       // Data loading and mutation actions
       getProductData,
       getAllProducts,
+      getProductsByIds,
       updateProducts,
       refreshProductList,
       hydrateProductIcons,
@@ -898,6 +945,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
       selectedProductId,
       getProductData,
       getAllProducts,
+      getProductsByIds,
       updateProducts,
       refreshProductList,
       hydrateProductIcons,

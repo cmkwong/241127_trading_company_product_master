@@ -12,6 +12,9 @@ const FLEX_ITEM_STYLE_PROPS = [
   'order',
 ];
 
+const resolveNestedForm = (nestedForm, row, rowIndex) =>
+  typeof nestedForm === 'function' ? nestedForm(row, rowIndex) : nestedForm;
+
 const EditableDataFormBody = ({
   rows,
   rowGroups = [],
@@ -24,6 +27,7 @@ const EditableDataFormBody = ({
   showRowBadge = false,
   draggableRows = false,
   onRowsReorder,
+  nestedFormRenderer,
 }) => {
   const getRowItemStyle = (column) => {
     const style = {};
@@ -192,8 +196,15 @@ const EditableDataFormBody = ({
                       ? column.renderCell(row, {
                           rowIndex,
                           wrapWithFill,
+                          renderNestedForm: nestedFormRenderer,
                         })
-                      : row?.[column.key];
+                      : column.nestedForm
+                        ? nestedFormRenderer
+                          ? nestedFormRenderer(
+                              resolveNestedForm(column.nestedForm, row, rowIndex),
+                            )
+                          : null
+                        : row?.[column.key];
 
                     return (
                       <div

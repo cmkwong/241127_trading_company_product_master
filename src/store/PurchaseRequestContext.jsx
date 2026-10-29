@@ -389,6 +389,9 @@ export const PurchaseRequestContext_Provider = ({ children }) => {
           purchase_request_id:
             toSafeString(row?.purchase_request_id) || toSafeString(working.id),
           currency_id: toNullableId(row?.currency_id),
+          purchase_shipping_dimensions: toArray(
+            row?.purchase_shipping_dimensions,
+          ).filter((dimension) => !dimension?._delete),
           purchase_shipping_images: toArray(
             row?.purchase_shipping_images,
           ).filter((image) => !image?._delete),
@@ -511,6 +514,11 @@ export const PurchaseRequestContext_Provider = ({ children }) => {
         existingPayload?.purchase_shipping_details,
         'purchase_shipping_images',
       );
+      const purchase_shipping_dimension_details = buildDetailDeletes(
+        workingPayload?.purchase_shipping_details,
+        existingPayload?.purchase_shipping_details,
+        'purchase_shipping_dimensions',
+      );
 
       const purchase_product_details = buildDetailDeletes(
         workingPayload?.purchase_product_details,
@@ -537,6 +545,7 @@ export const PurchaseRequestContext_Provider = ({ children }) => {
       const mergedShippingDetails = mergeDetailDeleteRows(
         purchase_shipping_details,
         purchase_shipping_image_details,
+        purchase_shipping_dimension_details,
       );
       const mergedProductDetails = mergeDetailDeleteRows(
         purchase_product_details,

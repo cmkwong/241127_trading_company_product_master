@@ -828,11 +828,57 @@ const buildPackingLineItems = ({
       : []
   ).map((row) => {
     const product = productById.get(toSafeString(row?.product_id));
-    const qty = Number.isFinite(toNumber(row?.qty)) ? toNumber(row?.qty) : 0;
-    const dimensionParts = [row?.length, row?.width, row?.height]
-      .map((value) => toSafeString(value))
-      .filter(Boolean);
     const itemId = toSafeString(row?.id);
+    const nestedDimensions = Array.isArray(row?.sales_packing_dimensions)
+      ? row.sales_packing_dimensions
+      : [];
+    const flatDimensions = Array.isArray(quotation?.sales_packing_dimensions)
+      ? quotation.sales_packing_dimensions.filter(
+          (item) => toSafeString(item?.sales_packing_item_id) === itemId,
+        )
+      : [];
+    const dimensionRows =
+      nestedDimensions.length > 0 ? nestedDimensions : flatDimensions;
+
+    const qty =
+      dimensionRows.length > 0
+        ? dimensionRows.reduce(
+            (sum, dimension) =>
+              sum +
+              (Number.isFinite(toNumber(dimension?.qty))
+                ? toNumber(dimension?.qty)
+                : 0),
+            0,
+          )
+        : Number.isFinite(toNumber(row?.qty))
+          ? toNumber(row?.qty)
+          : 0;
+
+    const dimensionLines = dimensionRows
+      .map((dimension) => {
+        const dimensionParts = [
+          dimension?.length,
+          dimension?.width,
+          dimension?.height,
+        ]
+          .map((value) => toSafeString(value))
+          .filter(Boolean);
+        const parts = [];
+        if (dimensionParts.length === 3) {
+          parts.push(`Dimensions (cm): ${dimensionParts.join(' x ')}`);
+        } else if (dimensionParts.length > 0) {
+          parts.push(`Dimensions: ${dimensionParts.join(' x ')}`);
+        }
+        if (toSafeString(dimension?.weight)) {
+          parts.push(`Weight (kg): ${toSafeString(dimension?.weight)}`);
+        }
+        if (toSafeString(dimension?.qty)) {
+          parts.push(`Qty: ${toSafeString(dimension?.qty)}`);
+        }
+        return parts.join(' | ');
+      })
+      .filter(Boolean);
+
     const imageUrls = packingImageUrlsByItem.get(itemId) || [];
 
     return {
@@ -840,17 +886,7 @@ const buildPackingLineItems = ({
         toSafeString(product?.name) ||
         toSafeString(product?.label) ||
         'Packing Item',
-      details: [
-        dimensionParts.length === 3
-          ? `Dimensions (cm): ${dimensionParts.join(' x ')}`
-          : dimensionParts.length > 0
-            ? `Dimensions: ${dimensionParts.join(' x ')}`
-            : '',
-        toSafeString(row?.weight)
-          ? `Weight (kg): ${toSafeString(row?.weight)}`
-          : '',
-        toSafeString(row?.details),
-      ].filter(Boolean),
+      details: [...dimensionLines, toSafeString(row?.details)].filter(Boolean),
       qty,
       rate: 0,
       discountPercent: 0,

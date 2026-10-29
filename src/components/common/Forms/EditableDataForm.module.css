@@ -37,6 +37,22 @@
   background: var(--color-white);
 }
 
+.formRootNested {
+  gap: 6px;
+}
+
+.tableWrapNested {
+  overflow: visible;
+  background: transparent;
+  border-radius: 0;
+}
+
+.dataTableNested {
+  width: 100%;
+  min-width: 0;
+  font-size: var(--font-size-base);
+}
+
 .tableBody {
   width: 100%;
 }
@@ -120,8 +136,8 @@
   transition: opacity 0.15s ease;
 }
 
-.RowWrap:hover .RowRemoveBtn,
-.RowWrap:focus-within .RowRemoveBtn {
+.RowWrap:hover > .RowRemoveBtn,
+.RowWrap:focus-within > .RowRemoveBtn {
   opacity: 1;
   pointer-events: auto;
 }

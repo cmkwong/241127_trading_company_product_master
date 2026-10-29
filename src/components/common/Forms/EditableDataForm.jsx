@@ -20,6 +20,12 @@ const getDefaultRowKey = (row, index) => row?.id || index;
  *   - `alignSelf`   : CSS align-self value
  *   - `order`       : number
  *   - `nextRow`     : true to start a new row for this column
+ *   - `nestedForm`  : object or `(row, rowIndex) => object` describing a nested
+ *                     EditableDataForm rendered inside this cell. Any
+ *                     EditableDataForm prop is valid. Recommended alongside
+ *                     `nextRow: true`, `sortable: false`, `flex: '1 1 100%'`.
+ *   - `renderCell(row, { rowIndex, wrapWithFill, renderNestedForm })` :
+ *                     escape hatch for fully custom cell content.
  */
 const EditableDataForm = ({
   rows = [],
@@ -36,11 +42,25 @@ const EditableDataForm = ({
   showRowBadge = false,
   draggableRows = false,
   onRowsReorder,
+  variant = 'default',
+  depth = 0,
 }) => {
   const [fillDrag, setFillDrag] = useState(null);
   const [fillHoverIndex, setFillHoverIndex] = useState(null);
 
   const showAddRow = typeof onAddRow === 'function';
+
+  const isNested = variant === 'nested';
+
+  const renderNestedForm = useCallback(
+    (config) => {
+      if (!config || depth >= 2) return null;
+      return (
+        <EditableDataForm {...config} variant="nested" depth={depth + 1} />
+      );
+    },
+    [depth],
+  );
 
   const rowSegments = useMemo(() => {
     if (!Array.isArray(columns) || columns.length === 0) {
@@ -148,8 +168,12 @@ const EditableDataForm = ({
   );
 
   return (
-    <div className={styles.formRoot}>
-      {label ? (
+    <div
+      className={[styles.formRoot, isNested ? styles.formRootNested : '']
+        .filter(Boolean)
+        .join(' ')}
+    >
+      {!isNested && label ? (
         <Label
           text={label}
           size="S"
@@ -160,12 +184,20 @@ const EditableDataForm = ({
       <Frame
         direction="vertical"
         gap={0}
-        className={styles.tableWrap}
-        width="fit-content"
-        horizontal_padding={'10px'}
-        vertical_padding={'10px'}
+        className={[styles.tableWrap, isNested ? styles.tableWrapNested : '']
+          .filter(Boolean)
+          .join(' ')}
+        width={isNested ? '100%' : 'fit-content'}
+        horizontal_padding={isNested ? 0 : '10px'}
+        vertical_padding={isNested ? 0 : '10px'}
       >
-        <Frame direction="vertical" gap={0} className={styles.dataTable}>
+        <Frame
+          direction="vertical"
+          gap={0}
+          className={[styles.dataTable, isNested ? styles.dataTableNested : '']
+            .filter(Boolean)
+            .join(' ')}
+        >
           <EditableDataFormBody
             rows={rows}
             rowGroups={rowSegments}
@@ -178,6 +210,7 @@ const EditableDataForm = ({
             showRowBadge={showRowBadge}
             draggableRows={draggableRows}
             onRowsReorder={onRowsReorder}
+            nestedFormRenderer={renderNestedForm}
           />
         </Frame>
       </Frame>

@@ -8,6 +8,8 @@ import {
   useEntityRows,
 } from '../../../../store/GeneralContext';
 import { useMasterContext } from '../../../../store/MasterContext';
+import { buildCatalogRows } from '../utils/catalogData';
+import { printCatalogA4 } from '../utils/catalogPrint';
 
 const PRODUCT_SEARCH_HISTORY_KEY = 'product_sidebar_search_history';
 const MAX_SEARCH_HISTORY_ITEMS = 15;
@@ -61,12 +63,23 @@ const sortProductsByRecent = (rows = []) => {
 
 const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
   const navigate = useNavigate();
-  const { getProductData, products, selectedProductId, hydrateProductIcons } =
-    useProductContext();
+  const {
+    getProductData,
+    products,
+    selectedProductId,
+    hydrateProductIcons,
+    getProductsByIds,
+  } = useProductContext();
   const pageDataId = useEntityField('products', 'id');
   const pageKeywords = useEntityRows('products', 'product_keywords');
   const pageNames = useEntityRows('products', 'product_names');
-  const { category, productStatus, productKeywords } = useMasterContext();
+  const {
+    category,
+    productStatus,
+    productKeywords,
+    currencies,
+    masterDataMap,
+  } = useMasterContext();
   const [windowWidth, setWindowWidth] = useState(
     typeof window !== 'undefined' ? window.innerWidth : 1024,
   );
@@ -527,6 +540,43 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
     [hydrateProductIcons],
   );
 
+  const handleExportCatalog = useCallback(
+    async ({ items = [], getItemId }) => {
+      const ids = [
+        ...new Set(
+          (Array.isArray(items) ? items : [])
+            .map((item) =>
+              typeof getItemId === 'function' ? getItemId(item) : item?.id,
+            )
+            .map((id) => String(id || '').trim())
+            .filter(Boolean),
+        ),
+      ];
+
+      if (ids.length === 0) {
+        window.alert('No products to print.');
+        return;
+      }
+
+      try {
+        const products = await getProductsByIds(ids);
+        const rows = buildCatalogRows(products, { currencies, masterDataMap });
+        if (rows.length === 0) {
+          window.alert('No product data returned for the selected products.');
+          return;
+        }
+        printCatalogA4({
+          rows,
+          subtitle: `${rows.length} products · ${new Date().toLocaleDateString()}`,
+        });
+      } catch (err) {
+        console.error('Failed to build catalog printout:', err);
+        window.alert('Failed to build the catalog printout.');
+      }
+    },
+    [getProductsByIds, currencies, masterDataMap],
+  );
+
   const getProductRows = useCallback(
     (product) => {
       const categoryLabels =
@@ -621,6 +671,7 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
           sidebarTitle="Product List"
           onResolveExportImage={resolveProductExportImage}
           onResolveExportImagesBatch={resolveProductExportImagesBatch}
+          onExportCatalog={handleExportCatalog}
         />
       </div>
 

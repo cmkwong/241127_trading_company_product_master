@@ -87,3 +87,34 @@
   font-size: 13px;
   color: #0b3b91;
 }
+
+.dimensionBreakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-top: 1px dashed #dbe3ef;
+  padding-top: 0.4rem;
+}
+
+.dimensionBreakdownRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 11px;
+  color: #334155;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 0.25rem 0.45rem;
+}
+
+.dimensionBreakdownDims {
+  font-weight: 600;
+  color: #1e3a8a;
+}
+
+.dimensionBreakdownMeta {
+  color: #64748b;
+  white-space: nowrap;
+}

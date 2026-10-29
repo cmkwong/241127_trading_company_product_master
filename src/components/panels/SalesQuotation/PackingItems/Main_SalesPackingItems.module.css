@@ -15,3 +15,8 @@
 .uploadsCell {
   min-width: 220px;
 }
+
+.helperText {
+  font-size: 11px;
+  color: #64748b;
+}

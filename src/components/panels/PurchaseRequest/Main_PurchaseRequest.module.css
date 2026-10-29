@@ -357,3 +357,7 @@
     min-width: 0;
   }
 }
+.helperText {
+  font-size: 11px;
+  color: #64748b;
+}

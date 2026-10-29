@@ -97,6 +97,10 @@ const Main_SalesDocument = ({
     'sales_quotations',
     'sales_shipping_prices',
   );
+  const shippingDimensionRows = useEntityRows(
+    'sales_quotations',
+    'sales_shipping_dimensions',
+  );
 
   const selectSalesQuotationRef = useRef(selectSalesQuotation);
   const {
@@ -390,28 +394,64 @@ const Main_SalesDocument = ({
           ) ||
           '';
 
-        const qty = Number(row?.qty ?? row?.quantity) || 0;
-        const dims = [row?.width, row?.length, row?.height].filter(
-          (value) => value != null && value !== '',
+        const detailDimensions = (
+          Array.isArray(shippingDimensionRows) ? shippingDimensionRows : []
+        ).filter(
+          (item) =>
+            toSafeString(item?.sales_shipping_detail_id) ===
+            toSafeString(row?.id),
         );
-        const dimText = dims.length > 0 ? `${dims.join(' \u00d7 ')} cm` : '';
 
-        const cartonParts = [];
-        if (dimText) cartonParts.push(dimText);
-        if (qty > 0) cartonParts.push(`Qty ${qty}`);
-        if (row?.weight != null && row?.weight !== '') {
-          cartonParts.push(`${Number(row.weight)} kg/carton`);
-        }
+        const totalCartons =
+          detailDimensions.length > 0
+            ? detailDimensions.reduce(
+                (sum, dimension) => sum + (Number(dimension?.qty) || 0),
+                0,
+              )
+            : Number(row?.qty ?? row?.quantity) || 0;
 
         const detailLines = [];
         if (supplierName) detailLines.push(`Supplier: ${supplierName}`);
         if (methodName) detailLines.push(`Shipping Method: ${methodName}`);
-        if (cartonParts.length > 0) {
-          detailLines.push(`Carton: ${cartonParts.join(' \u00b7 ')}`);
+
+        if (detailDimensions.length > 0) {
+          detailDimensions.forEach((dimension, dimIndex) => {
+            const dims = [dimension?.width, dimension?.length, dimension?.height].filter(
+              (value) => value != null && value !== '',
+            );
+            const dimText = dims.length > 0 ? `${dims.join(' \u00d7 ')} cm` : '';
+            const cartonParts = [];
+            if (dimText) cartonParts.push(dimText);
+            const dimQty = Number(dimension?.qty) || 0;
+            if (dimQty > 0) cartonParts.push(`Qty ${dimQty}`);
+            if (dimension?.weight != null && dimension?.weight !== '') {
+              cartonParts.push(`${Number(dimension.weight)} kg/carton`);
+            }
+            if (cartonParts.length > 0) {
+              detailLines.push(
+                `Carton ${dimIndex + 1}: ${cartonParts.join(' \u00b7 ')}`,
+              );
+            }
+          });
+        } else {
+          const dims = [row?.width, row?.length, row?.height].filter(
+            (value) => value != null && value !== '',
+          );
+          const dimText = dims.length > 0 ? `${dims.join(' \u00d7 ')} cm` : '';
+          const cartonParts = [];
+          if (dimText) cartonParts.push(dimText);
+          if (totalCartons > 0) cartonParts.push(`Qty ${totalCartons}`);
+          if (row?.weight != null && row?.weight !== '') {
+            cartonParts.push(`${Number(row.weight)} kg/carton`);
+          }
+          if (cartonParts.length > 0) {
+            detailLines.push(`Carton: ${cartonParts.join(' \u00b7 ')}`);
+          }
         }
 
         const shippingRow = {
           ...(row || {}),
+          qty: totalCartons,
           price: priceRow?.price,
           discount_percent: priceRow?.discount_percent,
         };
@@ -448,6 +488,7 @@ const Main_SalesDocument = ({
   }, [
     shippingDetailRows,
     shippingPriceRows,
+    shippingDimensionRows,
     productDetailRows,
     serviceDetailRows,
     productNameById,

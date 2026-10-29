@@ -16,6 +16,7 @@ import {
   MIN_CHARGEABLE_WEIGHT_PER_CARTON,
 } from '../utils/chargeableWeight';
 import Sub_ChargeableWeightPanel from '../ChargeableWeight/Sub_ChargeableWeightPanel';
+import { sortByCreatedAt } from '../../../../utils/arr';
 import styles from './Main_SalesPackingItems.module.css';
 
 const FILE_SERVER_BASE_URL = 'http://localhost:3001';
@@ -60,6 +61,10 @@ const Main_SalesPackingItems = ({ productOptions = [], onPatchQuotation }) => {
   const packingItemInternalFiles = useEntityRows(
     'sales_quotations',
     'sales_packing_item_internal_files',
+  );
+  const packingDimensions = useEntityRows(
+    'sales_quotations',
+    'sales_packing_dimensions',
   );
 
   const setPackingItems = useCallback(
@@ -117,6 +122,21 @@ const Main_SalesPackingItems = ({ productOptions = [], onPatchQuotation }) => {
             : nextRowsOrUpdater;
 
         return { sales_packing_item_internal_files: nextRows };
+      });
+    },
+    [onPatchQuotation],
+  );
+
+  const setPackingDimensions = useCallback(
+    (nextRowsOrUpdater) => {
+      onPatchQuotation((currentQuotation) => {
+        const previousRows = currentQuotation?.sales_packing_dimensions || [];
+        const nextRows =
+          typeof nextRowsOrUpdater === 'function'
+            ? nextRowsOrUpdater(previousRows)
+            : nextRowsOrUpdater;
+
+        return { sales_packing_dimensions: nextRows };
       });
     },
     [onPatchQuotation],
@@ -192,11 +212,6 @@ const Main_SalesPackingItems = ({ productOptions = [], onPatchQuotation }) => {
         id: rowId,
         sales_quotation_id: quotationId,
         product_id: '',
-        length: '',
-        width: '',
-        height: '',
-        qty: 0,
-        weight: '',
         chargeable_divisor: DEFAULT_VOLUMETRIC_DIVISOR,
         min_chargeable_weight: MIN_CHARGEABLE_WEIGHT_PER_CARTON,
         details: '',
@@ -245,16 +260,23 @@ const Main_SalesPackingItems = ({ productOptions = [], onPatchQuotation }) => {
           (file) => String(file?.sales_packing_item_id || '') !== rowId,
         ),
       );
+      setPackingDimensions(
+        packingDimensions.filter(
+          (item) => String(item?.sales_packing_item_id || '') !== rowId,
+        ),
+      );
     },
     [
       packingItems,
       packingItemImages,
       packingItemInternalImages,
       packingItemInternalFiles,
+      packingDimensions,
       setPackingItems,
       setPackingItemImages,
       setPackingItemInternalImages,
       setPackingItemInternalFiles,
+      setPackingDimensions,
     ],
   );
 
@@ -265,11 +287,6 @@ const Main_SalesPackingItems = ({ productOptions = [], onPatchQuotation }) => {
         id: uuidv4(),
         sales_quotation_id: quotationId,
         product_id: productOptions[0]?.id || '',
-        length: '',
-        width: '',
-        height: '',
-        qty: 0,
-        weight: '',
         chargeable_divisor: DEFAULT_VOLUMETRIC_DIVISOR,
         min_chargeable_weight: MIN_CHARGEABLE_WEIGHT_PER_CARTON,
         details: '',
@@ -277,6 +294,53 @@ const Main_SalesPackingItems = ({ productOptions = [], onPatchQuotation }) => {
       },
     ]);
   }, [quotationId, productOptions, setPackingItems]);
+
+  const handleAddPackingDimension = useCallback(
+    (packingItemId) => {
+      const itemId = String(packingItemId || '').trim();
+      if (!itemId) return;
+
+      setPackingDimensions((previousRows) => [
+        ...previousRows,
+        {
+          id: uuidv4(),
+          sales_packing_item_id: itemId,
+          length: '',
+          width: '',
+          height: '',
+          qty: 0,
+          weight: '',
+        },
+      ]);
+    },
+    [setPackingDimensions],
+  );
+
+  const handleUpsertPackingDimension = useCallback(
+    (row, patch) => {
+      const rowId = String(row?.id || '');
+      if (!rowId) return;
+
+      setPackingDimensions((previousRows) =>
+        previousRows.map((item) =>
+          String(item?.id || '') === rowId ? { ...item, ...patch } : item,
+        ),
+      );
+    },
+    [setPackingDimensions],
+  );
+
+  const handleDeletePackingDimension = useCallback(
+    (row) => {
+      const rowId = String(row?.id || '');
+      if (!rowId) return;
+
+      setPackingDimensions((previousRows) =>
+        previousRows.filter((item) => String(item?.id || '') !== rowId),
+      );
+    },
+    [setPackingDimensions],
+  );
 
   const productDropdownOptions = useMemo(
     () =>
@@ -291,17 +355,90 @@ const Main_SalesPackingItems = ({ productOptions = [], onPatchQuotation }) => {
     [productOptions],
   );
 
-  const renderNumberCell = (field) => (row) => (
-    <Main_TextField
-      className={styles.cellInput}
-      type="number"
-      step="0.001"
-      defaultValue={
-        row[field] === null || row[field] === undefined ? '' : row[field]
-      }
-      placeholder="0.000"
-      onChange={(ov, nv) => handleUpsertPackingItem(row, { [field]: nv })}
-    />
+  const packingDimensionColumns = useMemo(
+    () => [
+      {
+        key: 'length',
+        label: 'Length',
+        flex: '1 1 100px',
+        renderCell: (row) => (
+          <Main_TextField
+            className={styles.cellInput}
+            type="number"
+            defaultValue={String(row.length ?? '')}
+            placeholder="Length"
+            onChange={(ov, nv) =>
+              handleUpsertPackingDimension(row, { length: toNumber(nv) })
+            }
+          />
+        ),
+      },
+      {
+        key: 'width',
+        label: 'Width',
+        flex: '1 1 100px',
+        renderCell: (row) => (
+          <Main_TextField
+            className={styles.cellInput}
+            type="number"
+            defaultValue={String(row.width ?? '')}
+            placeholder="Width"
+            onChange={(ov, nv) =>
+              handleUpsertPackingDimension(row, { width: toNumber(nv) })
+            }
+          />
+        ),
+      },
+      {
+        key: 'height',
+        label: 'Height',
+        flex: '1 1 100px',
+        renderCell: (row) => (
+          <Main_TextField
+            className={styles.cellInput}
+            type="number"
+            defaultValue={String(row.height ?? '')}
+            placeholder="Height"
+            onChange={(ov, nv) =>
+              handleUpsertPackingDimension(row, { height: toNumber(nv) })
+            }
+          />
+        ),
+      },
+      {
+        key: 'qty',
+        label: 'Cartons',
+        flex: '1 1 100px',
+        renderCell: (row) => (
+          <Main_TextField
+            className={styles.cellInput}
+            type="number"
+            defaultValue={String(row.qty ?? '')}
+            placeholder="Qty"
+            onChange={(ov, nv) =>
+              handleUpsertPackingDimension(row, { qty: toNumber(nv, 0) })
+            }
+          />
+        ),
+      },
+      {
+        key: 'weight',
+        label: 'Weight / Carton',
+        flex: '1 1 120px',
+        renderCell: (row) => (
+          <Main_TextField
+            className={styles.cellInput}
+            type="number"
+            defaultValue={String(row.weight ?? '')}
+            placeholder="kg"
+            onChange={(ov, nv) =>
+              handleUpsertPackingDimension(row, { weight: toNumber(nv) })
+            }
+          />
+        ),
+      },
+    ],
+    [handleUpsertPackingDimension],
   );
 
   const packingColumns = useMemo(
@@ -371,54 +508,6 @@ const Main_SalesPackingItems = ({ productOptions = [], onPatchQuotation }) => {
         ),
       },
       {
-        key: 'length',
-        label: 'Length',
-        flex: '1 1 90px',
-        sortType: 'number',
-        nextRow: true,
-        renderCell: renderNumberCell('length'),
-      },
-      {
-        key: 'width',
-        label: 'Width',
-        flex: '1 1 90px',
-        sortType: 'number',
-        renderCell: renderNumberCell('width'),
-      },
-      {
-        key: 'height',
-        label: 'Height',
-        flex: '1 1 90px',
-        sortType: 'number',
-        renderCell: renderNumberCell('height'),
-      },
-      {
-        key: 'qty',
-        label: 'Qty',
-        flex: '1 1 90px',
-        sortType: 'number',
-        renderCell: (row) => (
-          <Main_TextField
-            className={styles.cellInput}
-            type="number"
-            step="1"
-            min="0"
-            defaultValue={
-              row.qty === null || row.qty === undefined ? '' : row.qty
-            }
-            placeholder="0"
-            onChange={(ov, nv) => handleUpsertPackingItem(row, { qty: nv })}
-          />
-        ),
-      },
-      {
-        key: 'weight',
-        label: 'Weight (kg)',
-        flex: '1 1 90px',
-        sortType: 'number',
-        renderCell: renderNumberCell('weight'),
-      },
-      {
         key: 'chargeable_weight_panel',
         label: 'Chargeable Weight',
         flex: '1 1 450px',
@@ -430,16 +519,17 @@ const Main_SalesPackingItems = ({ productOptions = [], onPatchQuotation }) => {
           const minChargeableWeight =
             toNumber(row?.min_chargeable_weight) ||
             MIN_CHARGEABLE_WEIGHT_PER_CARTON;
+          const dimensions = packingDimensions.filter(
+            (item) =>
+              String(item?.sales_packing_item_id || '') ===
+              String(row?.id || ''),
+          );
 
           return (
             <Sub_ChargeableWeightPanel
-              qty={row?.qty}
-              weightPerCarton={row?.weight}
-              lengthCm={row?.length}
-              widthCm={row?.width}
-              heightCm={row?.height}
               divisor={divisor}
               minChargeableWeightPerCarton={minChargeableWeight}
+              dimensions={dimensions}
               onDivisorChange={(nv) =>
                 handleUpsertPackingItem(row, {
                   chargeable_divisor:
@@ -633,6 +723,29 @@ const Main_SalesPackingItems = ({ productOptions = [], onPatchQuotation }) => {
           );
         },
       },
+      {
+        key: 'packing_dimensions',
+        label: 'Dimensions',
+        flex: '1 1 100%',
+        nextRow: true,
+        sortable: false,
+        nestedForm: (row) => ({
+          rows: sortByCreatedAt(
+            packingDimensions.filter(
+              (item) =>
+                String(item?.sales_packing_item_id || '') ===
+                String(row?.id || ''),
+            ),
+          ),
+          columns: packingDimensionColumns,
+          rowKey: 'id',
+          emptyMessage: 'No dimensions for this packing item yet.',
+          onAddRow: () => handleAddPackingDimension(row?.id),
+          addRowText: 'Add Dimension',
+          addRowDisabled: !String(row?.id || ''),
+          onRemoveRow: handleDeletePackingDimension,
+        }),
+      },
     ],
     [
       productDropdownOptions,
@@ -640,10 +753,13 @@ const Main_SalesPackingItems = ({ productOptions = [], onPatchQuotation }) => {
       packingItemImages,
       packingItemInternalImages,
       packingItemInternalFiles,
+      packingDimensions,
+      packingDimensionColumns,
       handlePackingItemImagesChange,
       handlePackingItemInternalImagesChange,
       handlePackingItemInternalFilesChange,
-      renderNumberCell,
+      handleAddPackingDimension,
+      handleDeletePackingDimension,
     ],
   );
 

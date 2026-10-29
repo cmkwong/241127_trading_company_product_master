@@ -45,6 +45,7 @@ const SearchSideBarList = ({
   exportSheetName = 'Search Results',
   onResolveExportImage,
   onResolveExportImagesBatch,
+  onExportCatalog,
   renderItemIcon,
   renderItemInfo,
   className = '',
@@ -355,6 +356,7 @@ const SearchSideBarList = ({
         exportSheetName={exportSheetName}
         onResolveExportImage={onResolveExportImage}
         onResolveExportImagesBatch={onResolveExportImagesBatch}
+        onExportCatalog={onExportCatalog}
         onVisibleItemIdsChange={onVisibleItemIdsChange}
       />
 

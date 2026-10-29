@@ -23,12 +23,13 @@ import {
   COST_CURRENCY_CODE,
 } from '../../../../utils/currency';
 import {
-  buildChargeableWeightSummary,
+  buildChargeableWeightSummaryFromDimensions,
   DEFAULT_VOLUMETRIC_DIVISOR,
   formatWeight,
   MIN_CHARGEABLE_WEIGHT_PER_CARTON,
 } from '../utils/chargeableWeight';
 import Sub_ChargeableWeightPanel from '../ChargeableWeight/Sub_ChargeableWeightPanel';
+import { sortByCreatedAt } from '../../../../utils/arr';
 import styles from './Main_SalesShippingDetails.module.css';
 
 const FILE_SERVER_BASE_URL = 'http://localhost:3001';
@@ -84,28 +85,59 @@ const buildAddressPreview = (address) => {
   return String(address?.name || address?.label || address?.id || '').trim();
 };
 
-const buildShippingQuoteText = (row, addressPreview, summary) => {
+const buildShippingQuoteText = (
+  row,
+  addressPreview,
+  summary,
+  dimensions = [],
+) => {
   const lines = [];
 
   if (addressPreview) {
     lines.push(`Address: ${addressPreview}`);
   }
 
-  const length = toNumber(row?.length);
-  const width = toNumber(row?.width);
-  const height = toNumber(row?.height);
-  if (length !== '' && width !== '' && height !== '') {
-    lines.push(`Size / Carton: ${length} x ${width} x ${height} cm`);
-  }
+  const dimensionRows =
+    Array.isArray(dimensions) && dimensions.length > 0 ? dimensions : null;
 
-  const weight = toNumber(row?.weight);
-  if (weight !== '') {
-    lines.push(`Weight / Carton: ${weight} kg`);
-  }
+  if (dimensionRows) {
+    dimensionRows.forEach((dimension, index) => {
+      const length = toNumber(dimension?.length);
+      const width = toNumber(dimension?.width);
+      const height = toNumber(dimension?.height);
+      const weight = toNumber(dimension?.weight);
+      const qty = toNumber(dimension?.qty);
+      const parts = [];
+      if (length !== '' && width !== '' && height !== '') {
+        parts.push(`${length} x ${width} x ${height} cm`);
+      }
+      if (weight !== '') {
+        parts.push(`${weight} kg`);
+      }
+      if (qty !== '') {
+        parts.push(`Qty: ${qty}`);
+      }
+      if (parts.length > 0) {
+        lines.push(`Carton ${index + 1}: ${parts.join(' | ')}`);
+      }
+    });
+  } else {
+    const length = toNumber(row?.length);
+    const width = toNumber(row?.width);
+    const height = toNumber(row?.height);
+    if (length !== '' && width !== '' && height !== '') {
+      lines.push(`Size / Carton: ${length} x ${width} x ${height} cm`);
+    }
 
-  const qty = toNumber(row?.qty);
-  if (qty !== '') {
-    lines.push(`Carton Qty: ${qty}`);
+    const weight = toNumber(row?.weight);
+    if (weight !== '') {
+      lines.push(`Weight / Carton: ${weight} kg`);
+    }
+
+    const qty = toNumber(row?.qty);
+    if (qty !== '') {
+      lines.push(`Carton Qty: ${qty}`);
+    }
   }
 
   // Add chargeable weight information if available
@@ -195,6 +227,10 @@ const Main_SalesShippingDetails = ({
     'sales_quotations',
     'sales_shipping_internal_files',
   );
+  const shippingDimensions = useEntityRows(
+    'sales_quotations',
+    'sales_shipping_dimensions',
+  );
   const shippingPriceImages = useEntityRows(
     'sales_quotations',
     'sales_shipping_price_images',
@@ -235,6 +271,21 @@ const Main_SalesShippingDetails = ({
             : nextRowsOrUpdater;
 
         return { sales_shipping_prices: nextRows };
+      });
+    },
+    [onPatchQuotation],
+  );
+
+  const setShippingDimensions = useCallback(
+    (nextRowsOrUpdater) => {
+      onPatchQuotation((currentQuotation) => {
+        const previousRows = currentQuotation?.sales_shipping_dimensions || [];
+        const nextRows =
+          typeof nextRowsOrUpdater === 'function'
+            ? nextRowsOrUpdater(previousRows)
+            : nextRowsOrUpdater;
+
+        return { sales_shipping_dimensions: nextRows };
       });
     },
     [onPatchQuotation],
@@ -341,6 +392,11 @@ const Main_SalesShippingDetails = ({
           (item) => String(item?.sales_shipping_detail_id || '') !== rowId,
         ),
       );
+      setShippingDimensions(
+        shippingDimensions.filter(
+          (item) => String(item?.sales_shipping_detail_id || '') !== rowId,
+        ),
+      );
       setShippingPriceImages(
         shippingPriceImages.filter(
           (item) =>
@@ -366,6 +422,7 @@ const Main_SalesShippingDetails = ({
       shippingImages,
       shippingInternalImages,
       shippingInternalFiles,
+      shippingDimensions,
       shippingPriceImages,
       shippingPriceInternalImages,
       shippingPriceInternalFiles,
@@ -374,6 +431,7 @@ const Main_SalesShippingDetails = ({
       setShippingImages,
       setShippingInternalImages,
       setShippingInternalFiles,
+      setShippingDimensions,
       setShippingPriceImages,
       setShippingPriceInternalImages,
       setShippingPriceInternalFiles,
@@ -388,11 +446,6 @@ const Main_SalesShippingDetails = ({
         id: newId,
         sales_quotation_id: quotationId,
         customer_address_id: quotationCustomerAddressId || '',
-        length: '',
-        width: '',
-        height: '',
-        qty: 0,
-        weight: '',
         chargeable_divisor: DEFAULT_VOLUMETRIC_DIVISOR,
         min_chargeable_weight: MIN_CHARGEABLE_WEIGHT_PER_CARTON,
         details: '',
@@ -405,6 +458,53 @@ const Main_SalesShippingDetails = ({
     quotationCustomerAddressId,
     setShippingDetails,
   ]);
+
+  const handleAddShippingDimension = useCallback(
+    (shippingDetailId) => {
+      const detailId = String(shippingDetailId || '').trim();
+      if (!detailId) return;
+
+      setShippingDimensions((previousRows) => [
+        ...previousRows,
+        {
+          id: uuidv4(),
+          sales_shipping_detail_id: detailId,
+          length: '',
+          width: '',
+          height: '',
+          qty: 0,
+          weight: '',
+        },
+      ]);
+    },
+    [setShippingDimensions],
+  );
+
+  const handleUpsertShippingDimension = useCallback(
+    (row, patch) => {
+      const rowId = String(row?.id || '');
+      if (!rowId) return;
+
+      setShippingDimensions((previousRows) =>
+        previousRows.map((item) =>
+          String(item?.id || '') === rowId ? { ...item, ...patch } : item,
+        ),
+      );
+    },
+    [setShippingDimensions],
+  );
+
+  const handleDeleteShippingDimension = useCallback(
+    (row) => {
+      const rowId = String(row?.id || '');
+      if (!rowId) return;
+
+      setShippingDimensions((previousRows) =>
+        previousRows.filter((item) => String(item?.id || '') !== rowId),
+      );
+    },
+    [setShippingDimensions],
+  );
 
   const handleShippingImagesChange = useCallback(
     (shippingDetailId, newFiles = []) => {
@@ -750,6 +850,92 @@ const Main_SalesShippingDetails = ({
     [incotermOptions],
   );
 
+  const shippingDimensionColumns = useMemo(
+    () => [
+      {
+        key: 'length',
+        label: 'Length',
+        flex: '1 1 110px',
+        renderCell: (row) => (
+          <Main_TextField
+            className={styles.cellInput}
+            type="number"
+            defaultValue={String(row.length ?? '')}
+            placeholder="Length"
+            onChange={(ov, nv) =>
+              handleUpsertShippingDimension(row, { length: toNumber(nv) })
+            }
+          />
+        ),
+      },
+      {
+        key: 'width',
+        label: 'Width',
+        flex: '1 1 110px',
+        renderCell: (row) => (
+          <Main_TextField
+            className={styles.cellInput}
+            type="number"
+            defaultValue={String(row.width ?? '')}
+            placeholder="Width"
+            onChange={(ov, nv) =>
+              handleUpsertShippingDimension(row, { width: toNumber(nv) })
+            }
+          />
+        ),
+      },
+      {
+        key: 'height',
+        label: 'Height',
+        flex: '1 1 110px',
+        renderCell: (row) => (
+          <Main_TextField
+            className={styles.cellInput}
+            type="number"
+            defaultValue={String(row.height ?? '')}
+            placeholder="Height"
+            onChange={(ov, nv) =>
+              handleUpsertShippingDimension(row, { height: toNumber(nv) })
+            }
+          />
+        ),
+      },
+      {
+        key: 'qty',
+        label: 'Cartons',
+        flex: '1 1 110px',
+        renderCell: (row) => (
+          <Main_TextField
+            className={styles.cellInput}
+            type="number"
+            defaultValue={String(row.qty ?? '')}
+            placeholder="Qty"
+            onChange={(ov, nv) =>
+              handleUpsertShippingDimension(row, { qty: toNumber(nv, 0) })
+            }
+          />
+        ),
+      },
+      {
+        key: 'weight',
+        label: 'Weight / Carton',
+        flex: '1 1 140px',
+        renderCell: (row) => (
+          <Main_TextField
+            className={styles.cellInput}
+            type="number"
+            defaultValue={String(row.weight ?? '')}
+            placeholder="kg"
+            onChange={(ov, nv) =>
+              handleUpsertShippingDimension(row, { weight: toNumber(nv) })
+            }
+          />
+        ),
+      },
+    ],
+    [handleUpsertShippingDimension],
+  );
+
   const shippingDetailColumns = useMemo(
     () => [
       {
@@ -815,90 +1001,27 @@ const Main_SalesShippingDetails = ({
         ),
       },
       {
-        key: 'length',
-        label: 'Length',
-        flex: '1 1 180px',
-        sortType: 'number',
+        key: 'shipping_dimensions',
+        label: 'Dimensions',
+        flex: '1 1 100%',
         nextRow: true,
-        renderCell: (row) => (
-          <Main_TextField
-            className={styles.cellInput}
-            type="number"
-            defaultValue={String(row.length ?? '')}
-            placeholder="Length"
-            onChange={(ov, nv) =>
-              handleUpsertShippingDetail(row, { length: toNumber(nv) })
-            }
-          />
-        ),
-      },
-      {
-        key: 'width',
-        label: 'Width',
-        flex: '1 1 180px',
-        sortType: 'number',
-        renderCell: (row) => (
-          <Main_TextField
-            className={styles.cellInput}
-            type="number"
-            defaultValue={String(row.width ?? '')}
-            placeholder="Width"
-            onChange={(ov, nv) =>
-              handleUpsertShippingDetail(row, { width: toNumber(nv) })
-            }
-          />
-        ),
-      },
-      {
-        key: 'height',
-        label: 'Height',
-        flex: '1 1 180px',
-        sortType: 'number',
-        renderCell: (row) => (
-          <Main_TextField
-            className={styles.cellInput}
-            type="number"
-            defaultValue={String(row.height ?? '')}
-            placeholder="Height"
-            onChange={(ov, nv) =>
-              handleUpsertShippingDetail(row, { height: toNumber(nv) })
-            }
-          />
-        ),
-      },
-      {
-        key: 'qty',
-        label: 'Cartons',
-        flex: '1 1 180px',
-        sortType: 'number',
-        renderCell: (row) => (
-          <Main_TextField
-            className={styles.cellInput}
-            type="number"
-            defaultValue={String(row.qty ?? '')}
-            placeholder="Qty"
-            onChange={(ov, nv) =>
-              handleUpsertShippingDetail(row, { qty: toNumber(nv, 0) })
-            }
-          />
-        ),
-      },
-      {
-        key: 'weight',
-        label: 'Weight / Carton',
-        flex: '1 1 180px',
-        sortType: 'number',
-        renderCell: (row) => (
-          <Main_TextField
-            className={styles.cellInput}
-            type="number"
-            defaultValue={String(row.weight ?? '')}
-            placeholder="kg"
-            onChange={(ov, nv) =>
-              handleUpsertShippingDetail(row, { weight: toNumber(nv) })
-            }
-          />
-        ),
+        sortable: false,
+        nestedForm: (row) => ({
+          rows: sortByCreatedAt(
+            shippingDimensions.filter(
+              (item) =>
+                String(item?.sales_shipping_detail_id || '') ===
+                String(row?.id || ''),
+            ),
+          ),
+          columns: shippingDimensionColumns,
+          rowKey: 'id',
+          emptyMessage: 'No dimensions for this detail yet.',
+          onAddRow: () => handleAddShippingDimension(row?.id),
+          addRowText: 'Add Dimension',
+          addRowDisabled: !String(row?.id || ''),
+          onRemoveRow: handleDeleteShippingDimension,
+        }),
       },
       {
         key: 'details',
@@ -1085,25 +1208,22 @@ const Main_SalesShippingDetails = ({
           const minChargeableWeight =
             toNumber(row?.min_chargeable_weight) ||
             MIN_CHARGEABLE_WEIGHT_PER_CARTON;
-          const summary = buildChargeableWeightSummary({
-            qty: row?.qty,
-            weightPerCarton: row?.weight,
-            lengthCm: row?.length,
-            widthCm: row?.width,
-            heightCm: row?.height,
+          const dimensions = shippingDimensions.filter(
+            (item) =>
+              String(item?.sales_shipping_detail_id || '') ===
+              String(row?.id || ''),
+          );
+          const summary = buildChargeableWeightSummaryFromDimensions({
+            dimensions,
             volumetricDivisor: divisor,
             minChargeableWeightPerCarton: minChargeableWeight,
           });
 
           return (
             <Sub_ChargeableWeightPanel
-              qty={row?.qty}
-              weightPerCarton={row?.weight}
-              lengthCm={row?.length}
-              widthCm={row?.width}
-              heightCm={row?.height}
               divisor={divisor}
               minChargeableWeightPerCarton={minChargeableWeight}
+              dimensions={dimensions}
               onDivisorChange={(nv) =>
                 handleUpsertShippingDetail(row, {
                   chargeable_divisor:
@@ -1117,7 +1237,6 @@ const Main_SalesShippingDetails = ({
                 })
               }
             >
-
               <button
                 className={styles.copyQuoteButton}
                 onClick={async () => {
@@ -1132,6 +1251,7 @@ const Main_SalesShippingDetails = ({
                     row,
                     addressPreview,
                     summary,
+                    dimensions,
                   );
                   const success = await copyToClipboard(quoteText);
                   if (success) {
@@ -1153,11 +1273,15 @@ const Main_SalesShippingDetails = ({
       shippingImages,
       shippingInternalImages,
       shippingInternalFiles,
+      shippingDimensions,
+      shippingDimensionColumns,
       onRefreshReferenceOptions,
       handleShippingImagesChange,
       handleShippingInternalImagesChange,
       handleShippingInternalFilesChange,
       handleUpsertShippingDetail,
+      handleAddShippingDimension,
+      handleDeleteShippingDimension,
     ],
   );
 
@@ -1399,7 +1523,9 @@ const Main_SalesShippingDetails = ({
           <Main_Dropdown
             matchParentWidth
             defaultOptions={currencyDropdownOptions}
-            defaultSelectedOption={row.cost_currency_id || defaultCostCurrencyId}
+            defaultSelectedOption={
+              row.cost_currency_id || defaultCostCurrencyId
+            }
             onChange={(ov, nv) =>
               handleUpsertShippingPrice(row, { cost_currency_id: nv })
             }
@@ -1686,21 +1812,27 @@ const Main_SalesShippingDetails = ({
 
             {shippingDetails.map((detailRow, detailIndex) => {
               const detailId = String(detailRow?.id || '').trim();
-              const dimensionParts = [];
-              const l = toNumber(detailRow?.length);
-              const w = toNumber(detailRow?.width);
-              const h = toNumber(detailRow?.height);
-              const qty = toNumber(detailRow?.qty);
-              if (l !== '' || w !== '' || h !== '') {
-                dimensionParts.push(
-                  `${l || '-'} x ${w || '-'} x ${h || '-'} cm`,
-                );
-              }
-              if (qty !== '') {
-                dimensionParts.push(`Qty: ${qty}`);
-              }
-              const dimensionLabel =
-                dimensionParts.length > 0 ? dimensionParts.join(', ') : '';
+              const detailDimensions = shippingDimensions.filter(
+                (item) =>
+                  String(item?.sales_shipping_detail_id || '') === detailId,
+              );
+              const dimensionLabel = detailDimensions
+                .map((dimension) => {
+                  const l = toNumber(dimension?.length);
+                  const w = toNumber(dimension?.width);
+                  const h = toNumber(dimension?.height);
+                  const qty = toNumber(dimension?.qty);
+                  const parts = [];
+                  if (l !== '' || w !== '' || h !== '') {
+                    parts.push(`${l || '-'} x ${w || '-'} x ${h || '-'} cm`);
+                  }
+                  if (qty !== '') {
+                    parts.push(`Qty: ${qty}`);
+                  }
+                  return parts.join(', ');
+                })
+                .filter(Boolean)
+                .join('; ');
 
               const detailLabel =
                 String(detailRow?.details || '').trim() ||

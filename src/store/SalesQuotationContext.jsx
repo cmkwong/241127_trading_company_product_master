@@ -128,6 +128,12 @@ const SALES_CHILD_TABLE_RENEST_CONFIG = [
     nestedChildKey: 'sales_shipping_prices',
   },
   {
+    rootChildKey: 'sales_shipping_dimensions',
+    detailKey: 'sales_shipping_details',
+    parentField: 'sales_shipping_detail_id',
+    nestedChildKey: 'sales_shipping_dimensions',
+  },
+  {
     rootChildKey: 'sales_shipping_images',
     detailKey: 'sales_shipping_details',
     parentField: 'sales_shipping_detail_id',
@@ -180,6 +186,12 @@ const SALES_CHILD_TABLE_RENEST_CONFIG = [
     detailKey: 'sales_service_details',
     parentField: 'sales_service_detail_id',
     nestedChildKey: 'sales_service_detail_internal_files',
+  },
+  {
+    rootChildKey: 'sales_packing_dimensions',
+    detailKey: 'sales_packing_items',
+    parentField: 'sales_packing_item_id',
+    nestedChildKey: 'sales_packing_dimensions',
   },
   {
     rootChildKey: 'sales_packing_item_images',
@@ -479,6 +491,16 @@ const normalizeSalesQuotation = (row = {}) => {
           'shipping_detail_id',
         );
 
+  const shippingDimensions =
+    toArray(row?.sales_shipping_dimensions).length > 0
+      ? toArray(row?.sales_shipping_dimensions)
+      : flattenNestedRows(
+          shippingDetails,
+          'sales_shipping_dimensions',
+          'sales_shipping_detail_id',
+          'shipping_detail_id',
+        );
+
   const shippingPriceImages =
     toArray(row?.sales_shipping_price_images).length > 0
       ? toArray(row?.sales_shipping_price_images)
@@ -599,6 +621,16 @@ const normalizeSalesQuotation = (row = {}) => {
           'packing_item_id',
         );
 
+  const packingDimensions =
+    toArray(row?.sales_packing_dimensions).length > 0
+      ? toArray(row?.sales_packing_dimensions)
+      : flattenNestedRows(
+          packingItems,
+          'sales_packing_dimensions',
+          'sales_packing_item_id',
+          'packing_item_id',
+        );
+
   return {
     id: toSafeString(row?.id),
     status: toSafeString(row?.status),
@@ -618,6 +650,7 @@ const normalizeSalesQuotation = (row = {}) => {
       toSafeString(row?.updated_at) || toSafeString(row?.created_at) || now,
     sales_docs: salesDocs,
     sales_shipping_details: shippingDetails,
+    sales_shipping_dimensions: shippingDimensions,
     sales_shipping_prices: shippingPrices,
     sales_shipping_images: shippingImages,
     sales_shipping_internal_images: shippingInternalImages,
@@ -634,6 +667,7 @@ const normalizeSalesQuotation = (row = {}) => {
     sales_service_detail_internal_images: serviceInternalImages,
     sales_service_detail_internal_files: serviceInternalFiles,
     sales_packing_items: packingItems,
+    sales_packing_dimensions: packingDimensions,
     sales_packing_item_images: packingItemImages,
     sales_packing_item_internal_images: packingItemInternalImages,
     sales_packing_item_internal_files: packingItemInternalFiles,
@@ -2027,6 +2061,9 @@ export const SalesQuotationContext_Provider = ({ children }) => {
     const sourceShippingInternalFiles = toArray(
       sourceQuotation?.sales_shipping_internal_files,
     );
+    const sourceShippingDimensions = toArray(
+      sourceQuotation?.sales_shipping_dimensions,
+    );
     const sourceProductImages = toArray(
       sourceQuotation?.sales_product_detail_images,
     );
@@ -2065,6 +2102,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
       shippingDetailIdMap.set(toSafeString(row?.id), nextId);
       const rest = deepClone(row || {});
       delete rest.sales_shipping_prices;
+      delete rest.sales_shipping_dimensions;
       delete rest.sales_shipping_images;
       delete rest.sales_shipping_internal_images;
       delete rest.sales_shipping_internal_files;
@@ -2181,6 +2219,22 @@ export const SalesQuotationContext_Provider = ({ children }) => {
       .filter(Boolean);
 
     const sales_shipping_internal_files = sourceShippingInternalFiles
+      .map((row) => {
+        const sourceDetailId = toSafeString(row?.sales_shipping_detail_id);
+        const nextDetailId = shippingDetailIdMap.get(sourceDetailId);
+        if (!nextDetailId) {
+          return null;
+        }
+
+        return cloneRowsWithNewIds([row], {
+          parentField: 'sales_shipping_detail_id',
+          nextParentId: nextDetailId,
+          now,
+        })[0];
+      })
+      .filter(Boolean);
+
+    const sales_shipping_dimensions = sourceShippingDimensions
       .map((row) => {
         const sourceDetailId = toSafeString(row?.sales_shipping_detail_id);
         const nextDetailId = shippingDetailIdMap.get(sourceDetailId);
@@ -2348,6 +2402,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
       const nextId = uuidv4();
       packingItemIdMap.set(toSafeString(row?.id), nextId);
       const rest = deepClone(row || {});
+      delete rest.sales_packing_dimensions;
       delete rest.sales_packing_item_images;
       delete rest.sales_packing_item_internal_images;
       delete rest.sales_packing_item_internal_files;
@@ -2410,6 +2465,22 @@ export const SalesQuotationContext_Provider = ({ children }) => {
       })
       .filter(Boolean);
 
+    const sales_packing_dimensions = toArray(
+      sourceQuotation?.sales_packing_dimensions,
+    )
+      .map((row) => {
+        const nextParentId = packingItemIdMap.get(
+          toSafeString(row?.sales_packing_item_id),
+        );
+        if (!nextParentId) return null;
+        return cloneRowsWithNewIds([row], {
+          parentField: 'sales_packing_item_id',
+          nextParentId,
+          now,
+        })[0];
+      })
+      .filter(Boolean);
+
     const duplicatedRow = normalizeSalesQuotation({
       id: nextQuotationId,
       status: toSafeString(sourceQuotation?.status),
@@ -2428,6 +2499,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
       ),
       sales_docs,
       sales_shipping_details,
+      sales_shipping_dimensions,
       sales_shipping_prices,
       sales_shipping_images,
       sales_shipping_internal_images,
@@ -2444,6 +2516,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
       sales_service_detail_internal_images,
       sales_service_detail_internal_files,
       sales_packing_items,
+      sales_packing_dimensions,
       sales_packing_item_images,
       sales_packing_item_internal_images,
       sales_packing_item_internal_files,
@@ -2512,6 +2585,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
           shippingDetailIdMap.set(toSafeString(row?.id), nextId);
           const rest = deepClone(row || {});
           delete rest.sales_shipping_prices;
+          delete rest.sales_shipping_dimensions;
           delete rest.sales_shipping_images;
           delete rest.sales_shipping_internal_images;
           delete rest.sales_shipping_internal_files;
@@ -2647,6 +2721,11 @@ export const SalesQuotationContext_Provider = ({ children }) => {
         'sales_shipping_detail_id',
         shippingDetailIdMap,
       );
+      const sales_shipping_dimensions = cloneChildren(
+        sourceQuotation?.sales_shipping_dimensions,
+        'sales_shipping_detail_id',
+        shippingDetailIdMap,
+      );
       const sales_shipping_price_images = cloneChildren(
         sourceQuotation?.sales_shipping_price_images,
         'sales_shipping_price_id',
@@ -2700,6 +2779,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
         const nextId = uuidv4();
         packingItemIdMap.set(toSafeString(row?.id), nextId);
         const rest = deepClone(row || {});
+        delete rest.sales_packing_dimensions;
         delete rest.sales_packing_item_images;
         delete rest.sales_packing_item_internal_images;
         delete rest.sales_packing_item_internal_files;
@@ -2729,6 +2809,11 @@ export const SalesQuotationContext_Provider = ({ children }) => {
         'sales_packing_item_id',
         packingItemIdMap,
       );
+      const sales_packing_dimensions = cloneChildren(
+        sourceQuotation?.sales_packing_dimensions,
+        'sales_packing_item_id',
+        packingItemIdMap,
+      );
 
       const duplicatedRow = normalizeSalesQuotation({
         id: nextQuotationId,
@@ -2750,6 +2835,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
         ),
         sales_docs,
         sales_shipping_details,
+        sales_shipping_dimensions,
         sales_shipping_prices,
         sales_shipping_images,
         sales_shipping_internal_images,
@@ -2766,6 +2852,7 @@ export const SalesQuotationContext_Provider = ({ children }) => {
         sales_service_detail_internal_images,
         sales_service_detail_internal_files,
         sales_packing_items,
+        sales_packing_dimensions,
         sales_packing_item_images,
         sales_packing_item_internal_images,
         sales_packing_item_internal_files,

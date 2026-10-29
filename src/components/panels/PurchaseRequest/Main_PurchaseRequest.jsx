@@ -54,6 +54,20 @@ const newId = () => {
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 };
 
+const cloneShippingDimensions = (sourceDimensions, purchaseShippingDetailId) =>
+  toArray(sourceDimensions).map((dimension) => {
+    const rest = { ...(dimension || {}) };
+    delete rest.id;
+    delete rest.sales_shipping_detail_id;
+    delete rest.created_at;
+    delete rest.updated_at;
+    return {
+      ...rest,
+      id: newId(),
+      purchase_shipping_detail_id: purchaseShippingDetailId,
+    };
+  });
+
 const buildAddressPreview = (address) => {
   const detail = toSafeString(address?.address_detail);
   if (detail) {
@@ -854,7 +868,14 @@ const Main_PurchaseRequest = () => {
             customerAddressNameById.get(customerAddressId) ||
             supplierAddressNameById.get(customerAddressId) ||
             '';
-          const quantity = detail?.quantity ?? detail?.qty ?? '';
+          const dimensionRows = toArray(detail?.sales_shipping_dimensions);
+          const quantity =
+            dimensionRows.length > 0
+              ? dimensionRows.reduce(
+                  (sum, dimension) => sum + (Number(dimension?.qty) || 0),
+                  0,
+                )
+              : detail?.quantity ?? detail?.qty ?? '';
           const selectedPrice = resolveSelectedShippingPrice(detail);
           const currencyId = toSafeString(
             selectedPrice?.cost_currency_id ||
@@ -894,11 +915,13 @@ const Main_PurchaseRequest = () => {
               selectedPrice?.cost_price,
               detail?.details,
               detail?.remark,
-              detail?.length,
-              detail?.width,
-              detail?.height,
-              quantity,
-              detail?.weight,
+              ...dimensionRows.flatMap((dimension) => [
+                dimension?.length,
+                dimension?.width,
+                dimension?.height,
+                dimension?.qty,
+                dimension?.weight,
+              ]),
             ]
               .map((value) => toSafeString(value))
               .filter(Boolean)
@@ -1295,16 +1318,12 @@ const Main_PurchaseRequest = () => {
       purchase_request_id: header.id,
       sales_shipping_detail_id: '',
       address_text: '',
-      length: '',
-      width: '',
-      height: '',
-      quantity: '',
-      weight: '',
       currency_id: '',
       price: '',
       api_selected: true,
       details: '',
       remark: '',
+      purchase_shipping_dimensions: [],
       purchase_shipping_images: [],
       purchase_shipping_files: [],
     }));
@@ -1366,16 +1385,15 @@ const Main_PurchaseRequest = () => {
                 address_text:
                   toSafeString(suggestion?.address_text) ||
                   toSafeString(sourceRow?.address_text),
-                length: sourceRow?.length ?? '',
-                width: sourceRow?.width ?? '',
-                height: sourceRow?.height ?? '',
-                quantity: sourceRow?.quantity ?? sourceRow?.qty ?? '',
-                weight: sourceRow?.weight ?? '',
                 currency_id: toSafeString(suggestion?.currency_id),
                 price: suggestion?.price ?? '',
                 api_selected: row?.api_selected ?? true,
                 details: toSafeString(sourceRow?.details),
                 remark: toSafeString(sourceRow?.remark),
+                purchase_shipping_dimensions: cloneShippingDimensions(
+                  sourceRow?.sales_shipping_dimensions,
+                  targetRowId,
+                ),
               };
             }),
           };
@@ -1383,28 +1401,104 @@ const Main_PurchaseRequest = () => {
         return;
       }
 
+      const shippingDetailId = newId();
       appendDetailRow('purchase_shipping_details', (header) => ({
-        id: newId(),
+        id: shippingDetailId,
         purchase_request_id: header.id,
         sales_shipping_detail_id: toSafeString(sourceRow?.id),
         address_text:
           toSafeString(suggestion?.address_text) ||
           toSafeString(sourceRow?.address_text),
-        length: sourceRow?.length ?? '',
-        width: sourceRow?.width ?? '',
-        height: sourceRow?.height ?? '',
-        quantity: sourceRow?.quantity ?? sourceRow?.qty ?? '',
-        weight: sourceRow?.weight ?? '',
         currency_id: toSafeString(suggestion?.currency_id),
         price: suggestion?.price ?? '',
         api_selected: true,
         details: toSafeString(sourceRow?.details),
         remark: toSafeString(sourceRow?.remark),
+        purchase_shipping_dimensions: cloneShippingDimensions(
+          sourceRow?.sales_shipping_dimensions,
+          shippingDetailId,
+        ),
         purchase_shipping_images: [],
         purchase_shipping_files: [],
       }));
     },
     [appendDetailRow, patchSelectedPurchaseRequest],
+  );
+
+  const handleAddShippingDimension = useCallback(
+    (detailId) => {
+      const normalizedId = toSafeString(detailId);
+      if (!normalizedId) return;
+
+      patchSelectedPurchaseRequest((prev) => {
+        const base = prev && typeof prev === 'object' ? prev : {};
+        const nextRows = toArray(base?.purchase_shipping_details).map((row) => {
+          if (toSafeString(row?.id) !== normalizedId) return row;
+          const dimensions = toArray(row?.purchase_shipping_dimensions);
+          return {
+            ...row,
+            purchase_shipping_dimensions: [
+              ...dimensions,
+              {
+                id: newId(),
+                purchase_shipping_detail_id: normalizedId,
+                length: '',
+                width: '',
+                height: '',
+                qty: 0,
+                weight: '',
+              },
+            ],
+          };
+        });
+        return { ...base, purchase_shipping_details: nextRows };
+      });
+    },
+    [patchSelectedPurchaseRequest],
+  );
+
+  const handleRemoveShippingDimension = useCallback(
+    (dimensionId) => {
+      const normalizedId = toSafeString(dimensionId);
+      if (!normalizedId) return;
+
+      patchSelectedPurchaseRequest((prev) => {
+        const base = prev && typeof prev === 'object' ? prev : {};
+        const nextRows = toArray(base?.purchase_shipping_details).map((row) => {
+          const nextDimensions = toArray(row?.purchase_shipping_dimensions).map(
+            (dimension) =>
+              toSafeString(dimension?.id) === normalizedId
+                ? { ...dimension, _delete: true }
+                : dimension,
+          );
+          return { ...row, purchase_shipping_dimensions: nextDimensions };
+        });
+        return { ...base, purchase_shipping_details: nextRows };
+      });
+    },
+    [patchSelectedPurchaseRequest],
+  );
+
+  const handleSetShippingDimensionField = useCallback(
+    (dimensionId, field, value) => {
+      const normalizedId = toSafeString(dimensionId);
+      if (!normalizedId) return;
+
+      patchSelectedPurchaseRequest((prev) => {
+        const base = prev && typeof prev === 'object' ? prev : {};
+        const nextRows = toArray(base?.purchase_shipping_details).map((row) => {
+          const nextDimensions = toArray(row?.purchase_shipping_dimensions).map(
+            (dimension) =>
+              toSafeString(dimension?.id) === normalizedId
+                ? { ...dimension, [field]: value }
+                : dimension,
+          );
+          return { ...row, purchase_shipping_dimensions: nextDimensions };
+        });
+        return { ...base, purchase_shipping_details: nextRows };
+      });
+    },
+    [patchSelectedPurchaseRequest],
   );
 
   const handleSelectProductFromQuotation = useCallback(
@@ -1853,6 +1947,9 @@ const Main_PurchaseRequest = () => {
                     onRemove={(rowId) =>
                       removeDetailRow('purchase_shipping_details', rowId)
                     }
+                    onAddDimension={handleAddShippingDimension}
+                    onRemoveDimension={handleRemoveShippingDimension}
+                    onSetDimensionField={handleSetShippingDimensionField}
                     buildDefaultUploadFiles={buildDefaultUploadFiles}
                     onImageFilesChange={(rowId, oldFiles, newFiles) =>
                       handleNestedFilesChange(

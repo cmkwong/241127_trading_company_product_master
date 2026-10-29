@@ -106,6 +106,7 @@ const SearchSideBarListExpandedModal = ({
   getItemSubRows = () => [],
   exportFileName = 'search_results',
   exportSheetName = 'Search Results',
+  onExportCatalog,
   onVisibleItemIdsChange,
 }) => {
   const [sortKey, setSortKey] = useState('Header');
@@ -597,8 +598,16 @@ const SearchSideBarListExpandedModal = ({
   ]);
 
   const handleExportCatalog = useCallback(() => {
-    // Placeholder until catalog export flow is finalized.
-  }, []);
+    if (typeof onExportCatalog !== 'function') {
+      return;
+    }
+    const selectedItems = sortedItems.filter((item, index) => {
+      const key = toRowKey(getItemId(item) ?? index);
+      return Boolean(selectedRowKeys[key]);
+    });
+    const items = selectedItems.length > 0 ? selectedItems : sortedItems;
+    onExportCatalog({ items, getItemId });
+  }, [onExportCatalog, sortedItems, selectedRowKeys, getItemId]);
 
   // Helper for horizontal image row, double size, no caption
   const renderImageRow = (images) => {

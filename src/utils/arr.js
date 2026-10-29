@@ -42,3 +42,20 @@ export const sortByDisplayOrder = (
     );
   });
 };
+
+export const sortByCreatedAt = (items = [], { timestampKey = 'created_at' } = {}) => {
+  const source = Array.isArray(items) ? items : [];
+
+  return source
+    .map((row, index) => ({ row, index }))
+    .sort((a, b) => {
+      const aTime = Date.parse(a.row?.[timestampKey] || '') || Number.MAX_SAFE_INTEGER;
+      const bTime = Date.parse(b.row?.[timestampKey] || '') || Number.MAX_SAFE_INTEGER;
+
+      if (aTime !== bTime) return aTime - bTime;
+
+      // Stable fallback so unsaved rows (no created_at yet) keep insertion order.
+      return a.index - b.index;
+    })
+    .map((entry) => entry.row);
+};

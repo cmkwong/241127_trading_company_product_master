@@ -1,6 +1,10 @@
 import PropTypes from 'prop-types';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
-import { buildChargeableWeightSummary, formatWeight } from '../utils/chargeableWeight';
+import {
+  buildChargeableWeightSummary,
+  buildChargeableWeightSummaryFromDimensions,
+  formatWeight,
+} from '../utils/chargeableWeight';
 import styles from './Sub_ChargeableWeightPanel.module.css';
 
 const Sub_ChargeableWeightPanel = ({
@@ -15,17 +19,25 @@ const Sub_ChargeableWeightPanel = ({
   onMinChargeableWeightChange,
   title = 'Chargeable Weight',
   className = '',
+  dimensions = [],
   children,
 }) => {
-  const summary = buildChargeableWeightSummary({
-    qty,
-    weightPerCarton,
-    lengthCm,
-    widthCm,
-    heightCm,
-    volumetricDivisor: divisor,
-    minChargeableWeightPerCarton,
-  });
+  const hasDimensions = Array.isArray(dimensions) && dimensions.length > 0;
+  const summary = hasDimensions
+    ? buildChargeableWeightSummaryFromDimensions({
+        dimensions,
+        volumetricDivisor: divisor,
+        minChargeableWeightPerCarton,
+      })
+    : buildChargeableWeightSummary({
+        qty,
+        weightPerCarton,
+        lengthCm,
+        widthCm,
+        heightCm,
+        volumetricDivisor: divisor,
+        minChargeableWeightPerCarton,
+      });
 
   const isDivisorEditable = typeof onDivisorChange === 'function';
   const isMinWeightEditable = typeof onMinChargeableWeightChange === 'function';
@@ -121,6 +133,36 @@ const Sub_ChargeableWeightPanel = ({
         </div>
       </div>
 
+      {hasDimensions ? (
+        <div className={styles.dimensionBreakdown}>
+          {dimensions.map((dimension, index) => {
+            const length = Number(dimension?.length);
+            const width = Number(dimension?.width);
+            const height = Number(dimension?.height);
+            const qtyValue = Number(dimension?.qty);
+            const weightValue = Number(dimension?.weight);
+            const dimText = [length, width, height]
+              .map((value) => (Number.isFinite(value) ? value : '-'))
+              .join(' x ');
+            const weightText = Number.isFinite(weightValue)
+              ? `${weightValue} kg`
+              : '-';
+            return (
+              <div className={styles.dimensionBreakdownRow} key={dimension?.id || index}>
+                <span className={styles.dimensionBreakdownDims}>
+                  {Number.isFinite(length) || Number.isFinite(width) || Number.isFinite(height)
+                    ? `${dimText} cm`
+                    : 'No size'}
+                </span>
+                <span className={styles.dimensionBreakdownMeta}>
+                  {Number.isFinite(qtyValue) ? `Qty ${qtyValue}` : ''} / {weightText}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      ) : null}
+
       {children}
     </div>
   );
@@ -141,6 +183,7 @@ Sub_ChargeableWeightPanel.propTypes = {
   onMinChargeableWeightChange: PropTypes.func,
   title: PropTypes.string,
   className: PropTypes.string,
+  dimensions: PropTypes.arrayOf(PropTypes.object),
   children: PropTypes.node,
 };
 

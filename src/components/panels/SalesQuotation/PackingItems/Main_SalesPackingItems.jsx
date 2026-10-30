@@ -508,6 +508,29 @@ const Main_SalesPackingItems = ({ productOptions = [], onPatchQuotation }) => {
         ),
       },
       {
+        key: 'packing_dimensions',
+        label: 'Dimensions',
+        flex: '1 1 100%',
+        nextRow: true,
+        sortable: false,
+        nestedForm: (row) => ({
+          rows: sortByCreatedAt(
+            packingDimensions.filter(
+              (item) =>
+                String(item?.sales_packing_item_id || '') ===
+                String(row?.id || ''),
+            ),
+          ),
+          columns: packingDimensionColumns,
+          rowKey: 'id',
+          emptyMessage: 'No dimensions for this packing item yet.',
+          onAddRow: () => handleAddPackingDimension(row?.id),
+          addRowText: 'Add Dimension',
+          addRowDisabled: !String(row?.id || ''),
+          onRemoveRow: handleDeletePackingDimension,
+        }),
+      },
+      {
         key: 'chargeable_weight_panel',
         label: 'Chargeable Weight',
         flex: '1 1 450px',
@@ -722,29 +745,6 @@ const Main_SalesPackingItems = ({ productOptions = [], onPatchQuotation }) => {
             </div>
           );
         },
-      },
-      {
-        key: 'packing_dimensions',
-        label: 'Dimensions',
-        flex: '1 1 100%',
-        nextRow: true,
-        sortable: false,
-        nestedForm: (row) => ({
-          rows: sortByCreatedAt(
-            packingDimensions.filter(
-              (item) =>
-                String(item?.sales_packing_item_id || '') ===
-                String(row?.id || ''),
-            ),
-          ),
-          columns: packingDimensionColumns,
-          rowKey: 'id',
-          emptyMessage: 'No dimensions for this packing item yet.',
-          onAddRow: () => handleAddPackingDimension(row?.id),
-          addRowText: 'Add Dimension',
-          addRowDisabled: !String(row?.id || ''),
-          onRemoveRow: handleDeletePackingDimension,
-        }),
       },
     ],
     [

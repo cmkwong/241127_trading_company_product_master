@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './ProductSidebar.module.css';
 import SearchSideBarList from '../../../common/SearchSideBarList/SearchSideBarList';
@@ -9,7 +9,7 @@ import {
 } from '../../../../store/GeneralContext';
 import { useMasterContext } from '../../../../store/MasterContext';
 import { buildCatalogRows } from '../utils/catalogData';
-import { printCatalogA4 } from '../utils/catalogPrint';
+import { buildCatalogA4Html, printCatalogPreviewFrame } from '../utils/catalogPrint';
 
 const PRODUCT_SEARCH_HISTORY_KEY = 'product_sidebar_search_history';
 const MAX_SEARCH_HISTORY_ITEMS = 15;
@@ -86,6 +86,10 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchHistory, setSearchHistory] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
+  const [isCatalogPreviewOpen, setIsCatalogPreviewOpen] = useState(false);
+  const [catalogPreviewHtml, setCatalogPreviewHtml] = useState('');
+  const [isPreparingCatalog, setIsPreparingCatalog] = useState(false);
+  const catalogPreviewIframeRef = useRef(null);
 
   const keywordLabelById = useMemo(() => {
     const lookup = new Map();
@@ -558,24 +562,55 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
         return;
       }
 
+      if (isPreparingCatalog) {
+        return;
+      }
+
+      setIsPreparingCatalog(true);
+      setCatalogPreviewHtml('');
+      setIsCatalogPreviewOpen(true);
+
       try {
         const products = await getProductsByIds(ids);
         const rows = buildCatalogRows(products, { currencies, masterDataMap });
         if (rows.length === 0) {
           window.alert('No product data returned for the selected products.');
+          setIsCatalogPreviewOpen(false);
           return;
         }
-        printCatalogA4({
-          rows,
-          subtitle: `${rows.length} products · ${new Date().toLocaleDateString()}`,
-        });
+
+        setCatalogPreviewHtml(
+          buildCatalogA4Html({
+            rows,
+            subtitle: `${rows.length} products · ${new Date().getFullYear()}`,
+          }),
+        );
       } catch (err) {
         console.error('Failed to build catalog printout:', err);
         window.alert('Failed to build the catalog printout.');
+        setIsCatalogPreviewOpen(false);
+      } finally {
+        setIsPreparingCatalog(false);
       }
     },
-    [getProductsByIds, currencies, masterDataMap],
+    [getProductsByIds, currencies, masterDataMap, isPreparingCatalog],
   );
+
+  const handlePrintCatalog = useCallback(async () => {
+    try {
+      await printCatalogPreviewFrame(catalogPreviewIframeRef.current, {
+        title: 'Product Catalog',
+      });
+    } catch (error) {
+      console.error('Failed to print catalog:', error);
+      window.alert(error?.message || 'Failed to print the catalog.');
+    }
+  }, []);
+
+  const handleCloseCatalogPreview = useCallback(() => {
+    setIsCatalogPreviewOpen(false);
+    setCatalogPreviewHtml('');
+  }, []);
 
   const getProductRows = useCallback(
     (product) => {
@@ -684,6 +719,61 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
       >
         {isCollapsed ? '›' : '‹'}
       </div>
+
+      {isCatalogPreviewOpen ? (
+        <div
+          className={styles.catalogPreviewBackdrop}
+          onClick={handleCloseCatalogPreview}
+        >
+          <div
+            className={styles.catalogPreviewWindow}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className={styles.catalogPreviewHeader}>
+              <div className={styles.catalogPreviewTitle}>
+                Catalog A4 Preview
+              </div>
+              <div className={styles.catalogPreviewActions}>
+                {isPreparingCatalog ? (
+                  <span className={styles.catalogPreviewStatus}>
+                    Preparing…
+                  </span>
+                ) : null}
+                <button
+                  type="button"
+                  className={styles.catalogPreviewPrimaryBtn}
+                  onClick={handlePrintCatalog}
+                  disabled={isPreparingCatalog || !catalogPreviewHtml}
+                >
+                  Print / Save PDF
+                </button>
+                <button
+                  type="button"
+                  className={styles.catalogPreviewBtn}
+                  onClick={handleCloseCatalogPreview}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+
+            <div className={styles.catalogPreviewFrameWrap}>
+              {catalogPreviewHtml ? (
+                <iframe
+                  ref={catalogPreviewIframeRef}
+                  title="Catalog Preview"
+                  className={styles.catalogPreviewFrame}
+                  srcDoc={catalogPreviewHtml}
+                />
+              ) : (
+                <span className={styles.catalogPreviewLoading}>
+                  Preparing catalog preview…
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : null}
     </>
   );
 };

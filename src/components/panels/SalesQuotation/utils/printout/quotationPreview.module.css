@@ -350,7 +350,6 @@
 }
 
 .pageTail {
-  margin-top: auto;
   break-inside: avoid;
   page-break-inside: avoid;
 }

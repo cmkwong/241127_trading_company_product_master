@@ -11,6 +11,8 @@ import { chunkRows } from './catalogData';
 
 const DEFAULT_TITLE = 'Product Catalog';
 
+const BRAND_LOGO_URL = '/assets/brand_logos/RIVOLX_Logos_new_color_pure.svg';
+
 const A4_FRAME_PX = getA4FramePx();
 
 export const A4_LAYOUT = {
@@ -56,6 +58,19 @@ const ProductRow = ({ row }) => (
       </div>
     </div>
 
+    <div className={styles.colImages}>
+      <div className={styles.imagesCell}>
+        {row.thumbImageUrls.map((url, index) => (
+          <img
+            className={styles.thumb}
+            key={`${row.id}-thumb-${index}`}
+            src={url}
+            alt=""
+          />
+        ))}
+      </div>
+    </div>
+
     <div className={styles.colAttributes}>
       <div className={styles.attrCell}>
         {row.name ? <span className={styles.attrName}>{row.name}</span> : null}
@@ -72,41 +87,14 @@ const ProductRow = ({ row }) => (
       </div>
     </div>
 
-    <div className={styles.colImages}>
-      <div className={styles.imagesCell}>
-        {row.thumbImageUrls.map((url, index) => (
-          <img
-            className={styles.thumb}
-            key={`${row.id}-thumb-${index}`}
-            src={url}
-            alt=""
-          />
-        ))}
-      </div>
-    </div>
-
     <div className={styles.colPrice}>
       <div className={styles.priceCell}>
-        <span className={styles.cellHeader}>Qty Pricing</span>
+        <span className={styles.cellHeader}>Price</span>
         <div className={styles.cellRows}>
           {row.priceRows.map((price, index) => (
             <div className={styles.cellRow} key={`${row.id}-price-${index}`}>
               <span className={styles.cellLabel}>{price.label}</span>
               <span className={styles.cellValue}>{price.value}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-
-    <div className={styles.colStyle}>
-      <div className={styles.styleCell}>
-        <span className={styles.cellHeader}>Style Pricing</span>
-        <div className={styles.cellRows}>
-          {row.styleRows.map((style, index) => (
-            <div className={styles.cellRow} key={`${row.id}-style-${index}`}>
-              <span className={styles.cellLabel}>{style.label}</span>
-              <span className={styles.cellValue}>{style.value}</span>
             </div>
           ))}
         </div>
@@ -126,18 +114,24 @@ const CatalogPreviewPage = ({
     {pages.map((rows, pageIndex) => (
       <div className={styles.page} style={pageStyle} key={`page-${pageIndex}`}>
         {pageIndex === 0 && showTitle ? (
-          <>
-            <h1 className={styles.title}>{title}</h1>
-            {subtitle ? <p className={styles.subtitle}>{subtitle}</p> : null}
-          </>
+          <div className={styles.pageHeader}>
+            <img
+              className={styles.brandLogo}
+              src={BRAND_LOGO_URL}
+              alt="Rivolx"
+            />
+            <div className={styles.pageHeaderRight}>
+              <h1 className={styles.title}>{title}</h1>
+              {subtitle ? <p className={styles.subtitle}>{subtitle}</p> : null}
+            </div>
+          </div>
         ) : null}
         <div className={styles.rows}>
           <div className={styles.headerRow}>
-            <span className={styles.colMain}>Main Image</span>
+            <span className={styles.colMain}>Images</span>
+            <span className={styles.colImages} aria-hidden="true" />
             <span className={styles.colAttributes}>Attributes</span>
-            <span className={styles.colImages}>Images</span>
             <span className={styles.colPrice}>Price</span>
-            <span className={styles.colStyle}>Style Pricing</span>
           </div>
           {rows.map((row) => (
             <ProductRow key={row.id} row={row} />

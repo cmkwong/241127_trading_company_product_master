@@ -8,62 +8,71 @@ export const buildCatalogA4Html = (options = {}) =>
   buildCatalogDocumentHtml(options);
 
 /**
- * Print the catalog. Product images are blob object URLs (created from
- * base64 by `getProductsByIds`), so we print through a hidden same-origin
- * iframe rather than a `window.open` popup — blob URLs resolve reliably in an
- * iframe and there is no popup-blocker dependency.
+ * Print the already-rendered catalog preview iframe. Product images are blob
+ * object URLs (created from base64 by `getProductsByIds`), so the preview is
+ * rendered in a same-origin iframe (`srcDoc`) and printed directly from it —
+ * what the user sees in the preview is exactly what gets printed.
+ *
+ * Mirrors `handlePrintFromPreview` in the Sales module so the two flows stay
+ * consistent: wait for web fonts and image decode, set the document title so
+ * the browser uses a sensible PDF filename, then print.
  */
-export const printCatalogA4 = (options = {}) => {
-  const html = buildCatalogA4Html(options);
-
-  const iframe = document.createElement('iframe');
-  iframe.setAttribute('aria-hidden', 'true');
-  iframe.style.position = 'fixed';
-  iframe.style.right = '0';
-  iframe.style.bottom = '0';
-  iframe.style.width = '0';
-  iframe.style.height = '0';
-  iframe.style.border = '0';
-  document.body.appendChild(iframe);
-
-  const doc = iframe.contentDocument || iframe.contentWindow.document;
-  doc.open();
-  doc.write(html);
-  doc.close();
-
-  const cleanup = () => {
-    setTimeout(() => {
-      if (iframe.parentNode) {
-        iframe.parentNode.removeChild(iframe);
-      }
-    }, 1000);
-  };
-
-  const triggerPrint = () => {
-    iframe.contentWindow.focus();
-    iframe.contentWindow.print();
-    cleanup();
-  };
-
-  const images = Array.from(doc.images || []);
-  if (images.length > 0) {
-    Promise.allSettled(
-      images.map(
-        (img) =>
-          new Promise((resolve) => {
-            if (img.complete) {
-              resolve();
-              return;
-            }
-            img.addEventListener('load', () => resolve(), { once: true });
-            img.addEventListener('error', () => resolve(), { once: true });
-          }),
-      ),
-    ).then(triggerPrint);
-    // Safety net in case an image never fires load/error.
-    setTimeout(triggerPrint, 3000);
-  } else {
-    triggerPrint();
+export const printCatalogPreviewFrame = async (iframe, { title = '' } = {}) => {
+  const frameWindow = iframe?.contentWindow;
+  if (!frameWindow) {
+    throw new Error('Catalog preview is not ready yet. Please try again.');
   }
+
+  const originalTitle = document.title;
+  const desiredTitle = String(title || '').trim();
+  if (desiredTitle) {
+    document.title = desiredTitle;
+    try {
+      frameWindow.document.title = desiredTitle;
+    } catch (error) {
+      console.warn('Unable to set iframe print title:', error);
+    }
+  }
+
+  let restored = false;
+  const restoreTitle = () => {
+    if (restored) return;
+    restored = true;
+    document.title = originalTitle;
+  };
+
+  window.addEventListener('afterprint', restoreTitle, { once: true });
+  setTimeout(restoreTitle, 2000);
+
+  try {
+    if (frameWindow.document?.fonts?.ready) {
+      await frameWindow.document.fonts.ready;
+    }
+
+    const images = Array.from(frameWindow.document?.images || []);
+    await Promise.all(
+      images.map((img) => {
+        if (img.complete) return Promise.resolve();
+        if (typeof img.decode === 'function') {
+          return img.decode().catch(() => undefined);
+        }
+
+        return new Promise((resolve) => {
+          const cleanup = () => {
+            img.removeEventListener('load', cleanup);
+            img.removeEventListener('error', cleanup);
+            resolve();
+          };
+          img.addEventListener('load', cleanup, { once: true });
+          img.addEventListener('error', cleanup, { once: true });
+        });
+      }),
+    );
+  } catch (error) {
+    console.warn('Print assets readiness check failed:', error);
+  }
+
+  frameWindow.focus();
+  frameWindow.print();
 };
 

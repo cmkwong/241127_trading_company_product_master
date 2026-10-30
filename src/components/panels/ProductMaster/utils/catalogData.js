@@ -11,7 +11,6 @@ import {
 const MAX_ATTRIBUTE_ROWS = 4;
 const MAX_IMAGE_THUMBS = 4;
 const MAX_PRICE_ROWS = 4;
-const MAX_STYLE_ROWS = 4;
 
 const toNumberOrNull = (value) => {
   if (value === null || value === undefined || value === '') {
@@ -122,14 +121,26 @@ const getThumbImageUrls = (product) => {
     .filter(Boolean);
 };
 
+/** "suitable_pet" -> "Suitable Pet"; leaves already-formatted labels untouched. */
+const humanizeKey = (value) =>
+  toTrimmedString(value)
+    .replace(/[_-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .replace(/\b[a-z]/g, (ch) => ch.toUpperCase());
+
 /** Attribute label/value bullets: "Name: value", capped at MAX_ATTRIBUTE_ROWS. */
 const getAttributes = (product, masterDataMap) => {
   const attributeMaster = masterDataMap?.master_product_attributes || [];
-  const nameById = new Map();
+  const labelById = new Map();
   attributeMaster.forEach((attr) => {
     const id = toTrimmedString(attr?.id);
     if (id) {
-      nameById.set(id, toTrimmedString(attr?.name || attr?.label) || id);
+      // Mirror the product editor (Main_ProductAttributes): prefer `label`,
+      // fall back to `name`. Humanize so slug-style names read nicely.
+      labelById.set(
+        id,
+        humanizeKey(toTrimmedString(attr?.label || attr?.name)) || id,
+      );
     }
   });
 
@@ -142,7 +153,7 @@ const getAttributes = (product, masterDataMap) => {
     if (!value) {
       return;
     }
-    const label = nameById.get(toTrimmedString(row?.attribute_id)) || '';
+    const label = labelById.get(toTrimmedString(row?.attribute_id)) || '';
     result.push(label ? `${label}: ${value}` : value);
   });
   return result;
@@ -150,14 +161,14 @@ const getAttributes = (product, masterDataMap) => {
 
 /**
  * Price cell content, keyed off products.selling_by_mode.
- * Returns { mode, rows: [{ label, value }], basePrice, baseCode }.
+ * Returns { mode, rows: [{ label, value }] }.
  *   by_qty          -> tier ranges (50 ~ 99, 100+)
  *   by_single_price -> single MOQ line, min ~ max
  *   by_variants     -> grouped price points with variant counts
  */
 const buildPriceCell = (product, currencyCodeMap) => {
   const mode = toTrimmedString(product?.selling_by_mode) || 'by_qty';
-  const empty = { mode, rows: [], basePrice: null, baseCode: '' };
+  const empty = { mode, rows: [] };
 
   if (mode === 'by_qty') {
     const tiers = activeRows(product?.product_sale_prices_by_qty)
@@ -188,8 +199,7 @@ const buildPriceCell = (product, currencyCodeMap) => {
       return { label, value: `${code}${formatMoney(tier.salePrice)}` };
     });
 
-    const basePrice = Math.min(...tiers.map((tier) => tier.salePrice));
-    return { mode, rows, basePrice, baseCode: tiers[0].code };
+    return { mode, rows };
   }
 
   if (mode === 'by_single_price') {
@@ -212,7 +222,7 @@ const buildPriceCell = (product, currencyCodeMap) => {
       : `${codePrefix}${formatMoney(min)}`;
     const label = moq !== null && moq > 0 ? `${moq} pcs` : '';
 
-    return { mode, rows: [{ label, value }], basePrice: min, baseCode: code };
+    return { mode, rows: [{ label, value }] };
   }
 
   // by_variants
@@ -245,52 +255,7 @@ const buildPriceCell = (product, currencyCodeMap) => {
       return { label, value: `${code}${formatMoney(group.price)}` };
     });
 
-  const basePrice = Math.min(...costs.map((cost) => cost.price));
-  const minCost = costs.find((cost) => cost.price === basePrice);
-  return { mode, rows, basePrice, baseCode: minCost?.code || '' };
-};
-
-/**
- * Style pricing: product_customizations with price_arise_per_pcs. When the
- * customization's currency matches the product's base currency, show the
- * total (base + arise); otherwise show the raw increment.
- */
-const buildStyleCell = (product, currencyCodeMap, priceCell) => {
-  const customizations = activeRows(product?.product_customizations);
-  const basePrice = priceCell.basePrice;
-  const baseCode = priceCell.baseCode;
-
-  const rows = [];
-  customizations.forEach((customization) => {
-    if (rows.length >= MAX_STYLE_ROWS) {
-      return;
-    }
-    const label = toTrimmedString(customization?.name);
-    if (!label) {
-      return;
-    }
-    const arise = toNumberOrNull(customization?.price_arise_per_pcs);
-    const ariseCode =
-      currencyCodeMap[toTrimmedString(customization?.price_arise_currency)] ||
-      '';
-    const ariseAmount = arise !== null ? arise : 0;
-
-    let value = '';
-    if (basePrice === null) {
-      value =
-        ariseAmount > 0
-          ? `+${ariseCode ? `${ariseCode} ` : ''}${formatMoney(ariseAmount)}`
-          : '';
-    } else if (ariseCode && ariseCode !== baseCode) {
-      value = `+${ariseCode} ${formatMoney(ariseAmount)}`;
-    } else {
-      value = `${baseCode ? `${baseCode} ` : ''}${formatMoney(basePrice + ariseAmount)}`;
-    }
-
-    rows.push({ label, value });
-  });
-
-  return rows;
+  return { mode, rows };
 };
 
 const buildSkuLabel = (skus) => {
@@ -314,9 +279,7 @@ export const buildCatalogRow = (product, { currencies, masterDataMap } = {}) => 
     mainImageUrl: getMainImageUrl(product),
     thumbImageUrls: getThumbImageUrls(product),
     attributes: getAttributes(product, masterDataMap),
-    priceMode: priceCell.mode,
     priceRows: priceCell.rows,
-    styleRows: buildStyleCell(product, currencyCodeMap, priceCell),
   };
 };
 

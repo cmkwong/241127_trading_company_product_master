@@ -1,7 +1,8 @@
 .page {
   width: var(--a4-width-mm);
-  min-height: var(--a4-height-mm);
-  padding: var(--page-padding-top-mm) var(--page-padding-side-mm);
+  height: var(--a4-height-mm);
+  padding: var(--page-padding-top-mm) var(--page-padding-side-mm)
+    var(--page-padding-bottom-mm);
   background: #ffffff;
   font-family:
     'Inter',
@@ -13,6 +14,13 @@
     sans-serif;
   color: #262626;
   font-size: 9px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.document {
+  width: 100%;
 }
 
 .page,
@@ -23,10 +31,34 @@
 @media screen {
   .page {
     width: var(--a4-width-px);
-    min-height: var(--a4-height-px);
+    height: var(--a4-height-px);
     margin: 0 auto;
     border: 1px solid #e0e0e0;
     box-shadow: 0px 2px 12px 0px rgba(0, 0, 0, 0.1);
+  }
+
+  .page + .page {
+    margin-top: 24px;
+  }
+}
+
+@media print {
+  .page {
+    break-after: page;
+    page-break-after: always;
+  }
+
+  .page:last-child {
+    break-after: auto;
+    page-break-after: auto;
+  }
+
+  .itemsTable thead {
+    display: table-header-group;
+  }
+
+  .itemsTable tfoot {
+    display: table-footer-group;
   }
 }
 
@@ -38,6 +70,13 @@
   align-items: center;
   width: 100%;
   white-space: nowrap;
+}
+
+.topBarRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
 }
 
 .logo {
@@ -102,7 +141,6 @@
   flex-direction: column;
   align-items: stretch;
   gap: 3px;
-  overflow: hidden;
 }
 
 .metaTitle {
@@ -311,6 +349,17 @@
   height: 20px;
 }
 
+.pageTail {
+  margin-top: auto;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.pageTailSpacer {
+  margin-top: auto;
+  min-height: 82px;
+}
+
 /* ---------- Footer: terms + total ---------- */
 
 .footer {
@@ -318,6 +367,8 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  break-inside: avoid;
+  page-break-inside: avoid;
   /* white-space: nowrap; */
 }
 

@@ -3,6 +3,11 @@ import {
   computeApInvoiceTotals,
   formatMoney as defaultFormatMoney,
 } from './apInvoiceTotals';
+import {
+  buildPageNumberLabel,
+  paginateRowsWithFooter,
+} from '../../../../utils/printPagination';
+import { A4_SIZE_MM, getA4FramePx } from '../../../../utils/printUnits';
 
 const escapeHtml = (value) =>
   String(value ?? '')
@@ -32,6 +37,7 @@ const buildDocumentTitle = (invoice, supplierName) => {
 
 const buildRowDetailsHtml = ({
   rowDetails,
+  lineStartIndex = 0,
   invoiceTypeLabelByCode,
   currencyCodeById,
   formatMoney = defaultFormatMoney,
@@ -52,7 +58,7 @@ const buildRowDetailsHtml = ({
 
       return `
       <tr>
-        <td>${index + 1}</td>
+        <td>${lineStartIndex + index + 1}</td>
         <td>${escapeHtml(typeLabel)}</td>
         <td>${escapeHtml(toSafeString(row?.description) || '-')}</td>
         <td class="mono">${escapeHtml(currencyCode)}</td>
@@ -64,6 +70,24 @@ const buildRowDetailsHtml = ({
     })
     .join('');
 };
+
+const estimateApRowUnits = (row) => {
+  let units = 1;
+
+  units += Math.max(
+    0,
+    Math.ceil(toSafeString(row?.description).length / 48) - 1,
+  );
+  units += Math.max(0, Math.ceil(toSafeString(row?.details).length / 58) * 0.8);
+  units += Math.max(0, Math.ceil(toSafeString(row?.remark).length / 58) * 0.8);
+
+  return Math.max(1, units);
+};
+
+const AP_PAGE_ROW_BUDGET = 31;
+const AP_FOOTER_UNITS = 8;
+const AP_FRAME_PX = getA4FramePx();
+const AP_SHEET_PADDING_MM = 12;
 
 export const buildApInvoiceDocumentA4Html = ({
   invoice,
@@ -129,6 +153,13 @@ export const buildApInvoiceDocumentA4Html = ({
     purchaseRequestById.get(toSafeString(invoice?.purchase_request_id)) || null;
 
   const rowDetails = toArray(invoice?.ap_invoice_row_details);
+  const pageChunks = paginateRowsWithFooter({
+    rows: rowDetails,
+    estimateRowUnits: estimateApRowUnits,
+    pageRowBudget: AP_PAGE_ROW_BUDGET,
+    footerUnits: AP_FOOTER_UNITS,
+  });
+  const totalPages = pageChunks.length;
   const totalsSummary = computeApInvoiceTotals(invoice, {
     baseCurrencyCode,
     currencyCodeById: effectiveCurrencyCodeById,
@@ -147,7 +178,12 @@ export const buildApInvoiceDocumentA4Html = ({
     <style>
       @page {
         size: A4;
-        margin: 12mm;
+        margin: 0;
+      }
+      html,
+      body {
+        width: ${A4_SIZE_MM.width}mm;
+        height: ${A4_SIZE_MM.height}mm;
       }
       body {
         margin: 0;
@@ -156,8 +192,14 @@ export const buildApInvoiceDocumentA4Html = ({
         -webkit-print-color-adjust: exact;
       }
       .sheet {
+        width: ${A4_SIZE_MM.width}mm;
+        height: ${A4_SIZE_MM.height}mm;
+        box-sizing: border-box;
         border: 1px solid #d6dde5;
-        padding: 18px;
+        padding: ${AP_SHEET_PADDING_MM}mm;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
       }
       .header {
         display: flex;
@@ -202,6 +244,9 @@ export const buildApInvoiceDocumentA4Html = ({
         border-collapse: collapse;
         margin-top: 10px;
       }
+      .table thead {
+        display: table-header-group;
+      }
       .table th,
       .table td {
         border: 1px solid #dbe4ec;
@@ -230,6 +275,8 @@ export const buildApInvoiceDocumentA4Html = ({
         display: flex;
         justify-content: space-between;
         align-items: flex-end;
+        break-inside: avoid;
+        page-break-inside: avoid;
       }
       .remark {
         max-width: 70%;
@@ -259,16 +306,67 @@ export const buildApInvoiceDocumentA4Html = ({
         font-size: 11px;
         color: #b45309;
       }
+      .page-id {
+        font-size: 12px;
+        font-weight: 600;
+        color: #4b5563;
+      }
+      .page-tail {
+        margin-top: auto;
+      }
+      @media screen {
+        body {
+          background: #f3f4f6;
+          padding: 24px;
+          width: auto;
+          height: auto;
+        }
+        .sheet {
+          width: ${AP_FRAME_PX.widthPx}px;
+          height: ${AP_FRAME_PX.heightPx}px;
+          margin: 0 auto;
+          background: #ffffff;
+          box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+        }
+        .sheet + .sheet {
+          margin-top: 24px;
+        }
+      }
+      @media print {
+        .sheet {
+          break-after: page;
+          page-break-after: always;
+        }
+        .sheet:last-child {
+          break-after: auto;
+          page-break-after: auto;
+        }
+      }
     </style>
   </head>
   <body>
+    ${pageChunks
+      .map((chunk, pageIndex) => {
+        const pageNumberLabel = buildPageNumberLabel(pageIndex, totalPages);
+        const rowTableHtml = buildRowDetailsHtml({
+          rowDetails: chunk.rows,
+          lineStartIndex: chunk.startIndex,
+          invoiceTypeLabelByCode,
+          currencyCodeById: currencyCodeByIdMap,
+          formatMoney,
+        });
+
+        return `
     <div class="sheet">
       <div class="header">
         <div>
           <div class="title">AP Invoice</div>
           <div class="sub">Accounts Payable Row Detail Document</div>
         </div>
-        <div class="sub">${escapeHtml(toSafeString(invoice?.id))}</div>
+        <div>
+          <div class="sub">${escapeHtml(toSafeString(invoice?.id))}</div>
+          <div class="page-id">${escapeHtml(pageNumberLabel)}</div>
+        </div>
       </div>
 
       <div class="meta">
@@ -309,40 +407,43 @@ export const buildApInvoiceDocumentA4Html = ({
           </tr>
         </thead>
         <tbody>
-          ${buildRowDetailsHtml({
-            invoice,
-            rowDetails,
-            invoiceTypeLabelByCode,
-            currencyCodeById: currencyCodeByIdMap,
-            formatMoney,
-          })}
+          ${rowTableHtml}
         </tbody>
       </table>
 
-      <div class="footer">
-        <div class="remark">
-          <strong>Header Remark:</strong>
-          ${escapeHtml(toSafeString(invoice?.remark) || '-')}
-          <br />
-          <strong>Purchase Request Remark:</strong>
-          ${escapeHtml(toSafeString(purchaseRequest?.remark) || '-')}
-        </div>
-        <div class="total">
-          <span class="total-label">Total Amount (${escapeHtml(
-            toSafeString(totalsSummary?.baseCurrencyCode || baseCurrencyCode) ||
-              'HKD',
-          )})</span>
-          <span class="total-value">${escapeHtml(
-            formatMoney(totalsSummary?.totalAmount),
-          )}</span>
-          ${
-            Number(totalsSummary?.missingCount || 0) > 0
-              ? `<span class="total-note">Skipped ${escapeHtml(String(totalsSummary?.missingCount))} row(s) due to missing currency or exchange rate.</span>`
-              : ''
-          }
-        </div>
-      </div>
-    </div>
+      ${
+        chunk.includeFooter
+          ? `<div class="page-tail">
+              <div class="footer">
+                <div class="remark">
+                  <strong>Header Remark:</strong>
+                  ${escapeHtml(toSafeString(invoice?.remark) || '-')}
+                  <br />
+                  <strong>Purchase Request Remark:</strong>
+                  ${escapeHtml(toSafeString(purchaseRequest?.remark) || '-')}
+                </div>
+                <div class="total">
+                  <span class="total-label">Total Amount (${escapeHtml(
+                    toSafeString(
+                      totalsSummary?.baseCurrencyCode || baseCurrencyCode,
+                    ) || 'HKD',
+                  )})</span>
+                  <span class="total-value">${escapeHtml(
+                    formatMoney(totalsSummary?.totalAmount),
+                  )}</span>
+                  ${
+                    Number(totalsSummary?.missingCount || 0) > 0
+                      ? `<span class="total-note">Skipped ${escapeHtml(String(totalsSummary?.missingCount))} row(s) due to missing currency or exchange rate.</span>`
+                      : ''
+                  }
+                </div>
+              </div>
+            </div>`
+          : ''
+      }
+    </div>`;
+      })
+      .join('')}
   </body>
 </html>
   `;

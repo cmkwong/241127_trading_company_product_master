@@ -16,7 +16,15 @@ import {
   toSafeString,
 } from '../quotationTotals';
 import { computeLineAmount, formatRateMoney } from '../../../../../utils/money';
-import { A4_SIZE_MM, getA4FramePx } from '../../../../../utils/printUnits';
+import {
+  A4_SIZE_MM,
+  getA4FramePx,
+  mmToCssPx,
+} from '../../../../../utils/printUnits';
+import {
+  buildPageNumberLabel,
+  paginateRowsByPixelHeight,
+} from '../../../../../utils/printPagination';
 
 const FILE_SERVER_BASE_URL = 'http://localhost:3001';
 const DEFAULT_COMPANY_NAME = 'Rivolx Limited';
@@ -27,6 +35,41 @@ const DEFAULT_COMPANY_LOGO_URL = '/assets/brand_logos/watermark_v1.png';
 const QUOTATION_VALID_DAYS = 15;
 const DEFAULT_DOWNPAYMENT_PERCENT = 30;
 const A4_FRAME_PX = getA4FramePx();
+const A4_PAGE_VERTICAL_PADDING_MM = 14.1;
+/*
+ * Measurement-driven pagination.
+ *
+ * Row heights are no longer estimated from guessed font metrics (which drifted
+ * out of sync with the CSS module and produced both over- and under-filled
+ * pages). Instead we render the document into a hidden, offscreen host using
+ * the exact same components + classes, read the real rendered heights, and run
+ * a pixel-based fit loop (`paginateRowsByPixelHeight` in printPagination.js).
+ *
+ * What is measured (so nothing here can go stale):
+ *   - each row's height (covers name wrapping, detail `pre-line` wrapping, and
+ *     the image strip which is 60x60 fixed and wraps past 3 images),
+ *   - the header overhead = offset of the first `tbody` row from the content
+ *     top (top bar + divider + meta grid + table head + borders),
+ *   - the footer height = page-tail spacer + terms + totals, on a probe page.
+ */
+const PAGE_FIT_SLACK_PX = 4;
+const FALLBACK_ROW_HEIGHT_PX = 120;
+const FALLBACK_PAGE_OVERHEAD_PX = 250;
+const FALLBACK_PAGE_SPACER_PX = 82;
+const FALLBACK_FOOTER_PX = 90;
+const LAYOUT_CACHE_MAX_ENTRIES = 60;
+const MEASURE_HOST_ID = 'quotation-measure-host';
+const MEASURE_OVERRIDE_ID = 'quotation-measure-override';
+// The probe pages are rendered as direct children of the host, so structural
+// selectors are used instead of the hashed CSS-module class names. `height:
+// auto` + `flex: 0 0 auto` defeat the flex-column shrink a fixed 1123px page
+// would otherwise apply; `border: 0` matches print media (screen adds a 1px
+// page border) so measurement is conservative, never optimistic.
+const MEASURE_OVERRIDE_CSS = `
+  #${MEASURE_HOST_ID} > div { height: auto !important; min-height: 0 !important; border: 0 !important; }
+  #${MEASURE_HOST_ID} > div > * { flex: 0 0 auto !important; }
+  #${MEASURE_HOST_ID} > div > div:last-child { margin-top: 0 !important; }
+`;
 
 /**
  * Single source of truth for the A4 page geometry. The preview component
@@ -39,7 +82,8 @@ export const A4_LAYOUT = {
   heightMm: A4_SIZE_MM.height,
   frameWidthPx: A4_FRAME_PX.widthPx,
   frameHeightPx: A4_FRAME_PX.heightPx,
-  paddingTopMm: 14.1,
+  paddingTopMm: A4_PAGE_VERTICAL_PADDING_MM,
+  paddingBottomMm: A4_PAGE_VERTICAL_PADDING_MM,
   paddingSideMm: 16.9,
 };
 
@@ -49,6 +93,7 @@ const PAGE_STYLE = {
   '--a4-width-px': `${A4_LAYOUT.frameWidthPx}px`,
   '--a4-height-px': `${A4_LAYOUT.frameHeightPx}px`,
   '--page-padding-top-mm': `${A4_LAYOUT.paddingTopMm}mm`,
+  '--page-padding-bottom-mm': `${A4_LAYOUT.paddingBottomMm}mm`,
   '--page-padding-side-mm': `${A4_LAYOUT.paddingSideMm}mm`,
 };
 
@@ -914,6 +959,196 @@ const formatLineRate = (value) => {
   return formatRateMoney(value);
 };
 
+const getMeasureHost = () => {
+  if (typeof document === 'undefined') return null;
+  let host = document.getElementById(MEASURE_HOST_ID);
+  if (!host) {
+    host = document.createElement('div');
+    host.id = MEASURE_HOST_ID;
+    host.style.cssText =
+      'position:absolute;left:-20000px;top:0;visibility:hidden;pointer-events:none;';
+    document.body.appendChild(host);
+  }
+  if (!document.getElementById(MEASURE_OVERRIDE_ID)) {
+    const style = document.createElement('style');
+    style.id = MEASURE_OVERRIDE_ID;
+    style.textContent = MEASURE_OVERRIDE_CSS;
+    document.head.appendChild(style);
+  }
+  return host;
+};
+
+const renderMeasurementMarkup = ({ base, lineItems }) =>
+  renderToStaticMarkup(
+    <>
+      <QuotationPreviewPage
+        {...base}
+        lineItems={lineItems}
+        lineStartIndex={0}
+        showFooter={false}
+        pageNumberLabel="1/1"
+      />
+      <QuotationPreviewPage
+        {...base}
+        lineItems={[]}
+        lineStartIndex={0}
+        showFooter
+        pageNumberLabel="1/1"
+      />
+    </>,
+  );
+
+const measureDocumentLayout = ({ base, lineItems }) => {
+  const host = getMeasureHost();
+  if (!host) return null;
+
+  try {
+    host.innerHTML = renderMeasurementMarkup({ base, lineItems });
+    const pageWithRows = host.children[0];
+    const footerPage = host.children[1];
+    if (!pageWithRows || !footerPage) return null;
+
+    const pageStyle = window.getComputedStyle(pageWithRows);
+    const contentTop =
+      pageWithRows.getBoundingClientRect().top + parseFloat(pageStyle.paddingTop);
+    const tbody = pageWithRows.querySelector('tbody');
+    const pageOverheadPx = tbody
+      ? tbody.getBoundingClientRect().top - contentTop
+      : 0;
+    const rowHeightsPx = tbody
+      ? Array.from(tbody.querySelectorAll('tr')).map(
+          (tr) => tr.getBoundingClientRect().height,
+        )
+      : [];
+    const footerTail = footerPage.querySelector('[class*="pageTail"]');
+    const footerPx = footerTail ? footerTail.getBoundingClientRect().height : 0;
+    const spacerTail = pageWithRows.querySelector('[class*="pageTailSpacer"]');
+    const spacerPx = spacerTail ? spacerTail.getBoundingClientRect().height : 0;
+    const pageContentPx = mmToCssPx(
+      A4_LAYOUT.heightMm - A4_LAYOUT.paddingTopMm - A4_LAYOUT.paddingBottomMm,
+    );
+
+    return {
+      pageContentPx,
+      pageOverheadPx,
+      pageSpacerPx: spacerPx,
+      pageFooterPx: footerPx,
+      rowHeightsPx,
+    };
+  } catch {
+    return null;
+  } finally {
+    if (host) host.innerHTML = '';
+  }
+};
+
+// Cache key covers every field that can change the measured layout. The cached
+// value is only the page *split* (indices), never the line-item objects, so
+// edits to qty / price / amount re-slice the current items instead of serving
+// stale rows.
+const buildLayoutSignature = ({ variant, base, lineItems }) => {
+  const labels = base?.labels || {};
+  const termsLines = Array.isArray(labels.termsLines) ? labels.termsLines : [];
+  const paymentSummary = base?.paymentSummary || {};
+  const rowSignature = (Array.isArray(lineItems) ? lineItems : [])
+    .map((item) =>
+      [
+        toSafeString(item?.itemName),
+        (Array.isArray(item?.details) ? item.details : []).join('|'),
+        (Array.isArray(item?.imageUrls) ? item.imageUrls.length : 0),
+        Number(item?.discountPercent) > 0 ? 1 : 0,
+      ].join('\u0001'),
+    )
+    .join('\u0002');
+
+  return [
+    variant,
+    base?.showTotalPrice ? 1 : 0,
+    base?.showPercentAmount ? 1 : 0,
+    toSafeString(labels.termsTitle),
+    labels.termsFullWidth ? 1 : 0,
+    termsLines.join('|'),
+    paymentSummary.enabled ? 1 : 0,
+    toSafeString(paymentSummary.originalLabel),
+    toSafeString(paymentSummary.originalAmount),
+    toSafeString(paymentSummary.adjustmentLabel),
+    toSafeString(paymentSummary.adjustmentAmount),
+    toSafeString(paymentSummary.primaryLabel),
+    toSafeString(paymentSummary.primaryAmount),
+    rowSignature,
+  ].join('\u0003');
+};
+
+const layoutCache = new Map();
+
+const readCachedSplits = (signature) => layoutCache.get(signature);
+
+const writeCachedSplits = (signature, splits) => {
+  layoutCache.delete(signature);
+  layoutCache.set(signature, splits);
+  if (layoutCache.size > LAYOUT_CACHE_MAX_ENTRIES) {
+    const oldestKey = layoutCache.keys().next().value;
+    layoutCache.delete(oldestKey);
+  }
+};
+
+const buildPagedLineItems = ({ variant, base, lineItems }) => {
+  const normalizedItems = Array.isArray(lineItems) ? lineItems : [];
+  if (normalizedItems.length === 0) {
+    return [
+      {
+        lineItems: [],
+        lineStartIndex: 0,
+        showFooter: true,
+        pageNumberLabel: '1/1',
+      },
+    ];
+  }
+
+  const signature = buildLayoutSignature({ variant, base, lineItems });
+  let splits = readCachedSplits(signature);
+
+  if (!splits) {
+    const layout = measureDocumentLayout({ base, lineItems });
+    const chunks = layout
+      ? paginateRowsByPixelHeight({
+          rowHeightsPx: layout.rowHeightsPx,
+          pageContentPx: layout.pageContentPx,
+          pageOverheadPx: layout.pageOverheadPx,
+          pageSpacerPx: layout.pageSpacerPx,
+          pageFooterPx: layout.pageFooterPx,
+          slackPx: PAGE_FIT_SLACK_PX,
+        })
+      : paginateRowsByPixelHeight({
+          rowHeightsPx: normalizedItems.map(() => FALLBACK_ROW_HEIGHT_PX),
+          pageContentPx: mmToCssPx(
+            A4_LAYOUT.heightMm -
+              A4_LAYOUT.paddingTopMm -
+              A4_LAYOUT.paddingBottomMm,
+          ),
+          pageOverheadPx: FALLBACK_PAGE_OVERHEAD_PX,
+          pageSpacerPx: FALLBACK_PAGE_SPACER_PX,
+          pageFooterPx: FALLBACK_FOOTER_PX,
+          slackPx: PAGE_FIT_SLACK_PX,
+        });
+
+    splits = chunks.map((chunk) => ({
+      startIndex: chunk.startIndex,
+      endIndex: chunk.endIndex,
+      includeFooter: chunk.includeFooter,
+    }));
+    writeCachedSplits(signature, splits);
+  }
+
+  const totalPages = Math.max(1, splits.length);
+  return splits.map((split, pageIndex) => ({
+    lineItems: normalizedItems.slice(split.startIndex, split.endIndex),
+    lineStartIndex: split.startIndex,
+    showFooter: split.includeFooter,
+    pageNumberLabel: buildPageNumberLabel(pageIndex, totalPages),
+  }));
+};
+
 /* -------------------------------------------------------------------------- */
 /*  Section components (TopBar / Header / Body / Footer).                     */
 /*  These are the single source of the document markup, reused by both the    */
@@ -923,6 +1158,7 @@ const formatLineRate = (value) => {
 const QuotationRow = ({
   item,
   index,
+  lineStartIndex = 0,
   baseCurrencyCode,
   showQuantityColumn,
   showRateColumn,
@@ -969,7 +1205,7 @@ const QuotationRow = ({
 
   return (
     <tr>
-      <td className={styles.indexCol}>{index + 1}.</td>
+      <td className={styles.indexCol}>{lineStartIndex + index + 1}.</td>
       <td
         className={styles.itemCol}
         style={{ width: showAnyPricing ? '237px' : 'auto' }}
@@ -1019,6 +1255,9 @@ const QuotationRow = ({
 };
 
 const QuotationBody = ({ lineItems, baseCurrencyCode, labels }) => {
+  const lineStartIndex = Number.isFinite(Number(labels?.lineStartIndex))
+    ? Number(labels.lineStartIndex)
+    : 0;
   const isEmpty = lineItems.length === 0;
   const showPricingColumns = labels?.showPricingColumns !== false;
   const showQuantityColumn =
@@ -1096,6 +1335,7 @@ const QuotationBody = ({ lineItems, baseCurrencyCode, labels }) => {
               key={`${index}-${item.itemName}`}
               item={item}
               index={index}
+              lineStartIndex={lineStartIndex}
               baseCurrencyCode={baseCurrencyCode}
               showQuantityColumn={showQuantityColumn}
               showRateColumn={showRateColumn}
@@ -1112,7 +1352,9 @@ const QuotationBody = ({ lineItems, baseCurrencyCode, labels }) => {
 const QuotationTopBar = ({ logoUrl, documentType }) => (
   <div className={styles.topBar}>
     <img className={styles.logo} src={logoUrl} alt="Rivolx" />
-    <div className={styles.docTitle}>{documentType}</div>
+    <div className={styles.topBarRight}>
+      <div className={styles.docTitle}>{documentType}</div>
+    </div>
   </div>
 );
 
@@ -1126,6 +1368,7 @@ const QuotationHeader = ({
   quotationNumber,
   createdDate,
   validTillDate,
+  pageNumberLabel,
   totalLines,
   totalQty,
 }) => (
@@ -1167,6 +1410,13 @@ const QuotationHeader = ({
               {labels.validTillLabel}
             </span>
             <span className={styles.metaLineQuotValue}>{validTillDate}</span>
+          </div>
+        ) : null}
+        {toSafeString(pageNumberLabel) &&
+        toSafeString(pageNumberLabel) !== '1/1' ? (
+          <div className={styles.metaLineQuot}>
+            <span className={styles.metaLineQuotLabel}>Page</span>
+            <span className={styles.metaLineQuotValue}>{pageNumberLabel}</span>
           </div>
         ) : null}
         {labels?.showDetailTotals === true ? (
@@ -1319,6 +1569,9 @@ const QuotationPreviewPage = ({
   paymentSummary,
   totalLines,
   totalQty,
+  pageNumberLabel,
+  showFooter,
+  lineStartIndex,
 }) => (
   <div className={styles.page} style={PAGE_STYLE}>
     <QuotationTopBar logoUrl={logoUrl} documentType={documentType} />
@@ -1332,27 +1585,63 @@ const QuotationPreviewPage = ({
       quotationNumber={quotationNumber}
       createdDate={createdDate}
       validTillDate={validTillDate}
+      pageNumberLabel={pageNumberLabel}
       totalLines={totalLines}
       totalQty={totalQty}
     />
     <QuotationBody
       lineItems={lineItems}
       baseCurrencyCode={baseCurrencyCode}
-      labels={labels}
+      labels={{ ...labels, lineStartIndex }}
     />
-    <div className={styles.spacer} />
-    <QuotationFooter
-      showTotalPrice={showTotalPrice}
-      showPercentAmount={showPercentAmount}
-      totalLabel={totalLabel}
-      totalAmount={totalAmount}
-      labels={labels}
-      paymentSummary={paymentSummary}
-    />
+    {showFooter ? (
+      <div className={styles.pageTail}>
+        <div className={styles.spacer} />
+        <QuotationFooter
+          showTotalPrice={showTotalPrice}
+          showPercentAmount={showPercentAmount}
+          totalLabel={totalLabel}
+          totalAmount={totalAmount}
+          labels={labels}
+          paymentSummary={paymentSummary}
+        />
+      </div>
+    ) : (
+      <div className={styles.pageTailSpacer} />
+    )}
   </div>
 );
 
-export default QuotationPreviewPage;
+const QuotationPreviewDocument = ({ pages = [], ...view }) => {
+  const normalizedPages =
+    Array.isArray(pages) && pages.length > 0
+      ? pages
+      : [
+          {
+            lineItems: view.lineItems || [],
+            lineStartIndex: 0,
+            showFooter: true,
+            pageNumberLabel: '1/1',
+          },
+        ];
+
+  return (
+    <div className={styles.document}>
+      {normalizedPages.map((page, index) => (
+        <QuotationPreviewPage
+          key={`${index}-${page.pageNumberLabel}`}
+          {...view}
+          lineItems={page.lineItems}
+          lineStartIndex={page.lineStartIndex}
+          showFooter={page.showFooter}
+          pageNumberLabel={page.pageNumberLabel}
+        />
+      ))}
+    </div>
+  );
+};
+
+export default QuotationPreviewDocument;
 
 /* -------------------------------------------------------------------------- */
 /*  View-model assembly + HTML document generation.                           */
@@ -1568,7 +1857,7 @@ export const buildQuotationViewData = ({
   const effectiveShowTotalPrice =
     labels?.showTotalPrice === false ? false : showTotalPrice;
 
-  return {
+  const base = {
     logoUrl: resolvedCompanyInfo.logoUrl,
     documentType: labels.documentType,
     labels: {
@@ -1583,7 +1872,6 @@ export const buildQuotationViewData = ({
     quotationNumber: rawQuotationNumber.slice(0, 8).toUpperCase(),
     createdDate,
     validTillDate,
-    lineItems,
     totalLines,
     totalQty,
     baseCurrencyCode,
@@ -1592,6 +1880,20 @@ export const buildQuotationViewData = ({
     paymentSummary,
     showTotalPrice: effectiveShowTotalPrice,
     showPercentAmount,
+  };
+
+  const pages = buildPagedLineItems({
+    variant,
+    base,
+    lineItems,
+    showTotalPrice: effectiveShowTotalPrice,
+    paymentSummary,
+  });
+
+  return {
+    ...base,
+    lineItems,
+    pages,
     documentTitle,
   };
 };
@@ -1599,7 +1901,7 @@ export const buildQuotationViewData = ({
 export const buildQuotationPreviewMarkup = (options = {}) => {
   const view = buildQuotationViewData(options);
 
-  return renderToStaticMarkup(<QuotationPreviewPage {...view} />);
+  return renderToStaticMarkup(<QuotationPreviewDocument {...view} />);
 };
 
 /**
@@ -1616,7 +1918,7 @@ const buildDocumentShellCss = () => `
   html,
   body {
     width: ${A4_LAYOUT.widthMm}mm;
-    min-height: ${A4_LAYOUT.heightMm}mm;
+    height: ${A4_LAYOUT.heightMm}mm;
   }
 
   body {
@@ -1648,7 +1950,7 @@ export const buildQuotationDocumentHtml = ({
   ...options
 } = {}) => {
   const view = buildQuotationViewData({ ...options, variant });
-  const markup = renderToStaticMarkup(<QuotationPreviewPage {...view} />);
+  const markup = renderToStaticMarkup(<QuotationPreviewDocument {...view} />);
 
   return `<!doctype html>
 <html>

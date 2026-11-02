@@ -195,7 +195,9 @@ export const paginateRowsWithFooter = ({
  * Returns chunks of the shape
  *   { startIndex, endIndex, rowCount, usedPx, availablePx, includeFooter }
  * Guaranteed: at least one row per page (a row taller than a page overflows by
- * necessity rather than being dropped), and the last chunk is the footer page.
+ * necessity rather than being dropped). With `hasFooter` (default true), the
+ * last chunk is the footer page; with `hasFooter: false` every page is filled
+ * to the same budget.
  */
 export const paginateRowsByPixelHeight = ({
   rowHeightsPx = [],
@@ -204,6 +206,7 @@ export const paginateRowsByPixelHeight = ({
   pageSpacerPx = 0,
   pageFooterPx = 0,
   slackPx = 2,
+  hasFooter = true,
 }) => {
   const heights = (Array.isArray(rowHeightsPx) ? rowHeightsPx : []).map(
     (value) => {
@@ -218,9 +221,12 @@ export const paginateRowsByPixelHeight = ({
   const slack = clampPositive(slackPx, 0);
 
   // Non-final pages reserve the trailing spacer block; the final page reserves
-  // the taller footer block (terms + totals) instead.
-  const availAll = contentPx - overheadPx - spacerPx - slack;
-  const availLast = contentPx - overheadPx - footerPx - slack;
+  // the taller footer block (terms + totals) instead. Footer-less documents
+  // (hasFooter: false) use the full content box on every page.
+  const availAll =
+    contentPx - overheadPx - (hasFooter ? spacerPx : 0) - slack;
+  const availLast =
+    contentPx - overheadPx - (hasFooter ? footerPx : 0) - slack;
 
   if (heights.length === 0) {
     return [
@@ -230,7 +236,7 @@ export const paginateRowsByPixelHeight = ({
         rowCount: 0,
         usedPx: 0,
         availablePx: Math.max(0, availLast),
-        includeFooter: true,
+        includeFooter: hasFooter,
       },
     ];
   }
@@ -257,7 +263,7 @@ export const paginateRowsByPixelHeight = ({
         // leave at least one row for the footer page so the taller footer is
         // reserved on its own final page instead of overflowing the spacer.
         if (used + heights[i] > available) break;
-        if (!isFinalPage && i >= heights.length - 1) break;
+        if (hasFooter && !isFinalPage && i >= heights.length - 1) break;
       }
       used += heights[i];
       i += 1;
@@ -269,13 +275,17 @@ export const paginateRowsByPixelHeight = ({
       rowCount: i - start,
       usedPx: used,
       availablePx: available,
-      includeFooter: isFinalPage,
+      includeFooter: hasFooter ? isFinalPage : false,
     });
   }
 
   // Safety net for a row taller than the whole page: the final chunk is still
   // the footer page even though it necessarily overflows.
-  if (chunks.length > 0 && !chunks[chunks.length - 1].includeFooter) {
+  if (
+    hasFooter &&
+    chunks.length > 0 &&
+    !chunks[chunks.length - 1].includeFooter
+  ) {
     chunks[chunks.length - 1].includeFooter = true;
   }
 

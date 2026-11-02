@@ -41,7 +41,7 @@ EntryIcon.propTypes = { entry: PropTypes.object };
  */
 const Sub_FileSelectorList = ({
   entries,
-  selectedPath,
+  selectedPaths,
   mode,
   onOpenFolder,
   onSelect,
@@ -57,7 +57,7 @@ const Sub_FileSelectorList = ({
     <div className={styles.listBody}>
       {entries.map((entry) => {
         const isFolder = entry.type === 'folder';
-        const isSelected = entry.path === selectedPath;
+        const isSelected = selectedPaths.includes(entry.path);
         const selectable = mode === 'file' || entry.isImage;
         return (
           <div
@@ -90,7 +90,7 @@ const Sub_FileSelectorList = ({
 
 Sub_FileSelectorList.propTypes = {
   entries: PropTypes.array.isRequired,
-  selectedPath: PropTypes.string,
+  selectedPaths: PropTypes.arrayOf(PropTypes.string),
   mode: PropTypes.oneOf(['image', 'file']),
   onOpenFolder: PropTypes.func,
   onSelect: PropTypes.func,

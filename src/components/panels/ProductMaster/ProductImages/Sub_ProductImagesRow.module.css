@@ -15,10 +15,10 @@
 
 .uploadArea {
   width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  align-items: stretch;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 16px;
+  align-items: start;
 }
 
 .uploadCell {
@@ -26,15 +26,15 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  padding-bottom: 5px;
-  /* border-bottom: 1px solid #e2e8f0; */
-}
-
-.uploadCell:last-child {
-  padding-bottom: 0;
-  border-bottom: 0;
 }
 
 .uploadCell > * {
   width: 100%;
+}
+
+@media (max-width: 900px) {
+  .uploadArea {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
 }

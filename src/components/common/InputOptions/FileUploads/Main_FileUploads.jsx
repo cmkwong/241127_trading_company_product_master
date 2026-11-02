@@ -47,6 +47,7 @@ const Main_FileUploads = (props) => {
     compactButtonText = 'Select Files',
     tableCell = false,
     figmaStrip = false,
+    fluidPreviewRail = false,
     hoverPreview = false,
     enableSequenceEditor = true,
     showDownloadButton = true,
@@ -55,7 +56,7 @@ const Main_FileUploads = (props) => {
     downloadFileBaseName = 'files',
     downloadNameProductId = '',
     downloadNameImageType = '',
-    watermarkImagePath = '/assets/brand_logos/watermark_v1.png',
+    watermarkImagePath = '/assets/brand_logos/watermark_v2.png',
     fileUrlBase = '',
 
     // File bank: when provided, a "File Banks" button is shown in the drop
@@ -660,11 +661,13 @@ const Main_FileUploads = (props) => {
   // path-backed entry and feed it through the normal selection pipeline so
   // validation, preview and onChange all behave like a native pick.
   const handleSelectFromFileBank = useCallback(
-    (entry) => {
-      if (!entry || !entry.path) return;
+    (selection) => {
+      const list = Array.isArray(selection) ? selection : [selection];
+      const entries = list.filter((entry) => entry && entry.path);
+      if (entries.length === 0) return;
       setIsFileBankOpen(false);
-      handleFileSelection([
-        {
+      handleFileSelection(
+        entries.map((entry) => ({
           id: uuidv4(),
           name: getEntryDisplayName(entry),
           size: Number(entry.size) || 0,
@@ -672,8 +675,8 @@ const Main_FileUploads = (props) => {
           url: entry.url, // absolute static URL → previews without fileUrlBase
           storedPath: entry.path, // /public/... → stored verbatim (zero-copy)
           fromFileBank: true,
-        },
-      ]);
+        })),
+      );
     },
     [handleFileSelection],
   );
@@ -1250,6 +1253,7 @@ const Main_FileUploads = (props) => {
           compact={compact}
           tableCell={tableCell}
           figmaImageStrip={isFigmaStripMode}
+          fluidPreviewRail={fluidPreviewRail}
         >
           {renderPreviewContent(false)}
         </Main_DropZone>
@@ -1326,7 +1330,9 @@ const Main_FileUploads = (props) => {
           onClose={() => setIsFileBankOpen(false)}
           startPath={fileBankDirectoryPath}
           mode={mode === 'image' ? 'image' : 'file'}
+          allowMultiple={multiple}
           onSelect={handleSelectFromFileBank}
+          onSelectMultiple={handleSelectFromFileBank}
           onError={(error) => {
             console.error('File bank error:', error);
             onError('Could not open the file bank.');
@@ -1357,6 +1363,7 @@ Main_FileUploads.propTypes = {
   compactButtonText: PropTypes.string,
   tableCell: PropTypes.bool,
   figmaStrip: PropTypes.bool,
+  fluidPreviewRail: PropTypes.bool,
   hoverPreview: PropTypes.bool,
   enableSequenceEditor: PropTypes.bool,
   showDownloadButton: PropTypes.bool,

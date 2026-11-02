@@ -579,3 +579,92 @@
   white-space: nowrap;
 }
 
+.statusLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.statusActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.statusBtn {
+  height: 24px;
+  padding: 0 14px;
+  border: 1px solid #3d3d3d;
+  border-radius: 4px;
+  background: #2a2a2a;
+  color: #ddd;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.statusBtn:hover:not(:disabled) {
+  background: #333;
+}
+
+.statusBtn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.statusBtnPrimary {
+  border-color: #0a84ff;
+  background: #0a84ff;
+  color: #fff;
+}
+
+.statusBtnPrimary:hover:not(:disabled) {
+  background: #3a9bff;
+}
+
+/* Multiple-selection toggle (LHS-top of the nav bar). */
+.selectToggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #ddd;
+  cursor: pointer;
+  flex-shrink: 0;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.selectToggleInput {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  border: 1.5px solid #6a6a6a;
+  border-radius: 50%;
+  background: transparent;
+  position: relative;
+  cursor: pointer;
+}
+
+.selectToggleInput:checked {
+  border-color: #0a84ff;
+  background: #0a84ff;
+}
+
+.selectToggleInput:checked::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.navDivider {
+  width: 1px;
+  height: 20px;
+  background: #3d3d3d;
+  flex-shrink: 0;
+}
+

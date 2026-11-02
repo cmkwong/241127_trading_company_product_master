@@ -1,8 +1,8 @@
-import { buildCatalogDocumentHtml } from './catalogPreview';
+import { buildCatalogDocumentHtml } from './CatalogPreview';
 
 /**
  * Builds the standalone A4 HTML document for the Product Catalog. The markup
- * and styling live in `catalogPreview.jsx` / `catalogPreview.module.css`.
+ * and styling live in `CatalogPreview.jsx` / `CatalogPreview.module.css`.
  */
 export const buildCatalogA4Html = (options = {}) =>
   buildCatalogDocumentHtml(options);
@@ -75,4 +75,3 @@ export const printCatalogPreviewFrame = async (iframe, { title = '' } = {}) => {
   frameWindow.focus();
   frameWindow.print();
 };
-

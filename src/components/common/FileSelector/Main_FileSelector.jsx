@@ -42,6 +42,8 @@ const Main_FileSelector = ({
   mode = 'image',
   storage = null,
   onSelect,
+  onSelectMultiple,
+  allowMultiple = false,
   onError,
 }) => {
   const { token } = useAuthContext();
@@ -52,7 +54,8 @@ const Main_FileSelector = ({
   const [historyIndex, setHistoryIndex] = useState(0);
   const [viewMode, setViewMode] = useState('grid');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedPath, setSelectedPath] = useState('');
+  const [selectedPaths, setSelectedPaths] = useState([]);
+  const [multiSelect, setMultiSelect] = useState(false);
   const [entries, setEntries] = useState([]);
   const [folderCount, setFolderCount] = useState(0);
   const [fileCount, setFileCount] = useState(0);
@@ -71,7 +74,8 @@ const Main_FileSelector = ({
     setPath(initial);
     setHistory([initial]);
     setHistoryIndex(0);
-    setSelectedPath('');
+    setSelectedPaths([]);
+    setMultiSelect(allowMultiple);
     setSearchQuery('');
     setViewMode('grid');
     setPreviewEntry(null);
@@ -134,7 +138,7 @@ const Main_FileSelector = ({
       setHistory(nextHistory);
       setHistoryIndex(index);
       setPath(nextPath);
-      setSelectedPath('');
+      setSelectedPaths([]);
     },
     [history, historyIndex],
   );
@@ -144,7 +148,7 @@ const Main_FileSelector = ({
     const index = historyIndex - 1;
     setHistoryIndex(index);
     setPath(history[index]);
-    setSelectedPath('');
+    setSelectedPaths([]);
   }, [history, historyIndex]);
 
   const goForward = useCallback(() => {
@@ -152,7 +156,7 @@ const Main_FileSelector = ({
     const index = historyIndex + 1;
     setHistoryIndex(index);
     setPath(history[index]);
-    setSelectedPath('');
+    setSelectedPaths([]);
   }, [history, historyIndex]);
 
   const goUp = useCallback(() => {
@@ -168,11 +172,44 @@ const Main_FileSelector = ({
 
   const handleSelect = useCallback(
     (entry) => {
-      setSelectedPath(entry.path);
-      onSelect?.(entry);
+      // Single-select: pick immediately and let the caller close the window
+      // (the pre-existing click-to-confirm behaviour).
+      if (!multiSelect) {
+        setSelectedPaths([entry.path]);
+        onSelect?.(entry);
+        return;
+      }
+      // Multi-select: toggle the entry in/out of the working set; the user
+      // confirms the whole selection via the bottom-right Confirm button.
+      setSelectedPaths((prev) =>
+        prev.includes(entry.path)
+          ? prev.filter((path) => path !== entry.path)
+          : [...prev, entry.path],
+      );
     },
-    [onSelect],
+    [multiSelect, onSelect],
   );
+
+  const handleToggleMultiSelect = useCallback((next) => {
+    setMultiSelect(next);
+    // Turning multi-select off collapses any pending selection back to a single
+    // (last-picked) entry so single-click behaviour stays unambiguous.
+    if (!next) {
+      setSelectedPaths((prev) => (prev.length ? [prev[prev.length - 1]] : []));
+    }
+  }, []);
+
+  const handleConfirm = useCallback(() => {
+    const selected = selectedPaths
+      .map((path) => entries.find((entry) => entry.path === path))
+      .filter(Boolean);
+    if (selected.length === 0) return;
+    if (multiSelect && typeof onSelectMultiple === 'function') {
+      onSelectMultiple(selected);
+    } else {
+      onSelect?.(selected[0]);
+    }
+  }, [selectedPaths, entries, multiSelect, onSelect, onSelectMultiple]);
 
   // Escape to close.
   useEffect(() => {
@@ -217,6 +254,21 @@ const Main_FileSelector = ({
         </div>
 
         <div className={styles.navBar}>
+          {allowMultiple && (
+            <label
+              className={styles.selectToggle}
+              title="Select several files before confirming"
+            >
+              <input
+                type="checkbox"
+                className={styles.selectToggleInput}
+                checked={multiSelect}
+                onChange={(event) => handleToggleMultiSelect(event.target.checked)}
+              />
+              <span>Multiple selection</span>
+            </label>
+          )}
+          {allowMultiple && <span className={styles.navDivider} />}
           <div className={styles.navHistory}>
             <button
               type="button"
@@ -304,7 +356,7 @@ const Main_FileSelector = ({
             (viewMode === 'grid' ? (
               <Sub_FileSelectorGrid
                 entries={entries}
-                selectedPath={selectedPath}
+                selectedPaths={selectedPaths}
                 mode={mode}
                 onOpenFolder={handleOpenFolder}
                 onSelect={handleSelect}
@@ -313,7 +365,7 @@ const Main_FileSelector = ({
             ) : (
               <Sub_FileSelectorList
                 entries={entries}
-                selectedPath={selectedPath}
+                selectedPaths={selectedPaths}
                 mode={mode}
                 onOpenFolder={handleOpenFolder}
                 onSelect={handleSelect}
@@ -322,13 +374,41 @@ const Main_FileSelector = ({
         </div>
 
         <div className={styles.statusBar}>
-          <span className={styles.statusItems}>{itemCount} items</span>
-          {selectedPath && (
+          <span className={styles.statusLeft}>
+            <span className={styles.statusItems}>{itemCount} items</span>
+            {multiSelect && selectedPaths.length > 0 && (
+              <span className={styles.statusSelected}>
+                {selectedPaths.length} selected
+              </span>
+            )}
+          </span>
+          {allowMultiple ? (
+            <span className={styles.statusActions}>
+              <button
+                type="button"
+                className={styles.statusBtn}
+                onClick={onClose}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className={`${styles.statusBtn} ${styles.statusBtnPrimary}`}
+                onClick={handleConfirm}
+                disabled={selectedPaths.length === 0}
+              >
+                Confirm{selectedPaths.length > 0 ? ` (${selectedPaths.length})` : ''}
+              </button>
+            </span>
+          ) : (
             <span className={styles.statusSelected}>
-              Selected:{' '}
-              {getEntryDisplayName(
-                entries.find((entry) => entry.path === selectedPath),
-              ) || selectedPath.split('/').pop()}
+              {selectedPaths[0]
+                ? `Selected: ${
+                    getEntryDisplayName(
+                      entries.find((entry) => entry.path === selectedPaths[0]),
+                    ) || selectedPaths[0].split('/').pop()
+                  }`
+                : ''}
             </span>
           )}
         </div>
@@ -352,6 +432,8 @@ Main_FileSelector.propTypes = {
   mode: PropTypes.oneOf(['image', 'file']),
   storage: PropTypes.object,
   onSelect: PropTypes.func,
+  onSelectMultiple: PropTypes.func,
+  allowMultiple: PropTypes.bool,
   onError: PropTypes.func,
 };
 

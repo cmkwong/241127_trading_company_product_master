@@ -8,8 +8,11 @@ import {
   useEntityRows,
 } from '../../../../store/GeneralContext';
 import { useMasterContext } from '../../../../store/MasterContext';
-import { buildCatalogRows } from '../utils/catalogData';
-import { buildCatalogA4Html, printCatalogPreviewFrame } from '../utils/catalogPrint';
+import { buildCatalogRows, normalizeCatalogBundle } from '../utils/catalogData';
+import {
+  buildCatalogA4Html,
+  printCatalogPreviewFrame,
+} from '../utils/catalogPrint';
 
 const PRODUCT_SEARCH_HISTORY_KEY = 'product_sidebar_search_history';
 const MAX_SEARCH_HISTORY_ITEMS = 15;
@@ -68,18 +71,12 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
     products,
     selectedProductId,
     hydrateProductIcons,
-    getProductsByIds,
+    getCatalogDataByIds,
   } = useProductContext();
   const pageDataId = useEntityField('products', 'id');
   const pageKeywords = useEntityRows('products', 'product_keywords');
   const pageNames = useEntityRows('products', 'product_names');
-  const {
-    category,
-    productStatus,
-    productKeywords,
-    currencies,
-    masterDataMap,
-  } = useMasterContext();
+  const { category, productStatus, productKeywords } = useMasterContext();
   const [windowWidth, setWindowWidth] = useState(
     typeof window !== 'undefined' ? window.innerWidth : 1024,
   );
@@ -571,8 +568,18 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
       setIsCatalogPreviewOpen(true);
 
       try {
-        const products = await getProductsByIds(ids);
-        const rows = buildCatalogRows(products, { currencies, masterDataMap });
+        const catalogResponse = await getCatalogDataByIds(ids);
+        if (!catalogResponse?.ok) {
+          window.alert('Failed to load catalog data from server.');
+          setIsCatalogPreviewOpen(false);
+          return;
+        }
+
+        const catalogBundle = normalizeCatalogBundle(catalogResponse);
+        const rows = buildCatalogRows(catalogBundle.products, {
+          currencies: catalogBundle.currencies,
+          masterDataMap: catalogBundle.masterDataMap,
+        });
         if (rows.length === 0) {
           window.alert('No product data returned for the selected products.');
           setIsCatalogPreviewOpen(false);
@@ -582,6 +589,7 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
         setCatalogPreviewHtml(
           buildCatalogA4Html({
             rows,
+            baseCurrency: catalogBundle.baseCurrency,
             subtitle: `${rows.length} products · ${new Date().getFullYear()}`,
           }),
         );
@@ -593,7 +601,7 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
         setIsPreparingCatalog(false);
       }
     },
-    [getProductsByIds, currencies, masterDataMap, isPreparingCatalog],
+    [getCatalogDataByIds, isPreparingCatalog],
   );
 
   const handlePrintCatalog = useCallback(async () => {

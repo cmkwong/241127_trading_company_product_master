@@ -33,6 +33,8 @@ const Sub_ProductImagesRow = (props) => {
     if (normalized.includes('display')) return 1;
     if (normalized.includes('description')) return 2;
     if (normalized.includes('video')) return 3;
+    if (normalized.includes('catalog')) return 4;
+    if (normalized.includes('sku')) return 5;
     return 50;
   }, []);
 
@@ -228,6 +230,7 @@ const Sub_ProductImagesRow = (props) => {
               <Main_FileUploads
                 mode={isVideoType ? 'file' : 'image'}
                 figmaStrip
+                fluidPreviewRail
                 label={subType.name}
                 showDownloadButton
                 downloadEndpoint="http://localhost:3001/api/v1/trade_business/panel/products/data/images/download"
@@ -273,6 +276,7 @@ const Sub_ProductImagesRow = (props) => {
             <Main_FileUploads
               mode="image"
               figmaStrip
+              fluidPreviewRail
               label={`${
                 (productImageType || []).find(
                   (type) => type.id === mainImageTypeId,

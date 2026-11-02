@@ -1,0 +1,65 @@
+/* Catalog page header: brand icon (left) + title / header information and the
+   page number (right). Shared by every catalog page, including 2, 3, ... */
+
+.pageHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 80px;
+  margin-bottom: 14px;
+}
+
+.pageHeader,
+.pageHeader * {
+  box-sizing: border-box;
+}
+
+.brandLogo {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  flex: 0 0 auto;
+}
+
+.pageHeaderRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+  min-width: 0;
+  margin-left: auto;
+}
+
+.title {
+  font-family: 'Outfit', 'Inter', system-ui, sans-serif;
+  font-size: 28px;
+  line-height: 34px;
+  font-weight: 700;
+  color: #0c1e36;
+  white-space: nowrap;
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 11px;
+  line-height: 16px;
+  color: #64748b;
+  margin: 0;
+}
+
+.meta {
+  font-size: 10px;
+  line-height: 14px;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.pageNumber {
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 600;
+  color: #64748b;
+  margin-top: 2px;
+}

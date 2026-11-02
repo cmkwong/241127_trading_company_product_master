@@ -1,7 +1,7 @@
 import { useCallback, useRef } from 'react';
 
 const useWatermarkFile = ({
-  watermarkImagePath = '/assets/brand_logos/watermark_v1.png',
+  watermarkImagePath = '/assets/brand_logos/watermark_v2.png',
 } = {}) => {
   const watermarkImageCacheRef = useRef(null);
 
@@ -83,7 +83,9 @@ const useWatermarkFile = ({
 
         context.drawImage(watermarkImage, x, y, wmWidth, wmHeight);
 
-        const outputType = isImageSource ? sourceBlob.type : hintedType || 'image/png';
+        const outputType = isImageSource
+          ? sourceBlob.type
+          : hintedType || 'image/png';
 
         const watermarkedBlob = await new Promise((resolve) => {
           canvas.toBlob(

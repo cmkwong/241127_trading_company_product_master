@@ -37,6 +37,7 @@ const Main_DropZone = ({
   tableCell = false,
   figmaImageStrip = false,
   expandedPreview = false,
+  fluidPreviewRail = false,
 
   // File bank (optional): when provided, a "File Banks" button is shown in the
   // bottom-right of the upload prompt and opens the in-app picker.
@@ -252,7 +253,9 @@ const Main_DropZone = ({
               tableCell ? styles.tableCellPreviewRail : ''
             } ${
               figmaImageStrip ? styles.figmaImagePreviewRail : ''
-            } ${expandedPreview ? styles.expandedPreview : ''}`}
+            } ${expandedPreview ? styles.expandedPreview : ''} ${
+              figmaImageStrip && fluidPreviewRail ? styles.fluidPreviewRail : ''
+            }`}
           >
             {children}
           </div>
@@ -299,6 +302,7 @@ Main_DropZone.propTypes = {
   tableCell: PropTypes.bool,
   figmaImageStrip: PropTypes.bool,
   expandedPreview: PropTypes.bool,
+  fluidPreviewRail: PropTypes.bool,
 
   // File bank
   onOpenFileBank: PropTypes.func,

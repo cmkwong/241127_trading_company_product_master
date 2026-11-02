@@ -656,7 +656,11 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
    */
   const getProductsByIds = useCallback(
     async (ids = []) => {
-      const requestedIds = [...new Set((ids || []).map((id) => String(id || '').trim()).filter(Boolean))];
+      const requestedIds = [
+        ...new Set(
+          (ids || []).map((id) => String(id || '').trim()).filter(Boolean),
+        ),
+      ];
       if (requestedIds.length === 0) {
         return [];
       }
@@ -690,6 +694,118 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
       } catch (err) {
         console.error('getProductsByIds: failed to fetch products', err);
         return [];
+      }
+    },
+    [token, productBase64Config],
+  );
+
+  /**
+   * Fetch catalog bundle for selected ids using dedicated backend endpoint.
+   * Returns { products, currencies, masterDataMap } with safe defaults.
+   */
+  const getCatalogDataByIds = useCallback(
+    async (ids = [], { date, baseCurrency } = {}) => {
+      const requestedIds = [
+        ...new Set(
+          (ids || []).map((id) => String(id || '').trim()).filter(Boolean),
+        ),
+      ];
+
+      const emptyBundle = {
+        ok: true,
+        error: null,
+        products: [],
+        currencies: [],
+        baseCurrency: String(baseCurrency || '').trim() || 'USD',
+        date: String(date || '').trim() || '',
+        catalogImageType: null,
+        masterDataMap: { master_product_attributes: [] },
+      };
+
+      if (requestedIds.length === 0) {
+        return emptyBundle;
+      }
+
+      const params = { ids: requestedIds.join(',') };
+      if (date) {
+        params.date = date;
+      }
+      if (baseCurrency) {
+        params.baseCurrency = baseCurrency;
+      }
+
+      try {
+        const response = await apiGet(
+          'http://localhost:3001/api/v1/trade_business/panel/products/data/catalogData',
+          {
+            token,
+            params,
+          },
+        );
+
+        const rawBundle = {
+          products: Array.isArray(response?.products) ? response.products : [],
+          currencies: Array.isArray(response?.currencies)
+            ? response.currencies
+            : [],
+          baseCurrency: String(response?.baseCurrency || '').trim() || 'USD',
+          date: String(response?.date || '').trim() || '',
+          catalogImageType:
+            response?.catalogImageType &&
+            typeof response.catalogImageType === 'object'
+              ? response.catalogImageType
+              : null,
+          masterDataMap:
+            response?.masterDataMap &&
+            typeof response.masterDataMap === 'object'
+              ? response.masterDataMap
+              : { master_product_attributes: [] },
+        };
+
+        releaseObjectUrls(catalogUrlRegistryRef.current);
+        const urlRegistry = [];
+        const processedBundle = recursiveProcess_base64_to_objectUrl(
+          rawBundle,
+          'root',
+          productBase64Config,
+          urlRegistry,
+        );
+        catalogUrlRegistryRef.current = urlRegistry;
+
+        const products = Array.isArray(processedBundle?.products)
+          ? processedBundle.products
+          : [];
+        const currencies = Array.isArray(processedBundle?.currencies)
+          ? processedBundle.currencies
+          : [];
+        const masterDataMap =
+          processedBundle?.masterDataMap &&
+          typeof processedBundle.masterDataMap === 'object'
+            ? processedBundle.masterDataMap
+            : { master_product_attributes: [] };
+
+        return {
+          ok: true,
+          error: null,
+          products,
+          currencies,
+          baseCurrency: rawBundle.baseCurrency,
+          date: rawBundle.date,
+          catalogImageType: rawBundle.catalogImageType,
+          masterDataMap,
+        };
+      } catch (err) {
+        console.error('getCatalogDataByIds: failed to fetch catalog data', err);
+        return {
+          ok: false,
+          error: err,
+          products: [],
+          currencies: [],
+          baseCurrency: String(baseCurrency || '').trim() || 'USD',
+          date: String(date || '').trim() || '',
+          catalogImageType: null,
+          masterDataMap: { master_product_attributes: [] },
+        };
       }
     },
     [token, productBase64Config],
@@ -915,6 +1031,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
       getProductData,
       getAllProducts,
       getProductsByIds,
+      getCatalogDataByIds,
       updateProducts,
       refreshProductList,
       hydrateProductIcons,
@@ -946,6 +1063,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
       getProductData,
       getAllProducts,
       getProductsByIds,
+      getCatalogDataByIds,
       updateProducts,
       refreshProductList,
       hydrateProductIcons,

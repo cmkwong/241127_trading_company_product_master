@@ -31,7 +31,7 @@ const DEFAULT_COMPANY_NAME = 'Rivolx Limited';
 const DEFAULT_COMPANY_ADDRESS =
   "RM A, 19/F MAX SHARE CTR 367-373 KING'S RD NORTH POINT, HONG KONG, China, Hong Kong";
 const DEFAULT_CONTACT_PERSON = 'Chris Cheung';
-const DEFAULT_COMPANY_LOGO_URL = '/assets/brand_logos/watermark_v1.png';
+const DEFAULT_COMPANY_LOGO_URL = '/assets/brand_logos/watermark_v2.png';
 const QUOTATION_VALID_DAYS = 15;
 const DEFAULT_DOWNPAYMENT_PERCENT = 30;
 const A4_FRAME_PX = getA4FramePx();
@@ -110,7 +110,7 @@ const QUOTATION_LABELS = {
   termsTitle: 'Terms and Conditions',
   termsLines: [
     'Work will resume after advance payment.',
-    'If any custom tax charge which is not included.',
+    'If any custom tax charge which is not included. (DDP Exception)',
     'Preliminary quotes only. Mass production pricing to be re-quoted after sampling.',
   ],
   showPricingColumns: true,
@@ -1010,7 +1010,8 @@ const measureDocumentLayout = ({ base, lineItems }) => {
 
     const pageStyle = window.getComputedStyle(pageWithRows);
     const contentTop =
-      pageWithRows.getBoundingClientRect().top + parseFloat(pageStyle.paddingTop);
+      pageWithRows.getBoundingClientRect().top +
+      parseFloat(pageStyle.paddingTop);
     const tbody = pageWithRows.querySelector('tbody');
     const pageOverheadPx = tbody
       ? tbody.getBoundingClientRect().top - contentTop
@@ -1055,7 +1056,7 @@ const buildLayoutSignature = ({ variant, base, lineItems }) => {
       [
         toSafeString(item?.itemName),
         (Array.isArray(item?.details) ? item.details : []).join('|'),
-        (Array.isArray(item?.imageUrls) ? item.imageUrls.length : 0),
+        Array.isArray(item?.imageUrls) ? item.imageUrls.length : 0,
         Number(item?.discountPercent) > 0 ? 1 : 0,
       ].join('\u0001'),
     )

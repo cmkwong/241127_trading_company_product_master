@@ -1,15 +1,11 @@
 // Pure helpers that turn full product records (as returned by
 // `getProductsByIds`) into the rows rendered by the Product Catalog A4
-// printout. No React / no DOM here — `catalogPreview.jsx` consumes these.
+// printout. No React / no DOM here — `CatalogPreview.jsx` consumes these.
 
 import { formatMoney } from '../../../../utils/money';
-import {
-  buildCurrencyCodeById,
-  buildNormalizedCurrencies,
-} from '../../SalesQuotation/utils/quotationTotals';
 
 const MAX_ATTRIBUTE_ROWS = 4;
-const MAX_IMAGE_THUMBS = 4;
+const MAX_IMAGE_THUMBS = 3;
 const MAX_PRICE_ROWS = 4;
 
 const toNumberOrNull = (value) => {
@@ -25,10 +21,6 @@ const toTrimmedString = (value) => String(value || '').trim();
 /** Drop rows flagged for deletion by the product editor. */
 const activeRows = (rows) =>
   (Array.isArray(rows) ? rows : []).filter((row) => !row?._delete);
-
-/** Build a { id: code } map from the MasterContext currencies list. */
-const buildCurrencyCodeMap = (currencies) =>
-  buildCurrencyCodeById(buildNormalizedCurrencies(currencies));
 
 const firstNonEmptyName = (row) =>
   toTrimmedString(row?.name || row?.value || row?.label);
@@ -101,22 +93,22 @@ const sortImages = (images) => {
     }
     const aOrder = Number(a?.display_order);
     const bOrder = Number(b?.display_order);
-    const aOrderVal = Number.isFinite(aOrder) ? aOrder : Number.MAX_SAFE_INTEGER;
-    const bOrderVal = Number.isFinite(bOrder) ? bOrder : Number.MAX_SAFE_INTEGER;
+    const aOrderVal = Number.isFinite(aOrder)
+      ? aOrder
+      : Number.MAX_SAFE_INTEGER;
+    const bOrderVal = Number.isFinite(bOrder)
+      ? bOrder
+      : Number.MAX_SAFE_INTEGER;
     return aOrderVal - bOrderVal;
   });
 };
 
-const getMainImageUrl = (product) => {
-  const images = sortImages(product?.product_images);
-  const main = images[0];
-  return toTrimmedString(main?.image_url);
-};
+const getMainImageUrl = (product) => toTrimmedString(product?.icon_url);
 
 const getThumbImageUrls = (product) => {
   const images = sortImages(product?.product_images);
   return images
-    .slice(1, 1 + MAX_IMAGE_THUMBS)
+    .slice(0, MAX_IMAGE_THUMBS)
     .map((img) => toTrimmedString(img?.image_url))
     .filter(Boolean);
 };
@@ -166,7 +158,7 @@ const getAttributes = (product, masterDataMap) => {
  *   by_single_price -> single MOQ line, min ~ max
  *   by_variants     -> grouped price points with variant counts
  */
-const buildPriceCell = (product, currencyCodeMap) => {
+const buildPriceCell = (product) => {
   const mode = toTrimmedString(product?.selling_by_mode) || 'by_qty';
   const empty = { mode, rows: [] };
 
@@ -175,7 +167,6 @@ const buildPriceCell = (product, currencyCodeMap) => {
       .map((tier) => ({
         minOrderQty: toNumberOrNull(tier?.min_order_qty),
         salePrice: toNumberOrNull(tier?.sale_price),
-        code: currencyCodeMap[toTrimmedString(tier?.currency_id)] || '',
       }))
       .filter(
         (tier) =>
@@ -195,8 +186,7 @@ const buildPriceCell = (product, currencyCodeMap) => {
       const label = isLast
         ? `${tier.minOrderQty}+`
         : `${tier.minOrderQty} ~ ${nextMin - 1}`;
-      const code = tier.code ? `${tier.code} ` : '';
-      return { label, value: `${code}${formatMoney(tier.salePrice)}` };
+      return { label, value: formatMoney(tier.salePrice) };
     });
 
     return { mode, rows };
@@ -205,21 +195,16 @@ const buildPriceCell = (product, currencyCodeMap) => {
   if (mode === 'by_single_price') {
     const min = toNumberOrNull(product?.sale_single_price_min);
     const max = toNumberOrNull(product?.sale_single_price_max);
-    const code =
-      currencyCodeMap[
-        toTrimmedString(product?.sale_single_price_currency_id)
-      ] || '';
     const moq = toNumberOrNull(product?.min_order_qty);
 
     if (min === null) {
       return empty;
     }
 
-    const codePrefix = code ? `${code} ` : '';
     const showRange = max !== null && max !== min;
     const value = showRange
-      ? `${codePrefix}${formatMoney(min)} ~ ${formatMoney(max)}`
-      : `${codePrefix}${formatMoney(min)}`;
+      ? `${formatMoney(min)} ~ ${formatMoney(max)}`
+      : formatMoney(min);
     const label = moq !== null && moq > 0 ? `${moq} pcs` : '';
 
     return { mode, rows: [{ label, value }] };
@@ -229,7 +214,6 @@ const buildPriceCell = (product, currencyCodeMap) => {
   const costs = activeRows(product?.product_costs)
     .map((cost) => ({
       price: toNumberOrNull(cost?.sales_price),
-      code: currencyCodeMap[toTrimmedString(cost?.sales_currency_id)] || '',
     }))
     .filter((cost) => cost.price !== null);
 
@@ -239,20 +223,18 @@ const buildPriceCell = (product, currencyCodeMap) => {
 
   const grouped = new Map();
   costs.forEach((cost) => {
-    const key = `${cost.code}|${cost.price}`;
-    if (!grouped.has(key)) {
-      grouped.set(key, { price: cost.price, code: cost.code, count: 0 });
+    if (!grouped.has(cost.price)) {
+      grouped.set(cost.price, { price: cost.price, count: 0 });
     }
-    grouped.get(key).count += 1;
+    grouped.get(cost.price).count += 1;
   });
 
   const rows = [...grouped.values()]
     .sort((a, b) => a.price - b.price)
     .slice(0, MAX_PRICE_ROWS)
     .map((group) => {
-      const code = group.code ? `${group.code} ` : '';
       const label = group.count === 1 ? '1 var.' : `${group.count} var.`;
-      return { label, value: `${code}${formatMoney(group.price)}` };
+      return { label, value: formatMoney(group.price) };
     });
 
   return { mode, rows };
@@ -268,9 +250,33 @@ const buildSkuLabel = (skus) => {
   return `SKU: ${skus[0]} (+${skus.length - 1})`;
 };
 
-export const buildCatalogRow = (product, { currencies, masterDataMap } = {}) => {
-  const currencyCodeMap = buildCurrencyCodeMap(currencies);
-  const priceCell = buildPriceCell(product, currencyCodeMap);
+/**
+ * Normalize backend catalog bundle payload to keep builder calls resilient.
+ */
+export const normalizeCatalogBundle = (payload = {}) => {
+  const source = payload && typeof payload === 'object' ? payload : {};
+
+  return {
+    products: Array.isArray(source.products) ? source.products : [],
+    currencies: Array.isArray(source.currencies) ? source.currencies : [],
+    baseCurrency: toTrimmedString(source.baseCurrency) || 'USD',
+    date: toTrimmedString(source.date),
+    catalogImageType:
+      source.catalogImageType && typeof source.catalogImageType === 'object'
+        ? source.catalogImageType
+        : null,
+    masterDataMap:
+      source.masterDataMap && typeof source.masterDataMap === 'object'
+        ? source.masterDataMap
+        : { master_product_attributes: [] },
+  };
+};
+
+export const buildCatalogRow = (
+  product,
+  { masterDataMap } = {},
+) => {
+  const priceCell = buildPriceCell(product);
 
   return {
     id: toTrimmedString(product?.id),
@@ -296,5 +302,3 @@ export const chunkRows = (rows = [], size = 10) => {
   }
   return chunks;
 };
-
-

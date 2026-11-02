@@ -217,6 +217,11 @@
   width: 1080px;
 }
 
+.figmaImageStrip .fluidPreviewRail {
+  width: 100%;
+  justify-content: flex-start;
+}
+
 .figmaImageStrip .filePreviewContainer {
   display: flex;
   flex-direction: row;

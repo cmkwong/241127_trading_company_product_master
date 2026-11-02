@@ -43,7 +43,7 @@ const SupplierSidebar = ({
     selectedSupplierId,
     setSelectedSupplierId,
   } = useSupplierContext();
-  const { supplierType, services } = useMasterContext();
+  const { supplierType } = useMasterContext();
   const pageSupplierId = useEntityField('supplier', 'id');
   const pageSupplierName = useEntityField('supplier', 'name');
   const pageSupplierCode = useEntityField('supplier', 'supplier_code');
@@ -424,64 +424,6 @@ const SupplierSidebar = ({
     [formatDateTime, formatSupplierTypeLabel],
   );
 
-  const getSupplierExpandedSubRows = useCallback(
-    (supplier) => {
-      const supplierServices = supplier?.supplier_services || [];
-
-      return supplierServices.map((service, index) => {
-        const matchedService = (services || []).find(
-          (item) => item.id === service?.service_id,
-        );
-
-        const serviceName =
-          matchedService?.service_name ||
-          matchedService?.label ||
-          matchedService?.name ||
-          `Service ${index + 1}`;
-
-        const files = (service?.supplier_service_files || [])
-          .filter((file) => typeof file?.file_url === 'string')
-          .map((file) => ({
-            type: 'link',
-            href: file.file_url,
-            text: file?.file_name || file?.file_url || '',
-          }));
-
-        return {
-          title: serviceName,
-          fields: [
-            {
-              label: 'Service Type',
-              value: serviceName,
-            },
-            {
-              label: 'HyperLinks',
-              value:
-                String(service?.link || '').trim().length > 0
-                  ? [
-                      {
-                        type: 'link',
-                        href: service.link,
-                        text: service.link,
-                      },
-                    ]
-                  : [],
-            },
-            {
-              label: 'Remarks',
-              value: service?.remark || '',
-            },
-            {
-              label: 'Files',
-              value: files,
-            },
-          ],
-        };
-      });
-    },
-    [services],
-  );
-
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const handleResize = () => {
@@ -516,7 +458,6 @@ const SupplierSidebar = ({
           getItemTitle={getSupplierName}
           getItemRows={getSupplierRows}
           getExpandedRows={getSupplierExpandedRows}
-          getExpandedSubRows={getSupplierExpandedSubRows}
           getItemIconAlt={getSupplierName}
           exportFileName="suppliers_filtered_list"
           exportSheetName="Suppliers"

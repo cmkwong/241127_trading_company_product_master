@@ -25,7 +25,7 @@ GridTileIcon.propTypes = { entry: PropTypes.object };
  */
 const Sub_FileSelectorGrid = ({
   entries,
-  selectedPath,
+  selectedPaths,
   mode,
   onOpenFolder,
   onSelect,
@@ -35,7 +35,7 @@ const Sub_FileSelectorGrid = ({
     <div className={styles.grid}>
       {entries.map((entry) => {
         const isFolder = entry.type === 'folder';
-        const isSelected = entry.path === selectedPath;
+        const isSelected = selectedPaths.includes(entry.path);
         const selectable = mode === 'file' || entry.isImage;
         return (
           <button
@@ -96,7 +96,7 @@ const Sub_FileSelectorGrid = ({
 
 Sub_FileSelectorGrid.propTypes = {
   entries: PropTypes.array.isRequired,
-  selectedPath: PropTypes.string,
+  selectedPaths: PropTypes.arrayOf(PropTypes.string),
   mode: PropTypes.oneOf(['image', 'file']),
   onOpenFolder: PropTypes.func,
   onSelect: PropTypes.func,

@@ -207,7 +207,7 @@ const Main_ViewTables = ({
                       {...(rowDataAttr ? { [rowDataAttr]: key } : {})}
                       tabIndex={rowTabIndex}
                       className={combinedRowClassName}
-                      onClick={() => onRowClick?.(row, rowIndex, key)}
+                      onClick={(event) => onRowClick?.(row, rowIndex, key, event)}
                       onDoubleClick={(event) =>
                         onRowDoubleClick?.(event, row, rowIndex, key)
                       }

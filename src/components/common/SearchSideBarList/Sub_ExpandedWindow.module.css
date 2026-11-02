@@ -233,12 +233,53 @@
   background: var(--color-surface-subtle);
 }
 
-.overlayDataRow:hover {
+/* Row hover indicator. Main_ViewTables `.cell` paints its own white background
+   over the <tr>, so the tint must be applied to the cells directly. */
+.overlayTableScrollInner tbody tr:hover > td {
   background: var(--color-surface-blue-hover);
 }
 
-.overlaySelectedRow {
-  background: var(--color-surface-blue-selected) !important;
+/* Selected row wins over hover (declared after so it takes precedence). */
+.overlayTableScrollInner tbody tr.overlaySelectedRow > td {
+  background: var(--color-surface-blue-selected);
+}
+
+/* Floating "Open" action, absolutely positioned at the bottom-right of the
+   Icon cell (`.cell` is position: relative). Revealed on row hover / keyboard
+   focus. */
+.overlayRowOpenButton {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 22px;
+  padding: 0 8px;
+  border: 1px solid var(--color-blue-soft-2);
+  border-radius: 4px;
+  background: var(--color-white);
+  color: var(--color-blue-deep);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.18);
+  transition: opacity 0.12s ease;
+}
+
+.overlayDataRow:hover .overlayRowOpenButton,
+.overlayRowOpenButton:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.overlayRowOpenButton:hover {
+  background: var(--color-surface-blue-light);
+  border-color: var(--color-blue-border-bright);
 }
 
 .overlayIconCell {
@@ -277,6 +318,10 @@
   border-radius: 2px;
   border: 1px solid var(--color-border-slate-lighter);
   background: var(--color-white);
+}
+
+.overlayIconButton:hover .overlayIconImage {
+  border-color: var(--color-blue-soft-2);
 }
 
 .overlayColIcon {
@@ -439,7 +484,7 @@
 }
 
 .imagePreviewModal {
-  position: relative;
+  /* position: relative; */
   max-width: min(1200px, 96vw);
   max-height: 92vh;
   background: var(--color-surface-dark);

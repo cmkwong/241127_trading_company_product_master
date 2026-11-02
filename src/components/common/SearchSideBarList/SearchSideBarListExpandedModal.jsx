@@ -705,70 +705,8 @@ const SearchSideBarListExpandedModal = ({
     return <span>{String(line)}</span>;
   };
 
-  const renderCellContent = (value, itemOrId, column) => {
-    const keyBase =
-      typeof itemOrId === 'object'
-        ? getItemId(itemOrId) || 'item'
-        : String(itemOrId || 'item');
-
-    if (column === 'Icon') {
-      const iconUrl = String(value || '').trim();
-      if (!iconUrl) {
-        return <span className={expandedStyles.expandedCellEmpty}>-</span>;
-      }
-
-      return (
-        <button
-          type="button"
-          className={expandedStyles.overlayIconButton}
-          onClick={(event) => {
-            event.stopPropagation();
-            setPreviewImage({
-              src: iconUrl,
-              alt: getItemIconAlt(itemOrId) || 'icon',
-            });
-          }}
-          onMouseEnter={(event) =>
-            handleIconMouseEnter(
-              event,
-              iconUrl,
-              getItemIconAlt(itemOrId) || 'icon',
-            )
-          }
-          onMouseMove={handleIconMouseMove}
-          onMouseLeave={handleIconMouseLeave}
-          title="Hover to preview, click to zoom"
-        >
-          <img
-            src={iconUrl}
-            alt={getItemIconAlt(itemOrId) || 'icon'}
-            className={expandedStyles.overlayIconImage}
-          />
-        </button>
-      );
-    }
-
-    if (column === 'Select') {
-      const itemKey =
-        typeof itemOrId === 'object'
-          ? toRowKey(getItemId(itemOrId))
-          : toRowKey(itemOrId);
-
-      return (
-        <input
-          type="checkbox"
-          checked={Boolean(selectedRowKeys[itemKey])}
-          onChange={(event) => {
-            event.stopPropagation();
-            toggleRowSelection(itemKey);
-          }}
-          onClick={(event) => event.stopPropagation()}
-          className={expandedStyles.selectCheckbox}
-          aria-label={`Select row ${itemKey}`}
-        />
-      );
-    }
-
+  // Render the content for a cell's value, handling multi-line and special cases like images
+  const renderValueContent = (value, column, keyBase) => {
     const lines = toArray(value);
     if (lines.length === 0) {
       return <span className={expandedStyles.expandedCellEmpty}>-</span>;
@@ -796,6 +734,102 @@ const SearchSideBarListExpandedModal = ({
         })}
       </div>
     );
+  };
+
+  const renderCellContent = (value, itemOrId, column) => {
+    const keyBase =
+      typeof itemOrId === 'object'
+        ? getItemId(itemOrId) || 'item'
+        : String(itemOrId || 'item');
+
+    if (column === 'Icon') {
+      const iconUrl = String(value || '').trim();
+      const openLabel = `Open ${getItemTitle(itemOrId) || 'item'}`;
+      const openButton = (
+        <button
+          type="button"
+          className={expandedStyles.overlayRowOpenButton}
+          onClick={(event) => {
+            event.stopPropagation();
+            handleRowClick(itemOrId);
+          }}
+          onDoubleClick={(event) => event.stopPropagation()}
+          title={openLabel}
+          aria-label={openLabel}
+        >
+          Open
+          <span aria-hidden="true">↗</span>
+        </button>
+      );
+
+      if (!iconUrl) {
+        return (
+          <>
+            <span className={expandedStyles.expandedCellEmpty}>-</span>
+            {openButton}
+          </>
+        );
+      }
+
+      return (
+        <>
+          <button
+            type="button"
+            className={expandedStyles.overlayIconButton}
+            onClick={(event) => {
+              event.stopPropagation();
+              setPreviewImage({
+                src: iconUrl,
+                alt: getItemIconAlt(itemOrId) || 'icon',
+              });
+            }}
+            onDoubleClick={(event) => event.stopPropagation()}
+            onMouseEnter={(event) =>
+              handleIconMouseEnter(
+                event,
+                iconUrl,
+                getItemIconAlt(itemOrId) || 'icon',
+              )
+            }
+            onMouseMove={handleIconMouseMove}
+            onMouseLeave={handleIconMouseLeave}
+            title="Hover to preview, click to zoom"
+          >
+            <img
+              src={iconUrl}
+              alt={getItemIconAlt(itemOrId) || 'icon'}
+              className={expandedStyles.overlayIconImage}
+            />
+          </button>
+          {openButton}
+        </>
+      );
+    }
+
+    if (column === 'Select') {
+      const itemKey =
+        typeof itemOrId === 'object'
+          ? toRowKey(getItemId(itemOrId))
+          : toRowKey(itemOrId);
+
+      return (
+        <div className={expandedStyles.overlaySelectCell}>
+          <input
+            type="checkbox"
+            checked={Boolean(selectedRowKeys[itemKey])}
+            onChange={(event) => {
+              event.stopPropagation();
+              toggleRowSelection(itemKey);
+            }}
+            onClick={(event) => event.stopPropagation()}
+            className={expandedStyles.selectCheckbox}
+            aria-label={`Select row ${itemKey}`}
+          />
+        </div>
+      );
+    }
+
+    return renderValueContent(value, column, keyBase);
   };
 
   const renderSubRows = (item, itemId) => {
@@ -961,15 +995,16 @@ const SearchSideBarListExpandedModal = ({
         selectedRowClassName={expandedStyles.overlaySelectedRow}
         getIsRowSelected={(_, __, key) => toRowKey(selectedItemId) === key}
         onRowClick={(item, _rowIndex, rowKey, event) => {
-          const isCheckboxTarget =
-            event?.target instanceof HTMLInputElement &&
-            event.target.type === 'checkbox';
-
-          if (isCheckboxTarget) {
+          if (event?.detail > 1) return;
+          const target = event?.target;
+          if (
+            target instanceof Element &&
+            target.closest('input, button, a, select, textarea, label')
+          ) {
             return;
           }
-
-          handleRowClick(item, rowKey);
+          if (!window.getSelection()?.isCollapsed) return;
+          toggleRowSelection(rowKey ?? getItemId(item));
         }}
         onRowDoubleClick={(event, _item, _rowIndex, key) => {
           event.stopPropagation();

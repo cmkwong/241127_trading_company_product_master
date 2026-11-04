@@ -6,6 +6,10 @@ export const FILE_SERVER_BASE_URL = 'http://localhost:3001';
 
 export const HOME_PAGE_SIZE = 24;
 
+/** Number of products requested from the collection endpoints; the front-end
+ * decides how many of these to actually display. */
+export const HOME_COLLECTION_SIZE = 10;
+
 export const toAbsoluteImageUrl = (url) => {
   if (!url) return '';
   if (/^https?:\/\//i.test(url)) return url;
@@ -19,24 +23,48 @@ const toFiniteNumber = (value) => {
 
 /**
  * Map a server product detail to the shape HomeProductCard expects.
- * Missing price fields are left null so the card can render "—".
+ *
+ * The server now returns the flat home-page card template
+ * (`product_card.js`), but this mapper still tolerates the older nested shape
+ * (`{ name, mainIconImage, price: { min, max, display }, minOrderQty }`) so an
+ * out-of-sync server build cannot break the page.
  */
 export const mapProductDetailToCard = (detail) => {
   const price = detail?.price || {};
   const categoryIds = Array.isArray(detail?.categoryIds)
     ? detail.categoryIds
     : [];
+  const image = detail?.image ?? detail?.mainIconImage;
 
   return {
     id: detail?.id,
     name: detail?.name || 'Untitled product',
-    image: toAbsoluteImageUrl(detail?.mainIconImage),
-    priceFrom: toFiniteNumber(price.min),
-    priceTo: toFiniteNumber(price.max),
-    priceDisplay: price.display || '',
-    moq: toFiniteNumber(detail?.minOrderQty),
+    image: toAbsoluteImageUrl(image),
+    priceFrom: toFiniteNumber(detail?.priceFrom ?? price.min),
+    priceTo: toFiniteNumber(detail?.priceTo ?? price.max),
+    priceDisplay: detail?.priceDisplay ?? price.display ?? '',
+    moq: toFiniteNumber(detail?.moq ?? detail?.minOrderQty),
     categoryIds,
-    categoryId: categoryIds[0] ?? null,
+    categoryId: detail?.categoryId ?? categoryIds[0] ?? null,
+  };
+};
+
+/**
+ * Map a server product detail to the compact shape the home-page
+ * "Recommendation" / "New Arrivals" mini cards expect (`ProductCollections`).
+ * `price` is always a number so callers can safely call `.toFixed()`.
+ */
+export const mapProductDetailToMiniCard = (detail) => {
+  const card = mapProductDetailToCard(detail);
+  return {
+    id: card.id,
+    name: card.name,
+    image: card.image,
+    price: card.priceFrom ?? 0,
+    priceDisplay: card.priceDisplay,
+    moq: card.moq,
+    categoryIds: card.categoryIds,
+    categoryId: card.categoryId,
   };
 };
 
@@ -95,6 +123,42 @@ export const fetchProductsByCategory = async (
     total: Number(pagination.total) || details.length,
     hasMore: Boolean(pagination.hasMore),
   };
+};
+
+/**
+ * Fetch the home-page "Recommendation" products. The server resolves the user
+ * (or guest) from the token, so only the token and an optional `limit` are sent.
+ */
+export const fetchRecommendedProducts = async (
+  token,
+  { limit = HOME_COLLECTION_SIZE } = {},
+) => {
+  const response = await apiGet(`${HOME_API_BASE}/products/recommendations`, {
+    token,
+    params: [['limit', limit]],
+  });
+  const details = Array.isArray(response?.productDetails)
+    ? response.productDetails
+    : [];
+  return details;
+};
+
+/**
+ * Fetch the home-page "New Arrivals" products (created within the last 2
+ * months, randomly selected).
+ */
+export const fetchNewArrivals = async (
+  token,
+  { limit = HOME_COLLECTION_SIZE } = {},
+) => {
+  const response = await apiGet(`${HOME_API_BASE}/products/new-arrivals`, {
+    token,
+    params: [['limit', limit]],
+  });
+  const details = Array.isArray(response?.productDetails)
+    ? response.productDetails
+    : [];
+  return details;
 };
 
 /**

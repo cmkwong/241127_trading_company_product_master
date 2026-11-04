@@ -60,7 +60,9 @@
 }
 
 .miniInfo {
-  padding: 5px 6px 6px;
+  padding: 5px 10px 6px;
+  display: flex;
+  justify-content: space-between;
 }
 
 .miniPrice {
@@ -72,6 +74,13 @@
 .miniMoq {
   color: #7c8a99;
   font-size: 10px;
+}
+
+.emptyText {
+  color: #7c8a99;
+  font-size: 12px;
+  text-align: center;
+  padding: 12px 0;
 }
 
 @media (max-width: 1300px) {

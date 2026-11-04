@@ -9,6 +9,7 @@ import {
 } from 'react';
 import { apiDelete, apiGet, apiPatch, apiPost } from '../utils/crud';
 import { processChangesWithBase64 } from '../utils/objectUrlUtils';
+import { cleanupNestedInternalFlags } from '../utils/contextDataUtils';
 import { toSafeString } from '../components/panels/SalesQuotation/utils/quotationTotals';
 import {
   readJson,
@@ -68,6 +69,99 @@ const createNewPurchaseRequest = () => ({
   purchase_product_details: [],
   purchase_service_details: [],
 });
+
+const clonePurchaseRequestForDuplication = (sourceRequest) => {
+  const source = cleanupNestedInternalFlags(sourceRequest || {});
+  const idMap = new Map();
+
+  const collectRowIds = (value) => {
+    if (Array.isArray(value)) {
+      value.forEach((item) => {
+        if (item?._delete) return;
+        collectRowIds(item);
+      });
+      return;
+    }
+
+    if (!value || typeof value !== 'object') return;
+
+    const id = String(value.id || '').trim();
+    if (id && !idMap.has(id)) {
+      idMap.set(id, newId());
+    }
+
+    Object.values(value).forEach(collectRowIds);
+  };
+
+  const cloneValue = (value) => {
+    if (Array.isArray(value)) {
+      return value
+        .filter((item) => !item?._delete)
+        .map((item) => cloneValue(item));
+    }
+
+    if (!value || typeof value !== 'object') return value;
+
+    return Object.entries(value).reduce((copy, [key, nestedValue]) => {
+      if (
+        key === '_delete' ||
+        key === '_base64_changed' ||
+        key === '_objUrl' ||
+        key === 'created_at' ||
+        key === 'updated_at'
+      ) {
+        return copy;
+      }
+
+      if (key === 'id') {
+        const replacementId = idMap.get(String(nestedValue || '').trim());
+        if (replacementId) {
+          copy.id = replacementId;
+        }
+        return copy;
+      }
+
+      if (key.endsWith('_id')) {
+        const replacementId = idMap.get(String(nestedValue || '').trim());
+        copy[key] = replacementId || nestedValue;
+        return copy;
+      }
+
+      copy[key] = cloneValue(nestedValue);
+      return copy;
+    }, {});
+  };
+
+  const nextRequestId = newId();
+  const cloneDetailCollection = (rows) =>
+    toArray(rows)
+      .filter((row) => !row?._delete)
+      .map((row) => ({
+        ...cloneValue(row),
+        purchase_request_id: nextRequestId,
+      }));
+
+  toArray(source.purchase_shipping_details).forEach(collectRowIds);
+  toArray(source.purchase_product_details).forEach(collectRowIds);
+  toArray(source.purchase_service_details).forEach(collectRowIds);
+
+  const root = cloneValue(source);
+
+  return {
+    ...root,
+    id: nextRequestId,
+    status: 'draft',
+    purchase_shipping_details: cloneDetailCollection(
+      source.purchase_shipping_details,
+    ),
+    purchase_product_details: cloneDetailCollection(
+      source.purchase_product_details,
+    ),
+    purchase_service_details: cloneDetailCollection(
+      source.purchase_service_details,
+    ),
+  };
+};
 
 const stripAuditTimestamps = (value) => {
   if (Array.isArray(value)) {
@@ -787,6 +881,26 @@ export const PurchaseRequestContext_Provider = ({ children }) => {
     setNotice('New purchase request draft created');
   }, []);
 
+  const duplicateSelectedPurchaseRequest = useCallback(() => {
+    const current = getPurchaseRequestPageData();
+    if (!toSafeString(current?.id)) {
+      throw new Error('No purchase request selected to duplicate.');
+    }
+
+    const duplicatedPurchaseRequest = clonePurchaseRequestForDuplication(current);
+    const duplicatedId = toSafeString(duplicatedPurchaseRequest?.id);
+    if (!duplicatedId) {
+      throw new Error('Failed to create a duplicate purchase request draft.');
+    }
+
+    setPurchaseRequestPageData(duplicatedPurchaseRequest);
+    setSelectedId('');
+    setError('');
+    setNotice('Duplicate purchase request draft created');
+
+    return duplicatedPurchaseRequest;
+  }, []);
+
   const patchSelectedPurchaseRequest = useCallback((patchOrUpdater) => {
     setPurchaseRequestPageData((previous) => {
       const base =
@@ -837,6 +951,7 @@ export const PurchaseRequestContext_Provider = ({ children }) => {
       refreshSuppliers,
       refreshSalesQuotations,
       handleCreate,
+      duplicateSelectedPurchaseRequest,
       patchSelectedPurchaseRequest,
       upsertPurchaseRequestPageData,
       getPurchaseRequestDryRunData,
@@ -864,6 +979,7 @@ export const PurchaseRequestContext_Provider = ({ children }) => {
       refreshSuppliers,
       refreshSalesQuotations,
       handleCreate,
+      duplicateSelectedPurchaseRequest,
       patchSelectedPurchaseRequest,
       upsertPurchaseRequestPageData,
       getPurchaseRequestDryRunData,

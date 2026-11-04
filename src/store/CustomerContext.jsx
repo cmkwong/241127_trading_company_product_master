@@ -60,6 +60,72 @@ const getPageData = () => getEntityRecord(CUSTOMER_ENTITY_KEY);
 const setPageData = (valueOrUpdater) =>
   setEntityRecord(CUSTOMER_ENTITY_KEY, valueOrUpdater);
 
+const cloneCustomerForDuplication = (sourceCustomer) => {
+  const source = cleanupNestedInternalFlags(sourceCustomer || {});
+  const idMap = new Map();
+
+  const collectRowIds = (value) => {
+    if (Array.isArray(value)) {
+      value.forEach((item) => {
+        if (item?._delete) return;
+        collectRowIds(item);
+      });
+      return;
+    }
+
+    if (!value || typeof value !== 'object') return;
+
+    const id = String(value.id || '').trim();
+    if (id && !idMap.has(id)) {
+      idMap.set(id, uuidv4());
+    }
+
+    Object.values(value).forEach(collectRowIds);
+  };
+
+  const cloneValue = (value) => {
+    if (Array.isArray(value)) {
+      return value
+        .filter((item) => !item?._delete)
+        .map((item) => cloneValue(item));
+    }
+
+    if (!value || typeof value !== 'object') return value;
+
+    return Object.entries(value).reduce((copy, [key, nestedValue]) => {
+      if (
+        key === '_delete' ||
+        key === '_base64_changed' ||
+        key === '_objUrl' ||
+        key === 'created_at' ||
+        key === 'updated_at'
+      ) {
+        return copy;
+      }
+
+      if (key === 'id') {
+        const replacementId = idMap.get(String(nestedValue || '').trim());
+        if (replacementId) {
+          copy.id = replacementId;
+        }
+        return copy;
+      }
+
+      if (key.endsWith('_id')) {
+        const replacementId = idMap.get(String(nestedValue || '').trim());
+        copy[key] = replacementId || nestedValue;
+        return copy;
+      }
+
+      copy[key] = cloneValue(nestedValue);
+      return copy;
+    }, {});
+  };
+
+  collectRowIds(source);
+  return cloneValue(source);
+};
+
 export const CustomerContext_Provider = ({ children, initialData = {} }) => {
   const { token } = useAuthContext();
   const { fileMappings, isFileMappingsLoading } = useGeneralContext();
@@ -638,6 +704,32 @@ export const CustomerContext_Provider = ({ children, initialData = {} }) => {
     discardCurrentCustomerUnsavedChanges,
   ]);
 
+  const duplicateSelectedCustomer = useCallback(() => {
+    const current = getPageData();
+    if (!String(current?.id || '').trim()) {
+      throw new Error('No customer selected to duplicate.');
+    }
+
+    const duplicatedCustomer = cloneCustomerForDuplication(current);
+    const duplicatedCustomerId = String(duplicatedCustomer?.id || '').trim();
+
+    if (!duplicatedCustomerId) {
+      throw new Error('Failed to create a duplicate customer draft.');
+    }
+
+    const nextCustomerCode = generateNextCustomerCode();
+    duplicatedCustomer.customer_code = nextCustomerCode;
+    duplicatedCustomer.code = nextCustomerCode;
+
+    setPageData(duplicatedCustomer);
+    setOriginalPageData({});
+    setSelectedCustomerId(duplicatedCustomerId);
+    setSaveError(null);
+    setSaveSuccess(false);
+
+    return duplicatedCustomer;
+  }, [generateNextCustomerCode]);
+
   const getAllData = useCallback(() => {
     return getPageData();
   }, []);
@@ -654,6 +746,7 @@ export const CustomerContext_Provider = ({ children, initialData = {} }) => {
         refreshCustomerList,
         handleCustomerSave,
         createNewCustomer,
+        duplicateSelectedCustomer,
         deleteCustomerById,
         getAllData,
         isSaving,

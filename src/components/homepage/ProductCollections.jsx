@@ -14,25 +14,32 @@ const MiniSection = ({ title, items }) => {
         </button>
       </div>
 
-      <div className={styles.miniGrid}>
-        {items.map((item) => (
-          <button key={item.id} type="button" className={styles.miniCard}>
-            <img
-              src={item.image}
-              alt="Product item"
-              className={styles.miniImage}
-            />
-            <div className={styles.miniInfo}>
-              <Label size="S" weight="bold" className={styles.miniPrice}>
-                ${item.price.toFixed(2)}
-              </Label>
-              <Label size="XS" weight="regular" className={styles.miniMoq}>
-                MOQ: {item.moq}
-              </Label>
-            </div>
-          </button>
-        ))}
-      </div>
+      {items.length === 0 ? (
+        <p className={styles.emptyText}>No items available.</p>
+      ) : (
+        <div className={styles.miniGrid}>
+          {items.map((item) => (
+            <button key={item.id} type="button" className={styles.miniCard}>
+              <img
+                src={item.image}
+                alt="Product item"
+                className={styles.miniImage}
+              />
+              <div className={styles.miniInfo}>
+                <Label size="S" weight="bold" className={styles.miniPrice}>
+                  {item.priceDisplay ||
+                    (Number.isFinite(item.price)
+                      ? `$${item.price.toFixed(2)}`
+                      : '—')}
+                </Label>
+                <Label size="XS" weight="regular" className={styles.miniMoq}>
+                  {Number.isFinite(item.moq) ? `MOQ: ${item.moq}` : 'MOQ: —'}
+                </Label>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
     </section>
   );
 };

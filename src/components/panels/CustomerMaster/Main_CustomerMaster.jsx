@@ -4,7 +4,6 @@ import CustomerMasterSavePageContainer from './Container/CustomerMasterSavePageC
 import CustomerSidebar from './AllCustomerList/CustomerSidebar';
 import Main_CustomerBasicInfo from './CustomerBasicInfo/Main_CustomerBasicInfo';
 import Main_CustomerNames from './Names/Main_CustomerNames';
-import Main_CustomerTypes from './Types/Main_CustomerTypes';
 import Main_CustomerAddresses from './Addresses/Main_CustomerAddresses';
 import Main_CustomerContacts from './Contacts/Main_CustomerContacts';
 import Main_CustomerImages from './Images/Main_CustomerImages';
@@ -18,6 +17,7 @@ import Divider from '../../common/Container/Divider';
 const Main_CustomerMaster = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isDuplicating, setIsDuplicating] = useState(false);
   const navigate = useNavigate();
   const { customer_id } = useParams();
   const {
@@ -26,6 +26,7 @@ const Main_CustomerMaster = () => {
     getAllCustomers,
     deleteCustomerById,
     createNewCustomer,
+    duplicateSelectedCustomer,
   } = useCustomerContext();
   const pageDataId = useEntityField('customer', 'id');
 
@@ -96,6 +97,28 @@ const Main_CustomerMaster = () => {
     navigate,
   ]);
 
+  const handleDuplicateCustomer = useCallback(async () => {
+    if (!hasPersistedCustomer || isDuplicating) {
+      return;
+    }
+
+    setIsDuplicating(true);
+    try {
+      await duplicateSelectedCustomer();
+      navigate('/panel/customer_master', { replace: true });
+    } catch (error) {
+      console.error('Failed to duplicate customer:', error);
+      alert(error?.message || 'Failed to duplicate customer.');
+    } finally {
+      setIsDuplicating(false);
+    }
+  }, [
+    duplicateSelectedCustomer,
+    hasPersistedCustomer,
+    isDuplicating,
+    navigate,
+  ]);
+
   const onSaveCustomer = async () => {
     return new Promise((resolve) => {
       setTimeout(() => {
@@ -118,13 +141,34 @@ const Main_CustomerMaster = () => {
       createButtonText="Add Customer"
       showCreateButton
       leftBottomAction={
-        <DeleteBtn
-          text={isDeleting ? 'Deleting...' : 'Delete Customer'}
-          onClick={handleDeleteCustomer}
-          disabled={!customerId || !hasPersistedCustomer || isDeleting}
-          title="Delete customer"
-          ariaLabel="Delete customer"
-        />
+        <div className={styles.bottomActionGroup}>
+          <DeleteBtn
+            text={isDeleting ? 'Deleting...' : 'Delete Customer'}
+            onClick={handleDeleteCustomer}
+            disabled={
+              !customerId ||
+              !hasPersistedCustomer ||
+              isDeleting ||
+              isDuplicating
+            }
+            title="Delete customer"
+            ariaLabel="Delete customer"
+          />
+          <button
+            type="button"
+            className={styles.duplicateBottomButton}
+            onClick={handleDuplicateCustomer}
+            disabled={!hasPersistedCustomer || isDuplicating}
+            title="Duplicate selected customer"
+            aria-label="Duplicate selected customer"
+          >
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <rect x="5.5" y="5.5" width="7" height="7" rx="1" />
+              <path d="M10.5 5V3.5a1 1 0 0 0-1-1h-6a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1H5" />
+            </svg>
+            {isDuplicating ? 'Duplicating...' : 'Duplicate Customer'}
+          </button>
+        </div>
       }
     >
       <div className={styles.masterContainer}>

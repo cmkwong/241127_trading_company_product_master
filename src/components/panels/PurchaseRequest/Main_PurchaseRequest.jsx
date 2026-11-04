@@ -241,6 +241,7 @@ const Main_PurchaseRequest = () => {
     exchangeRateRows,
     handleSelectRow,
     handleCreate,
+    duplicateSelectedPurchaseRequest,
     patchSelectedPurchaseRequest,
     getPurchaseRequestDryRunData,
     handleSave,
@@ -276,6 +277,10 @@ const Main_PurchaseRequest = () => {
   const hasActivePurchaseRequest = Boolean(
     toSafeString(currentPurchaseRequestId),
   );
+  const hasPersistedPurchaseRequest = toArray(rows).some(
+    (row) =>
+      toSafeString(row?.id) === toSafeString(currentPurchaseRequestId),
+  );
 
   useEffect(() => {
     const routeId = toSafeString(purchase_request_id);
@@ -300,6 +305,7 @@ const Main_PurchaseRequest = () => {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [previewHtml, setPreviewHtml] = useState('');
   const [isPreparingPreview, setIsPreparingPreview] = useState(false);
+  const [isDuplicating, setIsDuplicating] = useState(false);
 
   const previewIframeRef = useRef(null);
 
@@ -1718,6 +1724,28 @@ const Main_PurchaseRequest = () => {
     setIsPreviewOpen(false);
   }, []);
 
+  const handleDuplicatePurchase = useCallback(async () => {
+    if (!hasPersistedPurchaseRequest || isDuplicating) {
+      return;
+    }
+
+    setIsDuplicating(true);
+    try {
+      await duplicateSelectedPurchaseRequest();
+      navigate('/panel/purchase', { replace: true });
+    } catch (error) {
+      console.error('Failed to duplicate purchase request:', error);
+      alert(error?.message || 'Failed to duplicate purchase request.');
+    } finally {
+      setIsDuplicating(false);
+    }
+  }, [
+    duplicateSelectedPurchaseRequest,
+    hasPersistedPurchaseRequest,
+    isDuplicating,
+    navigate,
+  ]);
+
   return (
     <PurchaseRequestSavePageContainer
       onSave={handleSave}
@@ -1734,16 +1762,32 @@ const Main_PurchaseRequest = () => {
       isPrinting={isPreparingPreview}
       showPrintButton
       leftBottomAction={
-        <DeleteBtn
-          text={isDeleting ? 'Deleting...' : 'Delete Purchase Request'}
-          onClick={async () => {
-            await handleDelete();
-            navigate('/panel/purchase', { replace: true });
-          }}
-          disabled={!toSafeString(selectedId) || isDeleting}
-          title="Delete selected purchase request"
-          ariaLabel="Delete selected purchase request"
-        />
+        <div className={styles.bottomActionGroup}>
+          <DeleteBtn
+            text={isDeleting ? 'Deleting...' : 'Delete Purchase Request'}
+            onClick={async () => {
+              await handleDelete();
+              navigate('/panel/purchase', { replace: true });
+            }}
+            disabled={!toSafeString(selectedId) || isDeleting || isDuplicating}
+            title="Delete selected purchase request"
+            ariaLabel="Delete selected purchase request"
+          />
+          <button
+            type="button"
+            className={styles.duplicateBottomButton}
+            onClick={handleDuplicatePurchase}
+            disabled={!hasPersistedPurchaseRequest || isDuplicating}
+            title="Duplicate selected purchase request"
+            aria-label="Duplicate selected purchase request"
+          >
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <rect x="5.5" y="5.5" width="7" height="7" rx="1" />
+              <path d="M10.5 5V3.5a1 1 0 0 0-1-1h-6a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1H5" />
+            </svg>
+            {isDuplicating ? 'Duplicating...' : 'Duplicate Purchase Request'}
+          </button>
+        </div>
       }
     >
       <div className={styles.masterContainer}>

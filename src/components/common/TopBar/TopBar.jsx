@@ -4,6 +4,7 @@ import { useAuthContext } from '../../../store/AuthContext';
 import { useCurrentUser } from '../../../store/CurrentUserContext';
 import { CustomerContext } from '../../../store/CustomerContext';
 import { ProductContext } from '../../../store/ProductContext';
+import { CatalogContext } from '../../../store/CatalogContext';
 import { SalesQuotationContext } from '../../../store/SalesQuotationContext';
 import { SupplierContext } from '../../../store/SupplierContext';
 import { MasterContext } from '../../../store/MasterContext';
@@ -28,6 +29,7 @@ const TOP_BANNER_TEXT =
 
 const VIEW_PATH_BY_KEY = {
   products: '/product_master',
+  catalog: '/catalog',
   supplier: '/supplier_master',
   customer: '/customer_master',
   salesQuotation: '/sales',
@@ -37,6 +39,7 @@ const VIEW_PATH_BY_KEY = {
 
 const VIEW_KEY_BY_PATH_PREFIX = {
   '/panel/product_master': 'products',
+  '/panel/catalog': 'catalog',
   '/panel/supplier_master': 'supplier',
   '/panel/customer_master': 'customer',
   '/panel/sales': 'salesQuotation',
@@ -46,6 +49,7 @@ const VIEW_KEY_BY_PATH_PREFIX = {
 
 const PAGE_TITLE_BY_VIEW = {
   products: 'Product Master',
+  catalog: 'Catalog',
   supplier: 'Supplier Master',
   customer: 'Customer Master',
   salesQuotation: 'Sales',
@@ -71,8 +75,10 @@ const TopBar = () => {
   const supplierContext = useContext(SupplierContext);
   const customerContext = useContext(CustomerContext);
   const salesQuotationContext = useContext(SalesQuotationContext);
+  const catalogContext = useContext(CatalogContext);
   const masterContext = useContext(MasterContext);
   const refreshProductList = productContext?.refreshProductList;
+  const refreshCatalogList = catalogContext?.refreshCatalogList;
   const refreshSupplierList = supplierContext?.refreshSupplierList;
   const refreshCustomerList = customerContext?.refreshCustomerList;
   const refreshSalesQuotationList =
@@ -138,6 +144,13 @@ const TopBar = () => {
         if (typeof refreshProductList === 'function') {
           await refreshProductList();
         }
+      } else if (activeView === 'catalog') {
+        if (typeof refreshCatalogList === 'function') {
+          await refreshCatalogList();
+        }
+        if (typeof forceRefreshAllMasterData === 'function') {
+          await forceRefreshAllMasterData();
+        }
       } else if (activeView === 'supplier') {
         if (typeof refreshSupplierList === 'function') {
           await refreshSupplierList();
@@ -194,13 +207,15 @@ const TopBar = () => {
     const currentContext =
       activeView === 'products'
         ? productContext
-        : activeView === 'supplier'
-          ? supplierContext
-          : activeView === 'customer'
-            ? customerContext
-            : activeView === 'salesQuotation'
-              ? salesQuotationContext
-              : null;
+        : activeView === 'catalog'
+          ? catalogContext
+          : activeView === 'supplier'
+            ? supplierContext
+            : activeView === 'customer'
+              ? customerContext
+              : activeView === 'salesQuotation'
+                ? salesQuotationContext
+                : null;
 
     // Products and suppliers now keep the edited record in the generic entity
     // store (not in context), so read their ids directly. Other modules still
@@ -208,9 +223,11 @@ const TopBar = () => {
     const hasRecordId =
       activeView === 'products'
         ? !!getEntityRecord('products')?.id
-        : activeView === 'supplier'
-          ? !!getEntityRecord('supplier')?.id
-          : !!currentContext?.pageData?.id;
+        : activeView === 'catalog'
+          ? !!getEntityRecord('catalogs')?.id
+          : activeView === 'supplier'
+            ? !!getEntityRecord('supplier')?.id
+            : !!currentContext?.pageData?.id;
 
     const canSwitch = canProceedWithRecordSwitch({
       hasRecordId,
@@ -559,6 +576,12 @@ const TopBar = () => {
               onClick={() => handleViewSwitch('products')}
             >
               Product Master
+            </NavButton>
+            <NavButton
+              active={activeView === 'catalog'}
+              onClick={() => handleViewSwitch('catalog')}
+            >
+              Catalog
             </NavButton>
             <NavButton
               active={activeView === 'supplier'}

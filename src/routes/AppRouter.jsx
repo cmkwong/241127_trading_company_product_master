@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import Main_ProductMaster from '../components/panels/ProductMaster/Main_ProductMaster';
+import Main_Catalog from '../components/panels/Catalog/Main_Catalog';
 import Main_SupplierMaster from '../components/panels/SupplierMaster/Main_SupplierMaster';
 import Main_CustomerMaster from '../components/panels/CustomerMaster/Main_CustomerMaster';
 import Main_SalesPanel from '../components/panels/SalesQuotation/Main_SalesPanel';
@@ -22,6 +23,9 @@ const AppRouter = () => {
           path="product_master/:product_id"
           element={<Main_ProductMaster />}
         />
+
+        <Route path="catalog" element={<Main_Catalog />} />
+        <Route path="catalog/:catalog_id" element={<Main_Catalog />} />
 
         <Route path="supplier_master" element={<Main_SupplierMaster />} />
         <Route

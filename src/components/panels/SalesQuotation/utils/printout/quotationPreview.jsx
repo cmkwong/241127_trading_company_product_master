@@ -559,7 +559,7 @@ const buildImageUrlsByParent = (rows = [], parentField) => {
   return grouped;
 };
 
-const resolveCompanyInfo = (companyInfo = null) => {
+export const resolveCompanyInfo = (companyInfo = null) => {
   const record =
     companyInfo && typeof companyInfo === 'object' ? companyInfo : {};
 

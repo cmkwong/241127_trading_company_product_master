@@ -6,6 +6,7 @@ import Main_TextField from '../../../common/InputOptions/TextField/Main_TextFiel
 import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
 import Main_FileUploads from '../../../common/InputOptions/FileUploads/Main_FileUploads';
 import Main_InputContainer from '../../../common/Container/Main_InputContainer';
+import Main_Checkbox from '../../../common/InputOptions/Checkbox/Main_Checkbox';
 import EditableDataForm from '../../../common/Forms/EditableDataForm';
 import {
   upsertEntityData,
@@ -15,6 +16,7 @@ import {
 import { useMasterContext } from '../../../../store/MasterContext';
 import { sortByDisplayOrder } from '../../../../utils/arr';
 import { buildProductImagesPath } from '../../../../utils/filePickerUtils';
+import { buildFirstTierRow } from './defaultPackingTiers';
 import styles from './Main_Pack.module.css';
 
 const parseNumericInput = (value) => {
@@ -27,15 +29,30 @@ const parseNumericInput = (value) => {
 };
 
 const Main_Pack = () => {
-  const { packType, packingReliabilityType, productLogisticsAttributes } =
-    useMasterContext();
+  const {
+    packType,
+    packingReliabilityType,
+    productLogisticsAttributes,
+    currencies,
+  } = useMasterContext();
 
   const productId = useEntityField('products', 'id');
   const packRows = useEntityRows('products', 'product_packings');
+  const priceTiers = useEntityRows('products', 'product_sale_prices_by_qty');
+  const sellingByMode = useEntityField('products', 'selling_by_mode');
   const logisticsId = useEntityField(
     'products',
     'product_logistics_attributes_id',
   );
+
+  const defaultCurrencyId = useMemo(() => {
+    const list = currencies || [];
+    const cny = list.find((currency) => {
+      const code = String(currency?.code || '').toUpperCase();
+      return code === 'CNY' || code === 'RMB';
+    });
+    return cny?.id || list[0]?.id || '';
+  }, [currencies]);
 
   const dropdownPackTypeOptions = useMemo(
     () =>
@@ -129,6 +146,7 @@ const Main_Pack = () => {
           quantity: 0,
           weight: 0,
           remark: '',
+          is_default: 0,
           product_packing_files: [],
         },
       ],
@@ -199,6 +217,63 @@ const Main_Pack = () => {
       }
     },
     [upsertPackRow],
+  );
+
+  const handleDefaultToggle = useCallback(
+    (row, checked) => {
+      const packUpdates = [];
+
+      if (checked) {
+        // Single-select: turn this row on and any other default row off.
+        packUpdates.push({ id: row.id, product_id: productId, is_default: 1 });
+        (packRows || []).forEach((other) => {
+          if (other?._delete) return;
+          if (other.id === row.id) return;
+          if (Number(other.is_default) === 1) {
+            packUpdates.push({
+              id: other.id,
+              product_id: productId,
+              is_default: 0,
+            });
+          }
+        });
+      } else {
+        packUpdates.push({ id: row.id, product_id: productId, is_default: 0 });
+      }
+
+      if (packUpdates.length > 0) {
+        upsertEntityData('products', { product_packings: packUpdates });
+      }
+
+      // Auto-create a single tier #1 from this row's Qty/Pack when Default is
+      // ticked and pricing is by_qty. Price stays blank (entered manually);
+      // further tiers continue the ×3 ladder via "Add Price Tier". No-op when
+      // a tier with this quantity already exists or 4 tiers are already present.
+      if (!checked) return;
+
+      const mode = sellingByMode || 'by_qty';
+      if (mode !== 'by_qty') return;
+
+      const firstTier = buildFirstTierRow({
+        rows: priceTiers,
+        baseQty: row.quantity,
+        currencyId: defaultCurrencyId,
+        productId,
+      });
+      if (firstTier) {
+        upsertEntityData('products', {
+          product_sale_prices_by_qty: [firstTier],
+        });
+      }
+    },
+    [
+      upsertEntityData,
+      packRows,
+      priceTiers,
+      sellingByMode,
+      defaultCurrencyId,
+      productId,
+    ],
   );
 
   const columns = useMemo(
@@ -330,6 +405,21 @@ const Main_Pack = () => {
         ),
       },
       {
+        key: 'is_default',
+        label: 'Default',
+        sortable: false,
+        flex: '0 0 90px',
+        cellClassName: styles.tableCell,
+        renderCell: (row) => (
+          <Main_Checkbox
+            size="S"
+            checked={Number(row.is_default) === 1}
+            ariaLabel="Default packing"
+            onChange={(checked) => handleDefaultToggle(row, checked)}
+          />
+        ),
+      },
+      {
         key: 'remark',
         label: 'Remark',
         sortable: false,
@@ -396,6 +486,7 @@ const Main_Pack = () => {
       dropdownReliabilityOptions,
       upsertPackRow,
       handlePackFilesChange,
+      handleDefaultToggle,
       productId,
     ],
   );

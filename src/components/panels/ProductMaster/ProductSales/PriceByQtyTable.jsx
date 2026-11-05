@@ -16,9 +16,13 @@ import {
   selectExchangeRateRow,
   toNumberOrNull,
 } from '../ProductCosts/productCostsUtils';
+import {
+  MAX_PRICE_TIERS,
+  buildDefaultTierQuantities,
+  nextLadderQuantity,
+} from '../Packing/defaultPackingTiers';
 import styles from './PriceByQtyTable.module.css';
 
-const MAX_TIERS = 4;
 const DEFAULT_UNIT_LABEL = 'Pcs';
 const TIER_QTY_PRESETS = [10, 100, 500, 1000];
 
@@ -30,11 +34,29 @@ const PriceByQtyTable = () => {
   const sellingUnitTypeId = useEntityField('products', 'selling_unit_type_id');
   const allTiers = useEntityRows('products', 'product_sale_prices_by_qty');
   const productCostsAll = useEntityRows('products', 'product_costs');
+  const packRows = useEntityRows('products', 'product_packings');
 
   const rows = useMemo(
     () => (allTiers || []).filter((r) => !r?._delete),
     [allTiers],
   );
+
+  // Base quantity for the price-tier ladder comes from the default packing's
+  // Qty/Pack. Falls back to 0 (unset) when no packing row is flagged default.
+  const defaultPackingQty = useMemo(() => {
+    const row = (packRows || []).find(
+      (r) => !r?._delete && Number(r?.is_default) === 1,
+    );
+    const qty = Math.trunc(Number(row?.quantity));
+    return Number.isFinite(qty) && qty > 0 ? qty : 0;
+  }, [packRows]);
+
+  const ladderHint = useMemo(() => {
+    const ladder = buildDefaultTierQuantities(defaultPackingQty, MAX_PRICE_TIERS);
+    return ladder.length > 1
+      ? ladder.join(' \u2192 ')
+      : `Max ${MAX_PRICE_TIERS} tiers allowed`;
+  }, [defaultPackingQty]);
 
   const productCosts = useMemo(
     () => (productCostsAll || []).filter((r) => !r?._delete),
@@ -273,7 +295,7 @@ const PriceByQtyTable = () => {
   );
 
   const handleAddTier = useCallback(() => {
-    if (rows.length >= MAX_TIERS) return;
+    if (rows.length >= MAX_PRICE_TIERS) return;
 
     // Pick a min_order_qty that isn't already used so a newly-added tier never
     // collides with the (product_id, min_order_qty, currency_id) unique key.
@@ -283,13 +305,16 @@ const PriceByQtyTable = () => {
         .filter((n) => Number.isFinite(n)),
     );
 
-    // Pre-fill the standard tier ladder (10 / 100 / 500 / 1000), skipping any
-    // quantity already in use; fall back to the next free multiple of 10 if
-    // every preset has been taken.
-    let nextQty = TIER_QTY_PRESETS.find((preset) => !used.has(preset));
-    if (nextQty === undefined) {
-      nextQty = 10;
-      while (used.has(nextQty)) nextQty += 10;
+    // Prefer the default packing's ×3 ladder (e.g. 120 -> 360 -> 1080 -> 3240);
+    // when there is no default packing, fall back to the standard presets, then
+    // to the next free multiple of 10.
+    let nextQty = nextLadderQuantity(defaultPackingQty, [...used]);
+    if (nextQty === null) {
+      nextQty = TIER_QTY_PRESETS.find((preset) => !used.has(preset));
+      if (nextQty === undefined) {
+        nextQty = 10;
+        while (used.has(nextQty)) nextQty += 10;
+      }
     }
 
     upsertEntityData('products', {
@@ -303,7 +328,7 @@ const PriceByQtyTable = () => {
         },
       ],
     });
-  }, [rows, upsertEntityData, productId, defaultCostCurrencyId]);
+  }, [rows, upsertEntityData, productId, defaultCostCurrencyId, defaultPackingQty]);
 
   const handleGetSalesPrice = useCallback(() => {
     if (previewTiers.length === 0) {
@@ -542,8 +567,8 @@ const PriceByQtyTable = () => {
             onCellChange={handleCellChange}
             onAddRow={handleAddTier}
             addRowText="Add Price Tier"
-            addRowDisabled={rows.length >= MAX_TIERS}
-            addRowHint={`Max ${MAX_TIERS} tiers allowed`}
+            addRowDisabled={rows.length >= MAX_PRICE_TIERS}
+            addRowHint={ladderHint}
             onDeleteRow={handleDelete}
           />
         </div>

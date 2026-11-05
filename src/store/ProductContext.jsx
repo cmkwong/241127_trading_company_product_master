@@ -495,6 +495,7 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
       comparisonKeys: effectiveComparisonKeys(),
       rootTableName: 'products',
       base64Config: productBase64Config,
+      replaceTables: ['product_sale_prices_by_qty'],
     });
   }, [originalPageData, effectiveComparisonKeys, productBase64Config]);
 
@@ -854,6 +855,27 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
 
       try {
         const current = getPageData();
+
+        // Front-end guard: never let a blank sale_price reach the server.
+        // product_sale_prices_by_qty.sale_price is NOT NULL in the database, so a
+        // tier that was auto-created (e.g. by ticking a default packing) without a
+        // price would otherwise make the whole save fail server-side. Catch it
+        // here with a clear message instead of a 500.
+        const missingPriceRow = (current?.product_sale_prices_by_qty || []).find(
+          (row) => {
+            if (row?._delete) return false;
+            const raw = row?.sale_price;
+            if (raw === '' || raw === null || raw === undefined) return true;
+            return !Number.isFinite(Number(raw));
+          },
+        );
+        if (missingPriceRow) {
+          const qty = missingPriceRow?.min_order_qty ?? '?';
+          setSaveError(`Enter a sale price for tier ${qty} before saving.`);
+          setIsSaving(false);
+          return false;
+        }
+
         const changesResult = getChangedData();
 
         if (changesResult) {

@@ -27,6 +27,7 @@ export const buildNestedChangedData = ({
   comparisonKeys,
   rootTableName,
   base64Config,
+  replaceTables = [],
 }) => {
   const currentPageData = pageData || {};
 
@@ -87,9 +88,12 @@ export const buildNestedChangedData = ({
       if (Array.isArray(current[key])) {
         const currentArr = current[key];
         const originalArr = Array.isArray(original[key]) ? original[key] : [];
+        const isReplaceTable = replaceTables.includes(key);
 
         const arrayChanges = [];
         const arrayDeletions = [];
+        let arrayHasChanges = false;
+        let arrayHasDeletions = false;
 
         originalArr.forEach((origItem) => {
           if (
@@ -97,6 +101,7 @@ export const buildNestedChangedData = ({
             !currentArr.some((currItem) => currItem.id === origItem.id)
           ) {
             arrayDeletions.push({ id: origItem.id });
+            arrayHasDeletions = true;
             hasDeletions = true;
           }
         });
@@ -104,6 +109,7 @@ export const buildNestedChangedData = ({
         currentArr.forEach((item) => {
           if (!item.id) {
             arrayChanges.push(item);
+            arrayHasChanges = true;
             hasChanges = true;
             return;
           }
@@ -111,6 +117,7 @@ export const buildNestedChangedData = ({
           const originalItem = originalArr.find((i) => i.id === item.id);
           if (!originalItem) {
             arrayChanges.push(item);
+            arrayHasChanges = true;
             hasChanges = true;
           } else {
             const itemKeys = Object.keys(item);
@@ -123,21 +130,51 @@ export const buildNestedChangedData = ({
 
             if (Object.keys(itemDiff).length > 1) {
               arrayChanges.push(itemDiff);
+              arrayHasChanges = true;
               hasChanges = true;
             }
 
             if (Object.keys(itemDel).length > 1) {
               arrayDeletions.push(itemDel);
+              arrayHasDeletions = true;
               hasDeletions = true;
             }
           }
         });
 
-        if (arrayChanges.length > 0) {
-          diff[key] = arrayChanges;
-        }
-        if (arrayDeletions.length > 0) {
-          deletions[key] = arrayDeletions;
+        if (isReplaceTable) {
+          // "Replace" mode: the client's array is the complete truth for this
+          // table, so send the WHOLE list (not a diff) whenever anything changed
+          // or was deleted. An empty array is meaningful here (wipe every row).
+          // Duplicate (min_order_qty, currency_id) rows are dropped so the
+          // composite UNIQUE key on product_sale_prices_by_qty can never collide.
+          if (arrayHasChanges || arrayHasDeletions) {
+            const seenComposite = new Set();
+            diff[key] = currentArr
+              .filter((item) => item?._delete !== true)
+              .map((item) =>
+                cleanupNestedInternalFlags(item, [
+                  '_delete',
+                  '_objUrl',
+                  '_base64_changed',
+                  'reuse_existing_file',
+                ]),
+              )
+              .filter((item) => {
+                const composite = `${item?.min_order_qty ?? ''}::${item?.currency_id ?? ''}`;
+                if (seenComposite.has(composite)) return false;
+                seenComposite.add(composite);
+                return true;
+              });
+            hasChanges = true;
+          }
+        } else {
+          if (arrayChanges.length > 0) {
+            diff[key] = arrayChanges;
+          }
+          if (arrayDeletions.length > 0) {
+            deletions[key] = arrayDeletions;
+          }
         }
       } else if (
         typeof current[key] === 'object' &&
@@ -177,6 +214,17 @@ export const buildNestedChangedData = ({
     comparisonKeys,
     rootTableName,
   );
+
+  // Tell the server which tables were sent as a full replacement (see
+  // `_replace_tables` handling in the backend). Only tables that actually appear
+  // in the diff are listed, so a save that does not touch a replace-table keeps
+  // that table's rows untouched server-side.
+  const replacedTables = replaceTables.filter((tableName) =>
+    Object.prototype.hasOwnProperty.call(rootDiff, tableName),
+  );
+  if (replacedTables.length > 0) {
+    rootDiff._replace_tables = replacedTables;
+  }
 
   const result = {};
   let hasResult = false;

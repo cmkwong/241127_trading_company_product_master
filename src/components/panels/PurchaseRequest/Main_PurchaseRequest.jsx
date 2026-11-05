@@ -217,7 +217,7 @@ const isTruthyFlag = (value, defaultWhenMissing = true) => {
 const Main_PurchaseRequest = () => {
   const navigate = useNavigate();
   const { purchase_request_id } = useParams();
-  const { getDocTypeIdByName } = useMasterContext();
+  const { getDocTypeIdByName, companyInfo } = useMasterContext();
   const salesOrderDocTypeId = useMemo(
     () => getDocTypeIdByName('Sales Order'),
     [getDocTypeIdByName],
@@ -1663,21 +1663,15 @@ const Main_PurchaseRequest = () => {
         invoice_date: '',
         due_date: '',
         remark: toSafeString(currentPurchaseRequest?.remark),
+        status: toSafeString(currentPurchaseRequest?.status) || 'draft',
         ap_invoice_row_details: apInvoicePreviewRows,
       };
 
-      const nextPurchaseRequests = [
-        {
-          ...currentPurchaseRequest,
-          id: draftId,
-        },
-        ...toArray(rows).filter((row) => toSafeString(row?.id) !== draftId),
-      ];
-
       const html = buildPurchaseRequestApInvoiceHtml({
         invoice: previewInvoice,
-        supplierOptions: suppliers,
-        purchaseRequests: nextPurchaseRequests,
+        companyInfo: Array.isArray(companyInfo) ? companyInfo[0] : null,
+        supplierOptions: supplierSuggestionOptions,
+        supplierAddressOptions: supplierAddressSuggestionOptions,
         currencies,
         invoiceTypes: [
           { code: 'SHIPPING', description: 'Shipping' },
@@ -1700,13 +1694,14 @@ const Main_PurchaseRequest = () => {
   }, [
     apInvoicePreviewRows,
     baseCurrencyCode,
+    companyInfo,
     currencies,
     currencyCodeById,
     exchangeRateMap,
     isPreparingPreview,
-    rows,
     setError,
-    suppliers,
+    supplierAddressSuggestionOptions,
+    supplierSuggestionOptions,
   ]);
 
   const handlePrintFromPreview = useCallback(() => {

@@ -1,0 +1,7 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="watermark-icon">
+<path id="handle" d="M5.14286 9.5C5.14286 9.5 4 6.32353 4 4.73529C4 2.08824 5.71429 0.5 8 0.5C10.2857 0.5 12 2.08824 12 4.73529C12 6.32353 10.8571 9.5 10.8571 9.5H5.14286Z" fill="var(--fill-0, #64748B)"/>
+<rect id="bar1" x="2" y="10.5" width="12" height="2" rx="0.5" fill="var(--fill-0, #64748B)"/>
+<rect id="bar2" x="2" y="13.5" width="12" height="2" rx="0.5" fill="var(--fill-0, #64748B)"/>
+</g>
+</svg>

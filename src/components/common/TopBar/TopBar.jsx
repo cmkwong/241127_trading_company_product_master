@@ -15,14 +15,15 @@ import ModuleTopBar from './ModuleTopBar';
 import NavButton from '../NavButton/NavButton';
 import styles from './TopBar.module.css';
 import homeStyles from './HomeTopBar.module.css';
+import FIGMA_ICON_MY_PROFILE from '../../../assets/figma/top-bar-menus/icon-my-profile.svg';
+import FIGMA_ICON_MY_ORDERS from '../../../assets/figma/top-bar-menus/icon-my-orders.svg';
+import FIGMA_ICON_MY_ADDRESS from '../../../assets/figma/top-bar-menus/icon-my-address.svg';
+import FIGMA_ICON_MY_PAYMENT_METHOD from '../../../assets/figma/top-bar-menus/icon-my-payment-method.svg';
+import FIGMA_ICON_NOTIFICATION from '../../../assets/figma/top-bar-menus/icon-notification.svg';
+import ADMIN_ICON from '../../../assets/icons/admin_user_icon.svg';
 
-const FIGMA_ICON_MY_PROFILE = '/assets/figma/top-bar-menus/icon-my-profile.svg';
-const FIGMA_ICON_MY_ORDERS = '/assets/figma/top-bar-menus/icon-my-orders.svg';
-const FIGMA_ICON_MY_ADDRESS = '/assets/figma/top-bar-menus/icon-my-address.svg';
-const FIGMA_ICON_MY_PAYMENT_METHOD =
-  '/assets/figma/top-bar-menus/icon-my-payment-method.svg';
-const FIGMA_ICON_NOTIFICATION =
-  '/assets/figma/top-bar-menus/icon-notification.svg';
+// brand logo
+import RIVOLX_LOGOS_PURE from '../../../assets/brand_logos/RIVOLX_Logos_new_color_pure.svg';
 
 const TOP_BANNER_TEXT =
   'Globally sourced from China, Japan, Vietnam, Philippines and Southeast Asia';
@@ -418,7 +419,7 @@ const TopBar = () => {
           >
             <img
               className={homeStyles.brandIcon}
-              src="/assets/brand_logos/RIVOLX_Logos_new_color_pure.svg"
+              src={RIVOLX_LOGOS_PURE}
               alt="Rivolx"
             />
             <div className={homeStyles.brandTextWrap}>
@@ -521,11 +522,7 @@ const TopBar = () => {
                   aria-expanded={showUserMenu}
                   onClick={() => setShowUserMenu((prev) => !prev)}
                 >
-                  <img
-                    src="/assets/icons/admin_user_icon.svg"
-                    alt=""
-                    aria-hidden="true"
-                  />
+                  <img src={ADMIN_ICON} alt="" aria-hidden="true" />
                 </button>
                 {showUserMenu && userMenuMarkup}
               </div>
@@ -561,7 +558,7 @@ const TopBar = () => {
             <div className={styles.brandIconWrap}>
               <img
                 className={styles.brandIcon}
-                src="/assets/brand_logos/RIVOLX_Logos_new_color_pure.svg"
+                src={RIVOLX_LOGOS_PURE}
                 alt=""
               />
             </div>
@@ -627,11 +624,7 @@ const TopBar = () => {
                 aria-expanded={showUserMenu}
                 onClick={() => setShowUserMenu((prev) => !prev)}
               >
-                <img
-                  src="/assets/icons/admin_user_icon.svg"
-                  alt=""
-                  aria-hidden="true"
-                />
+                <img src={ADMIN_ICON} alt="" aria-hidden="true" />
               </button>
 
               {showUserMenu && userMenuMarkup}

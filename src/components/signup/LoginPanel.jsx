@@ -13,9 +13,9 @@ import {
 } from '../../utils/emailLink';
 import useCooldown, { formatCooldown } from '../../hooks/useCooldown';
 import SentEmail from './SentEmail';
-import EMAIL_LOGO from '../../../public/assets/figma/sign-in-pages/email-icon.svg';
-import PW_SHOW_ICON from '../../../public/assets/figma/pw-show.svg';
-import PW_HIDE_ICON from '../../../public/assets/figma/pw-hide.svg';
+import EMAIL_LOGO from '../../assets/figma/sign-in-pages/email-icon.svg';
+import PW_SHOW_ICON from '../../assets/figma/pw-show.svg';
+import PW_HIDE_ICON from '../../assets/figma/pw-hide.svg';
 
 const LoginPanel = ({ onSignupClick }) => {
   const navigate = useNavigate();

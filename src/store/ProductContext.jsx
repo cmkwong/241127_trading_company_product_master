@@ -313,6 +313,12 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
               product_categories: ['id', 'product_id', 'category_id'],
               product_alibaba_ids: ['id', 'product_id', 'value'],
               product_keywords: ['id', 'product_id', 'keyword_id'],
+              product_attribute_values: [
+                'id',
+                'product_id',
+                'attribute_id',
+                'value',
+              ],
             },
             data: {
               products: ids.map((id) => ({ id })),
@@ -812,6 +818,162 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
     [token, productBase64Config],
   );
 
+  /**
+   * Fetch lightweight product records (icon + product_images) by id, WITHOUT
+   * base64 or object-URL conversion, so callers get the raw server-relative
+   * `image_url` paths (e.g. `/public/products/...`) plus `image_name` /
+   * `image_type_id` / `image_row` / `display_order`. Used to seed a catalog
+   * row's default images from its product. Does not touch the editor pageData.
+   */
+  const getProductImageDefaultsByIds = useCallback(
+    async (ids = []) => {
+      const requestedIds = [
+        ...new Set(
+          (ids || []).map((id) => String(id || '').trim()).filter(Boolean),
+        ),
+      ];
+      if (requestedIds.length === 0) {
+        return [];
+      }
+
+      try {
+        const response = await apiPost(
+          'http://localhost:3001/api/v1/trade_business/panel/products/data/get/ids',
+          {
+            includeBase64: false,
+            fields: {
+              products: ['id', 'icon_url', 'icon_name'],
+              product_images: [
+                'id',
+                'image_url',
+                'image_name',
+                'image_type_id',
+                'image_row',
+                'display_order',
+              ],
+            },
+            data: {
+              products: requestedIds.map((id) => ({ id })),
+            },
+          },
+          { token },
+        );
+
+        const rawData = normalizeStructuredTableResponse(response, 'products');
+        return Array.isArray(rawData?.products) ? rawData.products : [];
+      } catch (err) {
+        console.error('getProductImageDefaultsByIds: failed to fetch products', err);
+        return [];
+      }
+    },
+    [token],
+  );
+
+  /**
+   * Persist a single product's `product_images` rows directly (without loading
+   * or touching the Product Master editor `pageData`). Used by the Catalog
+   * editor so its "Additional images" edit the SAME `product_images` rows that
+   * Product Master edits — a single source of truth. Handles base64 conversion
+   * of new blob uploads and returns the freshly-persisted rows (server-relative
+   * paths) so the caller can re-render.
+   *
+   * @param {string} productId     Target product id.
+   * @param {Array}  desiredRows   Desired `product_images` rows (the edited set).
+   * @param {Array}  originalRows  Current persisted rows to diff against.
+   * @returns {Promise<Array>} The product's `product_images` after saving.
+   */
+  const saveProductImages = useCallback(
+    async (productId, desiredRows = [], originalRows = []) => {
+      const id = String(productId || '').trim();
+      if (!id) return [];
+
+      const result = buildNestedChangedData({
+        pageData: { id, product_images: desiredRows },
+        originalPageData: { id, product_images: originalRows },
+        comparisonKeys: ['product_images'],
+        rootTableName: 'products',
+        base64Config: productBase64Config,
+        replaceTables: [],
+      });
+
+      if (result) {
+        if (result.deletions) {
+          await apiDelete(
+            'http://localhost:3001/api/v1/trade_business/panel/products/data/ids',
+            { token, body: { data: result.deletions } },
+          );
+        }
+        if (result.changes) {
+          const processedChanges = await processChangesWithBase64(
+            result.changes,
+            productBase64Config,
+          );
+          await apiPatch(
+            'http://localhost:3001/api/v1/trade_business/panel/products/data/ids',
+            { data: processedChanges },
+            { token },
+          );
+        }
+      }
+
+      const fresh = await getProductImageDefaultsByIds([id]);
+      return Array.isArray(fresh) && fresh[0]?.product_images
+        ? fresh[0].product_images
+        : [];
+    },
+    [token, productBase64Config, getProductImageDefaultsByIds],
+  );
+
+  /**
+   * Persist a single product's `icon_url` / `icon_name` directly (without
+   * loading or touching the Product Master editor `pageData`). Used by the
+   * Catalog row editor so its "Main image" edits the SAME product icon that
+   * Product Master edits — a single source of truth. Handles base64 conversion
+   * of a freshly-uploaded blob and returns the freshly-persisted icon values
+   * (server-relative path) so the caller can re-render.
+   *
+   * @param {string} productId  Target product id.
+   * @param {Object} iconData   `{ icon_url, icon_name, base64Changed }`.
+   * @returns {Promise<{icon_url: string, icon_name: string}>}
+   */
+  const saveProductIcon = useCallback(
+    async (
+      productId,
+      { icon_url = '', icon_name = '', base64Changed = false } = {},
+    ) => {
+      const id = String(productId || '').trim();
+      if (!id) return { icon_url: '', icon_name: '' };
+
+      const iconRow = { id, icon_url, icon_name };
+      const changes = { products: [iconRow] };
+
+      // A fresh native upload arrives as a `blob:` URL and must be converted
+      // to `base64_image` before the server can store it. File-bank picks and
+      // clears are already server-relative paths / empty strings, so they are
+      // sent verbatim.
+      if (base64Changed && !productBase64Config?.products) {
+        throw new Error('File mappings are not ready yet. Please try again.');
+      }
+      const processedChanges = base64Changed
+        ? await processChangesWithBase64(changes, productBase64Config)
+        : changes;
+
+      await apiPatch(
+        'http://localhost:3001/api/v1/trade_business/panel/products/data/ids',
+        { data: processedChanges },
+        { token },
+      );
+
+      const fresh = await getProductImageDefaultsByIds([id]);
+      const saved = Array.isArray(fresh) ? fresh[0] : null;
+      return {
+        icon_url: String(saved?.icon_url || '').trim(),
+        icon_name: String(saved?.icon_name || '').trim(),
+      };
+    },
+    [token, productBase64Config, getProductImageDefaultsByIds],
+  );
+
   useEffect(() => {
     getProductDataRef.current = getProductData;
   }, [getProductData]);
@@ -1054,6 +1216,9 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
       getAllProducts,
       getProductsByIds,
       getCatalogDataByIds,
+      getProductImageDefaultsByIds,
+      saveProductImages,
+      saveProductIcon,
       updateProducts,
       refreshProductList,
       hydrateProductIcons,
@@ -1086,6 +1251,9 @@ export const ProductContext_Provider = ({ children, initialData = {} }) => {
       getAllProducts,
       getProductsByIds,
       getCatalogDataByIds,
+      getProductImageDefaultsByIds,
+      saveProductImages,
+      saveProductIcon,
       updateProducts,
       refreshProductList,
       hydrateProductIcons,

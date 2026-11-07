@@ -21,6 +21,7 @@ import {
   resolveDisplayFileUrl,
   SERVER_ORIGIN,
 } from '../../../../utils/filePickerUtils';
+import WATERMARK_ICON from '../../../../assets/brand_logos/watermark_v2.png';
 
 /**
  * Main_FileUploads Component
@@ -56,7 +57,7 @@ const Main_FileUploads = (props) => {
     downloadFileBaseName = 'files',
     downloadNameProductId = '',
     downloadNameImageType = '',
-    watermarkImagePath = '/assets/brand_logos/watermark_v2.png',
+    watermarkImagePath = WATERMARK_ICON,
     fileUrlBase = '',
 
     // File bank: when provided, a "File Banks" button is shown in the drop

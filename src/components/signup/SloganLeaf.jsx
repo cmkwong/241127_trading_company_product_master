@@ -1,7 +1,7 @@
 import Header from '../common/Texts/Header';
 import Label from '../common/Texts/Label';
 import styles from './SloganLeaf.module.css';
-import RIVOLX_LOGO from '../../../public/assets/brand_logos/watermark_pure_logo.png';
+import RIVOLX_LOGO from '../../assets/brand_logos/watermark_pure_logo.png';
 const DEFAULT_FEATURE_ITEMS = [
   { icon: '📦', text: 'Product & supplier management' },
   { icon: '💰', text: 'Sales quotation & pricing' },

@@ -8,6 +8,7 @@ import {
   toSafeString,
 } from '../utils/quotationTotals';
 import { STATUS_OPTIONS } from '../SalesBasicInfo/Main_SalesBasicInfo';
+const PACKING_LIST_ICON_URL = '../../../../assets/icons/packing_list_icon.svg';
 
 const SALES_QUOTATION_SEARCH_HISTORY_KEY =
   'sales_quotation_sidebar_search_history';
@@ -37,7 +38,6 @@ const normalizeHistoryEntry = (entry) => {
 const FILE_SERVER_BASE_URL = 'http://localhost:3001';
 
 const PACKING_LIST_DOC_TYPE_NAME = 'Packing List';
-const PACKING_LIST_ICON_URL = '/assets/icons/packing_list_icon.svg';
 
 const resolveIconUrl = (iconUrl) => {
   const normalized = String(iconUrl || '').trim();
@@ -347,9 +347,7 @@ const SalesSidebar = ({
       const summary = quotationTotalsById.get(quotationId);
 
       const statusOption = resolveStatusOption(quotation?.status || 'open');
-      const docType = docTypeById.get(
-        String(quotation?.doc_type || '').trim(),
-      );
+      const docType = docTypeById.get(String(quotation?.doc_type || '').trim());
       const isSelected =
         String(selectedQuotationId || '').trim() === quotationId;
       const hasRealCost = isSelected && purchaseCostTotals.hasPoData;
@@ -368,7 +366,8 @@ const SalesSidebar = ({
           : null;
 
       const currencyCode =
-        toSafeString(summary?.baseCurrencyCode) || toSafeString(baseCurrencyCode);
+        toSafeString(summary?.baseCurrencyCode) ||
+        toSafeString(baseCurrencyCode);
 
       return [
         {

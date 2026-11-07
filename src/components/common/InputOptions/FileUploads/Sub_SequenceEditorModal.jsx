@@ -4,15 +4,13 @@ import { createPortal } from 'react-dom';
 import styles from './Main_FileUploads.module.css';
 import Main_DropZone from '../DropZone/Main_DropZone';
 import Label from '../../Texts/Label';
-
-const FIGMA_SORT_ICON = '/assets/figma/modal-sort.svg';
-const FIGMA_DESELECT_ICON = '/assets/figma/table-deselect.svg';
-const FIGMA_DOWNLOAD_ICON = '/assets/figma/table-download.svg';
-const FIGMA_EDIT_ICON = '/assets/figma/table-edit.svg';
-const FIGMA_WATERMARK_ICON_INACTIVE =
-  '/assets/figma/table-watermark-inactive.svg';
-const FIGMA_WATERMARK_ICON_ACTIVE = '/assets/figma/table-watermark-active.svg';
-const FIGMA_AI_ICON = '/assets/figma/table-ai.svg';
+import FIGMA_SORT_ICON from '../../../../assets/figma/modal-sort.svg';
+import FIGMA_DESELECT_ICON from '../../../../assets/figma/table-deselect.svg';
+import FIGMA_DOWNLOAD_ICON from '../../../../assets/figma/table-download.svg';
+import FIGMA_EDIT_ICON from '../../../../assets/figma/table-edit.svg';
+import FIGMA_WATERMARK_ICON_INACTIVE from '../../../../assets/figma/table-watermark-inactive.svg';
+import FIGMA_WATERMARK_ICON_ACTIVE from '../../../../assets/figma/table-watermark-active.svg';
+import FIGMA_AI_ICON from '../../../../assets/figma/table-ai.svg';
 
 const Sub_SequenceEditorModal = ({
   isOpen,

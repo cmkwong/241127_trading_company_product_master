@@ -1,0 +1,7 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="ai-icon">
+<path id="sparkle-main" d="M8 1.5L9.35 6.65L14.5 8L9.35 9.35L8 14.5L6.65 9.35L1.5 8L6.65 6.65L8 1.5Z" fill="var(--fill-0, #64748B)"/>
+<path id="sparkle-small-1" d="M12.5 11.5L13 13L14.5 13.5L13 14L12.5 15.5L12 14L10.5 13.5L12 13L12.5 11.5Z" fill="var(--fill-0, #64748B)"/>
+<path id="sparkle-small-2" d="M2.5 10.5L2.9 11.7L4.1 12.1L2.9 12.5L2.5 13.7L2.1 12.5L0.9 12.1L2.1 11.7L2.5 10.5Z" fill="var(--fill-0, #64748B)"/>
+</g>
+</svg>

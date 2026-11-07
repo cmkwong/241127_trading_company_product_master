@@ -1,6 +1,5 @@
 import styles from './RemoveRowBtn.module.css';
-
-const FIGMA_REMOVE_ICON = '/assets/figma/icon-cross-red.svg';
+import FIGMA_REMOVE_ICON from '../../../assets/figma/icon-cross-red.svg';
 
 const RemoveRowBtn = ({
   onClick,

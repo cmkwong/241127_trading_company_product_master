@@ -1,26 +1,30 @@
 import { useNavigate } from 'react-router-dom';
 import styles from './LoginUsersSidebar.module.css';
+import FIGMA_ICON_MY_PROFILE from '../../../../assets/figma/top-bar-menus/icon-my-profile.svg';
+import FIGMA_ICON_MY_ORDERS from '../../../../assets/figma/top-bar-menus/icon-my-orders.svg';
+import FIGMA_ICON_MY_ADDRESS from '../../../../assets/figma/top-bar-menus/icon-my-address.svg';
+import FIGMA_ICON_MY_PAYMENT_METHOD from '../../../../assets/figma/top-bar-menus/icon-my-payment-method.svg';
 
 const NAV_ITEMS = [
   {
     key: 'profile',
     label: 'My Profile',
-    icon: '/assets/figma/top-bar-menus/icon-my-profile.svg',
+    icon: FIGMA_ICON_MY_PROFILE,
   },
   {
     key: 'rfqs',
     label: 'My RFQs',
-    icon: '/assets/figma/top-bar-menus/icon-my-orders.svg',
+    icon: FIGMA_ICON_MY_ORDERS,
   },
   {
     key: 'address',
     label: 'My Address',
-    icon: '/assets/figma/top-bar-menus/icon-my-address.svg',
+    icon: FIGMA_ICON_MY_ADDRESS,
   },
   {
     key: 'payment',
     label: 'Payment Method',
-    icon: '/assets/figma/top-bar-menus/icon-my-payment-method.svg',
+    icon: FIGMA_ICON_MY_PAYMENT_METHOD,
   },
 ];
 
@@ -40,7 +44,12 @@ const LoginUsersSidebar = ({ activeSection }) => {
             }`}
             onClick={() => navigate(`/account/${item.key}`)}
           >
-            <img src={item.icon} alt="" aria-hidden="true" className={styles.icon} />
+            <img
+              src={item.icon}
+              alt=""
+              aria-hidden="true"
+              className={styles.icon}
+            />
             <span>{item.label}</span>
           </button>
         ))}

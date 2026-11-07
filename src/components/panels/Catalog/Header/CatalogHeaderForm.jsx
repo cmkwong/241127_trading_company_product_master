@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import styles from './CatalogHeaderForm.module.css';
 import Main_InputContainer from '../../../common/Container/Main_InputContainer';
 import Main_TextField from '../../../common/InputOptions/TextField/Main_TextField';
 import Main_TextArea from '../../../common/InputOptions/Textarea/Main_TextArea';
@@ -9,9 +10,7 @@ import {
 
 const formatDate = (value) => {
   const date = new Date(value);
-  return Number.isFinite(date.getTime())
-    ? date.toLocaleString()
-    : '—';
+  return Number.isFinite(date.getTime()) ? date.toLocaleString() : '—';
 };
 
 const CatalogHeaderForm = () => {
@@ -72,16 +71,7 @@ const CatalogHeaderForm = () => {
         />
       </div>
 
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'auto auto auto',
-          gap: '16px',
-          marginTop: '12px',
-          fontSize: '12px',
-          color: '#64748b',
-        }}
-      >
+      <div className={styles.catalogHeaderInfo}>
         <span>ID: {id || '—'}</span>
         <span>Created: {formatDate(createdAt)}</span>
         <span>Updated: {formatDate(updatedAt)}</span>

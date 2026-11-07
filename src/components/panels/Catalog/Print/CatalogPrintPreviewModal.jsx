@@ -1,5 +1,6 @@
 import { useRef } from 'react';
 import { printCatalogPreviewFrame } from '../../ProductMaster/utils/catalogPrint';
+import Main_Modal from '../../../../components/common/Modal/Main_Modal';
 import styles from './CatalogPrintPreviewModal.module.css';
 
 const CatalogPrintPreviewModal = ({
@@ -25,17 +26,18 @@ const CatalogPrintPreviewModal = ({
     }
   };
 
-  const handleBackdropClick = (event) => {
-    if (event.target === event.currentTarget) onClose();
-  };
-
   return (
-    <div className={styles.backdrop} onClick={handleBackdropClick}>
-      <div className={styles.window}>
-        <div className={styles.header}>
-          <div className={styles.title}>Catalog A4 Preview</div>
+    <Main_Modal
+      title="Catalog A4 Preview"
+      onClose={onClose}
+      size="xl"
+      height="min(92vh, 960px)"
+      zIndex={2400}
+      bodyScrollable={false}
+      footer={
+        <>
+          {isPreparing ? <span className={styles.status}>Preparing…</span> : null}
           <div className={styles.actions}>
-            {isPreparing ? <span className={styles.status}>Preparing…</span> : null}
             <button
               type="button"
               className={styles.primaryBtn}
@@ -44,26 +46,23 @@ const CatalogPrintPreviewModal = ({
             >
               Print / Save PDF
             </button>
-            <button type="button" className={styles.btn} onClick={onClose}>
-              Close
-            </button>
           </div>
-        </div>
-
-        <div className={styles.frameWrap}>
-          {html ? (
-            <iframe
-              ref={iframeRef}
-              title="Catalog Preview"
-              className={styles.frame}
-              srcDoc={html}
-            />
-          ) : (
-            <span className={styles.loading}>Preparing catalog preview…</span>
-          )}
-        </div>
+        </>
+      }
+    >
+      <div className={styles.frameWrap}>
+        {html ? (
+          <iframe
+            ref={iframeRef}
+            title="Catalog Preview"
+            className={styles.frame}
+            srcDoc={html}
+          />
+        ) : (
+          <span className={styles.loading}>Preparing catalog preview…</span>
+        )}
       </div>
-    </div>
+    </Main_Modal>
   );
 };
 

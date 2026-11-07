@@ -579,6 +579,7 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
         const rows = buildCatalogRows(catalogBundle.products, {
           currencies: catalogBundle.currencies,
           masterDataMap: catalogBundle.masterDataMap,
+          baseCurrency: catalogBundle.baseCurrency,
         });
         if (rows.length === 0) {
           window.alert('No product data returned for the selected products.');

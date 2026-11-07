@@ -1,8 +1,7 @@
 import { useRef } from 'react';
 import PropTypes from 'prop-types';
 import styles from './Main_DropZone.module.css';
-
-const FIGMA_LARGE_ADD_ICON = '/assets/figma/large-add-plus.svg';
+import FIGMA_LARGE_ADD_ICON from '../../../../assets/figma/large-add-plus.svg';
 
 /**
  * Main_DropZone Component

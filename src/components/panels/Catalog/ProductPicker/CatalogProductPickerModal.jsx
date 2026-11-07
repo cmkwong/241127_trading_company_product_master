@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useProductContext } from '../../../../store/ProductContext';
 import { useMasterContext } from '../../../../store/MasterContext';
+import Main_Modal from '../../../../components/common/Modal/Main_Modal';
 import styles from './CatalogProductPickerModal.module.css';
 
 const toTrimmed = (value) => String(value || '').trim();
@@ -21,12 +22,26 @@ const getProductDisplayName = (product) => {
   return '';
 };
 
-const CatalogProductPickerModal = ({ onClose, onConfirm }) => {
+const CatalogProductPickerModal = ({
+  onClose,
+  onConfirm,
+  pickedProductIds,
+}) => {
   const { getAllProducts, hydrateProductIcons } = useProductContext();
   const { category } = useMasterContext();
   const [searchTerm, setSearchTerm] = useState('');
   const [selected, setSelected] = useState(() => new Set());
   const listRef = useRef(null);
+
+  const pickedSet = useMemo(() => {
+    if (pickedProductIds instanceof Set) return pickedProductIds;
+    const set = new Set();
+    (pickedProductIds || []).forEach((id) => {
+      const trimmed = toTrimmed(id);
+      if (trimmed) set.add(trimmed);
+    });
+    return set;
+  }, [pickedProductIds]);
 
   const products = useMemo(() => getAllProducts() || [], [getAllProducts]);
 
@@ -125,6 +140,7 @@ const CatalogProductPickerModal = ({ onClose, onConfirm }) => {
   }, [filtered, hydrateProductIcons]);
 
   const toggle = (id) => {
+    if (pickedSet.has(id)) return;
     setSelected((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -137,20 +153,32 @@ const CatalogProductPickerModal = ({ onClose, onConfirm }) => {
     onConfirm([...selected]);
   };
 
-  const handleBackdropClick = (event) => {
-    if (event.target === event.currentTarget) onClose();
-  };
-
   return (
-    <div className={styles.backdrop} onClick={handleBackdropClick}>
-      <div className={styles.window}>
-        <div className={styles.header}>
-          <div className={styles.title}>Select Products</div>
-          <button type="button" className={styles.closeBtn} onClick={onClose}>
-            ✕
-          </button>
-        </div>
-
+    <Main_Modal
+      title="Select Products"
+      onClose={onClose}
+      size="lg"
+      height="min(80vh, 720px)"
+      zIndex={2200}
+      bodyScrollable={false}
+      footer={
+        <>
+          <span className={styles.count}>
+            {selected.size} selected
+            {pickedSet.size > 0 ? ` · ${pickedSet.size} already in catalog` : ''}
+          </span>
+          <div className={styles.actions}>
+            <button type="button" className={styles.btn} onClick={onClose}>
+              Cancel
+            </button>
+            <button type="button" className={styles.primaryBtn} onClick={handleConfirm}>
+              Add to Catalog
+            </button>
+          </div>
+        </>
+      }
+    >
+      <>
         <div className={styles.searchRow}>
           <input
             type="text"
@@ -179,6 +207,7 @@ const CatalogProductPickerModal = ({ onClose, onConfirm }) => {
             filtered.map((product) => {
               const id = String(product?.id || '').trim();
               const isSelected = selected.has(id);
+              const isPicked = pickedSet.has(id);
               const categoryText = getProductCategoryLabels(product).join(', ');
               const alibabaText = getProductAlibabaValues(product).join(', ');
               return (
@@ -186,8 +215,12 @@ const CatalogProductPickerModal = ({ onClose, onConfirm }) => {
                   key={id}
                   type="button"
                   data-item-id={id}
-                  className={`${styles.item} ${isSelected ? styles.itemSelected : ''}`}
+                  className={`${styles.item} ${isSelected ? styles.itemSelected : ''} ${
+                    isPicked ? styles.itemPicked : ''
+                  }`}
                   onClick={() => toggle(id)}
+                  disabled={isPicked}
+                  title={isPicked ? 'Already in this catalog' : undefined}
                 >
                   {product?.icon_url ? (
                     <img
@@ -202,6 +235,9 @@ const CatalogProductPickerModal = ({ onClose, onConfirm }) => {
                   )}
                   <span className={`${styles.cell} ${styles.colName}`}>
                     {getProductDisplayName(product)}
+                    {isPicked ? (
+                      <span className={styles.pickedBadge}>Added</span>
+                    ) : null}
                   </span>
                   <span
                     className={`${styles.cell} ${styles.colCategory}`}
@@ -215,26 +251,16 @@ const CatalogProductPickerModal = ({ onClose, onConfirm }) => {
                   >
                     {alibabaText || '—'}
                   </span>
-                  <span className={styles.check}>{isSelected ? '✓' : ''}</span>
+                  <span className={styles.check}>
+                    {isSelected || isPicked ? '✓' : ''}
+                  </span>
                 </button>
               );
             })
           )}
         </div>
-
-        <div className={styles.footer}>
-          <span className={styles.count}>{selected.size} selected</span>
-          <div className={styles.actions}>
-            <button type="button" className={styles.btn} onClick={onClose}>
-              Cancel
-            </button>
-            <button type="button" className={styles.primaryBtn} onClick={handleConfirm}>
-              Add to Catalog
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+      </>
+    </Main_Modal>
   );
 };
 

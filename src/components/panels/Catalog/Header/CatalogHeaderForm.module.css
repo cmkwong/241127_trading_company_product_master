@@ -1,0 +1,9 @@
+.catalogHeaderInfo {
+  display: flex;
+  gap: 4px;
+  flex-direction: column;
+  /* margin-top: 12px; */
+  font-size: 11px;
+  color: #64748b;
+  align-items: flex-end;
+}

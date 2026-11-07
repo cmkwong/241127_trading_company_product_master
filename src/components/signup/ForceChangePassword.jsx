@@ -10,8 +10,8 @@ import {
   resetPasswordWithToken,
 } from '../../utils/emailLink';
 import authStyles from './AuthPanel.module.css';
-import PW_SHOW_ICON from '../../../public/assets/figma/pw-show.svg';
-import PW_HIDE_ICON from '../../../public/assets/figma/pw-hide.svg';
+import PW_SHOW_ICON from '../../assets/figma/pw-show.svg';
+import PW_HIDE_ICON from '../../assets/figma/pw-hide.svg';
 
 const MIN_PASSWORD_LENGTH = 8;
 

@@ -1,0 +1,6 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="deselect-icon">
+<rect id="track" x="1.75" y="4.75" width="12.5" height="6.5" rx="3.25" stroke="var(--stroke-0, #64748B)" stroke-width="1.5"/>
+<circle id="knob" cx="5.5" cy="8" r="2.5" fill="var(--fill-0, #64748B)"/>
+</g>
+</svg>

@@ -15,6 +15,9 @@ const SubCatalogPreviewRow = ({ row, index }) => (
                 className={styles.mainImage}
                 src={row.mainImageUrl}
                 alt={row.name}
+                onError={(e) =>
+                  console.log('[catalogPrint:imgError]', e.currentTarget.src)
+                }
               />
             ) : (
               <div className={styles.mainImage} />
@@ -22,16 +25,47 @@ const SubCatalogPreviewRow = ({ row, index }) => (
             {row.sku ? <span className={styles.sku}>{row.sku}</span> : null}
           </div>
         </div>
-
-        <div className={styles.colImages}>
-          <div className={styles.imagesCell}>
-            {row.thumbImageUrls.map((url, index) => (
-              <img
-                className={styles.thumb}
-                key={`${row.id}-thumb-${index}`}
-                src={url}
-                alt=""
-              />
+        <div className={styles.subsection}>
+          <div className={styles.colImages}>
+            <div className={styles.imagesCell}>
+              {row.thumbImageUrls.map((url, index) => (
+                <img
+                  className={styles.thumb}
+                  key={`${row.id}-thumb-${index}`}
+                  src={url}
+                  alt=""
+                  onError={(e) =>
+                    console.log(
+                      '[catalogPrint:thumbImgError]',
+                      e.currentTarget.src,
+                    )
+                  }
+                />
+              ))}
+            </div>
+          </div>
+          <div className={styles.varients}>
+            {[
+              { key: 'color', label: 'Color', value: row.variants?.color },
+              { key: 'size', label: 'Size', value: row.variants?.size },
+              {
+                key: 'capacity',
+                label: 'Capacity',
+                value: row.variants?.capacity,
+              },
+            ].map((variant) => (
+              <div className={styles.variantLine} key={variant.key}>
+                {variant.value ? (
+                  <>
+                    <span className={styles.variantLabel}>
+                      {variant.label}:
+                    </span>
+                    <span className={styles.variantValue}>
+                      {variant.value}
+                    </span>
+                  </>
+                ) : null}
+              </div>
             ))}
           </div>
         </div>

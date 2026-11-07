@@ -7,8 +7,7 @@ import {
   DRAG_READY_LABEL,
   getDragPlacementUiState,
 } from '../../../../utils/dragUi';
-
-const FIGMA_VIDEO_PLAY_ICON = '/assets/figma/video-play.svg';
+import FIGMA_VIDEO_PLAY_ICON from '../../../../assets/figma/video-play.svg';
 
 /**
  * Sub_FileItem Component
@@ -537,7 +536,8 @@ const Sub_FileItem = ({
         <div className={styles.dropReadyBadge}>{DRAG_READY_LABEL}</div>
       )}
 
-      {(compactFile || largeFile) && typeof onToggleSelected === 'function' &&
+      {(compactFile || largeFile) &&
+        typeof onToggleSelected === 'function' &&
         (largeFile ? (
           <Main_Checkbox
             checked={isSelected}

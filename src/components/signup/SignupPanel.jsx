@@ -2,7 +2,10 @@ import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuthContext } from '../../store/AuthContext';
 import { apiGet, apiPost } from '../../utils/crud';
-import { sendMagicLink, MAGIC_LINK_COOLDOWN_SECONDS } from '../../utils/emailLink';
+import {
+  sendMagicLink,
+  MAGIC_LINK_COOLDOWN_SECONDS,
+} from '../../utils/emailLink';
 import Header from '../common/Texts/Header';
 import Main_TextField from '../common/InputOptions/TextField/Main_TextField';
 import PrimaryBtn from '../common/Buttons/PrimaryBtn';
@@ -10,10 +13,10 @@ import Main_Checkbox from '../common/InputOptions/Checkbox/Main_Checkbox';
 import authStyles from './AuthPanel.module.css';
 import useCooldown, { formatCooldown } from '../../hooks/useCooldown';
 import SentEmail from './SentEmail';
-import GOOGLE_LOGO from '../../../public/assets/figma/sign-in-pages/google-icon.svg';
-import EMAIL_LOGO from '../../../public/assets/figma/sign-in-pages/email-icon.svg';
-import PW_SHOW_ICON from '../../../public/assets/figma/pw-show.svg';
-import PW_HIDE_ICON from '../../../public/assets/figma/pw-hide.svg';
+import GOOGLE_LOGO from '../../assets/figma/sign-in-pages/google-icon.svg';
+import EMAIL_LOGO from '../../assets/figma/sign-in-pages/email-icon.svg';
+import PW_SHOW_ICON from '../../assets/figma/pw-show.svg';
+import PW_HIDE_ICON from '../../assets/figma/pw-hide.svg';
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_PASSWORD_LENGTH = 8;
 const SIGNUP_ENDPOINT =

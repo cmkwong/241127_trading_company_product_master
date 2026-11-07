@@ -49,7 +49,7 @@ const LIST_CATALOG_FIELDS = [
 
 /**
  * Deep-clone a catalog draft for duplication: regenerate every `id` (root and
- * nested rows/images/attribute-displays) and drop server-managed/internal keys.
+ * nested rows/attribute-displays) and drop server-managed/internal keys.
  */
 const cloneCatalogForDuplication = (source) => {
   const clean = cleanupNestedInternalFlags(source || {});
@@ -202,6 +202,8 @@ export const CatalogContext_Provider = ({ children, initialData = {} }) => {
     [comparisonKeys],
   );
 
+  // The catalog tables no longer carry any server `fileConfig` (per-row images
+  // now come from `products.icon_url`), so there is no base64 handling here.
   const getChangedData = useCallback(() => {
     return buildNestedChangedData({
       pageData: getPageData(),
@@ -250,12 +252,13 @@ export const CatalogContext_Provider = ({ children, initialData = {} }) => {
       !originalPageData || originalPageData.id !== current.id;
 
     if (changesResult?.changes) {
-      preview.payload = { data: changesResult.changes };
-      if (changesResult.changes.catalogs) {
+      const { changes } = changesResult;
+      preview.payload = { data: changes };
+      if (changes.catalogs) {
         if (isRootCreate) {
-          preview.create.catalogs = changesResult.changes.catalogs;
+          preview.create.catalogs = changes.catalogs;
         } else {
-          preview.update.catalogs = changesResult.changes.catalogs;
+          preview.update.catalogs = changes.catalogs;
         }
       }
     }
@@ -333,7 +336,11 @@ export const CatalogContext_Provider = ({ children, initialData = {} }) => {
           }
 
           if (changes) {
-            await apiPatch(`${API_BASE}/ids`, { data: changes }, { token });
+            await apiPatch(
+              `${API_BASE}/ids`,
+              { data: changes },
+              { token },
+            );
           }
         }
 
@@ -342,11 +349,31 @@ export const CatalogContext_Provider = ({ children, initialData = {} }) => {
         }
 
         if (current.id) {
-          const cleanedPageData = cleanupNestedInternalFlags(current);
-          const savedCatalogData = JSON.parse(JSON.stringify(cleanedPageData));
+          // Re-fetch the persisted catalog so any server-managed values replace
+          // the local draft. On failure, fall back to the cleaned local draft.
+          let authoritative = null;
+          try {
+            const response = await apiPost(
+              `${API_BASE}/get/ids`,
+              { data: { catalogs: [{ id: current.id }] } },
+              { token },
+            );
+            const rawData = normalizeStructuredTableResponse(
+              response,
+              'catalogs',
+            );
+            authoritative = rawData?.catalogs?.[0] || null;
+          } catch (refetchErr) {
+            console.warn('Failed to re-fetch catalog after save:', refetchErr);
+          }
 
-          setPageData(cleanedPageData);
-          setOriginalPageData(savedCatalogData);
+          const cleanedPageData = cleanupNestedInternalFlags(current);
+          const savedCatalogData = JSON.parse(
+            JSON.stringify(authoritative || cleanedPageData),
+          );
+
+          setPageData(savedCatalogData);
+          setOriginalPageData(JSON.parse(JSON.stringify(savedCatalogData)));
 
           setCatalogs((prevState) => {
             const nextState = mergeEntityIntoStateList({

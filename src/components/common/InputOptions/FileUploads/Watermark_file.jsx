@@ -1,8 +1,7 @@
 import { useCallback, useRef } from 'react';
+import WATERMARK_ICON from '../../../../assets/brand_logos/watermark_v2.png';
 
-const useWatermarkFile = ({
-  watermarkImagePath = '/assets/brand_logos/watermark_v2.png',
-} = {}) => {
+const useWatermarkFile = ({ watermarkImagePath = WATERMARK_ICON } = {}) => {
   const watermarkImageCacheRef = useRef(null);
 
   const loadImageElement = useCallback(async (src) => {

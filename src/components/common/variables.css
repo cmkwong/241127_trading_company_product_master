@@ -29,6 +29,7 @@
   --color-blue-bg-light: #e9f3ff;
 
   /* ===== Button states ===== */
+  --color-button-primary-bg: #354b69;
   --color-button-disabled-bg: #8fa3c1;
   --color-button-disabled-text: #ffffff;
   --color-button-disabled-border: #8fa3c1;
@@ -64,6 +65,7 @@
   --color-info-dark: #1e69d2;
 
   /* ===== Blue soft backgrounds ===== */
+  --color-header-bg: #0b2f53; /* header background color */
   --color-info-bg: #eff6ff;
   --color-info-border: #bfdbfe;
   --color-info-text: #374c78;

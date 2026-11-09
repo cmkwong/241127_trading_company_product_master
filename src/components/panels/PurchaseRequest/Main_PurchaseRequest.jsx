@@ -278,8 +278,7 @@ const Main_PurchaseRequest = () => {
     toSafeString(currentPurchaseRequestId),
   );
   const hasPersistedPurchaseRequest = toArray(rows).some(
-    (row) =>
-      toSafeString(row?.id) === toSafeString(currentPurchaseRequestId),
+    (row) => toSafeString(row?.id) === toSafeString(currentPurchaseRequestId),
   );
 
   useEffect(() => {
@@ -805,7 +804,7 @@ const Main_PurchaseRequest = () => {
             productNameById.get(productId) ||
             productId ||
             `Product ${index + 1}`,
-          amount: buildAmount(row?.price, row?.qty ?? row?.quantity),
+          amount: buildAmount(row?.price, 1),
           currency_id: toSafeString(row?.currency_id),
           details: toSafeString(row?.details),
           remark: toSafeString(row?.remark),
@@ -823,7 +822,7 @@ const Main_PurchaseRequest = () => {
             serviceNameById.get(serviceId) ||
             serviceId ||
             `Service ${index + 1}`,
-          amount: buildAmount(row?.price, row?.qty ?? row?.quantity),
+          amount: buildAmount(row?.price, 1),
           currency_id: toSafeString(row?.currency_id),
           details: toSafeString(row?.details),
           remark: toSafeString(row?.remark),
@@ -881,7 +880,7 @@ const Main_PurchaseRequest = () => {
                   (sum, dimension) => sum + (Number(dimension?.qty) || 0),
                   0,
                 )
-              : detail?.quantity ?? detail?.qty ?? '';
+              : (detail?.quantity ?? detail?.qty ?? '');
           const selectedPrice = resolveSelectedShippingPrice(detail);
           const currencyId = toSafeString(
             selectedPrice?.cost_currency_id ||

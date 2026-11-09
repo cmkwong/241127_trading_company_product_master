@@ -8,7 +8,7 @@ import {
   toSafeString,
 } from '../utils/quotationTotals';
 import { STATUS_OPTIONS } from '../SalesBasicInfo/Main_SalesBasicInfo';
-const PACKING_LIST_ICON_URL = '../../../../assets/icons/packing_list_icon.svg';
+import PACKING_LIST_ICON_URL from '../../../../assets/icons/packing_list_icon.svg';
 
 const SALES_QUOTATION_SEARCH_HISTORY_KEY =
   'sales_quotation_sidebar_search_history';

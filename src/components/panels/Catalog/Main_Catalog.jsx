@@ -21,6 +21,8 @@ import {
 } from '../ProductMaster/utils/catalogData';
 import { buildCatalogA4Html } from '../ProductMaster/utils/catalogPrint';
 import { applyCatalogRowOverrides } from './utils/catalogOverrides';
+import { useCompanyProfile } from '../../../store/useCompanyProfile';
+import { resolveCompanyInfo } from '../SalesQuotation/utils/printout/quotationPreview';
 
 const Main_Catalog = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -44,6 +46,7 @@ const Main_Catalog = () => {
   } = useCatalogContext();
   const { getCatalogDataByIds, getAllProducts } = useProductContext();
   const { getMasterTableData } = useMasterContext();
+  const { companyProfile } = useCompanyProfile();
 
   const pageDataId = useEntityField('catalogs', 'id');
   const catalogName = useEntityField('catalogs', 'catalog_name');
@@ -252,12 +255,17 @@ const Main_Catalog = () => {
         baseCurrency: normalized.baseCurrency,
       });
 
+      const company = resolveCompanyInfo(companyProfile);
+
       setPrintHtml(
         buildCatalogA4Html({
           rows,
           title: displayHeader || catalogName || 'Product Catalog',
           baseCurrency: normalized.baseCurrency,
           subtitle: `${rows.length} products · ${new Date().getFullYear()}`,
+          logoUrl: company.logoUrl,
+          companyName: company.companyName,
+          companyAddress: company.companyAddress,
         }),
       );
     } catch (error) {
@@ -267,7 +275,7 @@ const Main_Catalog = () => {
     } finally {
       setIsPrinting(false);
     }
-  }, [catalogRows, getCatalogDataByIds, displayHeader, catalogName]);
+  }, [catalogRows, getCatalogDataByIds, displayHeader, catalogName, companyProfile]);
 
 
 

@@ -11,12 +11,16 @@ const SubCatalogHeader = ({
   title = DEFAULT_TITLE,
   subtitle = '',
   meta = '',
+  companyName = '',
+  companyAddress = '',
   pageNumber = 0,
   pageCount = 0,
 }) => {
   const safeTitle = toText(title) || DEFAULT_TITLE;
   const safeSubtitle = toText(subtitle);
   const safeMeta = toText(meta);
+  const safeCompanyName = toText(companyName);
+  const safeCompanyAddress = toText(companyAddress);
   const current = Number(pageNumber);
   const total = Number(pageCount);
   const hasPageNumber =
@@ -27,11 +31,23 @@ const SubCatalogHeader = ({
 
   return (
     <div className={styles.pageHeader}>
-      <img
-        className={styles.brandLogo}
-        src={toText(logoUrl) || DEFAULT_LOGO_URL}
-        alt={logoAlt}
-      />
+      <div className={styles.brandBlock}>
+        <img
+          className={styles.brandLogo}
+          src={toText(logoUrl) || DEFAULT_LOGO_URL}
+          alt={logoAlt}
+        />
+        {safeCompanyName || safeCompanyAddress ? (
+          <div className={styles.brandText}>
+            {/* {safeCompanyName ? (
+              <span className={styles.brandName}>{safeCompanyName}</span>
+            ) : null} */}
+            {safeCompanyAddress ? (
+              <span className={styles.brandAddress}>{safeCompanyAddress}</span>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
       <div className={styles.pageHeaderRight}>
         <h1 className={styles.title}>{safeTitle}</h1>
         {safeSubtitle ? (

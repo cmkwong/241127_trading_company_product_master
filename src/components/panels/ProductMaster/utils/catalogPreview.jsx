@@ -76,6 +76,8 @@ const CatalogPreviewPage = ({
   title,
   subtitle,
   logoUrl,
+  companyName,
+  companyAddress,
   pageStyle,
   baseCurrency,
 }) => (
@@ -86,6 +88,8 @@ const CatalogPreviewPage = ({
           logoUrl={logoUrl}
           title={title}
           subtitle={subtitle}
+          companyName={companyName}
+          companyAddress={companyAddress}
           pageNumber={pageIndex + 1}
           pageCount={chunks.length}
         />
@@ -133,6 +137,8 @@ const measureCatalogLayout = ({
   title,
   subtitle,
   logoUrl,
+  companyName,
+  companyAddress,
   baseCurrency,
 }) => {
   const host = getCatalogMeasureHost();
@@ -145,6 +151,8 @@ const measureCatalogLayout = ({
         title={title}
         subtitle={subtitle}
         logoUrl={logoUrl}
+        companyName={companyName}
+        companyAddress={companyAddress}
         pageStyle={PAGE_STYLE}
         baseCurrency={baseCurrency}
       />,
@@ -231,6 +239,8 @@ const paginateCatalogRows = ({
   title,
   subtitle,
   logoUrl,
+  companyName,
+  companyAddress,
   baseCurrency,
 }) => {
   const normalizedRows = Array.isArray(rows) ? rows : [];
@@ -244,6 +254,8 @@ const paginateCatalogRows = ({
     title,
     subtitle,
     logoUrl,
+    companyName,
+    companyAddress,
     baseCurrency,
   });
 
@@ -282,6 +294,8 @@ export const buildCatalogDocumentHtml = ({
   title = DEFAULT_TITLE,
   subtitle = '',
   logoUrl = '',
+  companyName = '',
+  companyAddress = '',
   baseCurrency = 'USD',
 } = {}) => {
   const normalizedBaseCurrency =
@@ -293,6 +307,8 @@ export const buildCatalogDocumentHtml = ({
     title,
     subtitle,
     logoUrl,
+    companyName,
+    companyAddress,
     baseCurrency: normalizedBaseCurrency,
   });
   const markup = renderToStaticMarkup(
@@ -301,6 +317,8 @@ export const buildCatalogDocumentHtml = ({
       title={title}
       subtitle={subtitle}
       logoUrl={logoUrl}
+      companyName={companyName}
+      companyAddress={companyAddress}
       pageStyle={PAGE_STYLE}
       baseCurrency={normalizedBaseCurrency}
     />,

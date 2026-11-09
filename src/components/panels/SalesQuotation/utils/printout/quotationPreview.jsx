@@ -28,10 +28,6 @@ import {
 import DEFAULT_COMPANY_LOGO_URL from '../../../../../assets/brand_logos/watermark_v2.png';
 
 const FILE_SERVER_BASE_URL = 'http://localhost:3001';
-const DEFAULT_COMPANY_NAME = 'Rivolx Limited';
-const DEFAULT_COMPANY_ADDRESS =
-  "RM A, 19/F MAX SHARE CTR 367-373 KING'S RD NORTH POINT, HONG KONG, China, Hong Kong";
-const DEFAULT_CONTACT_PERSON = 'Chris Cheung';
 const QUOTATION_VALID_DAYS = 15;
 const DEFAULT_DOWNPAYMENT_PERCENT = 30;
 const A4_FRAME_PX = getA4FramePx();
@@ -129,8 +125,8 @@ const DELIVERY_NOTE_LABELS = {
   emptyItems: 'No selected delivery note items.',
   filePrefix: 'delivery-note',
   termsLines: [
-    'The expected arrival dates are estimates only. Rivolx Limited shall not be held liable for any delivery delays caused by customs inspections, port congestion, weather conditions, strikes, or any other circumstances beyond our reasonable control.',
-    'Any claims regarding damaged goods, defects, or shortages must be reported to Rivolx Limited in writing within (5) business days of receipt. Failure to notify within this period constitutes full acceptance of the goods.',
+    'The expected arrival dates are estimates only. {COMPANY_NAME} shall not be held liable for any delivery delays caused by customs inspections, port congestion, weather conditions, strikes, or any other circumstances beyond our reasonable control.',
+    'Any claims regarding damaged goods, defects, or shortages must be reported to {COMPANY_NAME} in writing within (5) business days of receipt. Failure to notify within this period constitutes full acceptance of the goods.',
   ],
   showPricingColumns: false,
   showTotalPrice: false,
@@ -187,7 +183,7 @@ const AR_INVOICE_LABELS = {
   balanceDueLabel: 'Balance Due',
   termsLines: [
     'The remaining balance of ${BALANCE_DUE} {CURRENCY} is due immediately upon receipt of this invoice.',
-    'Title and ownership of the goods shall remain with Rivolx Limited until full and final payment has been received.',
+    'Title and ownership of the goods shall remain with {COMPANY_NAME} until full and final payment has been received.',
     'No returns or allowances will be made unless notified in writing.',
   ],
 };
@@ -439,6 +435,7 @@ const resolveTermsLines = ({
   downpaymentPercentLabel,
   balanceDueAmount,
   currencyLabel,
+  companyName,
 }) => {
   const termsLines = Array.isArray(labels?.termsLines) ? labels.termsLines : [];
 
@@ -451,7 +448,8 @@ const resolveTermsLines = ({
           String(DEFAULT_DOWNPAYMENT_PERCENT),
       )
       .replaceAll('{BALANCE_DUE}', toSafeString(balanceDueAmount) || '0.000')
-      .replaceAll('{CURRENCY}', toSafeString(currencyLabel) || 'USD'),
+      .replaceAll('{CURRENCY}', toSafeString(currencyLabel) || 'USD')
+      .replaceAll('{COMPANY_NAME}', toSafeString(companyName)),
   );
 };
 
@@ -563,18 +561,32 @@ export const resolveCompanyInfo = (companyInfo = null) => {
   const record =
     companyInfo && typeof companyInfo === 'object' ? companyInfo : {};
 
+  const rawAddress =
+    record?.company_address ?? record?.company_addresses ?? record?.addresses;
+  const addressRows = Array.isArray(rawAddress)
+    ? rawAddress
+    : rawAddress && typeof rawAddress === 'object'
+      ? [rawAddress]
+      : [];
+
+  const defaultAddress =
+    addressRows.find((row) => isSelectedFlag(row?.is_default)) ||
+    addressRows[0] ||
+    null;
+
   return {
     logoUrl: normalizeUrl(
-      toSafeString(record?.logo_icon_url) || DEFAULT_COMPANY_LOGO_URL,
+      toSafeString(record?.icon_url) || DEFAULT_COMPANY_LOGO_URL,
     ),
     companyName:
-      toSafeString(record?.company_name) ||
-      toSafeString(record?.name) ||
-      DEFAULT_COMPANY_NAME,
+      toSafeString(record?.company_name) || toSafeString(record?.name),
     companyAddress:
-      toSafeString(record?.company_address) || DEFAULT_COMPANY_ADDRESS,
+      (typeof rawAddress === 'string' ? toSafeString(rawAddress) : '') ||
+      toSafeString(record?.company_address_text) ||
+      pickCompanyAddressLine(defaultAddress),
     contactPerson:
-      toSafeString(record?.contact_person) || DEFAULT_CONTACT_PERSON,
+      toSafeString(record?.contact_person) ||
+      toSafeString(defaultAddress?.contact_name),
   };
 };
 
@@ -649,6 +661,22 @@ const pickAddressLine = (address) => {
     .filter(Boolean);
 
   return parts.join(', ');
+};
+
+const pickCompanyAddressLine = (address) => {
+  const parts = [
+    address?.address_line1,
+    address?.address_line2,
+    address?.address_line3,
+    address?.city,
+    address?.state,
+    address?.zip_code,
+    address?.country,
+  ]
+    .map((value) => toSafeString(value))
+    .filter(Boolean);
+
+  return parts.join(', ') || pickAddressLine(address);
 };
 
 const buildProductLineItems = ({
@@ -1381,7 +1409,7 @@ const QuotationHeader = ({
           <div className={styles.metaTitle}>{labels.fromTitle}</div>
           <div className={styles.metaHeading}>{companyName}</div>
           <div className={styles.metaLine}>{companyAddress}</div>
-          <div className={styles.metaLine}>Contact Person: {contactPerson}</div>
+          {/* <div className={styles.metaLine}>{contactPerson}</div> */}
         </div>
       )}
 
@@ -1825,6 +1853,7 @@ export const buildQuotationViewData = ({
         ? invoiceBalanceDueAmount
         : totalAmount,
     currencyLabel: totalLabel,
+    companyName: resolvedCompanyInfo.companyName,
   });
 
   const paymentSummary =

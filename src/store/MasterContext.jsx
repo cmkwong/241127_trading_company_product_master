@@ -38,7 +38,6 @@ const DEFAULT_TABLE_NAMES = [
   'master_customer_name_types',
   'master_countries',
   'master_currencies',
-  'master_company_info',
   'master_incoterms',
   'master_invoice_types',
   'master_shipping_method',
@@ -77,7 +76,6 @@ const TABLE_INITIAL_DATA = {
   master_customer_name_types: [],
   master_countries: [],
   master_currencies: [],
-  master_company_info: [],
   master_incoterms: [],
   master_invoice_types: [],
   master_shipping_method: [],
@@ -436,7 +434,6 @@ export const MasterContext_Provider = ({ children }) => {
   const customerType = masterDataMap.master_customer_types || [];
   const packType = masterDataMap.master_packing_types || [];
   const currencies = masterDataMap.master_currencies || [];
-  const companyInfo = masterDataMap.master_company_info || [];
   const incoterms = masterDataMap.master_incoterms || [];
   const shippingMethods = masterDataMap.master_shipping_method || [];
   const exchangeRateHkd = masterDataMap.master_exchange_rate_hkd || [];
@@ -785,7 +782,6 @@ export const MasterContext_Provider = ({ children }) => {
     services,
     sizeType,
     currencies,
-    companyInfo,
     incoterms,
     shippingMethods,
     exchangeRateHkd,

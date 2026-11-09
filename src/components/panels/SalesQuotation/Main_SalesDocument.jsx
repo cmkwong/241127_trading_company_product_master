@@ -17,6 +17,7 @@ import {
   useEntityRows,
 } from '../../../store/GeneralContext';
 import { useMasterContext } from '../../../store/MasterContext';
+import { useCompanyProfile } from '../../../store/useCompanyProfile';
 import DeleteBtn from '../../common/Buttons/DeleteBtn';
 import {
   buildBaseCurrencyOptions,
@@ -104,7 +105,6 @@ const Main_SalesDocument = ({
 
   const selectSalesQuotationRef = useRef(selectSalesQuotation);
   const {
-    companyInfo,
     currencies,
     exchangeRateHkd,
     fetchMasterData,
@@ -112,6 +112,9 @@ const Main_SalesDocument = ({
     getDocTypeIdByName,
     docType,
   } = useMasterContext();
+  const { companyProfile, refreshCompanyProfile } = useCompanyProfile();
+
+  const printCompanyInfo = companyProfile;
 
   const docTypeId = useMemo(
     () => getDocTypeIdByName(docTypeName),
@@ -133,16 +136,16 @@ const Main_SalesDocument = ({
 
   useEffect(() => {
     refreshReferenceOptions();
-    fetchMasterData('master_company_info');
+    refreshCompanyProfile();
     fetchMasterData('master_shipping_method');
     fetchMasterData('master_exchange_rate_hkd');
     fetchMasterData('master_currencies');
-  }, [fetchMasterData, refreshReferenceOptions]);
+  }, [fetchMasterData, refreshReferenceOptions, refreshCompanyProfile]);
 
   useEffect(() => {
     const handleWindowFocus = () => {
       refreshReferenceOptions();
-      fetchMasterData('master_company_info');
+      refreshCompanyProfile({ force: true });
       fetchMasterData('master_shipping_method');
       fetchMasterData('master_exchange_rate_hkd');
       fetchMasterData('master_currencies');
@@ -152,7 +155,7 @@ const Main_SalesDocument = ({
     return () => {
       window.removeEventListener('focus', handleWindowFocus);
     };
-  }, [fetchMasterData, refreshReferenceOptions]);
+  }, [fetchMasterData, refreshReferenceOptions, refreshCompanyProfile]);
 
   const normalizedCurrencies = useMemo(() => {
     return buildNormalizedCurrencies(currencies);
@@ -567,7 +570,7 @@ const Main_SalesDocument = ({
         quotation: selectedQuotation,
         allDocuments: quotations,
         docTypeOptions: docType,
-        companyInfo: Array.isArray(companyInfo) ? companyInfo[0] : null,
+        companyInfo: printCompanyInfo,
         customerOptions,
         customerAddressOptions,
         shippingMethodOptions,
@@ -614,7 +617,7 @@ const Main_SalesDocument = ({
     }
   }, [
     baseCurrencyCode,
-    companyInfo,
+    printCompanyInfo,
     currencyCodeById,
     customerAddressOptions,
     customerOptions,
@@ -649,7 +652,7 @@ const Main_SalesDocument = ({
         quotation: selectedQuotation,
         allDocuments: quotations,
         docTypeOptions: docType,
-        companyInfo: Array.isArray(companyInfo) ? companyInfo[0] : null,
+        companyInfo: printCompanyInfo,
         customerOptions,
         customerAddressOptions,
         shippingMethodOptions,
@@ -691,7 +694,7 @@ const Main_SalesDocument = ({
     }
   }, [
     baseCurrencyCode,
-    companyInfo,
+    printCompanyInfo,
     currencyCodeById,
     customerAddressOptions,
     customerOptions,

@@ -79,11 +79,7 @@ const DEFAULT_AP_NUMBER_LABEL = '#';
 const buildDocumentTitle = (invoice, supplierName) =>
   `${toSafeString(invoice?.id) || 'AP-INVOICE'} - ${supplierName} - AP Invoice`;
 
-const resolveSupplierAddress = (
-  invoice,
-  supplier,
-  supplierAddressOptions,
-) => {
+const resolveSupplierAddress = (invoice, supplier, supplierAddressOptions) => {
   const addressId = toSafeString(invoice?.supplier_address_id);
   const option = toArray(supplierAddressOptions).find(
     (item) => toSafeString(item?.id) === addressId,
@@ -95,9 +91,8 @@ const resolveSupplierAddress = (
 
   const supplierAddresses = toArray(supplier?.supplier_addresses);
   const matched =
-    supplierAddresses.find(
-      (item) => toSafeString(item?.id) === addressId,
-    ) || supplierAddresses[0];
+    supplierAddresses.find((item) => toSafeString(item?.id) === addressId) ||
+    supplierAddresses[0];
 
   return matched ? getSupplierAddressPreview(matched) : '';
 };
@@ -121,8 +116,7 @@ const buildApInvoiceViewData = ({
   const supplierById = new Map(
     toArray(supplierOptions).map((item) => [toSafeString(item?.id), item]),
   );
-  const supplier =
-    supplierById.get(toSafeString(invoice?.supplier_id)) || null;
+  const supplier = supplierById.get(toSafeString(invoice?.supplier_id)) || null;
   const supplierName = supplier
     ? getSupplierDisplayName(supplier)
     : toSafeString(invoice?.supplier_id);
@@ -183,9 +177,7 @@ const buildApInvoiceViewData = ({
     contactPerson: resolvedCompanyInfo.contactPerson,
     supplierName,
     supplierAddress,
-    documentNumber: formatDocumentNumber(
-      invoice?.invoice_ref || invoice?.id,
-    ),
+    documentNumber: formatDocumentNumber(invoice?.invoice_ref || invoice?.id),
     documentNumberLabel,
     invoiceDate: invoice?.invoice_date,
     dueDate: invoice?.due_date,
@@ -208,8 +200,7 @@ const ApInvoiceTopBar = ({ logoUrl }) => (
 );
 
 const ApInvoiceHeader = ({ view, pageNumberLabel }) => {
-  const showPage =
-    toSafeString(pageNumberLabel) && pageNumberLabel !== '1/1';
+  const showPage = toSafeString(pageNumberLabel) && pageNumberLabel !== '1/1';
 
   return (
     <>
@@ -219,9 +210,7 @@ const ApInvoiceHeader = ({ view, pageNumberLabel }) => {
           <div className={styles.metaTitle}>AP Invoice From</div>
           <div className={styles.metaHeading}>{view.companyName}</div>
           <div className={styles.metaLine}>{view.companyAddress}</div>
-          <div className={styles.metaLine}>
-            Contact Person: {view.contactPerson}
-          </div>
+          {/* <div className={styles.metaLine}>{view.contactPerson}</div> */}
         </div>
 
         <div className={styles.forCol}>
@@ -255,7 +244,9 @@ const ApInvoiceHeader = ({ view, pageNumberLabel }) => {
           {showPage ? (
             <div className={styles.metaLineQuot}>
               <span className={styles.metaLineQuotLabel}>Page</span>
-              <span className={styles.metaLineQuotValue}>{pageNumberLabel}</span>
+              <span className={styles.metaLineQuotValue}>
+                {pageNumberLabel}
+              </span>
             </div>
           ) : null}
         </div>
@@ -305,9 +296,7 @@ const ApInvoiceBody = ({ lineItems, lineStartIndex = 0 }) => {
                 ))}
               </td>
               <td className={styles.rateCol}>{item.currencyCode}</td>
-              <td className={styles.amountCol}>
-                {formatMoney(item.amount)}
-              </td>
+              <td className={styles.amountCol}>{formatMoney(item.amount)}</td>
             </tr>
           ))
         )}
@@ -384,9 +373,9 @@ const ApInvoicePreviewDocument = ({ view, pages }) => (
 );
 
 const estimateApRowUnits = (item) => {
-  const text = `${toSafeString(item?.itemName)} ${toArray(item?.detailLines).join(
-    ' ',
-  )}`;
+  const text = `${toSafeString(item?.itemName)} ${toArray(
+    item?.detailLines,
+  ).join(' ')}`;
 
   let units = 1;
   units += Math.max(0, Math.ceil(text.length / 54) - 1);

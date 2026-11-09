@@ -1,0 +1,8 @@
+.tableSection {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.cellInput {
+  min-width: 120px;
+}

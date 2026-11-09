@@ -33,6 +33,7 @@ const VIEW_PATH_BY_KEY = {
   catalog: '/catalog',
   supplier: '/supplier_master',
   customer: '/customer_master',
+  company: '/companys',
   salesQuotation: '/sales',
   purchaseRequest: '/purchase',
   masterControl: '/master_control',
@@ -43,6 +44,7 @@ const VIEW_KEY_BY_PATH_PREFIX = {
   '/panel/catalog': 'catalog',
   '/panel/supplier_master': 'supplier',
   '/panel/customer_master': 'customer',
+  '/panel/companys': 'company',
   '/panel/sales': 'salesQuotation',
   '/panel/purchase': 'purchaseRequest',
   '/panel/master_control': 'masterControl',
@@ -53,6 +55,7 @@ const PAGE_TITLE_BY_VIEW = {
   catalog: 'Catalog',
   supplier: 'Supplier Master',
   customer: 'Customer Master',
+  company: 'Company',
   salesQuotation: 'Sales',
   purchaseRequest: 'Purchase',
   masterControl: 'Master Control',
@@ -603,6 +606,12 @@ const TopBar = () => {
               onClick={() => handleViewSwitch('customer')}
             >
               Customer Master
+            </NavButton>
+            <NavButton
+              active={activeView === 'company'}
+              onClick={() => handleViewSwitch('company')}
+            >
+              Company
             </NavButton>
             <NavButton
               active={activeView === 'masterControl'}

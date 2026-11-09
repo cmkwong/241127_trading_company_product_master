@@ -6,6 +6,7 @@ import Main_CustomerMaster from '../components/panels/CustomerMaster/Main_Custom
 import Main_SalesPanel from '../components/panels/SalesQuotation/Main_SalesPanel';
 import Main_PurchaseRequest from '../components/panels/PurchaseRequest/Main_PurchaseRequest';
 import Main_MasterControl from '../components/panels/MasterControl/Main_MasterControl';
+import Main_Companys from '../components/panels/Companys/Main_Companys';
 import Main_Signup from '../components/signup/Main_Signup';
 import FinishSignup from '../components/signup/FinishSignup';
 import ForceChangePassword from '../components/signup/ForceChangePassword';
@@ -66,6 +67,9 @@ const AppRouter = () => {
         />
 
         <Route path="master_control" element={<Main_MasterControl />} />
+
+        <Route path="companys" element={<Main_Companys />} />
+        <Route path="companys/:company_id" element={<Main_Companys />} />
       </Route>
 
       <Route path="signup" element={<Main_Signup />} />

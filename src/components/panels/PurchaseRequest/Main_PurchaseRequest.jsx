@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { usePurchaseRequestContext } from '../../../store/PurchaseRequestContext';
 import { useMasterContext } from '../../../store/MasterContext';
+import { useCompanyProfile } from '../../../store/useCompanyProfile';
 import {
   getEntityRecord,
   useEntityField,
@@ -217,7 +218,9 @@ const isTruthyFlag = (value, defaultWhenMissing = true) => {
 const Main_PurchaseRequest = () => {
   const navigate = useNavigate();
   const { purchase_request_id } = useParams();
-  const { getDocTypeIdByName, companyInfo } = useMasterContext();
+  const { getDocTypeIdByName } = useMasterContext();
+  const { companyProfile } = useCompanyProfile();
+  const printCompanyInfo = companyProfile;
   const salesOrderDocTypeId = useMemo(
     () => getDocTypeIdByName('Sales Order'),
     [getDocTypeIdByName],
@@ -1668,7 +1671,7 @@ const Main_PurchaseRequest = () => {
 
       const html = buildPurchaseRequestApInvoiceHtml({
         invoice: previewInvoice,
-        companyInfo: Array.isArray(companyInfo) ? companyInfo[0] : null,
+        companyInfo: printCompanyInfo,
         supplierOptions: supplierSuggestionOptions,
         supplierAddressOptions: supplierAddressSuggestionOptions,
         currencies,
@@ -1693,7 +1696,7 @@ const Main_PurchaseRequest = () => {
   }, [
     apInvoicePreviewRows,
     baseCurrencyCode,
-    companyInfo,
+    printCompanyInfo,
     currencies,
     currencyCodeById,
     exchangeRateMap,

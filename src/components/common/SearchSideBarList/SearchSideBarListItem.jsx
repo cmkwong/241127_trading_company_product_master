@@ -14,6 +14,7 @@ const SearchSideBarListItem = ({
   rows,
   renderIcon,
   renderInfo,
+  renderItem,
 }) => {
   const hasIconUrl =
     typeof iconUrl === 'string' ? iconUrl.trim().length > 0 : !!iconUrl;
@@ -26,16 +27,22 @@ const SearchSideBarListItem = ({
       className={`${styles.listItem} ${isSelected ? styles.selected : ''}`}
       onClick={() => onClick?.(item)}
     >
-      {renderIcon ? (
-        renderIcon(item)
-      ) : hasIconUrl ? (
-        <SearchSideBarListIcon url={iconUrl} alt={iconAlt} />
-      ) : null}
-
-      {renderInfo ? (
-        renderInfo(item)
+      {renderItem ? (
+        renderItem(item)
       ) : (
-        <SearchSideBarListInfo title={title} rows={rows} />
+        <>
+          {renderIcon ? (
+            renderIcon(item)
+          ) : hasIconUrl ? (
+            <SearchSideBarListIcon url={iconUrl} alt={iconAlt} />
+          ) : null}
+
+          {renderInfo ? (
+            renderInfo(item)
+          ) : (
+            <SearchSideBarListInfo title={title} rows={rows} />
+          )}
+        </>
       )}
     </div>
   );

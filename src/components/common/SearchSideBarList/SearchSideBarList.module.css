@@ -464,6 +464,15 @@
   text-overflow: ellipsis;
 }
 
+.detailValueSlot {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+}
+
 .detailValueDefault {
   color: var(--color-primary);
 }

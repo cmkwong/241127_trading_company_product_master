@@ -86,6 +86,23 @@ const SearchSideBarListInfo = ({ title, rows = [] }) => {
       <div className={styles.itemDetails}>
         {rows.map((row, index) => {
           const rowView = getSidebarRowDisplay(row);
+          const hasRenderValue =
+            row.renderValue !== undefined && row.renderValue !== null;
+
+          if (hasRenderValue) {
+            return (
+              <div key={`${row.label}-${index}`} className={styles.detailItem}>
+                <span className={styles.detailLabel}>{row.label}</span>
+                <span
+                  className={`${styles.detailValue} ${styles.detailValueSlot}`}
+                >
+                  {typeof row.renderValue === 'function'
+                    ? row.renderValue(row)
+                    : row.renderValue}
+                </span>
+              </div>
+            );
+          }
 
           return (
             <div key={`${row.label}-${index}`} className={styles.detailItem}>

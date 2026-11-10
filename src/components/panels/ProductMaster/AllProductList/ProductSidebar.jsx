@@ -3,16 +3,19 @@ import { useNavigate } from 'react-router-dom';
 import styles from './ProductSidebar.module.css';
 import SearchSideBarList from '../../../common/SearchSideBarList/SearchSideBarList';
 import { useProductContext } from '../../../../store/ProductContext';
-import {
-  useEntityField,
-  useEntityRows,
-} from '../../../../store/GeneralContext';
-import { useMasterContext } from '../../../../store/MasterContext';
 import { buildCatalogRows, normalizeCatalogBundle } from '../utils/catalogData';
 import {
   buildCatalogA4Html,
   printCatalogPreviewFrame,
 } from '../utils/catalogPrint';
+import ProductItemCard, {
+  useProductCardLookups,
+  buildProductCardTitle,
+  buildProductCardRows,
+  resolveProductCardIconUrl,
+  resolveProductCardStatusLabel,
+  buildProductCardKeywordText,
+} from './ProductItemCard';
 
 const PRODUCT_SEARCH_HISTORY_KEY = 'product_sidebar_search_history';
 const MAX_SEARCH_HISTORY_ITEMS = 15;
@@ -73,10 +76,7 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
     hydrateProductIcons,
     getCatalogDataByIds,
   } = useProductContext();
-  const pageDataId = useEntityField('products', 'id');
-  const pageKeywords = useEntityRows('products', 'product_keywords');
-  const pageNames = useEntityRows('products', 'product_names');
-  const { category, productStatus, productKeywords } = useMasterContext();
+  const cardLookups = useProductCardLookups();
   const [windowWidth, setWindowWidth] = useState(
     typeof window !== 'undefined' ? window.innerWidth : 1024,
   );
@@ -87,86 +87,6 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
   const [catalogPreviewHtml, setCatalogPreviewHtml] = useState('');
   const [isPreparingCatalog, setIsPreparingCatalog] = useState(false);
   const catalogPreviewIframeRef = useRef(null);
-
-  const keywordLabelById = useMemo(() => {
-    const lookup = new Map();
-
-    (productKeywords || []).forEach((item) => {
-      const id = String(item?.id || '').trim();
-      const label = String(item?.name || item?.label || '').trim();
-      if (!id || !label) return;
-      lookup.set(id, label);
-    });
-
-    return lookup;
-  }, [productKeywords]);
-
-  const getProductKeywordRelations = useCallback(
-    (product) => {
-      const listRelations = Array.isArray(product?.product_keywords)
-        ? product.product_keywords
-        : [];
-
-      if (listRelations.length > 0) {
-        return listRelations;
-      }
-
-      const productId = String(product?.id || '').trim();
-      const selectedId = String(pageDataId || '').trim();
-
-      if (
-        productId &&
-        selectedId &&
-        productId === selectedId &&
-        Array.isArray(pageKeywords)
-      ) {
-        return pageKeywords;
-      }
-
-      return [];
-    },
-    [pageDataId, pageKeywords],
-  );
-
-  const resolveKeywordLabel = useCallback(
-    (relation) => {
-      if (!relation || typeof relation !== 'object') {
-        return '';
-      }
-
-      const directLabel = String(
-        relation?.keyword_name ||
-          relation?.keywordName ||
-          relation?.name ||
-          relation?.label ||
-          relation?.value ||
-          relation?.text ||
-          relation?.keyword?.name ||
-          relation?.keyword?.label ||
-          '',
-      ).trim();
-
-      if (directLabel) {
-        return directLabel;
-      }
-
-      const keywordId = String(
-        relation?.keyword_id ||
-          relation?.keywordId ||
-          relation?.master_keyword_id ||
-          relation?.masterKeywordId ||
-          relation?.keyword?.id ||
-          '',
-      ).trim();
-
-      if (!keywordId) {
-        return '';
-      }
-
-      return String(keywordLabelById.get(keywordId) || '').trim();
-    },
-    [keywordLabelById],
-  );
 
   const searchHistoryWithIcons = useMemo(() => {
     const currentProductList = Array.isArray(products)
@@ -219,22 +139,9 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
 
     const lowerSearchTerm = searchTerm.toLowerCase();
     const filtered = currentProductList.filter((product) => {
-      const statusName =
-        productStatus.find(
-          (item) =>
-            item.id === (product?.product_status_id || product?.status_id),
-        )?.name ||
-        productStatus.find(
-          (item) =>
-            item.id === (product?.product_status_id || product?.status_id),
-        )?.label ||
-        '';
+      const statusName = resolveProductCardStatusLabel(product, cardLookups);
 
-      const keywordText =
-        getProductKeywordRelations(product)
-          .map((relation) => resolveKeywordLabel(relation))
-          .filter(Boolean)
-          .join(', ') || '';
+      const keywordText = buildProductCardKeywordText(product, cardLookups);
 
       return (
         (typeof product.product_names === 'string' &&
@@ -268,13 +175,7 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
     });
 
     setFilteredProducts(filtered);
-  }, [
-    searchTerm,
-    products,
-    productStatus,
-    getProductKeywordRelations,
-    resolveKeywordLabel,
-  ]);
+  }, [searchTerm, products, cardLookups]);
 
   useEffect(() => {
     const ids = filteredProducts
@@ -286,75 +187,6 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
       hydrateProductIcons(ids);
     }
   }, [filteredProducts, hydrateProductIcons]);
-
-  const formatDateTime = useCallback((value) => {
-    if (!value) return '';
-    return String(value)
-      .replace('T', ' ')
-      .replace(/\.\d{3}Z?$/, '');
-  }, []);
-
-  const extractFirstProductName = useCallback((productNames) => {
-    if (typeof productNames === 'string') {
-      return String(productNames || '').trim();
-    }
-
-    if (!Array.isArray(productNames) || productNames.length === 0) {
-      return '';
-    }
-
-    const activeRows = productNames.filter((row) => !row?._delete);
-    if (activeRows.length === 0) {
-      return '';
-    }
-
-    const rowWithDisplayOrderOne = activeRows.find((row) => {
-      const orderValue = Number(row?.display_order);
-      return Number.isFinite(orderValue) && orderValue === 1;
-    });
-
-    const orderOneName = String(
-      rowWithDisplayOrderOne?.name || rowWithDisplayOrderOne?.value || '',
-    ).trim();
-    if (orderOneName) {
-      return orderOneName;
-    }
-
-    const firstRowName = String(
-      activeRows[0]?.name || activeRows[0]?.value || '',
-    ).trim();
-    if (firstRowName) {
-      return firstRowName;
-    }
-
-    const fallbackRow = activeRows.find((row) => {
-      return String(row?.name || row?.value || '').trim().length > 0;
-    });
-
-    return String(fallbackRow?.name || fallbackRow?.value || '').trim();
-  }, []);
-
-  const getProductName = useCallback(
-    (product) => {
-      const productId = String(product?.id || '').trim();
-      const selectedId = String(pageDataId || '').trim();
-
-      if (productId && selectedId && productId === selectedId) {
-        const liveName = extractFirstProductName(pageNames);
-        if (liveName) {
-          return liveName;
-        }
-      }
-
-      const listName = extractFirstProductName(product?.product_names);
-      if (listName) {
-        return listName;
-      }
-
-      return productId;
-    },
-    [pageDataId, pageNames, extractFirstProductName],
-  );
 
   const saveSearchHistory = useCallback((updater) => {
     setSearchHistory((prev) => {
@@ -390,7 +222,9 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
       saveSearchHistory((prev) => {
         const entry = {
           id: String(product?.id || '').trim(),
-          title: String(getProductName(product) || product?.id || '').trim(),
+          title: String(
+            buildProductCardTitle(product, cardLookups) || product?.id || '',
+          ).trim(),
           // Do not persist blob URLs; they become invalid after reload.
           icon_url: '',
         };
@@ -415,7 +249,7 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
       onToggleCollapse,
       onSelectProduct,
       saveSearchHistory,
-      getProductName,
+      cardLookups,
       navigate,
     ],
   );
@@ -438,7 +272,9 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
           normalized.id && String(item?.id || '').trim() === normalized.id;
         if (byId) return true;
 
-        const itemTitle = String(getProductName(item) || '').trim();
+        const itemTitle = String(
+          buildProductCardTitle(item, cardLookups) || '',
+        ).trim();
         return (
           !normalized.id &&
           itemTitle &&
@@ -453,7 +289,7 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
 
       setSearchTerm(normalized.title);
     },
-    [products, getProductName, handleProductSelect],
+    [products, cardLookups, handleProductSelect],
   );
 
   const handleClearSearch = useCallback(() => {
@@ -621,57 +457,6 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
     setCatalogPreviewHtml('');
   }, []);
 
-  const getProductRows = useCallback(
-    (product) => {
-      const categoryLabels =
-        product?.product_categories
-          ?.map((c) => c.category_id)
-          .map((categoryId) => {
-            const item = category.find(
-              (lookupItem) => lookupItem.id === categoryId,
-            );
-            return item?.label || item?.name || `Unknown (${categoryId})`;
-          }) || [];
-
-      const alibabaIdValues =
-        product?.product_alibaba_ids
-          ?.map((item) => item.value)
-          .filter(Boolean) || [];
-
-      const statusLabel =
-        productStatus.find(
-          (item) =>
-            item.id === (product?.product_status_id || product?.status_id),
-        )?.name ||
-        productStatus.find(
-          (item) =>
-            item.id === (product?.product_status_id || product?.status_id),
-        )?.label ||
-        '';
-
-      const keywordLabels = getProductKeywordRelations(product)
-        .map((relation) => resolveKeywordLabel(relation))
-        .filter(Boolean);
-
-      return [
-        { label: 'Product Keywords:', value: keywordLabels.join(', ') },
-        { label: 'ID:', value: product?.id || '' },
-        { label: 'Status:', value: statusLabel },
-        { label: 'Categories:', value: categoryLabels.join(', ') },
-        { label: 'Alibaba:', value: alibabaIdValues.join(', ') },
-        { label: 'Created At:', value: formatDateTime(product?.created_at) },
-        { label: 'Updated At:', value: formatDateTime(product?.updated_at) },
-      ];
-    },
-    [
-      category,
-      productStatus,
-      formatDateTime,
-      getProductKeywordRelations,
-      resolveKeywordLabel,
-    ],
-  );
-
   // Track window resize for responsive behavior
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -706,10 +491,17 @@ const ProductSidebar = ({ onSelectProduct, isCollapsed, onToggleCollapse }) => {
           showCreateButton={false}
           noResultsMessage="No products found"
           getItemId={(product) => product.id}
-          getItemTitle={getProductName}
-          getItemRows={getProductRows}
-          getItemIconUrl={(product) => product.icon_url}
-          getItemIconAlt={getProductName}
+          getItemTitle={(product) =>
+            buildProductCardTitle(product, cardLookups)
+          }
+          getItemRows={(product) => buildProductCardRows(product, cardLookups)}
+          getItemIconUrl={resolveProductCardIconUrl}
+          getItemIconAlt={(product) =>
+            buildProductCardTitle(product, cardLookups)
+          }
+          renderItem={(product) => (
+            <ProductItemCard product={product} lookups={cardLookups} />
+          )}
           exportFileName="products_filtered_list"
           exportSheetName="Products"
           sidebarTitle="Product List"

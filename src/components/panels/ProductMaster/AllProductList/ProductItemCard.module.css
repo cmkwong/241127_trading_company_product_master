@@ -1,0 +1,60 @@
+/*
+ * The card body is rendered inside SearchSideBarList's `.listItem` wrapper,
+ * which already owns the flex layout between icon and info. `display:
+ * contents` lets the card add a semantic hook without introducing an extra
+ * layout box, so the rendered result is identical to the default sidebar item.
+ */
+.card {
+  display: contents;
+}
+
+.linkList {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.linkRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.linkText {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--color-blue-deep);
+}
+
+.linkButton {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--color-blue-deep);
+  cursor: pointer;
+  padding: 0;
+}
+
+.linkButton:hover {
+  background: var(--color-surface-blue-mist);
+}
+
+.linkButton svg {
+  width: 12px;
+  height: 12px;
+  fill: currentColor;
+}
+

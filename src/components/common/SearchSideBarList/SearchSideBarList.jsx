@@ -48,6 +48,7 @@ const SearchSideBarList = ({
   onExportCatalog,
   renderItemIcon,
   renderItemInfo,
+  renderItem,
   className = '',
   listClassName = '',
   persistScroll = true,
@@ -380,6 +381,7 @@ const SearchSideBarList = ({
                 rows={getItemRows(item)}
                 renderIcon={renderItemIcon}
                 renderInfo={renderItemInfo}
+                renderItem={renderItem}
               />
             );
           })

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { createPortal } from 'react-dom';
+import Main_Modal from '../Modal/Main_Modal';
 import styles from './Main_FileSelector.module.css';
 import { useAuthContext } from '../../../store/AuthContext';
 import {
@@ -34,11 +35,6 @@ const IMAGE_MODE = 'image';
 // Floating "hover preview" box size (px) — used to clamp it inside the viewport.
 const HOVER_PREVIEW_SIZE = 340;
 const HOVER_PREVIEW_GAP = 16;
-
-// Minimum amount of the window (px) that must remain visible while dragging so
-// it can never be lost entirely off-screen.
-const MIN_DRAG_VISIBLE_X = 80;
-const MIN_DRAG_VISIBLE_Y = 40;
 
 /**
  * "File Banks" picker window. Browses the server-side `/public/...` image
@@ -75,12 +71,8 @@ const Main_FileSelector = ({
   const [error, setError] = useState('');
   const [previewEntry, setPreviewEntry] = useState(null);
   const [hoverPreview, setHoverPreview] = useState(null);
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState(false);
 
   const requestSeqRef = useRef(0);
-  const windowRef = useRef(null);
-  const dragStateRef = useRef(null);
 
   // Initialise when the window opens.
   useEffect(() => {
@@ -95,8 +87,6 @@ const Main_FileSelector = ({
     setViewMode('grid');
     setPreviewEntry(null);
     setHoverPreview(null);
-    setDragOffset({ x: 0, y: 0 });
-    setIsDragging(false);
     if (!storage) {
       fetchFileBankTree({ token })
         .then((tree) => setStorageMeta(tree.storage))
@@ -281,106 +271,94 @@ const Main_FileSelector = ({
     if (previewEntry) setHoverPreview(null);
   }, [previewEntry]);
 
-  // --- Draggable window (grab the title bar to move) -------------------------
-  const handleTitleBarMouseDown = useCallback(
-    (event) => {
-      if (event.button !== 0) return;
-      // Let the close button (and any future buttons) keep normal behaviour.
-      if (event.target.closest?.('button')) return;
-      const rect = windowRef.current?.getBoundingClientRect();
-      if (!rect) return;
-      event.preventDefault();
-      dragStateRef.current = {
-        startX: event.clientX,
-        startY: event.clientY,
-        originX: dragOffset.x,
-        originY: dragOffset.y,
-        minX: -(rect.left + rect.width - MIN_DRAG_VISIBLE_X),
-        maxX: window.innerWidth - rect.left - MIN_DRAG_VISIBLE_X,
-        minY: -(rect.top + rect.height - MIN_DRAG_VISIBLE_Y),
-        maxY: window.innerHeight - rect.top - MIN_DRAG_VISIBLE_Y,
-      };
-      setIsDragging(true);
-    },
-    [dragOffset],
-  );
-
-  useEffect(() => {
-    if (!isDragging) return undefined;
-    const onMove = (event) => {
-      const drag = dragStateRef.current;
-      if (!drag) return;
-      const nextX = Math.min(
-        Math.max(drag.originX + event.clientX - drag.startX, drag.minX),
-        drag.maxX,
-      );
-      const nextY = Math.min(
-        Math.max(drag.originY + event.clientY - drag.startY, drag.minY),
-        drag.maxY,
-      );
-      setDragOffset({ x: nextX, y: nextY });
-    };
-    const onUp = () => {
-      dragStateRef.current = null;
-      setIsDragging(false);
-    };
-    document.addEventListener('mousemove', onMove);
-    document.addEventListener('mouseup', onUp);
-    return () => {
-      document.removeEventListener('mousemove', onMove);
-      document.removeEventListener('mouseup', onUp);
-    };
-  }, [isDragging]);
-
-  // Escape to close.
-  useEffect(() => {
-    if (!isOpen) return undefined;
-    const onKey = (event) => {
-      if (event.key !== 'Escape') return;
-      if (previewEntry) {
-        setPreviewEntry(null);
-        return;
-      }
-      onClose?.();
-    };
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [isOpen, onClose, previewEntry]);
+  // Escape / backdrop / close-button: collapse any open close-up first, then
+  // close the window. (Escape and backdrop are handled by Main_Modal.)
+  const handleRequestClose = useCallback(() => {
+    if (previewEntry) {
+      setPreviewEntry(null);
+      return;
+    }
+    onClose?.();
+  }, [previewEntry, onClose]);
 
   const itemCount = folderCount + fileCount;
 
   if (!isOpen) return null;
 
-  return createPortal(
-    <div className={styles.overlay} onMouseDown={onClose}>
-      <div
-        ref={windowRef}
-        className={`${styles.window} ${isDragging ? styles.windowDragging : ''}`}
-        onMouseDown={(event) => event.stopPropagation()}
-        style={{
-          transform: `translate3d(${dragOffset.x}px, ${dragOffset.y}px, 0)`,
-        }}
-        role="dialog"
-        aria-label="File Banks"
-      >
-        <div
-          className={`${styles.titleBar} ${isDragging ? styles.titleBarDragging : ''}`}
-          onMouseDown={handleTitleBarMouseDown}
-        >
-          <div className={styles.titleLeft}>
+  return (
+    <>
+      <Main_Modal
+        title={
+          <span className={styles.titleLeft}>
             <FolderIcon size={16} className={styles.titleIcon} />
             <span className={styles.titleText}>File Banks</span>
-          </div>
+          </span>
+        }
+        onClose={handleRequestClose}
+        width="min(1200px, 94vw)"
+        height="min(680px, 90vh)"
+        zIndex={2000}
+        draggable
+        bodyScrollable={false}
+        showCloseButton={false}
+        headerActions={
           <button
             type="button"
             className={styles.titleClose}
-            onClick={onClose}
+            onClick={handleRequestClose}
             aria-label="Close"
           >
             <CloseIcon size={16} />
           </button>
-        </div>
-
+        }
+        className={styles.modalWindow}
+        overlayClassName={styles.modalOverlay}
+        headerClassName={styles.modalHeader}
+        footerClassName={styles.footerReset}
+        footer={
+          <div className={styles.statusBar}>
+            <span className={styles.statusLeft}>
+              <span className={styles.statusItems}>{itemCount} items</span>
+              {multiSelect && selectedPaths.length > 0 && (
+                <span className={styles.statusSelected}>
+                  {selectedPaths.length} selected
+                </span>
+              )}
+            </span>
+            {allowMultiple ? (
+              <span className={styles.statusActions}>
+                <button
+                  type="button"
+                  className={styles.statusBtn}
+                  onClick={handleRequestClose}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.statusBtn} ${styles.statusBtnPrimary}`}
+                  onClick={handleConfirm}
+                  disabled={selectedPaths.length === 0}
+                >
+                  Confirm
+                  {selectedPaths.length > 0 ? ` (${selectedPaths.length})` : ''}
+                </button>
+              </span>
+            ) : (
+              <span className={styles.statusSelected}>
+                {selectedPaths[0]
+                  ? `Selected: ${
+                      getEntryDisplayName(
+                        entries.find((entry) => entry.path === selectedPaths[0]),
+                      ) || selectedPaths[0].split('/').pop()
+                    }`
+                  : ''}
+              </span>
+            )}
+          </div>
+        }
+        ariaLabel="File Banks"
+      >
         <div className={styles.navBar}>
           {allowMultiple && (
             <label
@@ -509,70 +487,30 @@ const Main_FileSelector = ({
             ))}
         </div>
 
-        <div className={styles.statusBar}>
-          <span className={styles.statusLeft}>
-            <span className={styles.statusItems}>{itemCount} items</span>
-            {multiSelect && selectedPaths.length > 0 && (
-              <span className={styles.statusSelected}>
-                {selectedPaths.length} selected
-              </span>
-            )}
-          </span>
-          {allowMultiple ? (
-            <span className={styles.statusActions}>
-              <button
-                type="button"
-                className={styles.statusBtn}
-                onClick={onClose}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className={`${styles.statusBtn} ${styles.statusBtnPrimary}`}
-                onClick={handleConfirm}
-                disabled={selectedPaths.length === 0}
-              >
-                Confirm
-                {selectedPaths.length > 0 ? ` (${selectedPaths.length})` : ''}
-              </button>
-            </span>
-          ) : (
-            <span className={styles.statusSelected}>
-              {selectedPaths[0]
-                ? `Selected: ${
-                    getEntryDisplayName(
-                      entries.find((entry) => entry.path === selectedPaths[0]),
-                    ) || selectedPaths[0].split('/').pop()
-                  }`
-                : ''}
-            </span>
-          )}
-        </div>
-
         {previewEntry && (
           <Sub_FileSelectorImagePreview
             entry={previewEntry}
             onCollapse={() => setPreviewEntry(null)}
           />
         )}
-      </div>
+      </Main_Modal>
 
-      {hoverPreview && (
-        <div
-          className={styles.hoverPreview}
-          style={{ left: hoverPreview.x, top: hoverPreview.y }}
-          aria-hidden="true"
-        >
-          <img
-            src={buildPublicFileUrl(hoverPreview.entry.path)}
-            alt={getEntryDisplayName(hoverPreview.entry)}
-            className={styles.hoverPreviewImage}
-          />
-        </div>
-      )}
-    </div>,
-    document.body,
+      {hoverPreview &&
+        createPortal(
+          <div
+            className={styles.hoverPreview}
+            style={{ left: hoverPreview.x, top: hoverPreview.y }}
+            aria-hidden="true"
+          >
+            <img
+              src={buildPublicFileUrl(hoverPreview.entry.path)}
+              alt={getEntryDisplayName(hoverPreview.entry)}
+              className={styles.hoverPreviewImage}
+            />
+          </div>,
+          document.body,
+        )}
+    </>
   );
 };
 Main_FileSelector.propTypes = {

@@ -27,6 +27,10 @@
   color: #ddd;
 }
 
+.windowDragging {
+  user-select: none;
+}
+
 /* Title bar */
 .titleBar {
   display: flex;
@@ -37,6 +41,12 @@
   background: #191919;
   border-bottom: 1px solid #3d3d3d;
   flex-shrink: 0;
+  cursor: grab;
+  user-select: none;
+}
+
+.titleBarDragging {
+  cursor: grabbing;
 }
 
 .titleLeft {
@@ -556,6 +566,27 @@
   object-fit: contain;
   display: block;
   border-radius: 2px;
+}
+
+/* Floating "hover preview" (enlarged image that follows the cursor). */
+.hoverPreview {
+  position: fixed;
+  z-index: 2100;
+  pointer-events: none;
+  padding: 6px;
+  border: 1px solid #3d3d3d;
+  border-radius: 8px;
+  background: #151515;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
+}
+
+.hoverPreviewImage {
+  width: 320px;
+  height: 320px;
+  object-fit: contain;
+  display: block;
+  border-radius: 4px;
+  background: #101010;
 }
 
 /* Status bar */

@@ -6,6 +6,7 @@ import { useAuthContext } from '../../../store/AuthContext';
 import {
   fetchFileBankDirectory,
   fetchFileBankTree,
+  buildPublicFileUrl,
 } from '../../../utils/filePickerUtils';
 import {
   normalizeStartPath,
@@ -29,6 +30,15 @@ import {
 } from './FileSelectorIcons';
 
 const IMAGE_MODE = 'image';
+
+// Floating "hover preview" box size (px) — used to clamp it inside the viewport.
+const HOVER_PREVIEW_SIZE = 340;
+const HOVER_PREVIEW_GAP = 16;
+
+// Minimum amount of the window (px) that must remain visible while dragging so
+// it can never be lost entirely off-screen.
+const MIN_DRAG_VISIBLE_X = 80;
+const MIN_DRAG_VISIBLE_Y = 40;
 
 /**
  * "File Banks" picker window. Browses the server-side `/public/...` image
@@ -64,8 +74,13 @@ const Main_FileSelector = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [previewEntry, setPreviewEntry] = useState(null);
+  const [hoverPreview, setHoverPreview] = useState(null);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
 
   const requestSeqRef = useRef(0);
+  const windowRef = useRef(null);
+  const dragStateRef = useRef(null);
 
   // Initialise when the window opens.
   useEffect(() => {
@@ -79,6 +94,9 @@ const Main_FileSelector = ({
     setSearchQuery('');
     setViewMode('grid');
     setPreviewEntry(null);
+    setHoverPreview(null);
+    setDragOffset({ x: 0, y: 0 });
+    setIsDragging(false);
     if (!storage) {
       fetchFileBankTree({ token })
         .then((tree) => setStorageMeta(tree.storage))
@@ -124,6 +142,7 @@ const Main_FileSelector = ({
   useEffect(() => {
     if (!isOpen) return;
     setPreviewEntry(null);
+    setHoverPreview(null);
     loadDirectory(path);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, path, searchQuery]);
@@ -211,6 +230,108 @@ const Main_FileSelector = ({
     }
   }, [selectedPaths, entries, multiSelect, onSelect, onSelectMultiple]);
 
+  // --- Floating "hover preview" (cursor-following enlarged image) -----------
+  const positionHoverPreview = useCallback((clientX, clientY) => {
+    const size = HOVER_PREVIEW_SIZE;
+    const gap = HOVER_PREVIEW_GAP;
+    let x = clientX + gap;
+    let y = clientY + gap;
+    const maxX = window.innerWidth - size - gap;
+    const maxY = window.innerHeight - size - gap;
+    // Flip to the left / above when near the right / bottom edge.
+    if (x > maxX) x = clientX - size - gap;
+    if (y > maxY) y = clientY - size - gap;
+    // Final clamp keeps the box fully inside the viewport.
+    return {
+      x: Math.max(gap, Math.min(x, maxX)),
+      y: Math.max(gap, Math.min(y, maxY)),
+    };
+  }, []);
+
+  const handleHoverImage = useCallback(
+    (event, entry) => {
+      if (!entry?.isImage) return;
+      setHoverPreview({
+        entry,
+        ...positionHoverPreview(event.clientX, event.clientY),
+      });
+    },
+    [positionHoverPreview],
+  );
+
+  const handleHoverImageMove = useCallback(
+    (event) => {
+      setHoverPreview((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          ...positionHoverPreview(event.clientX, event.clientY),
+        };
+      });
+    },
+    [positionHoverPreview],
+  );
+
+  const handleHoverImageLeave = useCallback(() => {
+    setHoverPreview(null);
+  }, []);
+
+  // Suppress the hover preview while the full-window close-up is open.
+  useEffect(() => {
+    if (previewEntry) setHoverPreview(null);
+  }, [previewEntry]);
+
+  // --- Draggable window (grab the title bar to move) -------------------------
+  const handleTitleBarMouseDown = useCallback(
+    (event) => {
+      if (event.button !== 0) return;
+      // Let the close button (and any future buttons) keep normal behaviour.
+      if (event.target.closest?.('button')) return;
+      const rect = windowRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      event.preventDefault();
+      dragStateRef.current = {
+        startX: event.clientX,
+        startY: event.clientY,
+        originX: dragOffset.x,
+        originY: dragOffset.y,
+        minX: -(rect.left + rect.width - MIN_DRAG_VISIBLE_X),
+        maxX: window.innerWidth - rect.left - MIN_DRAG_VISIBLE_X,
+        minY: -(rect.top + rect.height - MIN_DRAG_VISIBLE_Y),
+        maxY: window.innerHeight - rect.top - MIN_DRAG_VISIBLE_Y,
+      };
+      setIsDragging(true);
+    },
+    [dragOffset],
+  );
+
+  useEffect(() => {
+    if (!isDragging) return undefined;
+    const onMove = (event) => {
+      const drag = dragStateRef.current;
+      if (!drag) return;
+      const nextX = Math.min(
+        Math.max(drag.originX + event.clientX - drag.startX, drag.minX),
+        drag.maxX,
+      );
+      const nextY = Math.min(
+        Math.max(drag.originY + event.clientY - drag.startY, drag.minY),
+        drag.maxY,
+      );
+      setDragOffset({ x: nextX, y: nextY });
+    };
+    const onUp = () => {
+      dragStateRef.current = null;
+      setIsDragging(false);
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+    return () => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    };
+  }, [isDragging]);
+
   // Escape to close.
   useEffect(() => {
     if (!isOpen) return undefined;
@@ -233,12 +354,19 @@ const Main_FileSelector = ({
   return createPortal(
     <div className={styles.overlay} onMouseDown={onClose}>
       <div
-        className={styles.window}
+        ref={windowRef}
+        className={`${styles.window} ${isDragging ? styles.windowDragging : ''}`}
         onMouseDown={(event) => event.stopPropagation()}
+        style={{
+          transform: `translate3d(${dragOffset.x}px, ${dragOffset.y}px, 0)`,
+        }}
         role="dialog"
         aria-label="File Banks"
       >
-        <div className={styles.titleBar}>
+        <div
+          className={`${styles.titleBar} ${isDragging ? styles.titleBarDragging : ''}`}
+          onMouseDown={handleTitleBarMouseDown}
+        >
           <div className={styles.titleLeft}>
             <FolderIcon size={16} className={styles.titleIcon} />
             <span className={styles.titleText}>File Banks</span>
@@ -263,7 +391,9 @@ const Main_FileSelector = ({
                 type="checkbox"
                 className={styles.selectToggleInput}
                 checked={multiSelect}
-                onChange={(event) => handleToggleMultiSelect(event.target.checked)}
+                onChange={(event) =>
+                  handleToggleMultiSelect(event.target.checked)
+                }
               />
               <span>Multiple selection</span>
             </label>
@@ -361,6 +491,9 @@ const Main_FileSelector = ({
                 onOpenFolder={handleOpenFolder}
                 onSelect={handleSelect}
                 onExpandImage={setPreviewEntry}
+                onHoverImage={handleHoverImage}
+                onHoverImageMove={handleHoverImageMove}
+                onHoverImageLeave={handleHoverImageLeave}
               />
             ) : (
               <Sub_FileSelectorList
@@ -369,6 +502,9 @@ const Main_FileSelector = ({
                 mode={mode}
                 onOpenFolder={handleOpenFolder}
                 onSelect={handleSelect}
+                onHoverImage={handleHoverImage}
+                onHoverImageMove={handleHoverImageMove}
+                onHoverImageLeave={handleHoverImageLeave}
               />
             ))}
         </div>
@@ -397,7 +533,8 @@ const Main_FileSelector = ({
                 onClick={handleConfirm}
                 disabled={selectedPaths.length === 0}
               >
-                Confirm{selectedPaths.length > 0 ? ` (${selectedPaths.length})` : ''}
+                Confirm
+                {selectedPaths.length > 0 ? ` (${selectedPaths.length})` : ''}
               </button>
             </span>
           ) : (
@@ -420,11 +557,24 @@ const Main_FileSelector = ({
           />
         )}
       </div>
+
+      {hoverPreview && (
+        <div
+          className={styles.hoverPreview}
+          style={{ left: hoverPreview.x, top: hoverPreview.y }}
+          aria-hidden="true"
+        >
+          <img
+            src={buildPublicFileUrl(hoverPreview.entry.path)}
+            alt={getEntryDisplayName(hoverPreview.entry)}
+            className={styles.hoverPreviewImage}
+          />
+        </div>
+      )}
     </div>,
     document.body,
   );
 };
-
 Main_FileSelector.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,

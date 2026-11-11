@@ -45,6 +45,9 @@ const Sub_FileSelectorList = ({
   mode,
   onOpenFolder,
   onSelect,
+  onHoverImage,
+  onHoverImageMove,
+  onHoverImageLeave,
 }) => (
   <div className={styles.listContainer} role="list">
     <div className={styles.listHeader} role="row">
@@ -66,6 +69,9 @@ const Sub_FileSelectorList = ({
             className={`${styles.listRow} ${isSelected ? styles.listRowSelected : ''} ${isFolder || selectable ? '' : styles.listRowDisabled}`}
             onClick={() => (isFolder ? onOpenFolder(entry) : selectable && onSelect(entry))}
             onDoubleClick={() => isFolder && onOpenFolder(entry)}
+            onMouseEnter={(event) => onHoverImage?.(event, entry)}
+            onMouseMove={onHoverImageMove}
+            onMouseLeave={onHoverImageLeave}
             title={getEntryDisplayName(entry)}
           >
             <span className={styles.listNameCell} style={{ width: 320 }}>
@@ -94,6 +100,9 @@ Sub_FileSelectorList.propTypes = {
   mode: PropTypes.oneOf(['image', 'file']),
   onOpenFolder: PropTypes.func,
   onSelect: PropTypes.func,
+  onHoverImage: PropTypes.func,
+  onHoverImageMove: PropTypes.func,
+  onHoverImageLeave: PropTypes.func,
 };
 
 export default Sub_FileSelectorList;

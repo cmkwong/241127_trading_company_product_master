@@ -30,6 +30,9 @@ const Sub_FileSelectorGrid = ({
   onOpenFolder,
   onSelect,
   onExpandImage,
+  onHoverImage,
+  onHoverImageMove,
+  onHoverImageLeave,
 }) => (
   <div className={styles.gridPanel}>
     <div className={styles.grid}>
@@ -46,6 +49,9 @@ const Sub_FileSelectorGrid = ({
               isFolder ? onOpenFolder(entry) : selectable && onSelect(entry)
             }
             onDoubleClick={() => isFolder && onOpenFolder(entry)}
+            onMouseEnter={(event) => onHoverImage?.(event, entry)}
+            onMouseMove={onHoverImageMove}
+            onMouseLeave={onHoverImageLeave}
             title={getEntryDisplayName(entry)}
             aria-label={getEntryDisplayName(entry)}
           >
@@ -101,6 +107,9 @@ Sub_FileSelectorGrid.propTypes = {
   onOpenFolder: PropTypes.func,
   onSelect: PropTypes.func,
   onExpandImage: PropTypes.func,
+  onHoverImage: PropTypes.func,
+  onHoverImageMove: PropTypes.func,
+  onHoverImageLeave: PropTypes.func,
 };
 
 export default Sub_FileSelectorGrid;
